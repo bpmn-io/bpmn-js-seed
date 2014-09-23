@@ -35,6 +35,8 @@
       html: '<div class="diagram-note">Mixed up the labels?</div>'
     });
 
+    // add marker
+    canvas.addMarker('SCAN_OK', 'needs-discussion');
   });
 
 })(window.BpmnJS, window.jQuery);
