@@ -9,15 +9,6 @@ var Diagram = _dereq_('diagram-js'),
 var Importer = _dereq_('./import/Importer');
 
 
-function getSvgContents(diagram) {
-  var outerNode = diagram.get('canvas').getContainer();
-
-  var svg = outerNode.innerHTML;
-  return svg.replace(/^.*<svg[^>]*>|<\/svg>.*$/g, '')
-            .replace('<desc>Created with Snap</desc>', '')
-            .replace(/<g class="viewport"( transform="[^"]*")?/, '<g');
-}
-
 function initListeners(diagram, listeners) {
   var events = diagram.get('eventBus');
 
@@ -132,36 +123,39 @@ Viewer.prototype.saveXML = function(options, done) {
     return done(new Error('no definitions loaded'));
   }
 
-  this.moddle.toXML(definitions, options, function(err, xml) {
-    done(err, xml);
-  });
+  this.moddle.toXML(definitions, options, done);
 };
 
 Viewer.prototype.createModdle = function() {
   return new BpmnModdle();
 };
 
-var SVG_HEADER =
-'<?xml version="1.0" encoding="utf-8"?>\n' +
-'<!-- created with bpmn-js / http://bpmn.io -->\n' +
-'<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n' +
-'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">\n';
-
-var SVG_FOOTER = '</svg>';
-
 Viewer.prototype.saveSVG = function(options, done) {
+
   if (!done) {
     done = options;
     options = {};
   }
 
-  if (!this.definitions) {
-    return done(new Error('no definitions loaded'));
-  }
+  var canvas = this.get('canvas');
 
-  var svgContents = getSvgContents(this.diagram);
+  var contentNode = canvas.getLayer('base'),
+      defsNode = canvas._paper.select('defs');
 
-  var svg = SVG_HEADER + svgContents + SVG_FOOTER;
+  var contents = contentNode.innerSVG(),
+      defs = (defsNode && defsNode.outerSVG()) || '';
+
+  var bbox = contentNode.getBBox();
+
+  var svg =
+    '<?xml version="1.0" encoding="utf-8"?>\n' +
+    '<!-- created with bpmn-js / http://bpmn.io -->\n' +
+    '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n' +
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ' +
+         'width="' + bbox.width + '" height="' + bbox.height + '" ' +
+         'viewBox="' + bbox.x + ' ' + bbox.y + ' ' + bbox.width + ' ' + bbox.height + '" version="1.1">' +
+      defs + contents +
+    '</svg>';
 
   done(null, svg);
 };
@@ -272,7 +266,7 @@ Viewer.prototype._modules = [
 
 module.exports = Viewer;
 
-},{"./core":3,"./draw":6,"./import/Importer":8,"bpmn-moddle":11,"diagram-js":41,"diagram-js/lib/features/overlays":59,"diagram-js/lib/features/selection":62}],2:[function(_dereq_,module,exports){
+},{"./core":3,"./draw":6,"./import/Importer":8,"bpmn-moddle":11,"diagram-js":32,"diagram-js/lib/features/overlays":50,"diagram-js/lib/features/selection":53}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
@@ -467,11 +461,11 @@ module.exports = {
 var _ = (window._);
 
 var DefaultRenderer = _dereq_('diagram-js/lib/draw/Renderer');
-var LabelUtil = _dereq_('diagram-js/lib/util/LabelUtil');
+var TextUtil = _dereq_('diagram-js/lib/util/Text');
 
 var DiUtil = _dereq_('../util/Di');
 
-var flattenPoints = DefaultRenderer.flattenPoints;
+var createLine = DefaultRenderer.createLine;
 
 
 function BpmnRenderer(events, styles, pathMap) {
@@ -486,7 +480,7 @@ function BpmnRenderer(events, styles, pathMap) {
     fontSize: '12px'
   };
 
-  var labelUtil = new LabelUtil({
+  var textUtil = new TextUtil({
     style: LABEL_STYLE,
     size: { width: 100 }
   });
@@ -652,15 +646,13 @@ function BpmnRenderer(events, styles, pathMap) {
   }
 
   function drawLine(p, waypoints, attrs) {
-    var points = flattenPoints(waypoints);
-
     attrs = computeStyle(attrs, [ 'no-fill' ], {
       stroke: 'black',
       strokeWidth: 2,
       fill: 'none'
     });
 
-    return p.polyline(points).attr(attrs);
+    return createLine(waypoints, attrs).appendTo(p);
   }
 
   function drawPath(p, d, attrs) {
@@ -742,16 +734,21 @@ function BpmnRenderer(events, styles, pathMap) {
   }
 
   function renderLabel(p, label, options) {
-    return labelUtil.createLabel(p, label || '', options).addClass('djs-label');
+    return textUtil.createText(p, label || '', options).addClass('djs-label');
   }
 
   function renderEmbeddedLabel(p, element, align) {
     var semantic = getSemantic(element);
-    return renderLabel(p, semantic.name, { box: element, align: align });
+    return renderLabel(p, semantic.name, { box: element, align: align, padding: 5 });
   }
 
   function renderExternalLabel(p, element, align) {
     var semantic = getSemantic(element);
+
+    if (!semantic.name) {
+      element.hidden = true;
+    }
+
     return renderLabel(p, semantic.name, { box: element, align: align, style: { fontSize: '11px' } });
   }
 
@@ -811,7 +808,7 @@ function BpmnRenderer(events, styles, pathMap) {
         }
       });
 
-      var fill = isThrowing ? 'black' : 'none';
+      var fill = isThrowing ? 'black' : 'white';
       var stroke = isThrowing ? 'white' : 'black';
 
       var messagePath = drawPath(p, pathData, {
@@ -1026,7 +1023,7 @@ function BpmnRenderer(events, styles, pathMap) {
     },
     'bpmn:IntermediateEvent': function(p, element) {
       var outer = renderer('bpmn:Event')(p, element, { strokeWidth: 1 });
-      var inner = drawCircle(p, element.width, element.height, INNER_OUTER_DIST, { strokeWidth: 1 });
+      var inner = drawCircle(p, element.width, element.height, INNER_OUTER_DIST, { strokeWidth: 1, fill: 'none' });
 
       renderEventContent(element, p);
 
@@ -1143,7 +1140,7 @@ function BpmnRenderer(events, styles, pathMap) {
 
       var userPath = drawPath(p, pathData, {
         strokeWidth: 0.25,
-        fill: 'none',
+        fill: 'white',
         stroke: 'black'
       });
 
@@ -1260,7 +1257,7 @@ function BpmnRenderer(events, styles, pathMap) {
 
       var expanded = DiUtil.isExpanded(semantic);
 
-      var isEventSubProcess = !!getSemantic(element).triggeredByEvent;
+      var isEventSubProcess = !!semantic.triggeredByEvent;
       if (isEventSubProcess) {
         rect.attr({
           strokeDasharray: '1,2'
@@ -1301,8 +1298,8 @@ function BpmnRenderer(events, styles, pathMap) {
 
       if (expandedPool) {
         drawLine(p, [
-          {x: 30, y: 0},
-          {x: 30, y: element.height}
+          { x: 30, y: 0 },
+          { x: 30, y: element.height }
         ]);
         var text = getSemantic(element).name;
         renderLaneLabel(p, text, element);
@@ -1681,7 +1678,7 @@ function BpmnRenderer(events, styles, pathMap) {
       drawPath(p, textPathData);
 
       var text = getSemantic(element).text || '';
-      renderLabel(p, text, { box: element, align: 'left-middle' });
+      renderLabel(p, text, { box: element, align: 'left-middle', padding: 5 });
 
       return textElement;
     },
@@ -1947,7 +1944,7 @@ BpmnRenderer.prototype = Object.create(DefaultRenderer.prototype);
 BpmnRenderer.$inject = [ 'eventBus', 'styles', 'pathMap' ];
 
 module.exports = BpmnRenderer;
-},{"../util/Di":9,"diagram-js/lib/draw/Renderer":49,"diagram-js/lib/util/LabelUtil":67}],5:[function(_dereq_,module,exports){
+},{"../util/Di":9,"diagram-js/lib/draw/Renderer":40,"diagram-js/lib/util/Text":58}],5:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -2139,9 +2136,9 @@ function PathMap(Snap) {
         'l  0,-{e.y2} ' +
         'c -{e.x0},-{e.y1} -{e.x1},-{e.y1} -{e.x2},0' +
         'c  {e.x0},{e.y1} {e.x1},{e.y1}  {e.x2},0 ' +
-        'm  0,{e.y0}' +
-        'c -{e.x0},{e.y1} -{e.x1},{e.y1} -{e.x2},0' +
-        'm  0,{e.y0}' +
+        'm  -{e.x2},{e.y0}' +
+        'c  {e.x0},{e.y1} {e.x1},{e.y1} {e.x2},0' +
+        'm  -{e.x2},{e.y0}' +
         'c  {e.x0},{e.y1} {e.x1},{e.y1}  {e.x2},0',
       height: 61,
       width:  61,
@@ -2749,7 +2746,7 @@ function BpmnTreeWalker(handler) {
 }
 
 module.exports = BpmnTreeWalker;
-},{"object-refs":75}],8:[function(_dereq_,module,exports){
+},{"object-refs":63}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var BpmnTreeWalker = _dereq_('./BpmnTreeWalker');
@@ -2769,38 +2766,42 @@ function importBpmnDiagram(diagram, definitions, done) {
   var importer = diagram.get('bpmnImporter'),
       eventBus = diagram.get('eventBus');
 
-  var warnings = [];
+  var error,
+      warnings = [];
 
-  var visitor = {
+  function parse(definitions) {
 
-    root: function(element) {
-      return importer.add(element);
-    },
+    var visitor = {
 
-    element: function(element, parentShape) {
-      return importer.add(element, parentShape);
-    },
+      root: function(element) {
+        return importer.add(element);
+      },
 
-    error: function(message, context) {
-      warnings.push({ message: message, context: context });
-    }
-  };
+      element: function(element, parentShape) {
+        return importer.add(element, parentShape);
+      },
 
-  var walker = new BpmnTreeWalker(visitor);
+      error: function(message, context) {
+        warnings.push({ message: message, context: context });
+      }
+    };
 
-  try {
-    eventBus.fire('import.start');
+    var walker = new BpmnTreeWalker(visitor);
 
     // import
     walker.handleDefinitions(definitions);
-
-    eventBus.fire('import.success', warnings);
-
-    done(null, warnings);
-  } catch (e) {
-    eventBus.fire('import.error', e);
-    done(e);
   }
+
+  eventBus.fire('import.start');
+
+  try {
+    parse(definitions);
+  } catch (e) {
+    error = e;
+  }
+
+  eventBus.fire(error ? 'import.error' : 'import.success', { error: error, warnings: warnings });
+  done(error, warnings);
 }
 
 module.exports.importBpmnDiagram = importBpmnDiagram;
@@ -2822,7 +2823,7 @@ var _ = (window._);
 
 var DEFAULT_LABEL_SIZE = module.exports.DEFAULT_LABEL_SIZE = {
   width: 90,
-  height: 50
+  height: 20
 };
 
 
@@ -2870,7 +2871,7 @@ var getExternalLabelMid = module.exports.getExternalLabelMid = function(element)
   } else {
     return {
       x: element.x + element.width / 2,
-      y: element.y + element.height + DEFAULT_LABEL_SIZE.height / 2 - 5
+      y: element.y + element.height + DEFAULT_LABEL_SIZE.height / 2
     };
   }
 };
@@ -2894,7 +2895,7 @@ module.exports.getExternalLabelBounds = function(semantic, element) {
     bounds = label.bounds;
 
     size = {
-      width: Math.max(150, bounds.width),
+      width: Math.max(DEFAULT_LABEL_SIZE.width, bounds.width),
       height: bounds.height
     };
 
@@ -2911,7 +2912,7 @@ module.exports.getExternalLabelBounds = function(semantic, element) {
 
   return _.extend({
     x: mid.x - size.width / 2,
-    y: mid.y
+    y: mid.y - size.height / 2
   }, size);
 };
 },{}],11:[function(_dereq_,module,exports){
@@ -2971,9 +2972,7 @@ BpmnModdle.prototype.fromXML = function(xmlStr, typeName, options, done) {
   var reader = new ModdleXml.Reader(this, options);
   var rootHandler = reader.handler(typeName);
 
-  reader.fromXML(xmlStr, rootHandler, function(err, result) {
-    done(err, result, rootHandler.context);
-  });
+  reader.fromXML(xmlStr, rootHandler, done);
 };
 
 
@@ -3000,7 +2999,7 @@ BpmnModdle.prototype.toXML = function(element, options, done) {
   }
 };
 
-},{"moddle":28,"moddle-xml":14}],13:[function(_dereq_,module,exports){
+},{"moddle":19,"moddle-xml":14}],13:[function(_dereq_,module,exports){
 var BpmnModdle = _dereq_('./bpmn-moddle');
 
 var packages = {
@@ -3013,7 +3012,7 @@ var packages = {
 module.exports = function() {
   return new BpmnModdle(packages);
 };
-},{"../resources/bpmn/json/bpmn.json":37,"../resources/bpmn/json/bpmndi.json":38,"../resources/bpmn/json/dc.json":39,"../resources/bpmn/json/di.json":40,"./bpmn-moddle":12}],14:[function(_dereq_,module,exports){
+},{"../resources/bpmn/json/bpmn.json":28,"../resources/bpmn/json/bpmndi.json":29,"../resources/bpmn/json/dc.json":30,"../resources/bpmn/json/di.json":31,"./bpmn-moddle":12}],14:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports.Reader = _dereq_('./lib/Reader');
@@ -3125,9 +3124,6 @@ function BaseHandler() {}
 BaseHandler.prototype.handleEnd = function() {};
 BaseHandler.prototype.handleText = function() {};
 BaseHandler.prototype.handleNode = function() {};
-BaseHandler.prototype.getElement = function() {
-  return this.element;
-};
 
 function BodyHandler() {}
 
@@ -3364,7 +3360,7 @@ ElementHandler.prototype.handleChild = function(node) {
     childHandler = this.handler(type).handleNode(node);
   }
 
-  var newElement = childHandler.getElement();
+  var newElement = childHandler.element;
 
   // child handles may decide to skip elements
   // by not returning anything
@@ -3397,7 +3393,7 @@ function GenericElementHandler(model, type, context) {
   this.context = context;
 }
 
-GenericElementHandler.prototype = new BaseElementHandler();
+GenericElementHandler.prototype = Object.create(BaseElementHandler.prototype);
 
 GenericElementHandler.prototype.createElement = function(node) {
 
@@ -3414,7 +3410,7 @@ GenericElementHandler.prototype.handleChild = function(node) {
   var handler = new GenericElementHandler(this.model, 'Element', this.context).handleNode(node),
       element = this.element;
 
-  var newElement = handler.getElement(),
+  var newElement = handler.element,
       children;
 
   if (newElement !== undefined) {
@@ -3446,13 +3442,34 @@ GenericElementHandler.prototype.handleEnd = function() {
  * @param {Model} model used to read xml files
  */
 function XMLReader(model) {
+  this.model = model;
+}
 
-  function resolveReferences(context) {
+
+XMLReader.prototype.fromXML = function(xml, rootHandler, done) {
+
+  var context = new Context(rootHandler);
+
+  var parser = sax.parser(true, { xmlns: true, trim: true }),
+      stack = new Stack();
+
+  var model = this.model,
+      self = this;
+
+  rootHandler.context = context;
+
+  // push root handler
+  stack.push(rootHandler);
+
+
+  function resolveReferences() {
 
     var elementsById = context.elementsById;
     var references = context.references;
 
-    _.forEach(references, function(r) {
+    var i, r;
+
+    for (i = 0; !!(r = references[i]); i++) {
       var element = r.element;
       var reference = elementsById[r.id];
       var property = element.$descriptor.propertiesByName[r.property];
@@ -3480,82 +3497,66 @@ function XMLReader(model) {
       } else {
         element.set(property.name, reference);
       }
-    });
+    }
   }
 
-  function fromXML(xml, rootHandler, done) {
+  function handleClose(tagName) {
+    stack.pop().handleEnd();
+  }
 
-    var context = new Context(rootHandler);
+  function handleOpen(node) {
+    var handler = stack.peek();
 
-    var parser = sax.parser(true, { xmlns: true, trim: true }),
-        stack = new Stack();
+    normalizeNamespaces(node, model);
 
-    rootHandler.context = context;
+    try {
+      stack.push(handler.handleNode(node));
+    } catch (e) {
 
-    // push root handler
-    stack.push(rootHandler);
+      var line = this.line,
+          column = this.column;
 
-    // error handling
-    parser.onerror = function (e) {
-      // just throw
-      throw e;
-    };
+      throw new Error(
+        'unparsable content <' + node.name + '> detected\n\t' +
+          'line: ' + line + '\n\t' +
+          'column: ' + column + '\n\t' +
+          'nested error: ' + e.message);
+    }
+  }
 
-    parser.onopentag = function(node) {
-      var handler = stack.peek();
+  function handleText(text) {
+    stack.peek().handleText(text);
+  }
 
-      normalizeNamespaces(node, model);
+  parser.onopentag = handleOpen;
+  parser.oncdata = parser.ontext = handleText;
+  parser.onclosetag = handleClose;
+  parser.onend = resolveReferences;
 
-      try {
-        stack.push(handler.handleNode(node));
-      } catch (e) {
-
-        var line = this.line,
-            column = this.column;
-
-        throw new Error(
-          'unparsable content <' + node.name + '> detected\n\t' +
-            'line: ' + line + '\n\t' +
-            'column: ' + column + '\n\t' +
-            'nested error: ' + e.message);
-      }
-    };
-
-    parser.ontext = parser.oncdata = function(text) {
-      var handler = stack.peek();
-      handler.handleText(text);
-    };
-
-    parser.onclosetag = function(tagName) {
-      var old = stack.pop();
-      old.handleEnd();
-    };
-
-    parser.onend = function () {
-      resolveReferences(context);
-      done(null, rootHandler.getElement(), context);
-    };
+  // deferred parse XML to make loading really ascnchronous
+  // this ensures the execution environment (node or browser)
+  // is kept responsive and that certain optimization strategies
+  // can kick in
+  _.defer(function() {
+    var error;
 
     try {
       parser.write(xml).close();
     } catch (e) {
-      // handle errors
-      done(e, undefined, context);
+      error = e;
     }
-  }
 
-  return {
-    fromXML: fromXML,
+    done(error, error ? undefined : rootHandler.element, context);
+  });
+};
 
-    handler: function(name) {
-      return new ElementHandler(model, name);
-    }
-  };
-}
+XMLReader.prototype.handler = function(name) {
+  return new ElementHandler(this.model, name);
+};
 
 module.exports = XMLReader;
 module.exports.ElementHandler = ElementHandler;
-},{"./common":17,"moddle":18,"tiny-stack":27}],16:[function(_dereq_,module,exports){
+},{"./common":17,"moddle":19,"tiny-stack":18}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
@@ -4125,7 +4126,7 @@ function XMLWriter(options) {
 }
 
 module.exports = XMLWriter;
-},{"./common":17,"moddle":18}],17:[function(_dereq_,module,exports){
+},{"./common":17,"moddle":19}],17:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -4162,6 +4163,123 @@ module.exports.DEFAULT_NS_MAP = {
   'xsi': 'http://www.w3.org/2001/XMLSchema-instance'
 };
 },{}],18:[function(_dereq_,module,exports){
+/**
+ * Tiny stack for browser or server
+ *
+ * @author Jason Mulligan <jason.mulligan@avoidwork.com>
+ * @copyright 2014 Jason Mulligan
+ * @license BSD-3 <https://raw.github.com/avoidwork/tiny-stack/master/LICENSE>
+ * @link http://avoidwork.github.io/tiny-stack
+ * @module tiny-stack
+ * @version 0.1.0
+ */
+
+( function ( global ) {
+
+"use strict";
+
+/**
+ * TinyStack
+ *
+ * @constructor
+ */
+function TinyStack () {
+	this.data = [null];
+	this.top  = 0;
+}
+
+/**
+ * Clears the stack
+ *
+ * @method clear
+ * @memberOf TinyStack
+ * @return {Object} {@link TinyStack}
+ */
+TinyStack.prototype.clear = function clear () {
+	this.data = [null];
+	this.top  = 0;
+
+	return this;
+};
+
+/**
+ * Gets the size of the stack
+ *
+ * @method length
+ * @memberOf TinyStack
+ * @return {Number} Size of stack
+ */
+TinyStack.prototype.length = function length () {
+	return this.top;
+};
+
+/**
+ * Gets the item at the top of the stack
+ *
+ * @method peek
+ * @memberOf TinyStack
+ * @return {Mixed} Item at the top of the stack
+ */
+TinyStack.prototype.peek = function peek () {
+	return this.data[this.top];
+};
+
+/**
+ * Gets & removes the item at the top of the stack
+ *
+ * @method pop
+ * @memberOf TinyStack
+ * @return {Mixed} Item at the top of the stack
+ */
+TinyStack.prototype.pop = function pop () {
+	if ( this.top > 0 ) {
+		this.top--;
+
+		return this.data.pop();
+	}
+	else {
+		return undefined;
+	}
+};
+
+/**
+ * Pushes an item onto the stack
+ *
+ * @method push
+ * @memberOf TinyStack
+ * @return {Object} {@link TinyStack}
+ */
+TinyStack.prototype.push = function push ( arg ) {
+	this.data[++this.top] = arg;
+
+	return this;
+};
+
+/**
+ * TinyStack factory
+ *
+ * @method factory
+ * @return {Object} {@link TinyStack}
+ */
+function factory () {
+	return new TinyStack();
+}
+
+// Node, AMD & window supported
+if ( typeof exports != "undefined" ) {
+	module.exports = factory;
+}
+else if ( typeof define == "function" ) {
+	define( function () {
+		return factory;
+	} );
+}
+else {
+	global.stack = factory;
+}
+} )( this );
+
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = _dereq_('./lib/moddle');
@@ -4169,7 +4287,7 @@ module.exports = _dereq_('./lib/moddle');
 module.exports.types = _dereq_('./lib/types');
 
 module.exports.ns = _dereq_('./lib/ns');
-},{"./lib/moddle":22,"./lib/ns":23,"./lib/types":26}],19:[function(_dereq_,module,exports){
+},{"./lib/moddle":23,"./lib/ns":24,"./lib/types":27}],20:[function(_dereq_,module,exports){
 'use strict';
 
 function Base() { }
@@ -4184,7 +4302,7 @@ Base.prototype.set = function(name, value) {
 
 
 module.exports = Base;
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
@@ -4365,7 +4483,7 @@ DescriptorBuilder.prototype.addTrait = function(t) {
   allTypes.push(t);
 };
 
-},{"./ns":23}],21:[function(_dereq_,module,exports){
+},{"./ns":24}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
@@ -4423,7 +4541,7 @@ Factory.prototype.createType = function(descriptor) {
 
   return ModdleElement;
 };
-},{"./base":19}],22:[function(_dereq_,module,exports){
+},{"./base":20}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
@@ -4642,7 +4760,7 @@ Moddle.prototype.getPropertyDescriptor = function(element, property) {
   return this.getElementDescriptor(element).propertiesByName[property];
 };
 
-},{"./factory":21,"./ns":23,"./properties":24,"./registry":25,"./types":26}],23:[function(_dereq_,module,exports){
+},{"./factory":22,"./ns":24,"./properties":25,"./registry":26,"./types":27}],24:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -4679,7 +4797,7 @@ module.exports.parseName = function(name, defaultPrefix) {
     localName: localName
   };
 };
-},{}],24:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -4727,12 +4845,13 @@ Properties.prototype.set = function(target, name, value) {
  */
 Properties.prototype.get = function(target, name) {
 
-  var property = this.model.getPropertyDescriptor(target, name),
-      propertyName = property.name;
+  var property = this.model.getPropertyDescriptor(target, name);
 
   if (!property) {
-    return target[name];
+    return target.$attrs[name];
   }
+
+  var propertyName = property.name;
 
   // check if access to collection property and lazily initialize it
   if (!target[propertyName] && property.isMany) {
@@ -4772,7 +4891,7 @@ Properties.prototype.defineDescriptor = function(target, descriptor) {
 Properties.prototype.defineModel = function(target, model) {
   this.define(target, '$model', { value: model });
 };
-},{}],25:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
@@ -4920,7 +5039,7 @@ Registry.prototype.getEffectiveDescriptor = function(name) {
 Registry.prototype.definePackage = function(target, pkg) {
   this.properties.define(target, '$pkg', { value: pkg });
 };
-},{"./descriptor-builder":20,"./ns":23,"./types":26}],26:[function(_dereq_,module,exports){
+},{"./descriptor-builder":21,"./ns":24,"./types":27}],27:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -4971,142 +5090,7 @@ module.exports.isBuiltIn = function(type) {
 module.exports.isSimple = function(type) {
   return !!TYPE_CONVERTERS[type];
 };
-},{}],27:[function(_dereq_,module,exports){
-/**
- * Tiny stack for browser or server
- *
- * @author Jason Mulligan <jason.mulligan@avoidwork.com>
- * @copyright 2014 Jason Mulligan
- * @license BSD-3 <https://raw.github.com/avoidwork/tiny-stack/master/LICENSE>
- * @link http://avoidwork.github.io/tiny-stack
- * @module tiny-stack
- * @version 0.1.0
- */
-
-( function ( global ) {
-
-"use strict";
-
-/**
- * TinyStack
- *
- * @constructor
- */
-function TinyStack () {
-	this.data = [null];
-	this.top  = 0;
-}
-
-/**
- * Clears the stack
- *
- * @method clear
- * @memberOf TinyStack
- * @return {Object} {@link TinyStack}
- */
-TinyStack.prototype.clear = function clear () {
-	this.data = [null];
-	this.top  = 0;
-
-	return this;
-};
-
-/**
- * Gets the size of the stack
- *
- * @method length
- * @memberOf TinyStack
- * @return {Number} Size of stack
- */
-TinyStack.prototype.length = function length () {
-	return this.top;
-};
-
-/**
- * Gets the item at the top of the stack
- *
- * @method peek
- * @memberOf TinyStack
- * @return {Mixed} Item at the top of the stack
- */
-TinyStack.prototype.peek = function peek () {
-	return this.data[this.top];
-};
-
-/**
- * Gets & removes the item at the top of the stack
- *
- * @method pop
- * @memberOf TinyStack
- * @return {Mixed} Item at the top of the stack
- */
-TinyStack.prototype.pop = function pop () {
-	if ( this.top > 0 ) {
-		this.top--;
-
-		return this.data.pop();
-	}
-	else {
-		return undefined;
-	}
-};
-
-/**
- * Pushes an item onto the stack
- *
- * @method push
- * @memberOf TinyStack
- * @return {Object} {@link TinyStack}
- */
-TinyStack.prototype.push = function push ( arg ) {
-	this.data[++this.top] = arg;
-
-	return this;
-};
-
-/**
- * TinyStack factory
- *
- * @method factory
- * @return {Object} {@link TinyStack}
- */
-function factory () {
-	return new TinyStack();
-}
-
-// Node, AMD & window supported
-if ( typeof exports != "undefined" ) {
-	module.exports = factory;
-}
-else if ( typeof define == "function" ) {
-	define( function () {
-		return factory;
-	} );
-}
-else {
-	global.stack = factory;
-}
-} )( this );
-
 },{}],28:[function(_dereq_,module,exports){
-module.exports=_dereq_(18)
-},{"./lib/moddle":32,"./lib/ns":33,"./lib/types":36}],29:[function(_dereq_,module,exports){
-module.exports=_dereq_(19)
-},{}],30:[function(_dereq_,module,exports){
-module.exports=_dereq_(20)
-},{"./ns":33}],31:[function(_dereq_,module,exports){
-module.exports=_dereq_(21)
-},{"./base":29}],32:[function(_dereq_,module,exports){
-module.exports=_dereq_(22)
-},{"./factory":31,"./ns":33,"./properties":34,"./registry":35,"./types":36}],33:[function(_dereq_,module,exports){
-module.exports=_dereq_(23)
-},{}],34:[function(_dereq_,module,exports){
-module.exports=_dereq_(24)
-},{}],35:[function(_dereq_,module,exports){
-module.exports=_dereq_(25)
-},{"./descriptor-builder":30,"./ns":33,"./types":36}],36:[function(_dereq_,module,exports){
-module.exports=_dereq_(26)
-},{}],37:[function(_dereq_,module,exports){
 module.exports={
   "name": "BPMN20",
   "uri": "http://www.omg.org/spec/BPMN/20100524/MODEL",
@@ -5419,7 +5403,7 @@ module.exports={
         {
           "name": "gatewayDirection",
           "type": "GatewayDirection",
-          "default": "unspecified",
+          "default": "Unspecified",
           "isAttr": true
         }
       ]
@@ -5439,7 +5423,8 @@ module.exports={
         {
           "name": "eventGatewayType",
           "type": "EventBasedGatewayType",
-          "isAttr": true
+          "isAttr": true,
+          "default": "Exclusive"
         }
       ]
     },
@@ -5769,7 +5754,8 @@ module.exports={
         {
           "name": "parallelMultiple",
           "isAttr": true,
-          "type": "Boolean"
+          "type": "Boolean",
+          "default": false
         },
         {
           "name": "outputSet",
@@ -7171,13 +7157,13 @@ module.exports={
       "properties": [
         {
           "name": "minimum",
-          "default": "0",
+          "default": 0,
           "isAttr": true,
           "type": "Integer"
         },
         {
           "name": "maximum",
-          "default": "1",
+          "default": 1,
           "isAttr": true,
           "type": "Integer"
         }
@@ -7539,13 +7525,13 @@ module.exports={
         },
         {
           "name": "startQuantity",
-          "default": "1",
+          "default": 1,
           "isAttr": true,
           "type": "Integer"
         },
         {
           "name": "completionQuantity",
-          "default": "1",
+          "default": 1,
           "isAttr": true,
           "type": "Integer"
         }
@@ -8184,7 +8170,7 @@ module.exports={
     "alias": "lowerCase"
   }
 }
-},{}],38:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 module.exports={
   "name": "BPMNDI",
   "uri": "http://www.omg.org/spec/BPMN/20100524/DI",
@@ -8313,7 +8299,8 @@ module.exports={
         {
           "name": "messageVisibleKind",
           "type": "MessageVisibleKind",
-          "isAttr": true
+          "isAttr": true,
+          "default": "initiating"
         }
       ],
       "superClass": [
@@ -8388,7 +8375,7 @@ module.exports={
   "associations": [],
   "prefix": "bpmndi"
 }
-},{}],39:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 module.exports={
   "name": "DC",
   "uri": "http://www.omg.org/spec/DD/20100524/DC",
@@ -8488,7 +8475,7 @@ module.exports={
   "prefix": "dc",
   "associations": []
 }
-},{}],40:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 module.exports={
   "name": "DI",
   "uri": "http://www.omg.org/spec/DD/20100524/DI",
@@ -8700,9 +8687,9 @@ module.exports={
   "associations": [],
   "prefix": "di"
 }
-},{}],41:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 module.exports = _dereq_('./lib/Diagram');
-},{"./lib/Diagram":42}],42:[function(_dereq_,module,exports){
+},{"./lib/Diagram":33}],33:[function(_dereq_,module,exports){
 'use strict';
 
 var di = _dereq_('didi');
@@ -8889,7 +8876,7 @@ module.exports = Diagram;
 Diagram.prototype.destroy = function() {
   this.get('eventBus').fire('diagram.destroy');
 };
-},{"./core":48,"didi":69}],43:[function(_dereq_,module,exports){
+},{"./core":39,"didi":60}],34:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -8936,6 +8923,12 @@ function createContainer(options) {
   return parent;
 }
 
+function createGroup(parent, cls) {
+  return parent.group().attr({ 'class' : cls });
+}
+
+var BASE_LAYER = 'base';
+
 
 /**
  * The main drawing canvas.
@@ -8949,15 +8942,24 @@ function createContainer(options) {
  * @param {EventBus} eventBus
  * @param {GraphicsFactory} graphicsFactory
  * @param {ElementRegistry} elementRegistry
+ * @param {Snap} snap
  */
 function Canvas(config, eventBus, graphicsFactory, elementRegistry, snap) {
-
-  var options = _.extend(config.canvas || {});
 
   this._snap = snap;
   this._eventBus = eventBus;
   this._elementRegistry = elementRegistry;
   this._graphicsFactory = graphicsFactory;
+
+  this._init(config || {});
+}
+
+Canvas.$inject = [ 'config.canvas', 'eventBus', 'graphicsFactory', 'elementRegistry', 'snap' ];
+
+module.exports = Canvas;
+
+
+Canvas.prototype._init = function(config) {
 
   // Creates a <svg> element that is wrapped into a <div>.
   // This way we are always able to correctly figure out the size of the svg element
@@ -8971,62 +8973,25 @@ function Canvas(config, eventBus, graphicsFactory, elementRegistry, snap) {
   //   </svg>
   // </div>
 
-  var container = this._container = createContainer(options);
+  // html container
+  var container = this._container = createContainer(config);
 
   // svg root
-  var paper = this._paper = createPaper(container);
+  var paper = this._paper = this._graphicsFactory.createPaper({
+    container: container,
+    width: '100%', height: '100%'
+  });
 
   // drawing root
-  var root = this._root = paper.group().attr({ 'class' : 'viewport' });
+  var root = this._root = createGroup(paper, 'viewport');
 
+  // layers
+  this._layers = {};
 
-  function createPaper(container) {
-    return graphicsFactory.createPaper({ container: container, width: '100%', height: '100%' });
-  }
+  // init base layer
+  this.getLayer(BASE_LAYER);
 
-  /**
-   * Sends a shape to the front.
-   *
-   * This method takes parent / child relationships between shapes into account
-   * and makes sure that children are properly handled, too.
-   *
-   * @method Canvas#sendToFront
-   *
-   * @param {djs.ElementDescriptor} shape descriptor of the shape to be sent to front
-   * @param {boolean} bubble=true whether to send parent shapes to front, too
-   */
-  function sendToFront(shape, bubble) {
-
-    if (bubble !== false) {
-      bubble = true;
-    }
-
-    if (bubble && shape.parent) {
-      sendToFront(shape.parent);
-    }
-
-    if (shape.children) {
-      shape.children.forEach(function(child) {
-        sendToFront(child, false);
-      });
-    }
-
-    var gfx = getGraphics(shape),
-        gfxParent = gfx.parent();
-
-    gfx.remove().appendTo(gfxParent);
-  }
-
-  /**
-   * Return the graphical object underlaying a certain diagram element
-   *
-   * @method Canvas#getGraphics
-   *
-   * @param {djs.ElementDescriptor} element descriptor of the element
-   */
-  function getGraphics(element) {
-    return elementRegistry.getGraphicsByElement(element);
-  }
+  var eventBus = this._eventBus;
 
   eventBus.on('diagram.init', function(event) {
 
@@ -9043,6 +9008,8 @@ function Canvas(config, eventBus, graphicsFactory, elementRegistry, snap) {
     eventBus.fire('canvas.init', { root: root, paper: paper });
   });
 
+  var self = this;
+
   eventBus.on('diagram.destroy', function() {
 
     if (container) {
@@ -9050,15 +9017,13 @@ function Canvas(config, eventBus, graphicsFactory, elementRegistry, snap) {
       parent.removeChild(container);
     }
 
-    container = this._container = null;
-    paper = this._paper = null;
-    root = this._root = null;
+    self._paper.remove();
+
+    self._paper = self._root = self._layers = self._container = null;
   });
 
-  this.getGraphics = getGraphics;
+};
 
-  this.sendToFront = sendToFront;
-}
 
 /**
  * Ensure that an element has a valid, unique id
@@ -9085,6 +9050,18 @@ Canvas.prototype.getRoot = function() {
   return this._root;
 };
 
+
+Canvas.prototype.getLayer = function(name) {
+
+  var layer = this._layers[name || BASE_LAYER];
+  if (!layer) {
+    layer = this._layers[name] = createGroup(this._root, 'layer-' + name);
+  }
+
+  return layer;
+};
+
+
 /**
  * Returns the html element that encloses the
  * drawing canvas.
@@ -9094,6 +9071,70 @@ Canvas.prototype.getRoot = function() {
 Canvas.prototype.getContainer = function() {
   return this._container;
 };
+
+
+Canvas.prototype._updateMarker = function(element, marker, add) {
+  var gfx;
+
+  if (_.isString(element)) {
+    element = this._elementRegistry.getById(element);
+  }
+
+  gfx = this.getGraphics(element);
+
+  var mode = add ? 'add' : 'remove';
+
+  // invoke either addClass or removeClass based on mode
+  gfx[add ? 'addClass' : 'removeClass'](marker);
+
+  /**
+   * An event indicating that a marker has been updated for an element
+   *
+   * @event element.marker.update
+   * @type {Object}
+   * @property {djs.model.Element} element the shape
+   * @property {Object} gfx the graphical representation of the shape
+   * @property {String} marker
+   * @property {Boolean} add true if the marker was added, false if it got removed
+   */
+  this._eventBus.fire('element.marker.update', { element: element,  gfx: gfx, marker: marker, add: !!add });
+};
+
+
+/**
+ * Adds a marker to an element (basically a css class).
+ *
+ * Fires the element.marker.update event, making it possible to
+ * integrate extension into the marker life-cycle, too.
+ *
+ * @example
+ * canvas.addMarker('foo', 'some-marker');
+ *
+ * var fooGfx = canvas.getGraphics('foo');
+ *
+ * fooGfx; // <g class="... some-marker"> ... </g>
+ *
+ * @param {String|djs.model.Base} element
+ * @param {String} marker
+ */
+Canvas.prototype.addMarker = function(element, marker) {
+  this._updateMarker(element, marker, true);
+};
+
+
+/**
+ * Remove a marker from an element.
+ *
+ * Fires the element.marker.update event, making it possible to
+ * integrate extension into the marker life-cycle, too.
+ *
+ * @param  {String|djs.model.Base} element
+ * @param  {String} marker
+ */
+Canvas.prototype.removeMarker = function(element, marker) {
+  this._updateMarker(element, marker, false);
+};
+
 
 /**
  * Adds a shape to the canvas
@@ -9107,12 +9148,12 @@ Canvas.prototype.addShape = function(shape, parent) {
   this._ensureValidId(shape);
 
   if (parent) {
-    shape.parent = parent;
     parent.children.push(shape);
+    shape.parent = parent;
   }
 
   // create shape gfx
-  var gfx = this._graphicsFactory.createShape(this._root, shape);
+  var gfx = this._graphicsFactory.createShape(this.getLayer(BASE_LAYER), shape);
 
   /**
    * An event indicating that a new shape is being added to the canvas.
@@ -9125,6 +9166,8 @@ Canvas.prototype.addShape = function(shape, parent) {
    * @property {Object} gfx the graphical representation of the shape
    */
   this._eventBus.fire('shape.add', { element: shape, gfx: gfx });
+
+  this._elementRegistry.add(shape, gfx);
 
   // update its visual
   this._graphicsFactory.updateShape(shape, gfx);
@@ -9144,6 +9187,7 @@ Canvas.prototype.addShape = function(shape, parent) {
   return shape;
 };
 
+
 /**
  * Adds a connection to the canvas
  *
@@ -9156,12 +9200,12 @@ Canvas.prototype.addConnection = function(connection, parent) {
   this._ensureValidId(connection);
 
   if (parent) {
-    connection.parent = parent;
     parent.children.push(connection);
+    connection.parent = parent;
   }
 
   // create connection gfx
-  var gfx = this._graphicsFactory.createConnection(this._root, connection);
+  var gfx = this._graphicsFactory.createConnection(this.getLayer(BASE_LAYER), connection);
 
   /**
    * An event indicating that a new connection is being added to the canvas.
@@ -9174,6 +9218,8 @@ Canvas.prototype.addConnection = function(connection, parent) {
    * @property {Object} gfx the graphical representation of the connection
    */
   this._eventBus.fire('connection.add', { element: connection, gfx: gfx });
+
+  this._elementRegistry.add(connection, gfx);
 
   // update its visual
   this._graphicsFactory.updateConnection(connection, gfx);
@@ -9203,7 +9249,7 @@ Canvas.prototype._removeElement = function(element, type) {
     element = this._elementRegistry.getById(element);
   }
 
-  var gfx = this._elementRegistry.getGraphicsByElement(element);
+  var gfx = this.getGraphics(element);
 
   this._eventBus.fire(type + '.remove', { element: element, gfx: gfx });
 
@@ -9217,8 +9263,11 @@ Canvas.prototype._removeElement = function(element, type) {
 
   this._eventBus.fire(type + '.removed', { element: element, gfx: gfx });
 
+  this._elementRegistry.remove(element, gfx);
+
   return element;
 };
+
 
 /**
  * Removes a shape from the canvas
@@ -9252,6 +9301,7 @@ Canvas.prototype.removeShape = function(shape) {
    */
   return this._removeElement(shape, 'shape');
 };
+
 
 /**
  * Removes a connection from the canvas
@@ -9287,9 +9337,50 @@ Canvas.prototype.removeConnection = function(connection) {
 };
 
 
+/**
+ * Sends a shape to the front.
+ *
+ * This method takes parent / child relationships between shapes into account
+ * and makes sure that children are properly handled, too.
+ *
+ * @param {djs.model.Shape} shape descriptor of the shape to be sent to front
+ * @param {boolean} [bubble=true] whether to send parent shapes to front, too
+ */
+Canvas.prototype.sendToFront = function(shape, bubble) {
+
+  if (bubble !== false) {
+    bubble = true;
+  }
+
+  if (bubble && shape.parent) {
+    this.sendToFront(shape.parent);
+  }
+
+  _.forEach(shape.children, function(child) {
+    this.sendToFront(child, false);
+  }, this);
+
+  var gfx = this.getGraphics(shape),
+      gfxParent = gfx.parent();
+
+  gfx.remove().appendTo(gfxParent);
+};
+
+
+/**
+ * Return the graphical object underlaying a certain diagram element
+ *
+ * @param {String|djs.model.Base} element descriptor of the element
+ */
+Canvas.prototype.getGraphics = function(element) {
+  return this._elementRegistry.getGraphicsByElement(element);
+};
+
+
 Canvas.prototype._fireViewboxChange = function(viewbox) {
   this._eventBus.fire('canvas.viewbox.changed', { viewbox: viewbox || this.viewbox() });
 };
+
 
 /**
  * Gets or sets the view box of the canvas, i.e. the area that is currently displayed
@@ -9489,17 +9580,33 @@ Canvas.prototype.getSize = function () {
  */
 Canvas.prototype.getAbsoluteBBox = function(element) {
   var vbox = this.viewbox();
+  var bbox;
 
-  var gfx = this.getGraphics(element);
+  // connection
+  // use svg bbox
+  if (element.waypoints) {
+    var gfx = this.getGraphics(element);
 
-  var transformBBox = gfx.getBBox(true);
-  var bbox = gfx.getBBox();
+    var transformBBox = gfx.getBBox(true);
+    bbox = gfx.getBBox();
 
-  var x = (bbox.x - transformBBox.x) * vbox.scale - vbox.x * vbox.scale;
-  var y = (bbox.y - transformBBox.y) * vbox.scale - vbox.y * vbox.scale;
+    bbox.x -= transformBBox.x;
+    bbox.y -= transformBBox.y;
 
-  var width = (bbox.width + 2 * transformBBox.x) * vbox.scale;
-  var height = (bbox.height + 2 * transformBBox.y) * vbox.scale;
+    bbox.width += 2 * transformBBox.x;
+    bbox.height +=  2 * transformBBox.y;
+  }
+  // shapes
+  // use data
+  else {
+    bbox = element;
+  }
+
+  var x = bbox.x * vbox.scale - vbox.x * vbox.scale;
+  var y = bbox.y * vbox.scale - vbox.y * vbox.scale;
+
+  var width = bbox.width * vbox.scale;
+  var height = bbox.height * vbox.scale;
 
   return {
     x: x,
@@ -9508,16 +9615,7 @@ Canvas.prototype.getAbsoluteBBox = function(element) {
     height: height
   };
 };
-
-Canvas.$inject = [
-  'config',
-  'eventBus',
-  'graphicsFactory',
-  'elementRegistry',
-  'snap' ];
-
-module.exports = Canvas;
-},{"../util/Collections":64}],44:[function(_dereq_,module,exports){
+},{"../util/Collections":55}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
@@ -9570,7 +9668,7 @@ ElementFactory.prototype.create = function(type, attrs) {
 
   return Model.create(type, attrs);
 };
-},{"../model":63}],45:[function(_dereq_,module,exports){
+},{"../model":54}],36:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
@@ -9594,19 +9692,9 @@ function ElementRegistry(eventBus) {
 
   var self = this;
 
-  _.forEach([ 'shape', 'connection' ], function(type) {
-    eventBus.on(type + '.add', function(event) {
-      self.add(event.element, event.gfx);
-    });
-
-    eventBus.on(type + '.removed', function(event) {
-      self.remove(event.element, event.gfx);
-    });
-  });
-
   eventBus.on('diagram.destroy', function(event) {
     self._elementMap = null;
-    self.graphicsMap = null;
+    self._graphicsMap = null;
   });
 }
 
@@ -9647,7 +9735,7 @@ ElementRegistry.prototype.remove = function(element) {
  * @method ElementRegistry#getByGraphics
  */
 ElementRegistry.prototype.getByGraphics = function(gfx) {
-  var id = _.isString(gfx) ? gfx : gfx.id;
+  var id = gfx.id || gfx;
 
   var container = this._graphicsMap[id];
   return container && container.element;
@@ -9666,25 +9754,41 @@ ElementRegistry.prototype.getById = function(id) {
  * @method ElementRegistry#getGraphicsByElement
  */
 ElementRegistry.prototype.getGraphicsByElement = function(element) {
-  var id = _.isString(element) ? element : element.id;
+  var id = element.id || element;
 
   var container = this._elementMap[id];
   return container && container.gfx;
 };
-},{}],46:[function(_dereq_,module,exports){
+
+},{}],37:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
 
-/**
- * @global
- * @type {Object}
- * @static
- */
-var EventPriority = {
-  standard: 1000,
-  overwrite: 10000
+var DEFAULT_PRIORITY = 1000;
+
+function Event() { }
+
+Event.prototype = {
+  stopPropagation: function() {
+    this.propagationStopped = true;
+  },
+  preventDefault: function() {
+    this.defaultPrevented = true;
+  },
+  isPropagationStopped: function() {
+    return !!this.propagationStopped;
+  },
+  isDefaultPrevented: function() {
+    return !!this.defaultPrevented;
+  }
 };
+
+
+function extendEvent(event, eventType) {
+  return _.extend(event, Event.prototype, { type: eventType });
+}
+
 
 /**
  * @class
@@ -9692,243 +9796,216 @@ var EventPriority = {
  * A general purpose event bus
  */
 function EventBus() {
-  var listenerMap = {};
+  this._listeners = {};
 
-  function getListeners(name) {
-    var listeners = listenerMap[name];
+  // cleanup on destroy
 
-    if (!listeners) {
-      listeners = listenerMap[name] = [];
-    }
+  var self = this;
 
-    return listeners;
-  }
-
-  function extendEvent(event, type) {
-
-    var propagationStopped,
-        defaultPrevented;
-
-    _.extend(event, {
-      type: type,
-
-      stopPropagation: function() {
-        this.propagationStopped = true;
-      },
-      preventDefault: function() {
-        this.defaultPrevented = true;
-      },
-
-      isPropagationStopped: function() {
-        return !!this.propagationStopped;
-      },
-
-      isDefaultPrevented: function() {
-        return !!this.defaultPrevented;
-      }
-    });
-
-    return event;
-  }
-
-  /**
-   * Register an event listener for events with the given name.
-   *
-   * The callback will be invoked with `event, ...additionalArguments`
-   * that have been passed to the evented element.
-   *
-   * @method EventBus#on
-   *
-   * @param {String|Array<String>} events
-   * @param {Number} [priority] the priority in which this listener is called,
-   *                            defaults to 1000 but may be changed to override execution order of callbacks
-   *                            (> {@link EventPriority#overwrite})
-   *
-   * @param {Function} callback
-   */
-  function on(events, priority, callback) {
-
-    events = _.isArray(events) ? events : [ events ];
-
-    if (_.isFunction(priority)) {
-      callback = priority;
-      priority = EventPriority.standard;
-    }
-
-    if (!_.isNumber(priority)) {
-      throw new Error('priority needs to be a number');
-    }
-
-    _.forEach(events, function(e) {
-      var listeners = getListeners(e);
-      addEventToArray(listeners, callback, priority);
-    });
-  }
-
-  /**
-   * Register an event listener that is executed only once.
-   *
-   * @method EventBus#once
-   *
-   * @param {String} event the event name to register for
-   * @param {Function} callback the callback to execute
-   *
-   * @see EventBus#on
-   */
-  function once(event, callback) {
-
-    /* jshint -W040 */
-
-    var self = this;
-    var wrappedCallback = function() {
-      var eventType = arguments[0].type;
-      callback.apply(this, arguments);
-      self.off(eventType, wrappedCallback);
-    };
-
-    this.on(event, wrappedCallback);
-  }
-
-  /**
-   * Removes event listeners by event and callback.
-   *
-   * If no callback is given, all listeners for a given event name are being removed.
-   *
-   * @method EventBus#off
-   *
-   * @param {String} event
-   * @param {Function} [callback]
-   */
-  function off(event, callback) {
-    var listeners, idx;
-
-    listeners = getListeners(event);
-    if (callback) {
-      _.forEach(listeners, function(listener) {
-        if(listener.callback === callback) {
-          idx = listeners.indexOf(listener);
-        }
-      });
-
-      if (idx !== -1) {
-        listeners.splice(idx, 1);
-      }
-    } else {
-      listeners.length = 0;
-    }
-  }
-
-  function handleError(error) {
-    return !fire('error', { error: error });
-  }
-
-  /**
-   * Fires a named event.
-   *
-   * @method EventBus#fire
-   *
-   * @example
-   *
-   * // fire event by name
-   * events.fire('foo');
-   *
-   * // fire event object with nested type
-   * var event = { type: 'foo' };
-   * events.fire(event);
-   *
-   * // fire event with explicit type
-   * var event = { x: 10, y: 20 };
-   * events.fire('element.moved', event);
-   *
-   * // pass additional arguments to the event
-   * events.on('foo', function(event, bar) {
-   *   alert(bar);
-   * });
-   *
-   * events.fire({ type: 'foo' }, 'I am bar!');
-   *
-   * @param {String} [name] the optional event name
-   * @param {Object} [event] the event object
-   * @param {...Object} additional arguments to be passed to the callback functions
-   *
-   * @return {Boolean} false if default was prevented
-   */
-  function fire() {
-
-    /* jshint -W040 */
-
-    var event, eventType,
-        listeners, i, l,
-        args;
-
-    args = Array.prototype.slice.call(arguments);
-
-    eventType = args[0];
-
-    if (_.isObject(eventType)) {
-      event = eventType;
-
-      // parse type from event
-      eventType = event.type;
-    } else {
-      // remove name parameter
-      args.shift();
-
-      event = args[0] || {};
-      event.type = eventType;
-      if(args.length === 0) {
-        args.push(event);
-      }
-    }
-
-    listeners = getListeners(eventType);
-    event = extendEvent(event, eventType);
-
-    for (i = 0, l; !!(l = listeners[i]); i++) {
-      if (event.isPropagationStopped()) {
-        break;
-      }
-
-      try {
-        l.callback.apply(this, args);
-      } catch (e) {
-        if (!handleError(e)) {
-          console.error('unhandled error in event listener', e);
-          throw e;
-        }
-      }
-    }
-
-    return !event.isDefaultPrevented();
-  }
-
-  function addEventToArray(array, callback, priority) {
-
-    array.push({
-      priority: priority,
-      callback: callback
-    });
-
-    array.sort(function(a, b) {
-      if (a.priority < b.priority) {
-        return 1;
-      } else if (a.priority > b.priority) {
-        return -1;
-      } else {
-        return 0;
-      }
-    });
-  }
-
-  this.on = on;
-  this.once = once;
-  this.off = off;
-  this.fire = fire;
+  this.on('diagram.destroy', function() {
+    self._listeners = null;
+  });
 }
 
-
 module.exports = EventBus;
-},{}],47:[function(_dereq_,module,exports){
+
+module.exports.Event = Event;
+
+
+/**
+ * Register an event listener for events with the given name.
+ *
+ * The callback will be invoked with `event, ...additionalArguments`
+ * that have been passed to the evented elements
+ *
+ * @param {String|Array<String>} events
+ * @param {Number} [priority=1000] the priority in which this listener is called, larger is higher
+ * @param {Function} callback
+ */
+EventBus.prototype.on = function(events, priority, callback) {
+
+  events = _.isArray(events) ? events : [ events ];
+
+  if (_.isFunction(priority)) {
+    callback = priority;
+    priority = DEFAULT_PRIORITY;
+  }
+
+  if (!_.isNumber(priority)) {
+    throw new Error('priority needs to be a number');
+  }
+
+  var self = this,
+      listener = { priority: priority, callback: callback };
+
+  _.forEach(events, function(e) {
+    self._addListener(e, listener);
+  });
+};
+
+
+/**
+ * Register an event listener that is executed only once.
+ *
+ * @param {String} event the event name to register for
+ * @param {Function} callback the callback to execute
+ */
+EventBus.prototype.once = function(event, callback) {
+
+  var self = this;
+  var wrappedCallback = function() {
+    var eventType = arguments[0].type;
+    callback.apply(self, arguments);
+    self.off(eventType, wrappedCallback);
+  };
+
+  this.on(event, wrappedCallback);
+};
+
+
+/**
+ * Removes event listeners by event and callback.
+ *
+ * If no callback is given, all listeners for a given event name are being removed.
+ *
+ * @param {String} event
+ * @param {Function} [callback]
+ */
+EventBus.prototype.off = function(event, callback) {
+  var listeners = this._getListeners(event),
+      l, i;
+
+  if (callback) {
+
+    // move through listeners from back to front
+    // and remove matching listeners
+    for (i = listeners.length - 1; !!(l = listeners[i]); i--) {
+      if (l.callback === callback) {
+        listeners.splice(i, 1);
+      }
+    }
+  } else {
+    // clear listeners
+    listeners.length = 0;
+  }
+};
+
+
+/**
+ * Fires a named event.
+ *
+ * @example
+ *
+ * // fire event by name
+ * events.fire('foo');
+ *
+ * // fire event object with nested type
+ * var event = { type: 'foo' };
+ * events.fire(event);
+ *
+ * // fire event with explicit type
+ * var event = { x: 10, y: 20 };
+ * events.fire('element.moved', event);
+ *
+ * // pass additional arguments to the event
+ * events.on('foo', function(event, bar) {
+ *   alert(bar);
+ * });
+ *
+ * events.fire({ type: 'foo' }, 'I am bar!');
+ *
+ * @param {String} [name] the optional event name
+ * @param {Object} [event] the event object
+ * @param {...Object} additional arguments to be passed to the callback functions
+ *
+ * @return {Boolean} false if default was prevented
+ */
+EventBus.prototype.fire = function() {
+
+  var event, eventType,
+      listeners, i, l,
+      args;
+
+  args = Array.prototype.slice.call(arguments);
+
+  eventType = args[0];
+
+  if (_.isObject(eventType)) {
+    event = eventType;
+
+    // parse type from event
+    eventType = event.type;
+  } else {
+    // remove name parameter
+    args.shift();
+
+    event = args[0] || {};
+
+    if (!args.length) {
+      args.push(event);
+    }
+  }
+
+  listeners = this._listeners[eventType];
+
+  if (!listeners) {
+    return true;
+  }
+
+  event = extendEvent(event, eventType);
+
+  for (i = 0, l; i < listeners.length; i++) {
+    if (event.isPropagationStopped()) {
+      break;
+    }
+
+    try {
+      listeners[i].callback.apply(null, args);
+    } catch (e) {
+      if (!this.handleError(e)) {
+        console.error('unhandled error in event listener', e);
+        throw e;
+      }
+    }
+  }
+
+  return !event.isDefaultPrevented();
+};
+
+
+EventBus.prototype.handleError = function(error) {
+  return !this.fire('error', { error: error });
+};
+
+
+EventBus.prototype._addListener = function(event, listener) {
+
+  var listeners = this._getListeners(event),
+      i, l;
+
+  // ensure we order listeners by priority from
+  // 0 (high) to n > 0 (low)
+  for (i = 0; !!(l = listeners[i]); i++) {
+    if (l.priority < listener.priority) {
+      listeners.splice(i, 0, listener);
+      return;
+    }
+  }
+
+  listeners.push(listener);
+};
+
+
+EventBus.prototype._getListeners = function(name) {
+  var listeners = this._listeners[name];
+
+  if (!listeners) {
+    this._listeners[name] = listeners = [];
+  }
+
+  return listeners;
+};
+},{}],38:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -9954,8 +10031,6 @@ function createContainer(root, type) {
     .addClass('djs-group')
     .addClass('djs-' + type);
 
-  var gfxGroup = gfxContainer.group().addClass('djs-visual');
-
   return gfxContainer;
 }
 
@@ -9965,11 +10040,13 @@ function createContainer(root, type) {
  */
 function clearVisual(gfx) {
 
-  var oldVisual = gfx.select('.djs-visual');
+  var oldVisual = gfx.select('.djs-visual'),
+      newVisual = gfx.group().addClass('djs-visual');
 
-  var newVisual = gfx.group().addClass('djs-visual').before(oldVisual);
-
-  oldVisual.remove();
+  if (oldVisual) {
+    newVisual.after(oldVisual);
+    oldVisual.remove();
+  }
 
   return newVisual;
 }
@@ -10013,9 +10090,7 @@ GraphicsFactory.prototype.updateShape = function(element, gfx) {
   // update positioning
   gfx.translate(element.x, element.y);
 
-  if (element.hidden) {
-    gfx.attr('visibility', 'hidden');
-  }
+  gfx.attr('display', element.hidden ? 'none' : 'block');
 };
 
 
@@ -10025,16 +10100,14 @@ GraphicsFactory.prototype.updateConnection = function(element, gfx) {
   var gfxGroup = clearVisual(gfx);
   this._renderer.drawConnection(gfxGroup, element);
 
-  if (element.hidden) {
-    gfx.attr('visibility', 'hidden');
-  }
+  gfx.attr('display', element.hidden ? 'none' : 'block');
 };
 
 
 GraphicsFactory.$inject = [ 'renderer', 'snap' ];
 
 module.exports = GraphicsFactory;
-},{}],48:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [ _dereq_('../draw') ],
   __init__: [ 'canvas' ],
@@ -10044,21 +10117,10 @@ module.exports = {
   eventBus: [ 'type', _dereq_('./EventBus') ],
   graphicsFactory: [ 'type', _dereq_('./GraphicsFactory') ]
 };
-},{"../draw":52,"./Canvas":43,"./ElementFactory":44,"./ElementRegistry":45,"./EventBus":46,"./GraphicsFactory":47}],49:[function(_dereq_,module,exports){
+},{"../draw":43,"./Canvas":34,"./ElementFactory":35,"./ElementRegistry":36,"./EventBus":37,"./GraphicsFactory":38}],40:[function(_dereq_,module,exports){
 'use strict';
 
-// required components
-
-function flattenPoints(points) {
-  var result = [];
-
-  for (var i = 0, p; !!(p = points[i]); i++) {
-    result.push(p.x);
-    result.push(p.y);
-  }
-
-  return result;
-}
+var Snap = _dereq_('./Snap');
 
 
 /**
@@ -10073,6 +10135,11 @@ function Renderer(styles) {
   this.SHAPE_STYLE = styles.style({ fill: 'white', stroke: 'fuchsia', strokeWidth: 2 });
 }
 
+module.exports = Renderer;
+
+Renderer.$inject = ['styles'];
+
+
 Renderer.prototype.drawShape = function drawShape(gfxGroup, data) {
   if (data.width === undefined ||
       data.height === undefined) {
@@ -10084,24 +10151,38 @@ Renderer.prototype.drawShape = function drawShape(gfxGroup, data) {
 };
 
 Renderer.prototype.drawConnection = function drawConnection(gfxGroup, data) {
-  var points = flattenPoints(data.waypoints);
-  return gfxGroup.polyline(points).attr(this.CONNECTION_STYLE);
+  return createLine(data.waypoints, this.CONNECTION_STYLE).appendTo(gfxGroup);
 };
 
 
-Renderer.$inject = ['styles'];
+function toSVGPoints(points) {
+  var result = '';
 
+  for (var i = 0, p; !!(p = points[i]); i++) {
+    result += p.x + ',' + p.y + ' ';
+  }
 
-module.exports = Renderer;
-module.exports.flattenPoints = flattenPoints;
-},{}],50:[function(_dereq_,module,exports){
+  return result;
+}
+
+function createLine(points, attrs) {
+  return Snap.create('polyline', { points: toSVGPoints(points) }).attr(attrs || {});
+}
+
+function updateLine(gfx, points) {
+  return gfx.attr({ points: toSVGPoints(points) });
+}
+
+module.exports.createLine = createLine;
+module.exports.updateLine = updateLine;
+},{"./Snap":41}],41:[function(_dereq_,module,exports){
 var snapsvg = (window.Snap);
 
 // require snapsvg extensions
 _dereq_('./snapsvg-extensions');
 
 module.exports = snapsvg;
-},{"./snapsvg-extensions":53}],51:[function(_dereq_,module,exports){
+},{"./snapsvg-extensions":44}],42:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
@@ -10164,7 +10245,7 @@ function Styles() {
 }
 
 module.exports = Styles;
-},{}],52:[function(_dereq_,module,exports){
+},{}],43:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -10172,7 +10253,7 @@ module.exports = {
   snap: [ 'value', _dereq_('./Snap') ],
   styles: [ 'type', _dereq_('./Styles') ]
 };
-},{"./Renderer":49,"./Snap":50,"./Styles":51}],53:[function(_dereq_,module,exports){
+},{"./Renderer":40,"./Snap":41,"./Styles":42}],44:[function(_dereq_,module,exports){
 'use strict';
 
 var Snap = (window.Snap);
@@ -10325,13 +10406,27 @@ Snap.plugin(function (Snap, Element, Paper, global) {
   };
 });
 
+
+/**
+ * @class CreatePlugin
+ *
+ * Create an svg element without attaching it to the dom
+ */
+Snap.plugin(function(Snap) {
+
+  Snap.create = function(name, attrs) {
+    return Snap._.wrap(Snap._.$(name, attrs));
+  };
+});
+
+
 /**
  * @class CreatSnapAtPlugin
  *
  * Extends snap.svg with a method to create a SVG element
  * at a specific position in the DOM.
  */
-Snap.plugin(function (Snap, Element, Paper, global) {
+Snap.plugin(function(Snap, Element, Paper, global) {
 
   /*
    * @method snapsvg.createSnapAt
@@ -10359,77 +10454,35 @@ Snap.plugin(function (Snap, Element, Paper, global) {
     return new Snap(svg);
   };
 });
-},{}],54:[function(_dereq_,module,exports){
+},{}],45:[function(_dereq_,module,exports){
 'use strict';
 
 
 var _ = (window._);
 
-var GraphicsUtil = _dereq_('../../util/GraphicsUtil');
+var Snap = (window.Snap);
+
+var GraphicsUtil = _dereq_('../../util/GraphicsUtil'),
+    createLine = _dereq_('../../draw/Renderer').createLine;
 
 
 /**
- * @class
- *
  * A plugin that provides interactivity in terms of events (mouse over and selection to a diagram).
+ *
+ * @class
  *
  * @param {EventBus} eventBus
  */
 function InteractionEvents(eventBus, styles) {
 
   var HIT_STYLE = styles.cls('djs-hit', [ 'no-fill', 'no-border' ], {
-    pointerEvents: 'stroke',
     stroke: 'white',
     strokeWidth: 10
   });
 
-  function isCtxSwitch(e) {
-    return !e.relatedTarget || e.target.parentNode !== e.relatedTarget.parentNode;
-  }
-
   function fire(event, baseEvent, eventName) {
     var e = _.extend({}, baseEvent, event);
     eventBus.fire(eventName, e);
-  }
-
-  function makeSelectable(element, gfx, options) {
-    var type = options.type,
-        baseEvent = { element: element, gfx: gfx },
-        visual = GraphicsUtil.getVisual(gfx),
-        hit,
-        bbox;
-
-    if (type === 'shape') {
-      bbox = visual.getBBox();
-      hit = gfx.rect(bbox.x, bbox.y, bbox.width, bbox.height);
-    } else {
-      hit = visual.select('*').clone().attr('style', '');
-    }
-
-    hit.attr(HIT_STYLE).prependTo(gfx);
-
-    gfx.hover(function(e) {
-      if (isCtxSwitch(e)) {
-        /**
-         * An event indicating that shape|connection has been hovered
-         *
-         * shape.hover, connection.hover
-         */
-        fire(e, baseEvent, type + '.hover');
-      }
-    }, function(e) {
-      if (isCtxSwitch(e)) {
-        fire(e, baseEvent, type + '.out');
-      }
-    });
-
-    visual.click(function(e) {
-      fire(e, baseEvent, type + '.click');
-    });
-
-    visual.dblclick(function(e) {
-      fire(e, baseEvent, type + '.dblclick');
-    });
   }
 
   function registerEvents(eventBus) {
@@ -10453,12 +10506,45 @@ function InteractionEvents(eventBus, styles) {
       });
     });
 
-    eventBus.on('shape.added', function(event) {
-      makeSelectable(event.element, event.gfx, { type: 'shape' });
-    });
 
-    eventBus.on('connection.added', function(event) {
-      makeSelectable(event.element, event.gfx, { type: 'connection' });
+    eventBus.on([ 'shape.added', 'connection.added' ], function(event) {
+      var element = event.element,
+          gfx = event.gfx,
+          visual = GraphicsUtil.getVisual(gfx),
+          baseEvent = { element: element, gfx: gfx };
+
+      var hit, type;
+
+      if (element.waypoints) {
+        hit = createLine(element.waypoints);
+        type = 'connection';
+      } else {
+        hit = Snap.create('rect', { x: 0, y: 0, width: element.width, height: element.height });
+        type = 'shape';
+      }
+
+
+      hit.attr(HIT_STYLE).appendTo(gfx.node);
+
+      gfx.hover(function(e) {
+
+        /**
+         * An event indicating that shape|connection has been hovered
+         *
+         * shape.hover, connection.hover
+         */
+        fire(e, baseEvent, type + '.hover');
+      }, function(e) {
+        fire(e, baseEvent, type + '.out');
+      });
+
+      visual.click(function(e) {
+        fire(e, baseEvent, type + '.click');
+      });
+
+      visual.dblclick(function(e) {
+        fire(e, baseEvent, type + '.dblclick');
+      });
     });
   }
 
@@ -10469,14 +10555,15 @@ function InteractionEvents(eventBus, styles) {
 InteractionEvents.$inject = [ 'eventBus', 'styles' ];
 
 module.exports = InteractionEvents;
-},{"../../util/GraphicsUtil":65}],55:[function(_dereq_,module,exports){
+},{"../../draw/Renderer":40,"../../util/GraphicsUtil":56}],46:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'interactionEvents' ],
   interactionEvents: [ 'type', _dereq_('./InteractionEvents') ]
 };
-},{"./InteractionEvents":54}],56:[function(_dereq_,module,exports){
+},{"./InteractionEvents":45}],47:[function(_dereq_,module,exports){
 'use strict';
 
+var Snap = (window.Snap);
 
 var GraphicsUtil = _dereq_('../../util/GraphicsUtil');
 
@@ -10495,19 +10582,17 @@ function Outline(events, styles) {
 
   var OUTLINE_STYLE = styles.cls('djs-outline', [ 'no-fill' ]);
 
-  function createOutline(gfx) {
-    return gfx.rect(0, 0, 0, 0)
-            .attr(OUTLINE_STYLE)
-            .prependTo(gfx);
+  function createOutline(gfx, bounds) {
+    return Snap.create('rect', OUTLINE_STYLE).prependTo(gfx);
   }
 
-  function updateOutline(outline, bbox) {
+  function updateOutline(outline, bounds) {
 
     outline.attr({
-      x: bbox.x - OUTLINE_OFFSET,
-      y: bbox.y - OUTLINE_OFFSET,
-      width: bbox.width + OUTLINE_OFFSET * 2,
-      height: bbox.height + OUTLINE_OFFSET * 2
+      x: -OUTLINE_OFFSET,
+      y: -OUTLINE_OFFSET,
+      width: bounds.width + OUTLINE_OFFSET * 2,
+      height: bounds.height + OUTLINE_OFFSET * 2
     });
   }
 
@@ -10515,9 +10600,9 @@ function Outline(events, styles) {
     var element = event.element,
         gfx = event.gfx;
 
-    var outline = createOutline(gfx);
+    var outline = createOutline(gfx, element);
 
-    updateOutline(outline, GraphicsUtil.getVisual(gfx).getBBox());
+    updateOutline(outline, element);
   });
 
   events.on('connection.change', function(event) {
@@ -10533,14 +10618,14 @@ function Outline(events, styles) {
 Outline.$inject = ['eventBus', 'styles'];
 
 module.exports = Outline;
-},{"../../util/GraphicsUtil":65}],57:[function(_dereq_,module,exports){
+},{"../../util/GraphicsUtil":56}],48:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'outline' ],
   outline: [ 'type', _dereq_('./Outline') ]
 };
-},{"./Outline":56}],58:[function(_dereq_,module,exports){
+},{"./Outline":47}],49:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._),
@@ -10679,6 +10764,9 @@ Overlays.prototype.get = function(filter) {
     } else {
       return [];
     }
+  } else
+  if (filter.type) {
+    return _.filter(this._overlays, { type: filter.type });
   } else {
     // return single element when filtering by id
     return filter.id ? this._overlays[filter.id] : null;
@@ -10716,6 +10804,10 @@ Overlays.prototype.add = function(element, type, overlay) {
     element = this._elementRegistry.getById(element);
   }
 
+  if (element.waypoints) {
+    throw new Error('overlays for connections are not supported');
+  }
+
   if (!overlay.position) {
     throw new Error('must specifiy overlay position');
   }
@@ -10744,31 +10836,45 @@ Overlays.prototype.add = function(element, type, overlay) {
 
 
 /**
- * Remove an overlay with the given id
+ * Remove an overlay with the given id or all overlays matching the given filter.
  *
- * @param  {String} id
+ * @see Overlays#get for filter options.
+ *
+ * @param {String} [id]
+ * @param {Object} [filter]
  */
-Overlays.prototype.remove = function(id) {
+Overlays.prototype.remove = function(filter) {
 
-  var overlay = this.get(id),
-      container = overlay && this._getOverlayContainer(overlay.element, true);
+  var overlays = this.get(filter) || [];
 
-  if (overlay) {
-    overlay.html.remove();
-    overlay.htmlContainer.remove();
-
-    delete overlay.htmlContainer;
-    delete overlay.element;
-
-    delete this._overlays[id];
+  if (!_.isArray(overlays)) {
+    overlays = [ overlays ];
   }
 
-  if (container) {
-    var idx = container.overlays.indexOf(overlay);
-    if (idx !== -1) {
-      container.overlays.splice(idx, 1);
+  var self = this;
+
+  _.forEach(overlays, function(overlay) {
+
+    var container = self._getOverlayContainer(overlay.element, true);
+
+    if (overlay) {
+      overlay.html.remove();
+      overlay.htmlContainer.remove();
+
+      delete overlay.htmlContainer;
+      delete overlay.element;
+
+      delete self._overlays[overlay.id];
     }
-  }
+
+    if (container) {
+      var idx = container.overlays.indexOf(overlay);
+      if (idx !== -1) {
+        container.overlays.splice(idx, 1);
+      }
+    }
+  });
+
 };
 
 
@@ -10953,15 +11059,25 @@ Overlays.prototype._init = function(config) {
       self._updateOverlayContainer(container);
     }
   });
+
+
+  // marker integration, simply add them on the overlays as classes, too.
+
+  eventBus.on('element.marker.update', function(e) {
+    var container = self._getOverlayContainer(e.element, true);
+    if (container) {
+      container.html[e.add ? 'addClass' : 'removeClass'](e.marker);
+    }
+  });
 };
-},{"../../util/IdGenerator":66}],59:[function(_dereq_,module,exports){
+},{"../../util/IdGenerator":57}],50:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'overlays' ],
   overlays: [ 'type', _dereq_('./Overlays') ]
 };
-},{"./Overlays":58}],60:[function(_dereq_,module,exports){
+},{"./Overlays":49}],51:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
@@ -11056,7 +11172,7 @@ Selection.prototype.select = function(elements, add) {
 
   this._eventBus.fire('selection.changed', { oldSelection: oldSelection, newSelection: selectedElements });
 };
-},{}],61:[function(_dereq_,module,exports){
+},{}],52:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
@@ -11067,33 +11183,30 @@ function originalEvent(e) {
 }
 
 
+var MARKER_HOVER = 'hover',
+    MARKER_SELECTED = 'selected';
+
+
 /**
- * @class
- *
  * A plugin that adds a visible selection UI to shapes and connections
  * by appending the <code>hover</code> and <code>selected</code> classes to them.
+ *
+ * @class
  *
  * Makes elements selectable, too.
  *
  * @param {EventBus} events
  * @param {SelectionService} selection
- * @param {ElementRegistry} elementRegistry
+ * @param {Canvas} canvas
  */
-function SelectionVisuals(events, selection, elementRegistry) {
+function SelectionVisuals(events, selection, canvas) {
 
-  var HOVER_CLS = 'hover',
-      SELECTED_CLS = 'selected';
-
-  function addMarker(gfx, cls) {
-    if (gfx) {
-      gfx.addClass(cls);
-    }
+  function addMarker(e, cls) {
+    canvas.addMarker(e, cls);
   }
 
-  function removeMarker(gfx, cls) {
-    if (gfx) {
-      gfx.removeClass(cls);
-    }
+  function removeMarker(e, cls) {
+    canvas.removeMarker(e, cls);
   }
 
   /**
@@ -11107,21 +11220,21 @@ function SelectionVisuals(events, selection, elementRegistry) {
   });
 
   events.on('shape.hover', function(event) {
-    addMarker(event.gfx, HOVER_CLS);
+    addMarker(event.element, MARKER_HOVER);
   });
 
   events.on('shape.out', function(event) {
-    removeMarker(event.gfx, HOVER_CLS);
+    removeMarker(event.element, MARKER_HOVER);
   });
 
   events.on('selection.changed', function(event) {
 
     function deselect(s) {
-      removeMarker(elementRegistry.getGraphicsByElement(s), SELECTED_CLS);
+      removeMarker(s, MARKER_SELECTED);
     }
 
     function select(s) {
-      addMarker(elementRegistry.getGraphicsByElement(s), SELECTED_CLS);
+      addMarker(s, MARKER_SELECTED);
     }
 
     var oldSelection = event.oldSelection,
@@ -11151,11 +11264,11 @@ function SelectionVisuals(events, selection, elementRegistry) {
 SelectionVisuals.$inject = [
   'eventBus',
   'selection',
-  'elementRegistry'
+  'canvas'
 ];
 
 module.exports = SelectionVisuals;
-},{}],62:[function(_dereq_,module,exports){
+},{}],53:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -11167,7 +11280,7 @@ module.exports = {
   selection: [ 'type', _dereq_('./Selection') ],
   selectionVisuals: [ 'type', _dereq_('./SelectionVisuals') ]
 };
-},{"../interaction-events":55,"../outline":57,"./Selection":60,"./SelectionVisuals":61}],63:[function(_dereq_,module,exports){
+},{"../interaction-events":46,"../outline":48,"./Selection":51,"./SelectionVisuals":52}],54:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
@@ -11367,7 +11480,7 @@ module.exports.Root = Root;
 module.exports.Shape = Shape;
 module.exports.Connection = Connection;
 module.exports.Label = Label;
-},{"object-refs":72}],64:[function(_dereq_,module,exports){
+},{"object-refs":63}],55:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -11393,7 +11506,7 @@ module.exports.remove = function(collection, element) {
 
   return element;
 };
-},{}],65:[function(_dereq_,module,exports){
+},{}],56:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -11435,8 +11548,20 @@ function getVisual(gfx) {
   return gfx.select('.djs-visual');
 }
 
+/**
+ * Returns the visual bbox of an element
+ *
+ * @param  {snapsvg.Element} gfx
+ * @return {snapsvg.Element}
+ */
+function getBBox(gfx) {
+  return getVisual(gfx).select('*').getBBox();
+}
+
+
+module.exports.getBBox = getBBox;
 module.exports.getVisual = getVisual;
-},{}],66:[function(_dereq_,module,exports){
+},{}],57:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -11470,10 +11595,13 @@ IdGenerator.prototype.next = function() {
   return this._prefix + (++this._counter);
 };
 
-},{}],67:[function(_dereq_,module,exports){
+},{}],58:[function(_dereq_,module,exports){
+'use strict';
+
+var Snap = (window.Snap);
 var _ = (window._);
 
-var DEFAULT_BOX_PADDING = 5;
+var DEFAULT_BOX_PADDING = 0;
 
 var DEFAULT_LABEL_SIZE = {
   width: 150,
@@ -11515,204 +11643,206 @@ function parsePadding(padding) {
  * @param {Object} config.style
  * @param {String} config.align
  */
-function LabelUtil(config) {
+function Text(config) {
 
-  config = _.extend({}, {
+  this._config = _.extend({}, {
     size: DEFAULT_LABEL_SIZE,
     padding: DEFAULT_BOX_PADDING,
     style: {},
     align: 'center-top'
   }, config || {});
+}
+
+/**
+ * Create a label in the parent node.
+ *
+ * @method Text#createText
+ *
+ * @param {SVGElement} parent the parent to draw the label on
+ * @param {String} text the text to render on the label
+ * @param {Object} options
+ * @param {String} options.align how to align in the bounding box.
+ *                             Any of { 'center-middle', 'center-top' }, defaults to 'center-top'.
+ * @param {String} options.style style to be applied to the text
+ *
+ * @return {SVGText} the text element created
+ */
+Text.prototype.createText = function(parent, text, options) {
+
+  var box = _.merge({}, this._config.size, options.box || {}),
+      style = _.merge({}, this._config.style, options.style || {}),
+      align = parseAlign(options.align || this._config.align),
+      padding = parsePadding(options.padding !== undefined ? options.padding : this._config.padding);
+
+  var lines = text.split(/\r?\n/g),
+      layouted = [];
+
+  var maxWidth = box.width - padding.left - padding.right;
+
+  var fakeText = parent.text(0, 0, '').attr(style).node;
+  // FF regression: ensure text is shown during rendering
+  // by attaching it directly to the body
+  fakeText.ownerSVGElement.appendChild(fakeText);
 
   /**
-   * Create a label in the parent node.
+   * Layout the next line and return the layouted element.
    *
-   * @method LabelUtil#createLabel
+   * Alters the lines passed.
    *
-   * @param {SVGElement} parent the parent to draw the label on
-   * @param {String} text the text to render on the label
-   * @param {Object} options
-   * @param {String} options.align how to align in the bounding box.
-   *                             Any of { 'center-middle', 'center-top' }, defaults to 'center-top'.
-   * @param {String} options.style style to be applied to the text
-   *
-   * @return {SVGText} the text element created
+   * @param  {Array<String>} lines
+   * @return {Object} the line descriptor, an object { width, height, text }
    */
-  function createLabel(parent, text, options) {
+  function layoutNext(lines) {
 
-    var box = _.merge({}, config.size, options.box || {}),
-        style = _.merge({}, config.style, options.style || {}),
-        align = parseAlign(options.align || config.align),
-        padding = parsePadding(options.padding !== undefined ? options.padding : config.padding);
+    var originalLine = lines.shift(),
+        fitLine = originalLine;
 
-    var lines = text.split(/\r?\n/g),
-        layouted = [];
+    var textBBox;
 
-    var maxWidth = box.width - padding.left - padding.right;
+    function fit() {
+      if (fitLine.length < originalLine.length) {
+        var nextLine = lines[0] || '',
+            remainder = originalLine.slice(fitLine.length);
+
+        if (/-\s*$/.test(remainder)) {
+          nextLine = remainder.replace(/-\s*$/, '') + nextLine.replace(/^\s+/, '');
+        } else {
+          nextLine = remainder + ' ' + nextLine;
+        }
+
+        lines[0] = nextLine;
+      }
+      return { width: textBBox.width, height: textBBox.height, text: fitLine };
+    }
+
+    function getTextBBox(text) {
+      fakeText.textContent = text;
+      return fakeText.getBBox();
+    }
 
     /**
-     * Layout the next line and return the layouted element.
+     * Shortens a line based on spacing and hyphens.
+     * Returns the shortened result on success.
      *
-     * Alters the lines passed.
-     *
-     * @param  {Array<String>} lines
-     * @return {Object} the line descriptor, an object { width, height, text }
+     * @param  {String} line
+     * @param  {Number} maxLength the maximum characters of the string
+     * @return {String} the shortened string
      */
-    function layoutNext(lines) {
+    function semanticShorten(line, maxLength) {
+      var parts = line.split(/(\s|-)/g),
+          part,
+          shortenedParts = [],
+          length = 0;
 
-      var originalLine = lines.shift(),
-          fitLine = originalLine;
+      // try to shorten via spaces + hyphens
+      if (parts.length > 1) {
+        while ((part = parts.shift())) {
 
-      var textBBox;
-
-      function fit() {
-        if (fitLine.length < originalLine.length) {
-          var nextLine = lines[0] || '',
-              remainder = originalLine.slice(fitLine.length);
-
-          if (/-\s*$/.test(remainder)) {
-            nextLine = remainder.replace(/-\s*$/, '') + nextLine.replace(/^\s+/, '');
+          if (part.length + length < maxLength) {
+            shortenedParts.push(part);
+            length += part.length;
           } else {
-            nextLine = remainder + ' ' + nextLine;
-          }
-
-          lines[0] = nextLine;
-        }
-        return { width: textBBox.width, height: textBBox.height, text: fitLine };
-      }
-
-      function getTextBBox(text) {
-        var textElement = parent.text(0, 0, fitLine).attr(style);
-
-        var bbox = textElement.getBBox();
-
-        textElement.remove();
-        return bbox;
-      }
-
-      /**
-       * Shortens a line based on spacing and hyphens.
-       * Returns the shortened result on success.
-       *
-       * @param  {String} line
-       * @param  {Number} maxLength the maximum characters of the string
-       * @return {String} the shortened string
-       */
-      function semanticShorten(line, maxLength) {
-        var parts = line.split(/(\s|-)/g),
-            part,
-            shortenedParts = [],
-            length = 0;
-
-        // try to shorten via spaces + hyphens
-        if (parts.length > 1) {
-          while ((part = parts.shift())) {
-
-            if (part.length + length < maxLength) {
-              shortenedParts.push(part);
-              length += part.length;
-            } else {
-              // remove previous part, too if hyphen does not fit anymore
-              if (part === '-') {
-                shortenedParts.pop();
-              }
-
-              break;
+            // remove previous part, too if hyphen does not fit anymore
+            if (part === '-') {
+              shortenedParts.pop();
             }
+
+            break;
           }
         }
-
-        return shortenedParts.join('');
       }
 
-      function shortenLine(line, width, maxWidth) {
-        var shortenedLine = '';
-
-        var approximateLength = line.length * (maxWidth / width);
-
-        // try to shorten semantically (i.e. based on spaces and hyphens)
-        shortenedLine = semanticShorten(line, approximateLength);
-
-        if (!shortenedLine) {
-
-          // force shorten by cutting the long word
-          shortenedLine = line.slice(0, Math.floor(approximateLength - 1));
-        }
-
-        return shortenedLine;
-      }
-
-
-      while (true) {
-
-        textBBox = getTextBBox(fitLine);
-
-        // try to fit
-        if (textBBox.width < maxWidth) {
-          return fit();
-        }
-
-        fitLine = shortenLine(fitLine, textBBox.width, maxWidth);
-      }
+      return shortenedParts.join('');
     }
 
-    while (lines.length) {
-      layouted.push(layoutNext(lines));
+    function shortenLine(line, width, maxWidth) {
+      var length = line.length * (maxWidth / width);
+
+      // try to shorten semantically (i.e. based on spaces and hyphens)
+      var shortenedLine = semanticShorten(line, length);
+
+      if (!shortenedLine) {
+
+        // force shorten by cutting the long word
+        shortenedLine = line.slice(0, Math.floor(length - 1));
+      }
+
+      return shortenedLine;
     }
 
-    var totalHeight = _.reduce(layouted, function(sum, line, idx) {
-      return sum + line.height;
-    }, 0);
+
+    while (true) {
+
+      textBBox = getTextBBox(fitLine);
+
+      // try to fit
+      if (textBBox.width < maxWidth) {
+        return fit();
+      }
+
+      fitLine = shortenLine(fitLine, textBBox.width, maxWidth);
+    }
+  }
+
+  while (lines.length) {
+    layouted.push(layoutNext(lines));
+  }
+
+  var totalHeight = _.reduce(layouted, function(sum, line, idx) {
+    return sum + line.height;
+  }, 0);
 
 
-    // the center x position to align against
-    var cx = box.width / 2;
+  // the center x position to align against
+  var cx = box.width / 2;
 
-    // the y position of the next line
-    var y, x;
+  // the y position of the next line
+  var y, x;
 
-    switch (align.vertical) {
-      case 'middle':
-        y = (box.height - totalHeight) / 2 - layouted[0].height / 4;
+  switch (align.vertical) {
+    case 'middle':
+      y = (box.height - totalHeight) / 2 - layouted[0].height / 4;
+      break;
+
+    default:
+      y = padding.top;
+  }
+
+  var textElement = parent.text().attr(style);
+
+  _.forEach(layouted, function(line) {
+    y += line.height;
+
+    switch (align.horizontal) {
+      case 'left':
+        x = padding.left;
+        break;
+
+      case 'right':
+        x = (maxWidth - padding.right - line.width);
         break;
 
       default:
-        y = padding.top;
+        // aka center
+        x = (maxWidth - line.width) / 2 + padding.left;
     }
 
-    var textElement = parent.group().attr(style);
 
-    _.forEach(layouted, function(line) {
-      y += line.height;
+    var tspan = Snap.create('tspan', { x: x, y: y }).node;
+    tspan.textContent = line.text;
 
-      switch (align.horizontal) {
-        case 'left':
-          x = padding.left;
-          break;
+    textElement.append(tspan);
+  });
 
-        case 'right':
-          x = (maxWidth - padding.right - line.width);
-          break;
+  // remove fake text
+  fakeText.parentNode.removeChild(fakeText);
 
-        default:
-          // aka center
-          x = (maxWidth - line.width) / 2 + padding.left;
-      }
+  return textElement;
+};
 
 
-      parent.text(x, y, line.text).appendTo(textElement);
-    });
-
-    return textElement;
-  }
-
-  // API
-  this.createLabel = createLabel;
-}
-
-
-module.exports = LabelUtil;
-},{}],68:[function(_dereq_,module,exports){
+module.exports = Text;
+},{}],59:[function(_dereq_,module,exports){
 
 var isArray = function(obj) {
   return Object.prototype.toString.call(obj) === '[object Array]';
@@ -11762,14 +11892,14 @@ exports.annotate = annotate;
 exports.parse = parse;
 exports.isArray = isArray;
 
-},{}],69:[function(_dereq_,module,exports){
+},{}],60:[function(_dereq_,module,exports){
 module.exports = {
   annotate: _dereq_('./annotation').annotate,
   Module: _dereq_('./module'),
   Injector: _dereq_('./injector')
 };
 
-},{"./annotation":68,"./injector":70,"./module":71}],70:[function(_dereq_,module,exports){
+},{"./annotation":59,"./injector":61,"./module":62}],61:[function(_dereq_,module,exports){
 var Module = _dereq_('./module');
 var autoAnnotate = _dereq_('./annotation').parse;
 var annotate = _dereq_('./annotation').annotate;
@@ -11985,7 +12115,7 @@ var Injector = function(modules, parent) {
 
 module.exports = Injector;
 
-},{"./annotation":68,"./module":71}],71:[function(_dereq_,module,exports){
+},{"./annotation":59,"./module":62}],62:[function(_dereq_,module,exports){
 var Module = function() {
   var providers = [];
 
@@ -12011,11 +12141,11 @@ var Module = function() {
 
 module.exports = Module;
 
-},{}],72:[function(_dereq_,module,exports){
+},{}],63:[function(_dereq_,module,exports){
 module.exports = _dereq_('./lib/refs');
 
 module.exports.Collection = _dereq_('./lib/collection');
-},{"./lib/collection":73,"./lib/refs":74}],73:[function(_dereq_,module,exports){
+},{"./lib/collection":64,"./lib/refs":65}],64:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -12097,7 +12227,7 @@ function extend(collection, refs, property, target) {
 
 
 module.exports.extend = extend;
-},{}],74:[function(_dereq_,module,exports){
+},{}],65:[function(_dereq_,module,exports){
 'use strict';
 
 var Collection = _dereq_('./collection');
@@ -12279,12 +12409,6 @@ module.exports = Refs;
  * @property {boolean} [collection=false]
  * @property {boolean} [enumerable=false]
  */
-},{"./collection":73}],75:[function(_dereq_,module,exports){
-module.exports=_dereq_(72)
-},{"./lib/collection":76,"./lib/refs":77}],76:[function(_dereq_,module,exports){
-module.exports=_dereq_(73)
-},{}],77:[function(_dereq_,module,exports){
-module.exports=_dereq_(74)
-},{"./collection":76}]},{},[1])
+},{"./collection":64}]},{},[1])
 (1)
 });
