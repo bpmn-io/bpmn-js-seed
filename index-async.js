@@ -12,9 +12,7 @@
 
   // create viewer
   var bpmnViewer = new BpmnViewer({
-    container: '#canvas',
-    width: '100%',
-    height: '100%'
+    container: '#canvas'
   });
 
 
