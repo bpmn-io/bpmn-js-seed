@@ -49,7 +49,7 @@
 
 
   // load external diagram file via AJAX and import it
-  $.get('diagram.bpmn', importXML);
+  $.get('diagram.bpmn', importXML, 'text');
 
 
 })(window.BpmnJS, window.jQuery);
