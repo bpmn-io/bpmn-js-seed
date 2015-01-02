@@ -34,6 +34,12 @@ function checkValidationError(err) {
   return err;
 }
 
+var DEFAULT_OPTIONS = {
+  width: '100%',
+  height: '100%',
+  position: 'relative'
+};
+
 /**
  * A viewer for BPMN 2.0 diagrams
  *
@@ -47,14 +53,18 @@ function checkValidationError(err) {
  * @param {Array<didi.Module>} [options.additionalModules] a list of modules to use with the default modules
  */
 function Viewer(options) {
-  this.options = options = options || {};
+
+  this.options = options = _.extend({}, DEFAULT_OPTIONS, options || {});
 
   var parent = options.container || $('body');
 
-  var container = $('<div class="bjs-container" style="position: relative"></div>').appendTo(parent);
+  var container = $('<div class="bjs-container"></div>').appendTo(parent);
 
-  container.css('width', options.width || '100%');
-  container.css('height', options.height || '100%');
+  container.css({
+    width: options.width,
+    height: options.height,
+    position: options.position
+  });
 
   // unwrap jquery
   this.container = container.get(0);
@@ -223,7 +233,10 @@ Viewer.prototype.getModules = function() {
 };
 
 /**
- * Remove all drawn elements from the viewer
+ * Remove all drawn elements from the viewer.
+ *
+ * After calling this method the viewer can still
+ * be reused for opening another diagram.
  */
 Viewer.prototype.clear = function() {
   var diagram = this.diagram;
@@ -231,6 +244,18 @@ Viewer.prototype.clear = function() {
   if (diagram) {
     diagram.destroy();
   }
+};
+
+/**
+ * Destroy the viewer instance and remove all its remainders
+ * from the document tree.
+ */
+Viewer.prototype.destroy = function() {
+  // clear underlying diagram
+  this.clear();
+
+  // remove container
+  $(this.container).remove();
 };
 
 /**
@@ -260,7 +285,7 @@ Viewer.prototype._modules = [
 
 module.exports = Viewer;
 
-},{"./core":2,"./import/Importer":8,"bpmn-moddle":13,"diagram-js":34,"diagram-js/lib/features/overlays":52,"diagram-js/lib/features/selection":55}],2:[function(_dereq_,module,exports){
+},{"./core":2,"./import/Importer":8,"bpmn-moddle":13,"diagram-js":34,"diagram-js/lib/features/overlays":52,"diagram-js/lib/features/selection":56}],2:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
     _dereq_('../draw'),
@@ -1778,7 +1803,7 @@ BpmnRenderer.prototype = Object.create(DefaultRenderer.prototype);
 BpmnRenderer.$inject = [ 'eventBus', 'styles', 'pathMap' ];
 
 module.exports = BpmnRenderer;
-},{"../util/Di":11,"diagram-js/lib/draw/Renderer":42,"diagram-js/lib/util/Text":61}],4:[function(_dereq_,module,exports){
+},{"../util/Di":11,"diagram-js/lib/draw/Renderer":42,"diagram-js/lib/util/Text":63}],4:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -2319,10 +2344,10 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
     element = this._elementFactory.createShape(elementData(semantic, {
       collapsed: collapsed,
       hidden: hidden,
-      x: bounds.x,
-      y: bounds.y,
-      width: bounds.width,
-      height: bounds.height
+      x: Math.round(bounds.x),
+      y: Math.round(bounds.y),
+      width: Math.round(bounds.width),
+      height: Math.round(bounds.height)
     }));
 
     this._canvas.addShape(element, parentElement);
@@ -2368,10 +2393,10 @@ BpmnImporter.prototype.addLabel = function(semantic, element) {
     labelTarget: element,
     type: 'label',
     hidden: element.hidden,
-    x: bounds.x,
-    y: bounds.y,
-    width: bounds.width,
-    height: bounds.height
+    x: Math.round(bounds.x),
+    y: Math.round(bounds.y),
+    width: Math.round(bounds.width),
+    height: Math.round(bounds.height)
   }));
 
   return this._canvas.addShape(label, element.parent);
@@ -2430,6 +2455,7 @@ BpmnImporter.prototype._getTarget = function(semantic) {
 BpmnImporter.prototype._getElement = function(semantic) {
   return this._elementRegistry.get(semantic.id);
 };
+
 },{"../util/Di":11,"../util/Label":12,"./Util":9}],7:[function(_dereq_,module,exports){
 'use strict';
 
@@ -2825,7 +2851,7 @@ function BpmnTreeWalker(handler) {
 }
 
 module.exports = BpmnTreeWalker;
-},{"./Util":9,"object-refs":66}],8:[function(_dereq_,module,exports){
+},{"./Util":9,"object-refs":68}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var BpmnTreeWalker = _dereq_('./BpmnTreeWalker');
@@ -8982,7 +9008,7 @@ module.exports = Diagram;
 Diagram.prototype.destroy = function() {
   this.get('eventBus').fire('diagram.destroy');
 };
-},{"./core":41,"didi":63}],36:[function(_dereq_,module,exports){
+},{"./core":41,"didi":65}],36:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -9504,8 +9530,8 @@ Canvas.prototype.getGraphics = function(element) {
 };
 
 
-Canvas.prototype._fireViewboxChange = function(viewbox) {
-  this._eventBus.fire('canvas.viewbox.changed', { viewbox: viewbox || this.viewbox() });
+Canvas.prototype._fireViewboxChange = function() {
+  this._eventBus.fire('canvas.viewbox.changed', { viewbox: this.viewbox(false) });
 };
 
 
@@ -9529,8 +9555,11 @@ Canvas.prototype._fireViewboxChange = function(viewbox) {
  */
 Canvas.prototype.viewbox = function(box) {
 
-  var viewport = this._viewport,
+  if (box === undefined && this._cachedViewbox) {
+    return this._cachedViewbox;
+  }
 
+  var viewport = this._viewport,
       innerBox,
       outerBox = this.getSize(),
       matrix,
@@ -9546,7 +9575,7 @@ Canvas.prototype.viewbox = function(box) {
     x = round(-matrix.e || 0, 1000);
     y = round(-matrix.f || 0, 1000);
 
-    return {
+    box = this._cachedViewbox = {
       x: x ? x / scale : 0,
       y: y ? y / scale : 0,
       width: outerBox.width / scale,
@@ -9560,6 +9589,8 @@ Canvas.prototype.viewbox = function(box) {
       },
       outer: outerBox
     };
+
+    return box;
   } else {
     scale = Math.max(outerBox.width / box.width, outerBox.height / box.height);
 
@@ -9746,7 +9777,7 @@ Canvas.prototype.getAbsoluteBBox = function(element) {
     height: height
   };
 };
-},{"../util/Collections":57}],37:[function(_dereq_,module,exports){
+},{"../util/Collections":58}],37:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
@@ -9799,7 +9830,7 @@ ElementFactory.prototype.create = function(type, attrs) {
 
   return Model.create(type, attrs);
 };
-},{"../model":56}],38:[function(_dereq_,module,exports){
+},{"../model":57}],38:[function(_dereq_,module,exports){
 var ELEMENT_ID = 'data-element-id';
 
 /**
@@ -10367,7 +10398,7 @@ GraphicsFactory.prototype.remove = function(element) {
   // remove
   gfx.parent().remove();
 };
-},{"../util/Dom":58,"../util/GraphicsUtil":59}],41:[function(_dereq_,module,exports){
+},{"../util/Dom":59,"../util/GraphicsUtil":61}],41:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [ _dereq_('../draw') ],
   __init__: [ 'canvas' ],
@@ -10760,7 +10791,6 @@ function InteractionEvents(eventBus, elementRegistry, styles, snap) {
         defaultPrevented;
 
     if (!gfx || !element) {
-      console.error('NO GFX OR ELEMENT FOR EVENT', event);
       return;
     }
 
@@ -10771,16 +10801,10 @@ function InteractionEvents(eventBus, elementRegistry, styles, snap) {
     }
   }
 
-  function handler(type) {
-    return function(event) {
-      fire(type, event);
-    };
-  }
-
   function mouseHandler(type) {
     return function(event) {
-      if (event.button === 0) {
-        // only indicate left mouse button interactions
+      // only indicate left mouse button=0 interactions
+      if (!event.button) {
         fire(type, event);
       }
     };
@@ -10802,7 +10826,7 @@ function InteractionEvents(eventBus, elementRegistry, styles, snap) {
      * @property {Snap<Element>} gfx
      * @property {Event} originalEvent
      */
-    Dom.on(node, 'mouseover', handler('element.hover'));
+    Dom.on(node, 'mouseover', mouseHandler('element.hover'));
 
     /**
      * An event indicating that the mouse has left an element
@@ -10814,7 +10838,7 @@ function InteractionEvents(eventBus, elementRegistry, styles, snap) {
      * @property {Snap<Element>} gfx
      * @property {Event} originalEvent
      */
-    Dom.on(node, 'mouseout', handler('element.out'));
+    Dom.on(node, 'mouseout', mouseHandler('element.out'));
 
     /**
      * An event indicating that the mouse has clicked an element
@@ -10912,6 +10936,10 @@ function InteractionEvents(eventBus, elementRegistry, styles, snap) {
     updateLine(hit, element.waypoints);
   });
 
+
+  // API
+
+  this.fire = fire;
 }
 
 
@@ -10919,7 +10947,7 @@ InteractionEvents.$inject = [ 'eventBus', 'elementRegistry', 'styles', 'snap' ];
 
 module.exports = InteractionEvents;
 
-},{"../../draw/Renderer":42,"../../util/Dom":58,"../../util/GraphicsUtil":59}],48:[function(_dereq_,module,exports){
+},{"../../draw/Renderer":42,"../../util/Dom":59,"../../util/GraphicsUtil":61}],48:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'interactionEvents' ],
   interactionEvents: [ 'type', _dereq_('./InteractionEvents') ]
@@ -10980,7 +11008,7 @@ Outline.$inject = ['eventBus', 'styles', 'elementRegistry'];
 
 module.exports = Outline;
 
-},{"../../util/GraphicsUtil":59}],50:[function(_dereq_,module,exports){
+},{"../../util/GraphicsUtil":61}],50:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -11453,7 +11481,7 @@ Overlays.prototype._init = function(config) {
   });
 };
 
-},{"../../util/IdGenerator":60}],52:[function(_dereq_,module,exports){
+},{"../../util/IdGenerator":62}],52:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -11558,13 +11586,50 @@ Selection.prototype.select = function(elements, add) {
 },{}],54:[function(_dereq_,module,exports){
 'use strict';
 
-var _ = (window._);
+var getOriginalEvent = _dereq_('../../util/Event').getOriginal;
 
+function SelectionBehavior(eventBus, selection, canvas) {
 
-function originalEvent(e) {
-  return e.originalEvent || e;
+  eventBus.on('create.end', 500, function(e) {
+    if (e.context.canExecute) {
+      selection.select(e.shape);
+    }
+  });
+
+  eventBus.on('connect.end', 500, function(e) {
+    if (e.context.canExecute && e.context.target) {
+      selection.select(e.context.target);
+    }
+  });
+
+  eventBus.on('shape.move.end', 500, function(e) {
+    selection.select(e.context.shapes);
+  });
+
+  eventBus.on('element.click', function(event) {
+
+    var element = event.element;
+
+    // do not select the root element
+    // or connections
+    if (element === canvas.getRootElement() ||
+        element.waypoints) {
+
+      element = null;
+    }
+
+    var add = (getOriginalEvent(event) || event).shiftKey;
+    selection.select(element, add);
+  });
 }
 
+SelectionBehavior.$inject = [ 'eventBus', 'selection', 'canvas' ];
+
+module.exports = SelectionBehavior;
+},{"../../util/Event":60}],55:[function(_dereq_,module,exports){
+'use strict';
+
+var _ = (window._);
 
 var MARKER_HOVER = 'hover',
     MARKER_SELECTED = 'selected';
@@ -11582,7 +11647,7 @@ var MARKER_HOVER = 'hover',
  * @param {SelectionService} selection
  * @param {Canvas} canvas
  */
-function SelectionVisuals(events, selection, canvas) {
+function SelectionVisuals(events, canvas) {
 
   function addMarker(e, cls) {
     canvas.addMarker(e, cls);
@@ -11591,27 +11656,6 @@ function SelectionVisuals(events, selection, canvas) {
   function removeMarker(e, cls) {
     canvas.removeMarker(e, cls);
   }
-
-  /**
-   * Wire click on shape to select the shape
-   *
-   * @param  {Object} event the fired event
-   */
-  events.on('element.click', function(event) {
-
-    var element = event.element;
-
-    // do not select the root element
-    // or connections
-    if (element === canvas.getRootElement() ||
-        element.waypoints) {
-
-      element = null;
-    }
-
-    var add = originalEvent(event).shiftKey;
-    selection.select(element, add);
-  });
 
   events.on('element.hover', function(event) {
     addMarker(event.element, MARKER_HOVER);
@@ -11650,25 +11694,25 @@ function SelectionVisuals(events, selection, canvas) {
 
 SelectionVisuals.$inject = [
   'eventBus',
-  'selection',
   'canvas'
 ];
 
 module.exports = SelectionVisuals;
 
-},{}],55:[function(_dereq_,module,exports){
+},{}],56:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
-  __init__: [ 'selectionVisuals' ],
+  __init__: [ 'selectionVisuals', 'selectionBehavior' ],
   __depends__: [
     _dereq_('../interaction-events'),
     _dereq_('../outline')
   ],
   selection: [ 'type', _dereq_('./Selection') ],
-  selectionVisuals: [ 'type', _dereq_('./SelectionVisuals') ]
+  selectionVisuals: [ 'type', _dereq_('./SelectionVisuals') ],
+  selectionBehavior: [ 'type', _dereq_('./SelectionBehavior') ]
 };
-},{"../interaction-events":48,"../outline":50,"./Selection":53,"./SelectionVisuals":54}],56:[function(_dereq_,module,exports){
+},{"../interaction-events":48,"../outline":50,"./Selection":53,"./SelectionBehavior":54,"./SelectionVisuals":55}],57:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
@@ -11869,7 +11913,7 @@ module.exports.Root = Root;
 module.exports.Shape = Shape;
 module.exports.Connection = Connection;
 module.exports.Label = Label;
-},{"object-refs":66}],57:[function(_dereq_,module,exports){
+},{"object-refs":68}],58:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -11961,7 +12005,7 @@ module.exports.indexOf = function(collection, element) {
   return collection.indexOf(element);
 };
 
-},{}],58:[function(_dereq_,module,exports){
+},{}],59:[function(_dereq_,module,exports){
 
 var elementProto = Element.prototype;
 
@@ -12038,19 +12082,100 @@ function clear(element) {
 module.exports.clear = clear;
 
 
-function on(element, type, fn) {
-  element.addEventListener(type, fn);
+function on(element, type, fn, useCapture) {
+  element.addEventListener(type, fn, useCapture || false);
 }
 
 module.exports.on = on;
 
 
-function off(element, type, fn) {
-  element.removeEventListener(type, fn);
+function off(element, type, fn, useCapture) {
+  element.removeEventListener(type, fn, useCapture || false);
 }
 
 module.exports.off = off;
-},{}],59:[function(_dereq_,module,exports){
+
+function once(element, type, fn, useCapture) {
+
+  var wrappedFn = function(e) {
+    fn(e);
+
+    off(element, type, wrappedFn, useCapture);
+  };
+
+  on(element, type, wrappedFn, useCapture);
+}
+
+module.exports.once = once;
+},{}],60:[function(_dereq_,module,exports){
+function __preventDefault(event) {
+  return event && event.preventDefault();
+}
+
+function __stopPropagation(event, immediate) {
+  if (!event) {
+    return;
+  }
+
+  if (event.stopPropagation) {
+    event.stopPropagation();
+  }
+
+  if (immediate && event.stopImmediatePropagation) {
+    event.stopImmediatePropagation();
+  }
+}
+
+
+function getOriginal(event) {
+  return event.originalEvent || event.srcEvent;
+}
+
+module.exports.getOriginal = getOriginal;
+
+
+function stopEvent(event, immediate) {
+  stopPropagation(event, immediate);
+  preventDefault(event);
+}
+
+module.exports.stopEvent = stopEvent;
+
+
+function preventDefault(event) {
+  __preventDefault(event);
+  __preventDefault(getOriginal(event));
+}
+
+module.exports.preventDefault = preventDefault;
+
+
+function stopPropagation(event, immediate) {
+  __stopPropagation(event, immediate);
+  __stopPropagation(getOriginal(event), immediate);
+}
+
+module.exports.stopPropagation = stopPropagation;
+
+
+function toPoint(event) {
+
+  if (event.pointers && event.pointers.length) {
+    event = event.pointers[0];
+  }
+
+  if (event.touches && event.touches.length) {
+    event = event.touches[0];
+  }
+
+  return event ? {
+    x: event.clientX,
+    y: event.clientY
+  } : null;
+}
+
+module.exports.toPoint = toPoint;
+},{}],61:[function(_dereq_,module,exports){
 /**
  * SVGs for elements are generated by the {@link GraphicsFactory}.
  *
@@ -12094,7 +12219,7 @@ function getBBox(gfx) {
 module.exports.getVisual = getVisual;
 module.exports.getChildren = getChildren;
 module.exports.getBBox = getBBox;
-},{}],60:[function(_dereq_,module,exports){
+},{}],62:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -12128,7 +12253,7 @@ IdGenerator.prototype.next = function() {
   return this._prefix + (++this._counter);
 };
 
-},{}],61:[function(_dereq_,module,exports){
+},{}],63:[function(_dereq_,module,exports){
 'use strict';
 
 var Snap = (window.Snap);
@@ -12375,7 +12500,7 @@ Text.prototype.createText = function(parent, text, options) {
 
 
 module.exports = Text;
-},{}],62:[function(_dereq_,module,exports){
+},{}],64:[function(_dereq_,module,exports){
 
 var isArray = function(obj) {
   return Object.prototype.toString.call(obj) === '[object Array]';
@@ -12425,14 +12550,14 @@ exports.annotate = annotate;
 exports.parse = parse;
 exports.isArray = isArray;
 
-},{}],63:[function(_dereq_,module,exports){
+},{}],65:[function(_dereq_,module,exports){
 module.exports = {
   annotate: _dereq_('./annotation').annotate,
   Module: _dereq_('./module'),
   Injector: _dereq_('./injector')
 };
 
-},{"./annotation":62,"./injector":64,"./module":65}],64:[function(_dereq_,module,exports){
+},{"./annotation":64,"./injector":66,"./module":67}],66:[function(_dereq_,module,exports){
 var Module = _dereq_('./module');
 var autoAnnotate = _dereq_('./annotation').parse;
 var annotate = _dereq_('./annotation').annotate;
@@ -12648,7 +12773,7 @@ var Injector = function(modules, parent) {
 
 module.exports = Injector;
 
-},{"./annotation":62,"./module":65}],65:[function(_dereq_,module,exports){
+},{"./annotation":64,"./module":67}],67:[function(_dereq_,module,exports){
 var Module = function() {
   var providers = [];
 
@@ -12674,11 +12799,11 @@ var Module = function() {
 
 module.exports = Module;
 
-},{}],66:[function(_dereq_,module,exports){
+},{}],68:[function(_dereq_,module,exports){
 module.exports = _dereq_('./lib/refs');
 
 module.exports.Collection = _dereq_('./lib/collection');
-},{"./lib/collection":67,"./lib/refs":68}],67:[function(_dereq_,module,exports){
+},{"./lib/collection":69,"./lib/refs":70}],69:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -12760,7 +12885,7 @@ function extend(collection, refs, property, target) {
 
 
 module.exports.extend = extend;
-},{}],68:[function(_dereq_,module,exports){
+},{}],70:[function(_dereq_,module,exports){
 'use strict';
 
 var Collection = _dereq_('./collection');
@@ -12942,6 +13067,6 @@ module.exports = Refs;
  * @property {boolean} [collection=false]
  * @property {boolean} [enumerable=false]
  */
-},{"./collection":67}]},{},[1])
+},{"./collection":69}]},{},[1])
 (1)
 });
