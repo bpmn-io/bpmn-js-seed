@@ -1,6 +1,6 @@
 # bpmn-js Bower Package
 
-This is a packaged version of [bpmn-js](https://github.com/bpmn-io/bpmn-js) for usage via [bower](http://bower.io/).
+This is a packaged version of [bpmn-js](https://github.com/bpmn-io/bpmn-js) for usage via [bower](http://bower.io).
 
 
 ## Usage
@@ -17,7 +17,7 @@ Include the file into your project
 <!-- dependencies ... -->
 
 <!-- bpmn-js -->
-<script src="bower_components/bpmn-js/bpmn-viewer.js"></script>
+<script src="bower_components/bpmn-js/dist/bpmn-viewer.js"></script>
 
 <script>
   // require is part of bundle file

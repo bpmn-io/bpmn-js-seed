@@ -1,12 +1,48 @@
-!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.BpmnJS=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+/*!
+ * bpmn-js - bpmn-navigated-viewer v0.8.0
+
+ * Copyright 2014, 2015 camunda Services GmbH and other contributors
+ *
+ * Released under the bpmn.io license
+ * http://bpmn.io/license
+ *
+ * Source Code: https://github.com/bpmn-io/bpmn-js
+ *
+ * Date: 2015-01-22
+ */
+!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.BpmnJS=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+var Viewer = _dereq_(2);
+
+/**
+ * A viewer that includes mouse navigation facilities
+ *
+ * @param {Object} options
+ */
+function NavigatedViewer(options) {
+  Viewer.call(this, options);
+}
+
+NavigatedViewer.prototype = Object.create(Viewer.prototype);
+
+module.exports = NavigatedViewer;
+
+NavigatedViewer.prototype._navigationModules = [
+  _dereq_(62),
+  _dereq_(60)
+];
+
+NavigatedViewer.prototype._modules = [].concat(
+  NavigatedViewer.prototype._modules,
+  NavigatedViewer.prototype._navigationModules);
+},{}],2:[function(_dereq_,module,exports){
 'use strict';
 
-var Diagram = _dereq_('diagram-js'),
-    BpmnModdle = _dereq_('bpmn-moddle'),
+var Diagram = _dereq_(35),
+    BpmnModdle = _dereq_(14),
     $ = (window.$),
     _ = (window._);
 
-var Importer = _dereq_('./import/Importer');
+var Importer = _dereq_(9);
 
 
 function initListeners(diagram, listeners) {
@@ -41,9 +77,12 @@ var DEFAULT_OPTIONS = {
 };
 
 /**
- * A viewer for BPMN 2.0 diagrams
+ * A viewer for BPMN 2.0 diagrams.
  *
- * @class
+ * Includes the basic viewing functionality.
+ *
+ * Have a look at {@link NavigatedViewer} or {@link Modeler} for bundles that include
+ * additional features.
  *
  * @param {Object} [options] configuration options to pass to the viewer
  * @param {DOMElement} [options.container] the container to render the viewer in, defaults to body.
@@ -193,11 +232,12 @@ Viewer.prototype.importDefinitions = function(definitions, done) {
     }
 
     this.definitions = definitions;
-    this.diagram = this._createDiagram(this.options);
 
-    this._init(this.diagram);
+    var diagram = this.diagram = this._createDiagram(this.options);
 
-    Importer.importBpmnDiagram(this.diagram, definitions, done);
+    this._init(diagram);
+
+    Importer.importBpmnDiagram(diagram, definitions, done);
   } catch (e) {
     done(e);
   }
@@ -268,7 +308,6 @@ Viewer.prototype.on = function(event, handler) {
   var diagram = this.diagram,
       listeners = this.__listeners = this.__listeners || [];
 
-  listeners = this.__listeners || [];
   listeners.push({ event: event, handler: handler });
 
   if (diagram) {
@@ -278,29 +317,29 @@ Viewer.prototype.on = function(event, handler) {
 
 // modules the viewer is composed of
 Viewer.prototype._modules = [
-  _dereq_('./core'),
-  _dereq_('diagram-js/lib/features/selection'),
-  _dereq_('diagram-js/lib/features/overlays')
+  _dereq_(3),
+  _dereq_(57),
+  _dereq_(53)
 ];
 
 module.exports = Viewer;
 
-},{"./core":2,"./import/Importer":8,"bpmn-moddle":13,"diagram-js":34,"diagram-js/lib/features/overlays":52,"diagram-js/lib/features/selection":56}],2:[function(_dereq_,module,exports){
+},{}],3:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_('../draw'),
-    _dereq_('../import')
+    _dereq_(6),
+    _dereq_(11)
   ]
 };
-},{"../draw":5,"../import":10}],3:[function(_dereq_,module,exports){
+},{}],4:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
 
-var DefaultRenderer = _dereq_('diagram-js/lib/draw/Renderer');
-var TextUtil = _dereq_('diagram-js/lib/util/Text');
+var DefaultRenderer = _dereq_(43);
+var TextUtil = _dereq_(70);
 
-var DiUtil = _dereq_('../util/Di');
+var DiUtil = _dereq_(12);
 
 var createLine = DefaultRenderer.createLine;
 
@@ -1803,7 +1842,7 @@ BpmnRenderer.prototype = Object.create(DefaultRenderer.prototype);
 BpmnRenderer.$inject = [ 'eventBus', 'styles', 'pathMap' ];
 
 module.exports = BpmnRenderer;
-},{"../util/Di":11,"diagram-js/lib/draw/Renderer":42,"diagram-js/lib/util/Text":63}],4:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -2259,22 +2298,22 @@ PathMap.$inject = [ 'snap' ];
 
 module.exports = PathMap;
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 module.exports = {
-  renderer: [ 'type', _dereq_('./BpmnRenderer') ],
-  pathMap: [ 'type', _dereq_('./PathMap') ]
+  renderer: [ 'type', _dereq_(4) ],
+  pathMap: [ 'type', _dereq_(5) ]
 };
-},{"./BpmnRenderer":3,"./PathMap":4}],6:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
 
-var LabelUtil = _dereq_('../util/Label');
+var LabelUtil = _dereq_(13);
 
 var hasExternalLabel = LabelUtil.hasExternalLabel,
     getExternalLabelBounds = LabelUtil.getExternalLabelBounds,
-    isExpanded = _dereq_('../util/Di').isExpanded,
-    elementToString = _dereq_('./Util').elementToString;
+    isExpanded = _dereq_(12).isExpanded,
+    elementToString = _dereq_(10).elementToString;
 
 
 function elementData(semantic, attrs) {
@@ -2456,14 +2495,14 @@ BpmnImporter.prototype._getElement = function(semantic) {
   return this._elementRegistry.get(semantic.id);
 };
 
-},{"../util/Di":11,"../util/Label":12,"./Util":9}],7:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
 
-var Refs = _dereq_('object-refs');
+var Refs = _dereq_(75);
 
-var elementToString = _dereq_('./Util').elementToString;
+var elementToString = _dereq_(10).elementToString;
 
 var diRefs = new Refs({ name: 'bpmnElement', enumerable: true }, { name: 'di' });
 
@@ -2839,7 +2878,10 @@ function BpmnTreeWalker(handler) {
 
     handleArtifacts(collaboration.artifacts);
 
-    handleMessageFlows(collaboration.messageFlows);
+    // handle message flows latest in the process
+    deferred.push(function() {
+      handleMessageFlows(collaboration.messageFlows);
+    });
   }
 
 
@@ -2851,10 +2893,10 @@ function BpmnTreeWalker(handler) {
 }
 
 module.exports = BpmnTreeWalker;
-},{"./Util":9,"object-refs":68}],8:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 'use strict';
 
-var BpmnTreeWalker = _dereq_('./BpmnTreeWalker');
+var BpmnTreeWalker = _dereq_(8);
 
 
 /**
@@ -2910,7 +2952,7 @@ function importBpmnDiagram(diagram, definitions, done) {
 }
 
 module.exports.importBpmnDiagram = importBpmnDiagram;
-},{"./BpmnTreeWalker":7}],9:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 module.exports.elementToString = function(e) {
   if (!e) {
     return '<null>';
@@ -2918,11 +2960,11 @@ module.exports.elementToString = function(e) {
 
   return '<' + e.$type + (e.id ? ' id="' + e.id : '') + '" />';
 };
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 module.exports = {
-  bpmnImporter: [ 'type', _dereq_('./BpmnImporter') ]
+  bpmnImporter: [ 'type', _dereq_(7) ]
 };
-},{"./BpmnImporter":6}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports.isExpandedPool = function(semantic) {
@@ -2940,7 +2982,7 @@ module.exports.isExpanded = function(semantic) {
   return isExpanded;
 };
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
@@ -3040,20 +3082,15 @@ module.exports.getExternalLabelBounds = function(semantic, element) {
     y: mid.y - size.height / 2
   }, size);
 };
-},{}],13:[function(_dereq_,module,exports){
-module.exports = _dereq_('./lib/simple');
-},{"./lib/simple":15}],14:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
+module.exports = _dereq_(16);
+},{}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
 
-var Moddle = _dereq_('moddle'),
-    ModdleXml = _dereq_('moddle-xml');
-
-
-function createModel(packages) {
-  return new Moddle(packages);
-}
+var Moddle = _dereq_(22),
+    ModdleXml = _dereq_(17);
 
 /**
  * A sub class of {@link Moddle} with support for import and export of BPMN 2.0 xml files.
@@ -3124,34 +3161,74 @@ BpmnModdle.prototype.toXML = function(element, options, done) {
   }
 };
 
-},{"moddle":21,"moddle-xml":16}],15:[function(_dereq_,module,exports){
-var BpmnModdle = _dereq_('./bpmn-moddle');
+},{}],16:[function(_dereq_,module,exports){
+var BpmnModdle = _dereq_(15);
 
 var packages = {
-  bpmn: _dereq_('../resources/bpmn/json/bpmn.json'),
-  bpmndi: _dereq_('../resources/bpmn/json/bpmndi.json'),
-  dc: _dereq_('../resources/bpmn/json/dc.json'),
-  di: _dereq_('../resources/bpmn/json/di.json')
+  bpmn: _dereq_(31),
+  bpmndi: _dereq_(32),
+  dc: _dereq_(33),
+  di: _dereq_(34)
 };
 
 module.exports = function() {
   return new BpmnModdle(packages);
 };
-},{"../resources/bpmn/json/bpmn.json":30,"../resources/bpmn/json/bpmndi.json":31,"../resources/bpmn/json/dc.json":32,"../resources/bpmn/json/di.json":33,"./bpmn-moddle":14}],16:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 'use strict';
 
-module.exports.Reader = _dereq_('./lib/Reader');
-module.exports.Writer = _dereq_('./lib/Writer');
-},{"./lib/Reader":17,"./lib/Writer":18}],17:[function(_dereq_,module,exports){
+module.exports.Reader = _dereq_(19);
+module.exports.Writer = _dereq_(20);
+},{}],18:[function(_dereq_,module,exports){
+'use strict';
+
+
+function capitalize(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+function lower(string) {
+  return string.charAt(0).toLowerCase() + string.slice(1);
+}
+
+function hasLowerCaseAlias(pkg) {
+  return pkg.xml && pkg.xml.tagAlias === 'lowerCase';
+}
+
+
+module.exports.aliasToName = function(alias, pkg) {
+  if (hasLowerCaseAlias(pkg)) {
+    return capitalize(alias);
+  } else {
+    return alias;
+  }
+};
+
+module.exports.nameToAlias = function(name, pkg) {
+  if (hasLowerCaseAlias(pkg)) {
+    return lower(name);
+  } else {
+    return name;
+  }
+};
+
+module.exports.DEFAULT_NS_MAP = {
+  'xsi': 'http://www.w3.org/2001/XMLSchema-instance'
+};
+
+module.exports.XSI_TYPE = 'xsi:type';
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var sax = (window.sax),
     _ = (window._);
 
-var common = _dereq_('./common'),
-    Types = _dereq_('moddle').types,
-    Stack = _dereq_('tiny-stack'),
-    parseNameNs = _dereq_('moddle').ns.parseName,
+var common = _dereq_(18),
+    XSI_TYPE = common.XSI_TYPE,
+    XSI_URI = common.DEFAULT_NS_MAP.xsi,
+    Types = _dereq_(22).types,
+    Stack = _dereq_(21),
+    parseNameNs = _dereq_(22).ns.parseName,
     aliasToName = common.aliasToName;
 
 
@@ -3173,6 +3250,25 @@ function parseNodeAttributes(node) {
   }, {});
 }
 
+function normalizeType(node, attr, model) {
+  var nameNs = parseNameNs(attr.value);
+
+  var uri = node.ns[nameNs.prefix || ''],
+      localName = nameNs.localName,
+      pkg = uri && model.getPackage(uri),
+      typePrefix;
+
+  if (pkg) {
+    typePrefix = pkg.xml && pkg.xml.typePrefix;
+
+    if (typePrefix && localName.indexOf(typePrefix) === 0) {
+      localName = localName.slice(typePrefix.length);
+    }
+
+    attr.value = pkg.prefix + ':' + localName;
+  }
+}
+
 /**
  * Normalizes namespaces for a node given an optional default namespace and a
  * number of mappings from uris to default prefixes.
@@ -3182,7 +3278,7 @@ function parseNodeAttributes(node) {
  * @param  {Uri} defaultNsUri
  */
 function normalizeNamespaces(node, model, defaultNsUri) {
-  var uri, childUri, prefix;
+  var uri, prefix;
 
   uri = node.uri || defaultNsUri;
 
@@ -3200,6 +3296,13 @@ function normalizeNamespaces(node, model, defaultNsUri) {
   }
 
   _.forEach(node.attributes, function(attr) {
+
+    // normalize xsi:type attributes because the
+    // assigned type may or may not be namespace prefixed
+    if (attr.uri === XSI_URI && attr.local === 'type') {
+      normalizeType(node, attr, model);
+    }
+
     normalizeNamespaces(attr, model, null);
   });
 }
@@ -3315,14 +3418,16 @@ function BaseElementHandler() {}
 BaseElementHandler.prototype = Object.create(BodyHandler.prototype);
 
 BaseElementHandler.prototype.handleNode = function(node) {
-  var parser = this;
+  var parser = this,
+      element = this.element,
+      id;
 
-  if (!this.element) {
-    this.element = this.createElement(node);
-    var id = this.element.id;
+  if (!element) {
+    element = this.element = this.createElement(node);
+    id = element.id;
 
     if (id) {
-      this.context.addElement(id, this.element);
+      this.context.addElement(id, element);
     }
   } else {
     parser = this.handleChild(node);
@@ -3394,29 +3499,50 @@ ElementHandler.prototype.createElement = function(node) {
   return instance;
 };
 
-ElementHandler.prototype.getPropertyForElement = function(nameNs) {
-  if (_.isString(nameNs)) {
-    nameNs = parseNameNs(nameNs);
-  }
+ElementHandler.prototype.getPropertyForNode = function(node) {
+
+  var nameNs = parseNameNs(node.local, node.prefix);
 
   var type = this.type,
       model = this.model,
       descriptor = type.$descriptor;
 
-  var propertyName = nameNs.name;
-
-  var property = descriptor.propertiesByName[propertyName];
+  var propertyName = nameNs.name,
+      property = descriptor.propertiesByName[propertyName],
+      elementTypeName,
+      elementType,
+      typeAnnotation;
 
   // search for properties by name first
+
   if (property) {
+
+    if (property.serialize === XSI_TYPE) {
+      typeAnnotation = node.attributes[XSI_TYPE];
+
+      // xsi type is optional, if it does not exists the
+      // default type is assumed
+      if (typeAnnotation) {
+
+        elementTypeName = typeAnnotation.value;
+
+        // TODO: extract real name from attribute
+        elementType = model.getType(elementTypeName);
+
+        return _.extend({}, property, { effectiveType: elementType.$descriptor.name });
+      }
+    }
+
+    // search for properties by name first
     return property;
   }
+
 
   var pkg = model.getPackage(nameNs.prefix);
 
   if (pkg) {
-    var typeName = nameNs.prefix + ':' + aliasToName(nameNs.localName, descriptor.$pkg),
-        elementType = model.getType(typeName);
+    elementTypeName = nameNs.prefix + ':' + aliasToName(nameNs.localName, descriptor.$pkg);
+    elementType = model.getType(elementTypeName);
 
     // search for collection members later
     property = _.find(descriptor.properties, function(p) {
@@ -3466,16 +3592,14 @@ ElementHandler.prototype.handler = function(type) {
  * @param  {Element} node the xml node
  */
 ElementHandler.prototype.handleChild = function(node) {
-  var nameNs = parseNameNs(node.local, node.prefix);
-
   var propertyDesc, type, element, childHandler;
 
-  propertyDesc = this.getPropertyForElement(nameNs);
+  propertyDesc = this.getPropertyForNode(node);
   element = this.element;
 
   type = propertyDesc.effectiveType || propertyDesc.type;
 
-  if (Types.isSimple(propertyDesc.type)) {
+  if (Types.isSimple(type)) {
     return this.valueHandler(propertyDesc, element);
   }
 
@@ -3578,8 +3702,7 @@ XMLReader.prototype.fromXML = function(xml, rootHandler, done) {
   var parser = sax.parser(true, { xmlns: true, trim: true }),
       stack = new Stack();
 
-  var model = this.model,
-      self = this;
+  var model = this.model;
 
   rootHandler.context = context;
 
@@ -3641,6 +3764,9 @@ XMLReader.prototype.fromXML = function(xml, rootHandler, done) {
       var line = this.line,
           column = this.column;
 
+      console.error('failed to parse document');
+      console.error(e);
+
       throw new Error(
         'unparsable content <' + node.name + '> detected\n\t' +
           'line: ' + line + '\n\t' +
@@ -3681,21 +3807,22 @@ XMLReader.prototype.handler = function(name) {
 
 module.exports = XMLReader;
 module.exports.ElementHandler = ElementHandler;
-},{"./common":19,"moddle":21,"tiny-stack":20}],18:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
 
-var Types = _dereq_('moddle').types,
-    common = _dereq_('./common'),
-    parseNameNs = _dereq_('moddle').ns.parseName,
+var Types = _dereq_(22).types,
+    common = _dereq_(18),
+    parseNameNs = _dereq_(22).ns.parseName,
     nameToAlias = common.nameToAlias;
 
 var XML_PREAMBLE = '<?xml version="1.0" encoding="UTF-8"?>\n';
 
 var CDATA_ESCAPE = /[<>"&]+/;
 
-var DEFAULT_NS_MAP = common.DEFAULT_NS_MAP;
+var DEFAULT_NS_MAP = common.DEFAULT_NS_MAP,
+    XSI_TYPE = common.XSI_TYPE;
 
 
 function nsName(ns) {
@@ -3789,8 +3916,7 @@ ReferenceSerializer.prototype.serializeTo = function(writer) {
 function BodySerializer() {}
 
 BodySerializer.prototype.serializeValue = BodySerializer.prototype.serializeTo = function(writer) {
-  var value = this.value,
-      escape = this.escape;
+  var escape = this.escape;
 
   if (escape) {
     writer.append('<![CDATA[');
@@ -3957,6 +4083,13 @@ ElementSerializer.prototype.parseGenericAttributes = function(element, attribute
   var self = this;
 
   _.forEach(attributes, function(attr) {
+
+    // do not serialize xsi:type attribute
+    // it is set manually based on the actual implementation type
+    if (attr.name === XSI_TYPE) {
+      return;
+    }
+
     try {
       self.addAttribute(self.nsAttributeName(attr.name), attr.value);
     } catch (e) {
@@ -3969,8 +4102,7 @@ ElementSerializer.prototype.parseContainments = function(properties) {
 
   var self = this,
       body = this.body,
-      element = this.element,
-      typeDesc = element.$descriptor;
+      element = this.element;
 
   _.forEach(properties, function(p) {
     var value = element.get(p.name),
@@ -3998,7 +4130,7 @@ ElementSerializer.prototype.parseContainments = function(properties) {
     } else {
       // allow serialization via type
       // rather than element name
-      var asType = p.serialize === 'xsi:type';
+      var asType = p.serialize === XSI_TYPE;
 
       _.forEach(value, function(v) {
         var serializer;
@@ -4104,8 +4236,7 @@ ElementSerializer.prototype.addAttribute = function(name, value) {
 };
 
 ElementSerializer.prototype.serializeAttributes = function(writer) {
-  var element = this.element,
-      attrs = this.attrs,
+  var attrs = this.attrs,
       root = !this.parent,
       namespaces = this.namespaces;
 
@@ -4128,7 +4259,8 @@ ElementSerializer.prototype.serializeAttributes = function(writer) {
 };
 
 ElementSerializer.prototype.serializeTo = function(writer) {
-  var hasBody = this.body.length;
+  var hasBody = this.body.length,
+      indent = !(this.body.length === 1 && this.body[0] instanceof BodySerializer);
 
   writer
     .appendIndent()
@@ -4136,24 +4268,30 @@ ElementSerializer.prototype.serializeTo = function(writer) {
 
   this.serializeAttributes(writer);
 
-  writer
-    .append(hasBody ? '>' : ' />')
-    .appendNewLine();
-
-  writer.indent();
-
-  _.forEach(this.body, function(b) {
-    b.serializeTo(writer);
-  });
-
-  writer.unindent();
+  writer.append(hasBody ? '>' : ' />');
 
   if (hasBody) {
-    writer
-      .appendIndent()
-      .append('</' + nsName(this.ns) + '>')
-      .appendNewLine();
+
+    if (indent) {
+      writer
+        .appendNewLine()
+        .indent();
+    }
+
+    _.forEach(this.body, function(b) {
+      b.serializeTo(writer);
+    });
+
+    if (indent) {
+      writer
+        .unindent()
+        .appendIndent();
+    }
+
+    writer.append('</' + nsName(this.ns) + '>');
   }
+
+  writer.appendNewLine();
 };
 
 /**
@@ -4166,9 +4304,24 @@ function TypeSerializer(parent, ns) {
 TypeSerializer.prototype = new ElementSerializer();
 
 TypeSerializer.prototype.build = function(element) {
-  this.element = element;
-  this.typeNs = this.nsTagName(element.$descriptor);
+  var descriptor = element.$descriptor;
 
+  this.element = element;
+
+  this.typeNs = this.nsTagName(descriptor);
+
+  // add xsi:type attribute to represent the elements
+  // actual type
+
+  var typeNs = this.typeNs,
+      pkg = element.$model.getPackage(typeNs.uri),
+      typePrefix = (pkg.xml && pkg.xml.typePrefix) || '';
+
+  this.addAttribute(this.nsAttributeName(XSI_TYPE),
+    (typeNs.prefix ? typeNs.prefix + ':' : '') +
+    typePrefix + descriptor.ns.localName);
+
+  // do the usual stuff
   return ElementSerializer.prototype.build.call(this, element);
 };
 
@@ -4251,43 +4404,7 @@ function XMLWriter(options) {
 }
 
 module.exports = XMLWriter;
-},{"./common":19,"moddle":21}],19:[function(_dereq_,module,exports){
-'use strict';
-
-
-function capitalize(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-function lower(string) {
-  return string.charAt(0).toLowerCase() + string.slice(1);
-}
-
-function hasLowerCaseAlias(pkg) {
-  return pkg.xml && pkg.xml.alias === 'lowerCase';
-}
-
-
-module.exports.aliasToName = function(alias, pkg) {
-  if (hasLowerCaseAlias(pkg)) {
-    return capitalize(alias);
-  } else {
-    return alias;
-  }
-};
-
-module.exports.nameToAlias = function(name, pkg) {
-  if (hasLowerCaseAlias(pkg)) {
-    return lower(name);
-  } else {
-    return name;
-  }
-};
-
-module.exports.DEFAULT_NS_MAP = {
-  'xsi': 'http://www.w3.org/2001/XMLSchema-instance'
-};
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 /**
  * Tiny stack for browser or server
  *
@@ -4404,15 +4521,15 @@ else {
 }
 } )( this );
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
-module.exports = _dereq_('./lib/moddle');
+module.exports = _dereq_(26);
 
-module.exports.types = _dereq_('./lib/types');
+module.exports.types = _dereq_(30);
 
-module.exports.ns = _dereq_('./lib/ns');
-},{"./lib/moddle":25,"./lib/ns":26,"./lib/types":29}],22:[function(_dereq_,module,exports){
+module.exports.ns = _dereq_(27);
+},{}],23:[function(_dereq_,module,exports){
 'use strict';
 
 function Base() { }
@@ -4427,12 +4544,12 @@ Base.prototype.set = function(name, value) {
 
 
 module.exports = Base;
-},{}],23:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
 
-var parseNameNs = _dereq_('./ns').parseName;
+var parseNameNs = _dereq_(27).parseName;
 
 
 function DescriptorBuilder(nameNs) {
@@ -4608,12 +4725,12 @@ DescriptorBuilder.prototype.addTrait = function(t) {
   allTypes.push(t);
 };
 
-},{"./ns":26}],24:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
 
-var Base = _dereq_('./base');
+var Base = _dereq_(23);
 
 
 function Factory(model, properties) {
@@ -4666,17 +4783,16 @@ Factory.prototype.createType = function(descriptor) {
 
   return ModdleElement;
 };
-},{"./base":22}],25:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
 
-var Types = _dereq_('./types'),
-    Factory = _dereq_('./factory'),
-    Registry = _dereq_('./registry'),
-    Properties = _dereq_('./properties');
+var Factory = _dereq_(25),
+    Registry = _dereq_(29),
+    Properties = _dereq_(28);
 
-var parseNameNs = _dereq_('./ns').parseName;
+var parseNameNs = _dereq_(27).parseName;
 
 
 //// Moddle implementation /////////////////////////////////////////////////
@@ -4885,7 +5001,7 @@ Moddle.prototype.getPropertyDescriptor = function(element, property) {
   return this.getElementDescriptor(element).propertiesByName[property];
 };
 
-},{"./factory":24,"./ns":26,"./properties":27,"./registry":28,"./types":29}],26:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -4922,7 +5038,7 @@ module.exports.parseName = function(name, defaultPrefix) {
     localName: localName
   };
 };
-},{}],27:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -5016,15 +5132,15 @@ Properties.prototype.defineDescriptor = function(target, descriptor) {
 Properties.prototype.defineModel = function(target, model) {
   this.define(target, '$model', { value: model });
 };
-},{}],28:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
 
-var Types = _dereq_('./types'),
-    DescriptorBuilder = _dereq_('./descriptor-builder');
+var Types = _dereq_(30),
+    DescriptorBuilder = _dereq_(24);
 
-var parseNameNs = _dereq_('./ns').parseName;
+var parseNameNs = _dereq_(27).parseName;
 
 
 function Registry(packages, properties, options) {
@@ -5137,8 +5253,7 @@ Registry.prototype.mapTypes = function(nsName, iterator) {
  */
 Registry.prototype.getEffectiveDescriptor = function(name) {
 
-  var options = this.options,
-      nsName = parseNameNs(name);
+  var nsName = parseNameNs(name);
 
   var builder = new DescriptorBuilder(nsName);
 
@@ -5164,7 +5279,7 @@ Registry.prototype.getEffectiveDescriptor = function(name) {
 Registry.prototype.definePackage = function(target, pkg) {
   this.properties.define(target, '$pkg', { value: pkg });
 };
-},{"./descriptor-builder":23,"./ns":26,"./types":29}],29:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -5215,7 +5330,7 @@ module.exports.isBuiltIn = function(type) {
 module.exports.isSimple = function(type) {
   return !!TYPE_CONVERTERS[type];
 };
-},{}],30:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 module.exports={
   "name": "BPMN20",
   "uri": "http://www.omg.org/spec/BPMN/20100524/MODEL",
@@ -5235,7 +5350,6 @@ module.exports={
         {
           "name": "operations",
           "type": "Operation",
-          "association": "A_operations_interface",
           "isMany": true
         },
         {
@@ -5259,21 +5373,18 @@ module.exports={
         {
           "name": "inMessageRef",
           "type": "Message",
-          "association": "A_inMessageRef_operation",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "outMessageRef",
           "type": "Message",
-          "association": "A_outMessageRef_operation",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "errorRefs",
           "type": "Error",
-          "association": "A_errorRefs_operation",
           "isMany": true,
           "isReference": true
         },
@@ -5305,7 +5416,6 @@ module.exports={
         {
           "name": "resources",
           "type": "ResourceRole",
-          "association": "A_resources_globalTask",
           "isMany": true
         }
       ]
@@ -5341,31 +5451,26 @@ module.exports={
         },
         {
           "name": "auditing",
-          "type": "Auditing",
-          "association": "A_auditing_process"
+          "type": "Auditing"
         },
         {
           "name": "monitoring",
-          "type": "Monitoring",
-          "association": "A_monitoring_process"
+          "type": "Monitoring"
         },
         {
           "name": "properties",
           "type": "Property",
-          "association": "A_properties_process",
           "isMany": true
         },
         {
           "name": "supports",
           "type": "Process",
-          "association": "A_supports_process",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "definitionalCollaborationRef",
           "type": "Collaboration",
-          "association": "A_definitionalCollaborationRef_process",
           "isAttr": true,
           "isReference": true
         },
@@ -5377,19 +5482,16 @@ module.exports={
         {
           "name": "resources",
           "type": "ResourceRole",
-          "association": "A_resources_process",
           "isMany": true
         },
         {
           "name": "artifacts",
           "type": "Artifact",
-          "association": "A_artifacts_process",
           "isMany": true
         },
         {
           "name": "correlationSubscriptions",
           "type": "CorrelationSubscription",
-          "association": "A_correlationSubscriptions_process",
           "isMany": true
         }
       ]
@@ -5403,7 +5505,6 @@ module.exports={
         {
           "name": "lanes",
           "type": "Lane",
-          "association": "A_lanes_laneSet",
           "isMany": true
         },
         {
@@ -5427,26 +5528,23 @@ module.exports={
         {
           "name": "childLaneSet",
           "type": "LaneSet",
-          "association": "A_childLaneSet_parentLane"
+          "serialize": "xsi:type"
         },
         {
           "name": "partitionElementRef",
           "type": "BaseElement",
-          "association": "A_partitionElementRef_lane",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "flowNodeRef",
           "type": "FlowNode",
-          "association": "A_flowNodeRefs_lanes",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "partitionElement",
-          "type": "BaseElement",
-          "association": "A_partitionElement_lane"
+          "type": "BaseElement"
         }
       ]
     },
@@ -5471,7 +5569,6 @@ module.exports={
         {
           "name": "renderings",
           "type": "Rendering",
-          "association": "A_renderings_usertask",
           "isMany": true
         },
         {
@@ -5513,7 +5610,6 @@ module.exports={
         {
           "name": "renderings",
           "type": "Rendering",
-          "association": "A_renderings_globalUserTask",
           "isMany": true
         }
       ]
@@ -5562,12 +5658,11 @@ module.exports={
         {
           "name": "activationCondition",
           "type": "Expression",
-          "association": "A_activationCondition_complexGateway"
+          "serialize": "xsi:type"
         },
         {
           "name": "default",
           "type": "SequenceFlow",
-          "association": "A_default_complexGateway",
           "isAttr": true,
           "isReference": true
         }
@@ -5582,7 +5677,6 @@ module.exports={
         {
           "name": "default",
           "type": "SequenceFlow",
-          "association": "A_default_exclusiveGateway",
           "isAttr": true,
           "isReference": true
         }
@@ -5597,7 +5691,6 @@ module.exports={
         {
           "name": "default",
           "type": "SequenceFlow",
-          "association": "A_default_inclusiveGateway",
           "isAttr": true,
           "isReference": true
         }
@@ -5634,14 +5727,12 @@ module.exports={
         },
         {
           "name": "sources",
-          "association": "A_sources_relationship",
           "isMany": true,
           "isReference": true,
           "type": "Element"
         },
         {
           "name": "targets",
-          "association": "A_targets_relationship",
           "isMany": true,
           "isReference": true,
           "type": "Element"
@@ -5660,19 +5751,16 @@ module.exports={
         {
           "name": "extensionDefinitions",
           "type": "ExtensionDefinition",
-          "association": "A_extensionDefinitions_baseElement",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "extensionElements",
-          "type": "ExtensionElements",
-          "association": "A_extensionElements_baseElement"
+          "type": "ExtensionElements"
         },
         {
           "name": "documentation",
           "type": "Documentation",
-          "association": "A_documentation_baseElement",
           "isMany": true
         }
       ]
@@ -5688,8 +5776,7 @@ module.exports={
         },
         {
           "name": "definition",
-          "type": "ExtensionDefinition",
-          "association": "A_definition_extension"
+          "type": "ExtensionDefinition"
         }
       ]
     },
@@ -5704,7 +5791,6 @@ module.exports={
         {
           "name": "extensionAttributeDefinitions",
           "type": "ExtensionAttributeDefinition",
-          "association": "A_extensionAttributeDefinitions_extensionDefinition",
           "isMany": true
         }
       ]
@@ -5731,7 +5817,6 @@ module.exports={
         {
           "name": "extensionDefinition",
           "type": "ExtensionDefinition",
-          "association": "A_extensionAttributeDefinitions_extensionDefinition",
           "isAttr": true,
           "isReference": true
         }
@@ -5742,21 +5827,18 @@ module.exports={
       "properties": [
         {
           "name": "valueRef",
-          "association": "A_valueRef_extensionElements",
           "isAttr": true,
           "isReference": true,
           "type": "Element"
         },
         {
           "name": "values",
-          "association": "A_value_extensionElements",
           "type": "Element",
           "isMany": true
         },
         {
           "name": "extensionAttributeDefinition",
           "type": "ExtensionAttributeDefinition",
-          "association": "A_extensionAttributeDefinition_extensionElements",
           "isAttr": true,
           "isReference": true
         }
@@ -5792,7 +5874,6 @@ module.exports={
         {
           "name": "properties",
           "type": "Property",
-          "association": "A_properties_event",
           "isMany": true
         }
       ]
@@ -5838,32 +5919,27 @@ module.exports={
       "properties": [
         {
           "name": "inputSet",
-          "type": "InputSet",
-          "association": "A_inputSet_throwEvent"
+          "type": "InputSet"
         },
         {
           "name": "eventDefinitionRefs",
           "type": "EventDefinition",
-          "association": "A_eventDefinitionRefs_throwEvent",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "dataInputAssociation",
           "type": "DataInputAssociation",
-          "association": "A_dataInputAssociation_throwEvent",
           "isMany": true
         },
         {
           "name": "dataInputs",
           "type": "DataInput",
-          "association": "A_dataInputs_throwEvent",
           "isMany": true
         },
         {
           "name": "eventDefinitions",
           "type": "EventDefinition",
-          "association": "A_eventDefinitions_throwEvent",
           "isMany": true
         }
       ]
@@ -5883,32 +5959,27 @@ module.exports={
         },
         {
           "name": "outputSet",
-          "type": "OutputSet",
-          "association": "A_outputSet_catchEvent"
+          "type": "OutputSet"
         },
         {
           "name": "eventDefinitionRefs",
           "type": "EventDefinition",
-          "association": "A_eventDefinitionRefs_catchEvent",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "dataOutputAssociation",
           "type": "DataOutputAssociation",
-          "association": "A_dataOutputAssociation_catchEvent",
           "isMany": true
         },
         {
           "name": "dataOutputs",
           "type": "DataOutput",
-          "association": "A_dataOutputs_catchEvent",
           "isMany": true
         },
         {
           "name": "eventDefinitions",
           "type": "EventDefinition",
-          "association": "A_eventDefinitions_catchEvent",
           "isMany": true
         }
       ]
@@ -5928,7 +5999,6 @@ module.exports={
         {
           "name": "attachedToRef",
           "type": "Activity",
-          "association": "A_boundaryEventRefs_attachedToRef",
           "isAttr": true,
           "isReference": true
         }
@@ -5956,7 +6026,6 @@ module.exports={
         {
           "name": "errorRef",
           "type": "Error",
-          "association": "A_errorRef_errorEventDefinition",
           "isAttr": true,
           "isReference": true
         }
@@ -5977,7 +6046,6 @@ module.exports={
         {
           "name": "escalationRef",
           "type": "Escalation",
-          "association": "A_escalationRef_escalationEventDefinition",
           "isAttr": true,
           "isReference": true
         }
@@ -5989,7 +6057,6 @@ module.exports={
         {
           "name": "structureRef",
           "type": "ItemDefinition",
-          "association": "A_structureRef_escalation",
           "isAttr": true,
           "isReference": true
         },
@@ -6022,7 +6089,6 @@ module.exports={
         {
           "name": "activityRef",
           "type": "Activity",
-          "association": "A_activityRef_compensateEventDefinition",
           "isAttr": true,
           "isReference": true
         }
@@ -6037,17 +6103,17 @@ module.exports={
         {
           "name": "timeDate",
           "type": "Expression",
-          "association": "A_timeDate_timerEventDefinition"
+          "serialize": "xsi:type"
         },
         {
           "name": "timeCycle",
           "type": "Expression",
-          "association": "A_timeCycle_timerEventDefinition"
+          "serialize": "xsi:type"
         },
         {
           "name": "timeDuration",
           "type": "Expression",
-          "association": "A_timeDuration_timerEventDefinition"
+          "serialize": "xsi:type"
         }
       ]
     },
@@ -6065,14 +6131,12 @@ module.exports={
         {
           "name": "target",
           "type": "LinkEventDefinition",
-          "association": "A_target_source",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "source",
           "type": "LinkEventDefinition",
-          "association": "A_target_source",
           "isMany": true,
           "isReference": true
         }
@@ -6087,14 +6151,12 @@ module.exports={
         {
           "name": "messageRef",
           "type": "Message",
-          "association": "A_messageRef_messageEventDefinition",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "operationRef",
           "type": "Operation",
-          "association": "A_operationRef_messageEventDefinition",
           "isAttr": true,
           "isReference": true
         }
@@ -6109,7 +6171,6 @@ module.exports={
         {
           "name": "condition",
           "type": "Expression",
-          "association": "A_condition_conditionalEventDefinition",
           "serialize": "xsi:type"
         }
       ]
@@ -6123,7 +6184,6 @@ module.exports={
         {
           "name": "signalRef",
           "type": "Signal",
-          "association": "A_signalRef_signalEventDefinition",
           "isAttr": true,
           "isReference": true
         }
@@ -6138,7 +6198,6 @@ module.exports={
         {
           "name": "structureRef",
           "type": "ItemDefinition",
-          "association": "A_structureRef_signal",
           "isAttr": true,
           "isReference": true
         },
@@ -6177,14 +6236,12 @@ module.exports={
         {
           "name": "itemSubjectRef",
           "type": "ItemDefinition",
-          "association": "A_itemSubjectRef_itemAwareElement",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "dataState",
-          "type": "DataState",
-          "association": "A_dataState_itemAwareElement"
+          "type": "DataState"
         }
       ]
     },
@@ -6196,26 +6253,22 @@ module.exports={
       "properties": [
         {
           "name": "transformation",
-          "type": "FormalExpression",
-          "association": "A_transformation_dataAssociation"
+          "type": "FormalExpression"
         },
         {
           "name": "assignment",
           "type": "Assignment",
-          "association": "A_assignment_dataAssociation",
           "isMany": true
         },
         {
           "name": "sourceRef",
           "type": "ItemAwareElement",
-          "association": "A_sourceRef_dataAssociation",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "targetRef",
           "type": "ItemAwareElement",
-          "association": "A_targetRef_dataAssociation",
           "isReference": true
         }
       ]
@@ -6240,7 +6293,6 @@ module.exports={
         {
           "name": "inputSetRefs",
           "type": "InputSet",
-          "association": "A_dataInputRefs_inputSetRefs",
           "isVirtual": true,
           "isMany": true,
           "isReference": true
@@ -6248,7 +6300,6 @@ module.exports={
         {
           "name": "inputSetWithOptional",
           "type": "InputSet",
-          "association": "A_optionalInputRefs_inputSetWithOptional",
           "isVirtual": true,
           "isMany": true,
           "isReference": true
@@ -6256,7 +6307,6 @@ module.exports={
         {
           "name": "inputSetWithWhileExecuting",
           "type": "InputSet",
-          "association": "A_whileExecutingInputRefs_inputSetWithWhileExecuting",
           "isVirtual": true,
           "isMany": true,
           "isReference": true
@@ -6283,7 +6333,6 @@ module.exports={
         {
           "name": "outputSetRefs",
           "type": "OutputSet",
-          "association": "A_dataOutputRefs_outputSetRefs",
           "isVirtual": true,
           "isMany": true,
           "isReference": true
@@ -6291,7 +6340,6 @@ module.exports={
         {
           "name": "outputSetWithOptional",
           "type": "OutputSet",
-          "association": "A_outputSetWithOptional_optionalOutputRefs",
           "isVirtual": true,
           "isMany": true,
           "isReference": true
@@ -6299,7 +6347,6 @@ module.exports={
         {
           "name": "outputSetWithWhileExecuting",
           "type": "OutputSet",
-          "association": "A_outputSetWithWhileExecuting_whileExecutingOutputRefs",
           "isVirtual": true,
           "isMany": true,
           "isReference": true
@@ -6320,28 +6367,24 @@ module.exports={
         {
           "name": "dataInputRefs",
           "type": "DataInput",
-          "association": "A_dataInputRefs_inputSetRefs",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "optionalInputRefs",
           "type": "DataInput",
-          "association": "A_optionalInputRefs_inputSetWithOptional",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "whileExecutingInputRefs",
           "type": "DataInput",
-          "association": "A_whileExecutingInputRefs_inputSetWithWhileExecuting",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "outputSetRefs",
           "type": "OutputSet",
-          "association": "A_inputSetRefs_outputSetRefs",
           "isMany": true,
           "isReference": true
         }
@@ -6356,7 +6399,6 @@ module.exports={
         {
           "name": "dataOutputRefs",
           "type": "DataOutput",
-          "association": "A_dataOutputRefs_outputSetRefs",
           "isMany": true,
           "isReference": true
         },
@@ -6368,21 +6410,18 @@ module.exports={
         {
           "name": "inputSetRefs",
           "type": "InputSet",
-          "association": "A_inputSetRefs_outputSetRefs",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "optionalOutputRefs",
           "type": "DataOutput",
-          "association": "A_outputSetWithOptional_optionalOutputRefs",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "whileExecutingOutputRefs",
           "type": "DataOutput",
-          "association": "A_outputSetWithWhileExecuting_whileExecutingOutputRefs",
           "isMany": true,
           "isReference": true
         }
@@ -6422,25 +6461,21 @@ module.exports={
         {
           "name": "inputSets",
           "type": "InputSet",
-          "association": "A_inputSets_inputOutputSpecification",
           "isMany": true
         },
         {
           "name": "outputSets",
           "type": "OutputSet",
-          "association": "A_outputSets_inputOutputSpecification",
           "isMany": true
         },
         {
           "name": "dataInputs",
           "type": "DataInput",
-          "association": "A_dataInputs_inputOutputSpecification",
           "isMany": true
         },
         {
           "name": "dataOutputs",
           "type": "DataOutput",
-          "association": "A_dataOutputs_inputOutputSpecification",
           "isMany": true
         }
       ]
@@ -6466,21 +6501,18 @@ module.exports={
         {
           "name": "inputDataRef",
           "type": "InputSet",
-          "association": "A_inputDataRef_inputOutputBinding",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "outputDataRef",
           "type": "OutputSet",
-          "association": "A_outputDataRef_inputOutputBinding",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "operationRef",
           "type": "Operation",
-          "association": "A_operationRef_ioBinding",
           "isAttr": true,
           "isReference": true
         }
@@ -6495,12 +6527,12 @@ module.exports={
         {
           "name": "from",
           "type": "Expression",
-          "association": "A_from_assignment"
+          "serialize": "xsi:type"
         },
         {
           "name": "to",
           "type": "Expression",
-          "association": "A_to_assignment"
+          "serialize": "xsi:type"
         }
       ]
     },
@@ -6539,7 +6571,6 @@ module.exports={
         {
           "name": "dataStoreRef",
           "type": "DataStore",
-          "association": "A_dataStoreRef_dataStoreReference",
           "isAttr": true,
           "isReference": true
         }
@@ -6555,7 +6586,6 @@ module.exports={
         {
           "name": "dataObjectRef",
           "type": "DataObject",
-          "association": "A_dataObjectRef_dataObject",
           "isAttr": true,
           "isReference": true
         }
@@ -6570,14 +6600,12 @@ module.exports={
         {
           "name": "sourceRef",
           "type": "InteractionNode",
-          "association": "A_sourceRef_outgoingConversationLinks",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "targetRef",
           "type": "InteractionNode",
-          "association": "A_targetRef_incomingConversationLinks",
           "isAttr": true,
           "isReference": true
         },
@@ -6597,14 +6625,12 @@ module.exports={
         {
           "name": "innerConversationNodeRef",
           "type": "ConversationNode",
-          "association": "A_innerConversationNodeRef_conversationAssociation",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "outerConversationNodeRef",
           "type": "ConversationNode",
-          "association": "A_outerConversationNodeRef_conversationAssociation",
           "isAttr": true,
           "isReference": true
         }
@@ -6619,14 +6645,12 @@ module.exports={
         {
           "name": "calledCollaborationRef",
           "type": "Collaboration",
-          "association": "A_calledCollaborationRef_callConversation",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "participantAssociations",
           "type": "ParticipantAssociation",
-          "association": "A_participantAssociations_callConversation",
           "isMany": true
         }
       ]
@@ -6646,7 +6670,6 @@ module.exports={
         {
           "name": "conversationNodes",
           "type": "ConversationNode",
-          "association": "A_conversationNodes_subConversation",
           "isMany": true
         }
       ]
@@ -6667,21 +6690,18 @@ module.exports={
         {
           "name": "participantRefs",
           "type": "Participant",
-          "association": "A_participantRefs_conversationNode",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "messageFlowRefs",
           "type": "MessageFlow",
-          "association": "A_messageFlowRefs_communication",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "correlationKeys",
           "type": "CorrelationKey",
-          "association": "A_correlationKeys_conversationNode",
           "isMany": true
         }
       ]
@@ -6706,7 +6726,6 @@ module.exports={
         {
           "name": "participantRef",
           "type": "Participant",
-          "association": "A_partnerEntityRef_participantRef",
           "isMany": true,
           "isReference": true
         }
@@ -6726,7 +6745,6 @@ module.exports={
         {
           "name": "participantRef",
           "type": "Participant",
-          "association": "A_partnerRoleRef_participantRef",
           "isMany": true,
           "isReference": true
         }
@@ -6741,7 +6759,6 @@ module.exports={
         {
           "name": "correlationPropertyRetrievalExpression",
           "type": "CorrelationPropertyRetrievalExpression",
-          "association": "A_correlationPropertyRetrievalExpression_correlationproperty",
           "isMany": true
         },
         {
@@ -6752,7 +6769,6 @@ module.exports={
         {
           "name": "type",
           "type": "ItemDefinition",
-          "association": "A_type_correlationProperty",
           "isAttr": true,
           "isReference": true
         }
@@ -6767,7 +6783,6 @@ module.exports={
         {
           "name": "structureRef",
           "type": "ItemDefinition",
-          "association": "A_structureRef_error",
           "isAttr": true,
           "isReference": true
         },
@@ -6792,7 +6807,6 @@ module.exports={
         {
           "name": "correlationPropertyRef",
           "type": "CorrelationProperty",
-          "association": "A_correlationPropertyRef_correlationKey",
           "isMany": true,
           "isReference": true
         },
@@ -6807,7 +6821,8 @@ module.exports={
       "name": "Expression",
       "superClass": [
         "BaseElement"
-      ]
+      ],
+      "isAbstract": true
     },
     {
       "name": "FormalExpression",
@@ -6822,12 +6837,12 @@ module.exports={
         },
         {
           "name": "body",
-          "type": "Element"
+          "type": "String",
+          "isBody": true
         },
         {
           "name": "evaluatesToTypeRef",
           "type": "ItemDefinition",
-          "association": "A_evaluatesToTypeRef_formalExpression",
           "isAttr": true,
           "isReference": true
         }
@@ -6847,7 +6862,6 @@ module.exports={
         {
           "name": "itemRef",
           "type": "ItemDefinition",
-          "association": "A_itemRef_message",
           "isAttr": true,
           "isReference": true
         }
@@ -6878,7 +6892,6 @@ module.exports={
         {
           "name": "import",
           "type": "Import",
-          "association": "A_import_itemDefinition",
           "isAttr": true,
           "isReference": true
         }
@@ -6898,18 +6911,15 @@ module.exports={
         },
         {
           "name": "auditing",
-          "type": "Auditing",
-          "association": "A_auditing_flowElement"
+          "type": "Auditing"
         },
         {
           "name": "monitoring",
-          "type": "Monitoring",
-          "association": "A_monitoring_flowElement"
+          "type": "Monitoring"
         },
         {
           "name": "categoryValueRef",
           "type": "CategoryValue",
-          "association": "A_categorizedFlowElements_categoryValueRef",
           "isMany": true,
           "isReference": true
         }
@@ -6929,19 +6939,17 @@ module.exports={
         {
           "name": "conditionExpression",
           "type": "Expression",
-          "association": "A_conditionExpression_sequenceFlow"
+          "serialize": "xsi:type"
         },
         {
           "name": "sourceRef",
           "type": "FlowNode",
-          "association": "A_sourceRef_outgoing_flow",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "targetRef",
           "type": "FlowNode",
-          "association": "A_targetRef_incoming_flow",
           "isAttr": true,
           "isReference": true
         }
@@ -6957,13 +6965,11 @@ module.exports={
         {
           "name": "laneSets",
           "type": "LaneSet",
-          "association": "A_laneSets_flowElementsContainer",
           "isMany": true
         },
         {
           "name": "flowElements",
           "type": "FlowElement",
-          "association": "A_flowElements_container",
           "isMany": true
         }
       ]
@@ -6982,20 +6988,17 @@ module.exports={
         },
         {
           "name": "ioSpecification",
-          "type": "InputOutputSpecification",
-          "association": "A_ioSpecification_callableElement"
+          "type": "InputOutputSpecification"
         },
         {
           "name": "supportedInterfaceRefs",
           "type": "Interface",
-          "association": "A_supportedInterfaceRefs_callableElements",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "ioBinding",
           "type": "InputOutputBinding",
-          "association": "A_ioBinding_callableElement",
           "isMany": true
         }
       ]
@@ -7010,21 +7013,18 @@ module.exports={
         {
           "name": "incoming",
           "type": "SequenceFlow",
-          "association": "A_targetRef_incoming_flow",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "outgoing",
           "type": "SequenceFlow",
-          "association": "A_sourceRef_outgoing_flow",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "lanes",
           "type": "Lane",
-          "association": "A_flowNodeRefs_lanes",
           "isVirtual": true,
           "isMany": true,
           "isReference": true
@@ -7039,13 +7039,11 @@ module.exports={
       "properties": [
         {
           "name": "messagePath",
-          "type": "FormalExpression",
-          "association": "A_messagePath_correlationset"
+          "type": "FormalExpression"
         },
         {
           "name": "messageRef",
           "type": "Message",
-          "association": "A_messageRef_correlationPropertyRetrievalExpression",
           "isAttr": true,
           "isReference": true
         }
@@ -7059,13 +7057,11 @@ module.exports={
       "properties": [
         {
           "name": "dataPath",
-          "type": "FormalExpression",
-          "association": "A_dataPath_correlationPropertyBinding"
+          "type": "FormalExpression"
         },
         {
           "name": "correlationPropertyRef",
           "type": "CorrelationProperty",
-          "association": "A_correlationPropertyRef_correlationPropertyBinding",
           "isAttr": true,
           "isReference": true
         }
@@ -7085,7 +7081,6 @@ module.exports={
         {
           "name": "resourceParameters",
           "type": "ResourceParameter",
-          "association": "A_resourceParameters_resource",
           "isMany": true
         }
       ]
@@ -7109,7 +7104,6 @@ module.exports={
         {
           "name": "type",
           "type": "ItemDefinition",
-          "association": "A_type_resourceParameter",
           "isAttr": true,
           "isReference": true
         }
@@ -7124,14 +7118,12 @@ module.exports={
         {
           "name": "correlationKeyRef",
           "type": "CorrelationKey",
-          "association": "A_correlationKeyRef_correlationSubscription",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "correlationPropertyBinding",
           "type": "CorrelationPropertyBinding",
-          "association": "A_correlationPropertyBinding_correlationSubscription",
           "isMany": true
         }
       ]
@@ -7150,21 +7142,18 @@ module.exports={
         {
           "name": "sourceRef",
           "type": "InteractionNode",
-          "association": "A_sourceRef_messageFlow",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "targetRef",
           "type": "InteractionNode",
-          "association": "A_targetRef_messageFlow",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "messageRef",
           "type": "Message",
-          "association": "A_messageRef_messageFlow",
           "isAttr": true,
           "isReference": true
         }
@@ -7179,14 +7168,12 @@ module.exports={
         {
           "name": "innerMessageFlowRef",
           "type": "MessageFlow",
-          "association": "A_innerMessageFlowRef_messageFlowAssociation",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "outerMessageFlowRef",
           "type": "MessageFlow",
-          "association": "A_outerMessageFlowRef_messageFlowAssociation",
           "isAttr": true,
           "isReference": true
         }
@@ -7199,7 +7186,6 @@ module.exports={
         {
           "name": "incomingConversationLinks",
           "type": "ConversationLink",
-          "association": "A_targetRef_incomingConversationLinks",
           "isVirtual": true,
           "isMany": true,
           "isReference": true
@@ -7207,7 +7193,6 @@ module.exports={
         {
           "name": "outgoingConversationLinks",
           "type": "ConversationLink",
-          "association": "A_sourceRef_outgoingConversationLinks",
           "isVirtual": true,
           "isMany": true,
           "isReference": true
@@ -7229,26 +7214,22 @@ module.exports={
         {
           "name": "interfaceRefs",
           "type": "Interface",
-          "association": "A_interfaceRefs_participant",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "participantMultiplicity",
-          "type": "ParticipantMultiplicity",
-          "association": "A_participantMultiplicity_participant"
+          "type": "ParticipantMultiplicity"
         },
         {
           "name": "endPointRefs",
           "type": "EndPoint",
-          "association": "A_endPointRefs_participant",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "processRef",
           "type": "Process",
-          "association": "A_processRef_participant",
           "isAttr": true,
           "isReference": true
         }
@@ -7263,14 +7244,12 @@ module.exports={
         {
           "name": "innerParticipantRef",
           "type": "Participant",
-          "association": "A_innerParticipantRef_participantAssociation",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "outerParticipantRef",
           "type": "Participant",
-          "association": "A_outerParticipantRef_participantAssociation",
           "isAttr": true,
           "isReference": true
         }
@@ -7312,61 +7291,51 @@ module.exports={
         {
           "name": "choreographyRef",
           "type": "Choreography",
-          "association": "A_choreographyRef_collaboration",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "artifacts",
           "type": "Artifact",
-          "association": "A_artifacts_collaboration",
           "isMany": true
         },
         {
           "name": "participantAssociations",
           "type": "ParticipantAssociation",
-          "association": "A_participantAssociations_collaboration",
           "isMany": true
         },
         {
           "name": "messageFlowAssociations",
           "type": "MessageFlowAssociation",
-          "association": "A_messageFlowAssociations_collaboration",
           "isMany": true
         },
         {
           "name": "conversationAssociations",
-          "type": "ConversationAssociation",
-          "association": "A_conversationAssociations_converstaionAssociations"
+          "type": "ConversationAssociation"
         },
         {
           "name": "participants",
           "type": "Participant",
-          "association": "A_participants_collaboration",
           "isMany": true
         },
         {
           "name": "messageFlows",
           "type": "MessageFlow",
-          "association": "A_messageFlows_collaboration",
           "isMany": true
         },
         {
           "name": "correlationKeys",
           "type": "CorrelationKey",
-          "association": "A_correlationKeys_collaboration",
           "isMany": true
         },
         {
           "name": "conversations",
           "type": "ConversationNode",
-          "association": "A_conversations_collaboration",
           "isMany": true
         },
         {
           "name": "conversationLinks",
           "type": "ConversationLink",
-          "association": "A_conversationLinks_collaboration",
           "isMany": true
         }
       ]
@@ -7381,21 +7350,18 @@ module.exports={
         {
           "name": "participantRefs",
           "type": "Participant",
-          "association": "A_participantRefs_choreographyActivity",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "initiatingParticipantRef",
           "type": "Participant",
-          "association": "A_initiatingParticipantRef_choreographyActivity",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "correlationKeys",
           "type": "CorrelationKey",
-          "association": "A_correlationKeys_choreographyActivity",
           "isMany": true
         },
         {
@@ -7415,14 +7381,12 @@ module.exports={
         {
           "name": "calledChoreographyRef",
           "type": "Choreography",
-          "association": "A_calledChoreographyRef_callChoreographyActivity",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "participantAssociations",
           "type": "ParticipantAssociation",
-          "association": "A_participantAssociations_callChoreographyActivity",
           "isMany": true
         }
       ]
@@ -7437,7 +7401,6 @@ module.exports={
         {
           "name": "artifacts",
           "type": "Artifact",
-          "association": "A_artifacts_subChoreography",
           "isMany": true
         }
       ]
@@ -7451,7 +7414,6 @@ module.exports={
         {
           "name": "messageFlowRef",
           "type": "MessageFlow",
-          "association": "A_messageFlowRef_choreographyTask",
           "isMany": true,
           "isReference": true
         }
@@ -7473,7 +7435,6 @@ module.exports={
         {
           "name": "initiatingParticipantRef",
           "type": "Participant",
-          "association": "A_initiatingParticipantRef_globalChoreographyTask",
           "isAttr": true,
           "isReference": true
         }
@@ -7506,7 +7467,6 @@ module.exports={
         {
           "name": "categoryValueRef",
           "type": "CategoryValue",
-          "association": "A_categoryValueRef_categoryValueRef",
           "isAttr": true,
           "isReference": true
         }
@@ -7526,14 +7486,12 @@ module.exports={
         {
           "name": "sourceRef",
           "type": "BaseElement",
-          "association": "A_sourceRef_outgoing_association",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "targetRef",
           "type": "BaseElement",
-          "association": "A_targetRef_incoming_association",
           "isAttr": true,
           "isReference": true
         }
@@ -7548,7 +7506,6 @@ module.exports={
         {
           "name": "categoryValue",
           "type": "CategoryValue",
-          "association": "A_categoryValue_category",
           "isMany": true
         },
         {
@@ -7574,7 +7531,6 @@ module.exports={
         {
           "name": "categorizedFlowElements",
           "type": "FlowElement",
-          "association": "A_categorizedFlowElements_categoryValueRef",
           "isVirtual": true,
           "isMany": true,
           "isReference": true
@@ -7601,50 +7557,42 @@ module.exports={
         },
         {
           "name": "loopCharacteristics",
-          "type": "LoopCharacteristics",
-          "association": "A_loopCharacteristics_activity"
+          "type": "LoopCharacteristics"
         },
         {
           "name": "resources",
           "type": "ResourceRole",
-          "association": "A_resources_activity",
           "isMany": true
         },
         {
           "name": "default",
           "type": "SequenceFlow",
-          "association": "A_default_activity",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "properties",
           "type": "Property",
-          "association": "A_properties_activity",
           "isMany": true
         },
         {
           "name": "ioSpecification",
-          "type": "InputOutputSpecification",
-          "association": "A_ioSpecification_activity"
+          "type": "InputOutputSpecification"
         },
         {
           "name": "boundaryEventRefs",
           "type": "BoundaryEvent",
-          "association": "A_boundaryEventRefs_attachedToRef",
           "isMany": true,
           "isReference": true
         },
         {
           "name": "dataInputAssociations",
           "type": "DataInputAssociation",
-          "association": "A_dataInputAssociations_activity",
           "isMany": true
         },
         {
           "name": "dataOutputAssociations",
           "type": "DataOutputAssociation",
-          "association": "A_dataOutputAssociations_activity",
           "isMany": true
         },
         {
@@ -7675,7 +7623,6 @@ module.exports={
         {
           "name": "operationRef",
           "type": "Operation",
-          "association": "A_operationRef_serviceTask",
           "isAttr": true,
           "isReference": true
         }
@@ -7697,7 +7644,6 @@ module.exports={
         {
           "name": "artifacts",
           "type": "Artifact",
-          "association": "A_artifacts_subProcess",
           "isMany": true
         }
       ]
@@ -7730,54 +7676,47 @@ module.exports={
         {
           "name": "loopCardinality",
           "type": "Expression",
-          "association": "A_loopCardinality_multiInstanceLoopCharacteristics"
+          "serialize": "xsi:type"
         },
         {
           "name": "loopDataInputRef",
           "type": "ItemAwareElement",
-          "association": "A_loopDataInputRef_multiInstanceLoopCharacteristics",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "loopDataOutputRef",
           "type": "ItemAwareElement",
-          "association": "A_loopDataOutputRef_multiInstanceLoopCharacteristics",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "inputDataItem",
-          "type": "DataInput",
-          "association": "A_inputDataItem_multiInstanceLoopCharacteristics"
+          "type": "DataInput"
         },
         {
           "name": "outputDataItem",
-          "type": "DataOutput",
-          "association": "A_outputDataItem_multiInstanceLoopCharacteristics"
+          "type": "DataOutput"
         },
         {
           "name": "completionCondition",
           "type": "Expression",
-          "association": "A_completionCondition_multiInstanceLoopCharacteristics"
+          "serialize": "xsi:type"
         },
         {
           "name": "complexBehaviorDefinition",
           "type": "ComplexBehaviorDefinition",
-          "association": "A_complexBehaviorDefinition_multiInstanceLoopCharacteristics",
           "isMany": true
         },
         {
           "name": "oneBehaviorEventRef",
           "type": "EventDefinition",
-          "association": "A_oneBehaviorEventRef_multiInstanceLoopCharacteristics",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "noneBehaviorEventRef",
           "type": "EventDefinition",
-          "association": "A_noneBehaviorEventRef_multiInstanceLoopCharacteristics",
           "isAttr": true,
           "isReference": true
         }
@@ -7798,12 +7737,12 @@ module.exports={
         {
           "name": "loopCondition",
           "type": "Expression",
-          "association": "A_loopCondition_standardLoopCharacteristics"
+          "serialize": "xsi:type"
         },
         {
           "name": "loopMaximum",
           "type": "Expression",
-          "association": "A_loopMaximum_standardLoopCharacteristics"
+          "serialize": "xsi:type"
         }
       ]
     },
@@ -7816,7 +7755,6 @@ module.exports={
         {
           "name": "calledElement",
           "type": "String",
-          "association": "A_calledElementRef_callActivity",
           "isAttr": true
         }
       ]
@@ -7842,14 +7780,12 @@ module.exports={
         {
           "name": "operationRef",
           "type": "Operation",
-          "association": "A_operationRef_sendTask",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "messageRef",
           "type": "Message",
-          "association": "A_messageRef_sendTask",
           "isAttr": true,
           "isReference": true
         }
@@ -7875,14 +7811,12 @@ module.exports={
         {
           "name": "operationRef",
           "type": "Operation",
-          "association": "A_operationRef_receiveTask",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "messageRef",
           "type": "Message",
-          "association": "A_messageRef_receiveTask",
           "isAttr": true,
           "isReference": true
         }
@@ -7927,7 +7861,7 @@ module.exports={
         {
           "name": "completionCondition",
           "type": "Expression",
-          "association": "A_completionCondition_adHocSubProcess"
+          "serialize": "xsi:type"
         },
         {
           "name": "ordering",
@@ -7999,13 +7933,11 @@ module.exports={
       "properties": [
         {
           "name": "condition",
-          "type": "FormalExpression",
-          "association": "A_condition_complexBehaviorDefinition"
+          "type": "FormalExpression"
         },
         {
           "name": "event",
-          "type": "ImplicitThrowEvent",
-          "association": "A_event_complexBehaviorDefinition"
+          "type": "ImplicitThrowEvent"
         }
       ]
     },
@@ -8018,20 +7950,17 @@ module.exports={
         {
           "name": "resourceRef",
           "type": "Resource",
-          "association": "A_resourceRef_activityResource",
           "isAttr": true,
           "isReference": true
         },
         {
           "name": "resourceParameterBindings",
           "type": "ResourceParameterBinding",
-          "association": "A_resourceParameterBindings_activityResource",
           "isMany": true
         },
         {
           "name": "resourceAssignmentExpression",
-          "type": "ResourceAssignmentExpression",
-          "association": "A_resourceAssignmentExpression_activityResource"
+          "type": "ResourceAssignmentExpression"
         },
         {
           "name": "name",
@@ -8046,12 +7975,11 @@ module.exports={
         {
           "name": "expression",
           "type": "Expression",
-          "association": "A_expression_resourceParameterBinding"
+          "serialize": "xsi:type"
         },
         {
           "name": "parameterRef",
           "type": "ResourceParameter",
-          "association": "A_parameterRef_resourceParameterBinding",
           "isAttr": true,
           "isReference": true
         }
@@ -8063,7 +7991,7 @@ module.exports={
         {
           "name": "expression",
           "type": "Expression",
-          "association": "A_expression_resourceAssignmentExpression"
+          "serialize": "xsi:type"
         }
       ]
     },
@@ -8118,30 +8046,25 @@ module.exports={
         {
           "name": "imports",
           "type": "Import",
-          "association": "A_imports_definition",
           "isMany": true
         },
         {
           "name": "extensions",
           "type": "Extension",
-          "association": "A_extensions_definitions",
           "isMany": true
         },
         {
           "name": "relationships",
           "type": "Relationship",
-          "association": "A_relationships_definition",
           "isMany": true
         },
         {
           "name": "rootElements",
           "type": "RootElement",
-          "association": "A_rootElements_definition",
           "isMany": true
         },
         {
           "name": "diagrams",
-          "association": "A_diagrams_definitions",
           "isMany": true,
           "type": "bpmndi:BPMNDiagram"
         },
@@ -8291,10 +8214,11 @@ module.exports={
   ],
   "prefix": "bpmn",
   "xml": {
-    "alias": "lowerCase"
+    "tagAlias": "lowerCase",
+    "typePrefix": "t"
   }
 }
-},{}],31:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 module.exports={
   "name": "BPMNDI",
   "uri": "http://www.omg.org/spec/BPMN/20100524/DI",
@@ -8305,13 +8229,11 @@ module.exports={
         {
           "name": "plane",
           "type": "BPMNPlane",
-          "association": "A_plane_diagram",
           "redefines": "di:Diagram#rootElement"
         },
         {
           "name": "labelStyle",
           "type": "BPMNLabelStyle",
-          "association": "A_labelStyle_diagram",
           "isMany": true
         }
       ],
@@ -8324,7 +8246,6 @@ module.exports={
       "properties": [
         {
           "name": "bpmnElement",
-          "association": "A_bpmnElement_plane",
           "isAttr": true,
           "isReference": true,
           "type": "bpmn:BaseElement",
@@ -8340,7 +8261,6 @@ module.exports={
       "properties": [
         {
           "name": "bpmnElement",
-          "association": "A_bpmnElement_shape",
           "isAttr": true,
           "isReference": true,
           "type": "bpmn:BaseElement",
@@ -8363,8 +8283,7 @@ module.exports={
         },
         {
           "name": "label",
-          "type": "BPMNLabel",
-          "association": "A_label_shape"
+          "type": "BPMNLabel"
         },
         {
           "name": "isMessageVisible",
@@ -8379,7 +8298,6 @@ module.exports={
         {
           "name": "choreographyActivityShape",
           "type": "BPMNShape",
-          "association": "A_choreographyActivityShape_participantBandShape",
           "isAttr": true,
           "isReference": true
         }
@@ -8393,12 +8311,10 @@ module.exports={
       "properties": [
         {
           "name": "label",
-          "type": "BPMNLabel",
-          "association": "A_label_edge"
+          "type": "BPMNLabel"
         },
         {
           "name": "bpmnElement",
-          "association": "A_bpmnElement_edge",
           "isAttr": true,
           "isReference": true,
           "type": "bpmn:BaseElement",
@@ -8406,7 +8322,6 @@ module.exports={
         },
         {
           "name": "sourceElement",
-          "association": "A_sourceElement_sourceEdge",
           "isAttr": true,
           "isReference": true,
           "type": "di:DiagramElement",
@@ -8414,7 +8329,6 @@ module.exports={
         },
         {
           "name": "targetElement",
-          "association": "A_targetElement_targetEdge",
           "isAttr": true,
           "isReference": true,
           "type": "di:DiagramElement",
@@ -8437,7 +8351,6 @@ module.exports={
         {
           "name": "labelStyle",
           "type": "BPMNLabelStyle",
-          "association": "A_labelStyle_label",
           "isAttr": true,
           "isReference": true,
           "redefines": "di:DiagramElement#style"
@@ -8499,7 +8412,7 @@ module.exports={
   "associations": [],
   "prefix": "bpmndi"
 }
-},{}],32:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 module.exports={
   "name": "DC",
   "uri": "http://www.omg.org/spec/DD/20100524/DC",
@@ -8599,7 +8512,7 @@ module.exports={
   "prefix": "dc",
   "associations": []
 }
-},{}],33:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 module.exports={
   "name": "DI",
   "uri": "http://www.omg.org/spec/DD/20100524/DI",
@@ -8609,10 +8522,13 @@ module.exports={
       "isAbstract": true,
       "properties": [
         {
+          "name": "extension",
+          "type": "Extension"
+        },
+        {
           "name": "owningDiagram",
           "type": "Diagram",
           "isReadOnly": true,
-          "association": "A_rootElement_owningDiagram",
           "isVirtual": true,
           "isReference": true
         },
@@ -8620,14 +8536,12 @@ module.exports={
           "name": "owningElement",
           "type": "DiagramElement",
           "isReadOnly": true,
-          "association": "A_ownedElement_owningElement",
           "isVirtual": true,
           "isReference": true
         },
         {
           "name": "modelElement",
           "isReadOnly": true,
-          "association": "A_modelElement_diagramElement",
           "isVirtual": true,
           "isReference": true,
           "type": "Element"
@@ -8636,7 +8550,6 @@ module.exports={
           "name": "style",
           "type": "Style",
           "isReadOnly": true,
-          "association": "A_style_diagramElement",
           "isVirtual": true,
           "isReference": true
         },
@@ -8644,7 +8557,6 @@ module.exports={
           "name": "ownedElement",
           "type": "DiagramElement",
           "isReadOnly": true,
-          "association": "A_ownedElement_owningElement",
           "isVirtual": true,
           "isMany": true
         }
@@ -8668,7 +8580,6 @@ module.exports={
           "name": "source",
           "type": "DiagramElement",
           "isReadOnly": true,
-          "association": "A_source_sourceEdge",
           "isVirtual": true,
           "isReference": true
         },
@@ -8676,7 +8587,6 @@ module.exports={
           "name": "target",
           "type": "DiagramElement",
           "isReadOnly": true,
-          "association": "A_target_targetEdge",
           "isVirtual": true,
           "isReference": true
         },
@@ -8697,7 +8607,6 @@ module.exports={
           "name": "rootElement",
           "type": "DiagramElement",
           "isReadOnly": true,
-          "association": "A_rootElement_owningDiagram",
           "isVirtual": true
         },
         {
@@ -8719,7 +8628,6 @@ module.exports={
           "name": "ownedStyle",
           "type": "Style",
           "isReadOnly": true,
-          "association": "A_ownedStyle_owningDiagram",
           "isVirtual": true,
           "isMany": true
         }
@@ -8749,7 +8657,6 @@ module.exports={
           "name": "planeElement",
           "type": "DiagramElement",
           "subsettedProperty": "DiagramElement-ownedElement",
-          "association": "A_planeElement_plane",
           "isMany": true
         }
       ]
@@ -8766,7 +8673,6 @@ module.exports={
           "type": "Label",
           "isReadOnly": true,
           "subsettedProperty": "DiagramElement-ownedElement",
-          "association": "A_ownedLabel_owningEdge",
           "isVirtual": true,
           "isMany": true
         }
@@ -8784,7 +8690,6 @@ module.exports={
           "type": "Label",
           "isReadOnly": true,
           "subsettedProperty": "DiagramElement-ownedElement",
-          "association": "A_ownedLabel_owningShape",
           "isVirtual": true,
           "isMany": true
         }
@@ -8806,17 +8711,30 @@ module.exports={
     {
       "name": "Style",
       "isAbstract": true
+    },
+    {
+      "name": "Extension",
+      "properties": [
+        {
+          "name": "values",
+          "type": "Element",
+          "isMany": true
+        }
+      ]
     }
   ],
   "associations": [],
-  "prefix": "di"
+  "prefix": "di",
+  "xml": {
+    "tagAlias": "lowerCase"
+  }
 }
-},{}],34:[function(_dereq_,module,exports){
-module.exports = _dereq_('./lib/Diagram');
-},{"./lib/Diagram":35}],35:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
+module.exports = _dereq_(36);
+},{}],36:[function(_dereq_,module,exports){
 'use strict';
 
-var di = _dereq_('didi');
+var di = _dereq_(72);
 
 /**
  * @namespace djs
@@ -8896,7 +8814,7 @@ function createInjector(options) {
     'config': ['value', options]
   };
 
-  var coreModule = _dereq_('./core');
+  var coreModule = _dereq_(42);
 
   var modules = [ configModule, coreModule ].concat(options.modules || []);
 
@@ -8906,7 +8824,9 @@ function createInjector(options) {
 
 /**
  * The main diagram-js entry point that bootstraps the diagram with the given
- * configuration. To register extensions with the diagram, pass them as Array<didi.Module> to the constructor.
+ * configuration.
+ *
+ * To register extensions with the diagram, pass them as Array<didi.Module> to the constructor.
  *
  * @class djs.Diagram
  * @memberOf djs
@@ -8988,8 +8908,8 @@ function Diagram(options, injector) {
    *
    * @example
    *
-   * events.on('diagram.init', function() {
-   *   events.fire('my-custom-event', { foo: 'BAR' });
+   * eventBus.on('diagram.init', function() {
+   *   eventBus.fire('my-custom-event', { foo: 'BAR' });
    * });
    *
    * @type {Object}
@@ -9008,13 +8928,13 @@ module.exports = Diagram;
 Diagram.prototype.destroy = function() {
   this.get('eventBus').fire('diagram.destroy');
 };
-},{"./core":41,"didi":65}],36:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
 'use strict';
 
 
 var _ = (window._);
 
-var Collections = _dereq_('../util/Collections');
+var Collections = _dereq_(63);
 
 
 function round(number, resolution) {
@@ -9107,7 +9027,6 @@ Canvas.prototype._init = function(config) {
 
   // html container
   var eventBus = this._eventBus,
-      graphicsFactory = this._graphicsFactory,
       snap = this._snap,
 
       container = createContainer(config),
@@ -9144,6 +9063,8 @@ Canvas.prototype._init = function(config) {
     if (parent) {
       parent.removeChild(container);
     }
+
+    eventBus.fire('canvas.destroy', { svg: self._svg, viewport: self._viewport });
 
     self._svg.remove();
 
@@ -9777,13 +9698,10 @@ Canvas.prototype.getAbsoluteBBox = function(element) {
     height: height
   };
 };
-},{"../util/Collections":58}],37:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 'use strict';
 
-var _ = (window._);
-
-
-var Model = _dereq_('../model');
+var Model = _dereq_(58);
 
 
 /**
@@ -9830,7 +9748,9 @@ ElementFactory.prototype.create = function(type, attrs) {
 
   return Model.create(type, attrs);
 };
-},{"../model":57}],38:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
+'use strict';
+
 var ELEMENT_ID = 'data-element-id';
 
 /**
@@ -9969,7 +9889,7 @@ ElementRegistry.prototype.getGraphics = function(filter) {
   return container && container.gfx;
 };
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],40:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
@@ -10244,11 +10164,11 @@ EventBus.prototype._getListeners = function(name) {
   return listeners;
 };
 
-},{}],40:[function(_dereq_,module,exports){
+},{}],41:[function(_dereq_,module,exports){
 var _ = (window._);
 
-var GraphicsUtil = _dereq_('../util/GraphicsUtil'),
-    Dom = _dereq_('../util/Dom');
+var GraphicsUtil = _dereq_(68),
+    Dom = _dereq_(65);
 
 
 /**
@@ -10324,8 +10244,10 @@ GraphicsFactory.prototype._clear = function(gfx) {
  */
 GraphicsFactory.prototype._createContainer = function(type, parentGfx) {
   var outerGfx = parentGfx.group().attr('class', 'djs-group'),
-      gfx = outerGfx.group().attr('class', 'djs-element djs-' + type),
-      visual = gfx.group().attr('class', 'djs-visual');
+      gfx = outerGfx.group().attr('class', 'djs-element djs-' + type);
+
+  // create visual
+  gfx.group().attr('class', 'djs-visual');
 
   return gfx;
 };
@@ -10398,20 +10320,20 @@ GraphicsFactory.prototype.remove = function(element) {
   // remove
   gfx.parent().remove();
 };
-},{"../util/Dom":59,"../util/GraphicsUtil":61}],41:[function(_dereq_,module,exports){
+},{}],42:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_('../draw') ],
+  __depends__: [ _dereq_(46) ],
   __init__: [ 'canvas' ],
-  canvas: [ 'type', _dereq_('./Canvas') ],
-  elementRegistry: [ 'type', _dereq_('./ElementRegistry') ],
-  elementFactory: [ 'type', _dereq_('./ElementFactory') ],
-  eventBus: [ 'type', _dereq_('./EventBus') ],
-  graphicsFactory: [ 'type', _dereq_('./GraphicsFactory') ]
+  canvas: [ 'type', _dereq_(37) ],
+  elementRegistry: [ 'type', _dereq_(39) ],
+  elementFactory: [ 'type', _dereq_(38) ],
+  eventBus: [ 'type', _dereq_(40) ],
+  graphicsFactory: [ 'type', _dereq_(41) ]
 };
-},{"../draw":45,"./Canvas":36,"./ElementFactory":37,"./ElementRegistry":38,"./EventBus":39,"./GraphicsFactory":40}],42:[function(_dereq_,module,exports){
+},{}],43:[function(_dereq_,module,exports){
 'use strict';
 
-var Snap = _dereq_('./Snap');
+var Snap = _dereq_(44);
 
 
 /**
@@ -10458,14 +10380,14 @@ function updateLine(gfx, points) {
 
 module.exports.createLine = createLine;
 module.exports.updateLine = updateLine;
-},{"./Snap":43}],43:[function(_dereq_,module,exports){
+},{}],44:[function(_dereq_,module,exports){
 var snapsvg = (window.Snap);
 
 // require snapsvg extensions
-_dereq_('./snapsvg-extensions');
+_dereq_(47);
 
 module.exports = snapsvg;
-},{"./snapsvg-extensions":46}],44:[function(_dereq_,module,exports){
+},{}],45:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
@@ -10528,15 +10450,15 @@ function Styles() {
 }
 
 module.exports = Styles;
-},{}],45:[function(_dereq_,module,exports){
+},{}],46:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
-  renderer: [ 'type', _dereq_('./Renderer') ],
-  snap: [ 'value', _dereq_('./Snap') ],
-  styles: [ 'type', _dereq_('./Styles') ]
+  renderer: [ 'type', _dereq_(43) ],
+  snap: [ 'value', _dereq_(44) ],
+  styles: [ 'type', _dereq_(45) ]
 };
-},{"./Renderer":42,"./Snap":43,"./Styles":44}],46:[function(_dereq_,module,exports){
+},{}],47:[function(_dereq_,module,exports){
 'use strict';
 
 var Snap = (window.Snap);
@@ -10745,17 +10667,13 @@ Snap.plugin(function(Snap, Element, Paper, global) {
     return new Snap(svg);
   };
 });
-},{}],47:[function(_dereq_,module,exports){
+},{}],48:[function(_dereq_,module,exports){
 'use strict';
-
-
-var _ = (window._);
 
 var Snap = (window.Snap);
 
-var GraphicsUtil = _dereq_('../../util/GraphicsUtil'),
-    Renderer = _dereq_('../../draw/Renderer'),
-    Dom = _dereq_('../../util/Dom'),
+var Renderer = _dereq_(43),
+    Dom = _dereq_(65),
     createLine = Renderer.createLine,
     updateLine = Renderer.updateLine;
 
@@ -10781,7 +10699,7 @@ function InteractionEvents(eventBus, elementRegistry, styles, snap) {
 
   var HIT_STYLE = styles.cls('djs-hit', [ 'no-fill', 'no-border' ], {
     stroke: 'white',
-    strokeWidth: 10
+    strokeWidth: 15
   });
 
   function fire(type, event) {
@@ -10801,14 +10719,24 @@ function InteractionEvents(eventBus, elementRegistry, styles, snap) {
     }
   }
 
+  var handlers = {};
+
   function mouseHandler(type) {
-    return function(event) {
-      // only indicate left mouse button=0 interactions
-      if (!event.button) {
-        fire(type, event);
-      }
-    };
+
+    var fn = handlers[type];
+
+    if (!fn) {
+      fn = handlers[type] = function(event) {
+        // only indicate left mouse button=0 interactions
+        if (!event.button) {
+          fire(type, event);
+        }
+      };
+    }
+
+    return fn;
   }
+
 
   ///// event registration
 
@@ -10889,6 +10817,22 @@ function InteractionEvents(eventBus, elementRegistry, styles, snap) {
     Dom.on(node, 'mouseup', mouseHandler('element.mouseup'));
   }
 
+  function unregisterEvents(svg) {
+
+    var node = svg.node;
+
+    Dom.off(node, 'mouseover', mouseHandler('element.hover'));
+    Dom.off(node, 'mouseout', mouseHandler('element.out'));
+    Dom.off(node, 'click', mouseHandler('element.click'));
+    Dom.off(node, 'dblclick', mouseHandler('element.dblclick'));
+    Dom.off(node, 'mousedown', mouseHandler('element.mousedown'));
+    Dom.off(node, 'mouseup', mouseHandler('element.mouseup'));
+  }
+
+  eventBus.on('canvas.destroy', function(event) {
+    unregisterEvents(event.svg);
+  });
+
   eventBus.on('canvas.init', function(event) {
     registerEvents(event.svg);
   });
@@ -10897,10 +10841,8 @@ function InteractionEvents(eventBus, elementRegistry, styles, snap) {
   eventBus.on([ 'shape.added', 'connection.added' ], function(event) {
     var element = event.element,
         gfx = event.gfx,
-        visual = GraphicsUtil.getVisual(gfx),
-        baseEvent = { element: element, gfx: gfx };
-
-    var hit, type;
+        hit,
+        type;
 
     if (element.waypoints) {
       hit = createLine(element.waypoints);
@@ -10940,6 +10882,8 @@ function InteractionEvents(eventBus, elementRegistry, styles, snap) {
   // API
 
   this.fire = fire;
+
+  this.mouseHandler = mouseHandler;
 }
 
 
@@ -10947,17 +10891,16 @@ InteractionEvents.$inject = [ 'eventBus', 'elementRegistry', 'styles', 'snap' ];
 
 module.exports = InteractionEvents;
 
-},{"../../draw/Renderer":42,"../../util/Dom":59,"../../util/GraphicsUtil":61}],48:[function(_dereq_,module,exports){
+},{}],49:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'interactionEvents' ],
-  interactionEvents: [ 'type', _dereq_('./InteractionEvents') ]
+  interactionEvents: [ 'type', _dereq_(48) ]
 };
-},{"./InteractionEvents":47}],49:[function(_dereq_,module,exports){
+},{}],50:[function(_dereq_,module,exports){
 'use strict';
 
 var Snap = (window.Snap);
-
-var GraphicsUtil = _dereq_('../../util/GraphicsUtil');
+var getBBox = _dereq_(66).getBBox;
 
 
 /**
@@ -10970,7 +10913,7 @@ var GraphicsUtil = _dereq_('../../util/GraphicsUtil');
  */
 function Outline(eventBus, styles, elementRegistry) {
 
-  var OUTLINE_OFFSET = 5;
+  var OUTLINE_OFFSET = 6;
 
   var OUTLINE_STYLE = styles.cls('djs-outline', [ 'no-fill' ]);
 
@@ -10978,13 +10921,25 @@ function Outline(eventBus, styles, elementRegistry) {
     return Snap.create('rect', OUTLINE_STYLE).prependTo(gfx);
   }
 
-  function updateOutline(outline, bounds) {
+  function updateShapeOutline(outline, bounds) {
 
     outline.attr({
       x: -OUTLINE_OFFSET,
       y: -OUTLINE_OFFSET,
       width: bounds.width + OUTLINE_OFFSET * 2,
       height: bounds.height + OUTLINE_OFFSET * 2
+    });
+  }
+
+  function updateConnectionOutline(outline, connection) {
+
+    var bbox = getBBox(connection);
+
+    outline.attr({
+      x: bbox.x - OUTLINE_OFFSET,
+      y: bbox.y - OUTLINE_OFFSET,
+      width: bbox.width + OUTLINE_OFFSET * 2,
+      height: bbox.height + OUTLINE_OFFSET * 2
     });
   }
 
@@ -10998,8 +10953,22 @@ function Outline(eventBus, styles, elementRegistry) {
       outline = createOutline(gfx, element);
     }
 
-    updateOutline(outline, element);
+    updateShapeOutline(outline, element);
   });
+
+  eventBus.on([ 'connection.added', 'connection.changed' ], function(event) {
+    var element = event.element,
+        gfx     = event.gfx;
+
+    var outline = gfx.select('.djs-outline');
+
+    if (!outline) {
+      outline = createOutline(gfx, element);
+    }
+
+    updateConnectionOutline(outline, element);
+  });
+
 
 }
 
@@ -11008,21 +10977,22 @@ Outline.$inject = ['eventBus', 'styles', 'elementRegistry'];
 
 module.exports = Outline;
 
-},{"../../util/GraphicsUtil":61}],50:[function(_dereq_,module,exports){
+},{}],51:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'outline' ],
-  outline: [ 'type', _dereq_('./Outline') ]
+  outline: [ 'type', _dereq_(50) ]
 };
-},{"./Outline":49}],51:[function(_dereq_,module,exports){
+},{}],52:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._),
-    $ = (window.$);
+    $ = (window.$),
+    getBBox = _dereq_(66).getBBox;
 
 // document wide unique overlay ids
-var ids = new (_dereq_('../../util/IdGenerator'))('ov');
+var ids = new (_dereq_(69))('ov');
 
 
 /**
@@ -11194,10 +11164,6 @@ Overlays.prototype.add = function(element, type, overlay) {
     element = this._elementRegistry.get(element);
   }
 
-  if (element.waypoints) {
-    throw new Error('overlays for connections are not supported');
-  }
-
   if (!overlay.position) {
     throw new Error('must specifiy overlay position');
   }
@@ -11285,8 +11251,16 @@ Overlays.prototype._updateOverlayContainer = function(container) {
   // update container left,top according to the elements x,y coordinates
   // this ensures we can attach child elements relative to this container
 
-  // TODO(nre): update according to element bbox (for connections)
-  html.css({ left: element.x, top: element.y });
+  var x = element.x,
+      y = element.y;
+
+  if (element.waypoints) {
+    var bbox = getBBox(element);
+    x = bbox.x;
+    y = bbox.y;
+  }
+
+  html.css({ left: x, top: y });
 };
 
 
@@ -11304,11 +11278,29 @@ Overlays.prototype._updateOverlay = function(overlay) {
       top = position.top;
 
   if (position.right !== undefined) {
-    left = position.right * -1 + element.width;
+
+    var width;
+
+    if (element.waypoints) {
+      width = getBBox(element).width;
+    } else {
+      width = element.width;
+    }
+
+    left = position.right * -1 + width;
   }
 
   if (position.bottom !== undefined) {
-    top = position.bottom * -1 + element.height;
+
+    var height;
+
+    if (element.waypoints) {
+      height = getBBox(element).height;
+    } else {
+      height = element.height;
+    }
+
+    top = position.bottom * -1 + height;
   }
 
   htmlContainer.css({ left: left || 0, top: top || 0 });
@@ -11338,8 +11330,6 @@ Overlays.prototype._createOverlayContainer = function(element) {
 Overlays.prototype._updateRoot = function(viewbox) {
   var a = viewbox.scale || 1;
   var d = viewbox.scale || 1;
-  var e = viewbox.x || 0;
-  var f = viewbox.y || 0;
 
   var matrix = 'matrix(' + a + ',0,0,' + d + ',' + (-1 * viewbox.x * a) + ',' + (-1 * viewbox.y * d) + ')';
 
@@ -11439,37 +11429,22 @@ Overlays.prototype._init = function(config) {
   // move integration
 
   eventBus.on([
-    'commandStack.shape.move.executed',
-    'commandStack.shape.move.reverted'
+    'element.changed'
   ], function(e) {
-    var element = e.context.shape;
-
-      var container = self._getOverlayContainer(element, true);
-      if (container) {
-        self._updateOverlayContainer(container);
-      }
-  });
-
-  eventBus.on([
-    'commandStack.shape.resize.executed',
-    'commandStack.shape.resize.reverted'
-  ], function(e) {
-
-    var overlays = self._overlays;
-
-    var element = e.context.shape;
-
-    _.forEach(overlays, function(overlay) {
-      if (overlay.element.id === element.id) {
-        self._updateOverlay(overlay);
-      }
-    });
+    var element = e.element;
 
     var container = self._getOverlayContainer(element, true);
+
     if (container) {
+      _.forEach(container.overlays, function(overlay) {
+        self._updateOverlay(overlay);
+      });
+
       self._updateOverlayContainer(container);
     }
+
   });
+
 
   // marker integration, simply add them on the overlays as classes, too.
 
@@ -11481,14 +11456,14 @@ Overlays.prototype._init = function(config) {
   });
 };
 
-},{"../../util/IdGenerator":62}],52:[function(_dereq_,module,exports){
+},{}],53:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'overlays' ],
-  overlays: [ 'type', _dereq_('./Overlays') ]
+  overlays: [ 'type', _dereq_(52) ]
 };
-},{"./Overlays":51}],53:[function(_dereq_,module,exports){
+},{}],54:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
@@ -11564,8 +11539,6 @@ Selection.prototype.select = function(elements, add) {
     elements = elements ? [ elements ] : [];
   }
 
-  var self = this;
-
   // selection may be cleared by passing an empty array or null
   // to the method
   if (add) {
@@ -11580,13 +11553,14 @@ Selection.prototype.select = function(elements, add) {
   } else {
     this._selectedElements = selectedElements = elements.slice();
   }
-
   this._eventBus.fire('selection.changed', { oldSelection: oldSelection, newSelection: selectedElements });
 };
-},{}],54:[function(_dereq_,module,exports){
+
+},{}],55:[function(_dereq_,module,exports){
 'use strict';
 
-var getOriginalEvent = _dereq_('../../util/Event').getOriginal;
+
+var getOriginalEvent = _dereq_(67).getOriginal;
 
 function SelectionBehavior(eventBus, selection, canvas) {
 
@@ -11606,34 +11580,42 @@ function SelectionBehavior(eventBus, selection, canvas) {
     selection.select(e.context.shapes);
   });
 
+
+  // Shift + click selection
   eventBus.on('element.click', function(event) {
 
     var element = event.element;
 
     // do not select the root element
     // or connections
-    if (element === canvas.getRootElement() ||
-        element.waypoints) {
-
+    if (element === canvas.getRootElement()) {
       element = null;
     }
 
-    var add = (getOriginalEvent(event) || event).shiftKey;
-    selection.select(element, add);
+    if (!selection.isSelected(element)) {
+      var ev = (getOriginalEvent(event) || event);
+      var add = ev.shiftKey;
+
+      if (!ev.altKey) {
+        selection.select(element, add);
+      }
+    } else {
+      selection.deselect(element);
+    }
   });
 }
 
 SelectionBehavior.$inject = [ 'eventBus', 'selection', 'canvas' ];
 
 module.exports = SelectionBehavior;
-},{"../../util/Event":60}],55:[function(_dereq_,module,exports){
+
+},{}],56:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
 
 var MARKER_HOVER = 'hover',
     MARKER_SELECTED = 'selected';
-
 
 /**
  * A plugin that adds a visible selection UI to shapes and connections
@@ -11647,7 +11629,9 @@ var MARKER_HOVER = 'hover',
  * @param {SelectionService} selection
  * @param {Canvas} canvas
  */
-function SelectionVisuals(events, canvas) {
+function SelectionVisuals(events, canvas, selection, graphicsFactory, styles) {
+
+  this._multiSelectionBox = null;
 
   function addMarker(e, cls) {
     canvas.addMarker(e, cls);
@@ -11694,30 +11678,34 @@ function SelectionVisuals(events, canvas) {
 
 SelectionVisuals.$inject = [
   'eventBus',
-  'canvas'
+  'canvas',
+  'selection',
+  'graphicsFactory',
+  'styles'
 ];
 
 module.exports = SelectionVisuals;
 
-},{}],56:[function(_dereq_,module,exports){
+},{}],57:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'selectionVisuals', 'selectionBehavior' ],
   __depends__: [
-    _dereq_('../interaction-events'),
-    _dereq_('../outline')
+    _dereq_(49),
+    _dereq_(51)
   ],
-  selection: [ 'type', _dereq_('./Selection') ],
-  selectionVisuals: [ 'type', _dereq_('./SelectionVisuals') ],
-  selectionBehavior: [ 'type', _dereq_('./SelectionBehavior') ]
+  selection: [ 'type', _dereq_(54) ],
+  selectionVisuals: [ 'type', _dereq_(56) ],
+  selectionBehavior: [ 'type', _dereq_(55) ]
 };
-},{"../interaction-events":48,"../outline":50,"./Selection":53,"./SelectionBehavior":54,"./SelectionVisuals":55}],57:[function(_dereq_,module,exports){
+
+},{}],58:[function(_dereq_,module,exports){
 'use strict';
 
 var _ = (window._);
 
-var Refs = _dereq_('object-refs');
+var Refs = _dereq_(75);
 
 var parentRefs = new Refs({ name: 'children', enumerable: true, collection: true }, { name: 'parent' }),
     labelRefs = new Refs({ name: 'label', enumerable: true }, { name: 'labelTarget' }),
@@ -11913,7 +11901,206 @@ module.exports.Root = Root;
 module.exports.Shape = Shape;
 module.exports.Connection = Connection;
 module.exports.Label = Label;
-},{"object-refs":68}],58:[function(_dereq_,module,exports){
+},{}],59:[function(_dereq_,module,exports){
+var Cursor = _dereq_(64),
+    Dom = _dereq_(65),
+    Event = _dereq_(67);
+
+function substract(p1, p2) {
+  return {
+    x: p1.x - p2.x,
+    y: p1.y - p2.y
+  };
+}
+
+function length(point) {
+  return Math.sqrt(Math.pow(point.x, 2) + Math.pow(point.y, 2));
+}
+
+
+var THRESHOLD = 15;
+
+
+function MoveCanvas(eventBus, canvas) {
+
+  var container = canvas._container,
+      context;
+
+
+  function handleMove(event) {
+
+    var start = context.start,
+        position = Event.toPoint(event),
+        delta = substract(position, start);
+
+    if (!context.dragging && length(delta) > THRESHOLD) {
+      context.dragging = true;
+
+      Cursor.set('move');
+    }
+
+    if (context.dragging) {
+
+      var lastPosition = context.last || context.start;
+
+      delta = substract(position, lastPosition);
+
+      canvas.scroll({
+        dx: delta.x,
+        dy: delta.y
+      });
+
+      context.last = position;
+    }
+
+    // prevent select
+    event.preventDefault();
+  }
+
+
+  function handleEnd(event) {
+    Dom.off(document, 'mousemove', handleMove);
+    Dom.off(document, 'mouseup', handleEnd);
+
+    context = null;
+
+    Cursor.unset();
+
+    // prevent select
+    Event.stopEvent(event);
+  }
+
+  function handleStart(event) {
+
+    // reject non-left mouse button drags
+    // left = 0
+    // left click + alt pressed is reserved for other use
+    if (event.button ||  event.altKey) {
+      return;
+    }
+
+    context = {
+      start: Event.toPoint(event)
+    };
+
+    Dom.on(document, 'mousemove', handleMove);
+    Dom.on(document, 'mouseup', handleEnd);
+
+    // prevent select
+    Event.stopEvent(event);
+  }
+
+  Dom.on(container, 'mousedown', handleStart);
+}
+
+
+MoveCanvas.$inject = [ 'eventBus', 'canvas' ];
+
+module.exports = MoveCanvas;
+
+},{}],60:[function(_dereq_,module,exports){
+module.exports = {
+  __init__: [ 'moveCanvas' ],
+  moveCanvas: [ 'type', _dereq_(59) ]
+};
+},{}],61:[function(_dereq_,module,exports){
+'use strict';
+
+var $ = (window.$);
+
+var mousewheel = (window.$);
+if (mousewheel !== $ && !$.mousewheel) { mousewheel($); }
+
+
+function ZoomScroll(events, canvas) {
+
+  var RANGE = { min: 0.2, max: 4 };
+
+  var ZOOM_OFFSET = 5;
+  var SCROLL_OFFSET = 50;
+
+  function cap(scale) {
+    return Math.max(RANGE.min, Math.min(RANGE.max, scale));
+  }
+
+  function reset() {
+    canvas.zoom('fit-viewport');
+  }
+
+  function zoom(direction, position) {
+
+    var currentZoom = canvas.zoom();
+    var factor = 1 + (direction / ZOOM_OFFSET);
+
+    canvas.zoom(cap(currentZoom * factor), position);
+  }
+
+
+  function init(element) {
+
+    $(element).on('mousewheel', function(event) {
+
+      var shift = event.shiftKey,
+          ctrl = event.ctrlKey;
+
+      var x = event.deltaX,
+          y = event.deltaY;
+
+      if (shift || ctrl) {
+        var delta = {};
+
+        if (ctrl) {
+          delta.dx = SCROLL_OFFSET * x;
+        } else {
+          delta.dy = SCROLL_OFFSET * x;
+        }
+
+        canvas.scroll(delta);
+      } else {
+        var offset = {};
+
+        // Gecko Browser should use _offsetX
+        if(!event.originalEvent.offsetX) {
+          offset = {
+            x: event.originalEvent.layerX,
+            y: event.originalEvent.layerY
+          };
+        } else {
+          offset = {
+            x: event.offsetX,
+            y: event.offsetY
+          };
+        }
+
+        // zoom in relative to diagram {x,y} coordinates
+        zoom(y, offset);
+      }
+
+      event.preventDefault();
+    });
+  }
+
+  events.on('canvas.init', function(e) {
+    init(e.svg.node);
+  });
+
+  // API
+  this.zoom = zoom;
+  this.reset = reset;
+}
+
+
+ZoomScroll.$inject = [ 'eventBus', 'canvas' ];
+
+module.exports = ZoomScroll;
+
+
+},{}],62:[function(_dereq_,module,exports){
+module.exports = {
+  __init__: [ 'zoomScroll' ],
+  zoomScroll: [ 'type', _dereq_(61) ]
+};
+},{}],63:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -12005,7 +12192,32 @@ module.exports.indexOf = function(collection, element) {
   return collection.indexOf(element);
 };
 
-},{}],59:[function(_dereq_,module,exports){
+},{}],64:[function(_dereq_,module,exports){
+'use strict';
+
+var _ = (window._);
+
+var CURSOR_CLS_PATTERN = /^djs-cursor-.*$/;
+
+
+module.exports.set = function(mode) {
+  var classList = document.body.classList;
+
+  _.forEach(_.clone(classList), function(cls) {
+    if (CURSOR_CLS_PATTERN.test(cls)) {
+      classList.remove(cls);
+    }
+  });
+
+  if (mode) {
+    classList.add('djs-cursor-' + mode);
+  }
+};
+
+module.exports.unset = function() {
+  this.set(null);
+};
+},{}],65:[function(_dereq_,module,exports){
 
 var elementProto = Element.prototype;
 
@@ -12107,7 +12319,268 @@ function once(element, type, fn, useCapture) {
 }
 
 module.exports.once = once;
-},{}],60:[function(_dereq_,module,exports){
+},{}],66:[function(_dereq_,module,exports){
+var _ = (window._);
+
+/**
+ * Adds an element to a collection and returns true if the
+ * element was added.
+ *
+ * @param {Array<Object>} elements
+ * @param {Object} e
+ * @param {Boolean} unique
+ */
+function add(elements, e, unique) {
+  var canAdd = !unique || elements.indexOf(e) === -1;
+
+  if (canAdd) {
+    elements.push(e);
+  }
+
+  return canAdd;
+}
+
+function eachElement(elements, fn, depth) {
+
+  depth = depth || 0;
+
+  _.forEach(elements, function(s, i) {
+    var filter = fn(s, i, depth);
+
+    if (_.isArray(filter) && filter.length) {
+      eachElement(filter, fn, depth + 1);
+    }
+  });
+}
+
+/**
+ * Collects self + child elements up to a given depth from a list of elements.
+ *
+ * @param  {Array<djs.model.Base>} elements the elements to select the children from
+ * @param  {Boolean} unique whether to return a unique result set (no duplicates)
+ * @param  {Number} maxDepth the depth to search through or -1 for infinite
+ *
+ * @return {Array<djs.model.Base>} found elements
+ */
+function selfAndChildren(elements, unique, maxDepth) {
+  var result = [],
+      processedChildren = [];
+
+  eachElement(elements, function(element, i, depth) {
+    add(result, element, unique);
+
+    var children = element.children;
+
+    // max traversal depth not reached yet
+    if (maxDepth === -1 || depth < maxDepth) {
+
+      // children exist && children not yet processed
+      if (children && add(processedChildren, children, unique)) {
+        return children;
+      }
+    }
+  });
+
+  return result;
+}
+
+/**
+ * Return self + direct children for a number of elements
+ *
+ * @param  {Array<djs.model.Base>} elements to query
+ * @param  {Boolean} allowDuplicates to allow duplicates in the result set
+ *
+ * @return {Array<djs.model.Base>} the collected elements
+ */
+function selfAndDirectChildren(elements, allowDuplicates) {
+  return selfAndChildren(elements, !allowDuplicates, 1);
+}
+
+/**
+ * Return self + ALL children for a number of elements
+ *
+ * @param  {Array<djs.model.Base>} elements to query
+ * @param  {Boolean} allowDuplicates to allow duplicates in the result set
+ *
+ * @return {Array<djs.model.Base>} the collected elements
+ */
+function selfAndAllChildren(elements, allowDuplicates) {
+  return selfAndChildren(elements, !allowDuplicates, -1);
+}
+
+/**
+ * Gets the the closure fo all selected elements,
+ * their connections and
+ *
+ * @param {Array<djs.model.Base>} elements
+ * @return {Object} enclosure
+ */
+function getClosure(elements) {
+
+  // original elements passed to this function
+  var topLevel = _.groupBy(elements, function(e) { return e.id; });
+
+  var allShapes = {},
+      allConnections = {},
+      enclosedElements = {},
+      enclosedConnections = {};
+
+  function handleConnection(c) {
+    if (topLevel[c.source.id] && topLevel[c.target.id]) {
+      topLevel[c.id] = c;
+    }
+
+    // not enclosed as a child, but maybe logically
+    // (connecting two moved elements?)
+    if (allShapes[c.source.id] && allShapes[c.target.id]) {
+      enclosedConnections[c.id] = enclosedElements[c.id] = c;
+    }
+
+    allConnections[c.id] = c;
+  }
+
+  function handleElement(element) {
+
+    enclosedElements[element.id] = element;
+
+    if (element.waypoints) {
+      // remember connection
+      enclosedConnections[element.id] = allConnections[element.id] = element;
+    } else {
+      // remember shape
+      allShapes[element.id] = element;
+
+      // remember all connections
+      _.forEach(element.incoming, handleConnection);
+
+      _.forEach(element.outgoing, handleConnection);
+
+      // recurse into children
+      return element.children;
+    }
+  }
+
+  eachElement(elements, handleElement);
+
+  return {
+    allShapes: allShapes,
+    allConnections: allConnections,
+    topLevel: topLevel,
+    enclosedConnections: enclosedConnections,
+    enclosedElements: enclosedElements
+  };
+}
+
+/**
+ * Returns the surrounding bbox for all elements in the array or the element primitive.
+ */
+function getBBox(elements, stopRecursion) {
+
+  stopRecursion = !!stopRecursion;
+  if (!_.isArray(elements)) {
+    elements = [elements];
+  }
+
+  var minX,
+      minY,
+      maxX,
+      maxY;
+
+  _.forEach(elements, function(element) {
+
+    // If element is a connection the bbox must be computed first
+    var bbox = element;
+    if (element.waypoints && !stopRecursion) {
+      bbox = getBBox(element.waypoints, true);
+    }
+
+    var x = bbox.x,
+        y = bbox.y,
+        height = bbox.height || 0,
+        width  = bbox.width  || 0;
+
+    if (x < minX || minX === undefined) {
+      minX = x;
+    }
+    if (y < minY || minY === undefined) {
+      minY = y;
+    }
+
+    if ((x + width) > maxX || maxX === undefined) {
+      maxX = x + width;
+    }
+    if ((y + height) > maxY || maxY === undefined) {
+      maxY = y + height;
+    }
+  });
+
+  return {
+    x: minX,
+    y: minY,
+    height: maxY - minY,
+    width: maxX - minX
+  };
+}
+
+
+/**
+ * Returns all elements that are enclosed from the bounding box.
+ *
+ * @param {Array<Object>} elements List of Elements to search through
+ * @param {Object} bbox the enclosing bbox.
+ * <ul>
+ *  <li>If bbox.(width|height) is not specified
+ * the method returns all elements with element.x/y &gt; bbox.x/y
+ * </li>
+ *  <li>If only bbox.x or bbox.y is specified, method return all elements with
+ *  e.x &gt; bbox.x or e.y &gt; bbox.y.</li>
+ * </ul>
+ *
+ */
+function getEnclosedElements(elements, bbox) {
+
+  var filteredElements = {};
+
+  _.forEach(elements, function(element) {
+
+    var e = element;
+
+    if (e.waypoints) {
+      e = getBBox(e);
+    }
+
+    if (!_.isNumber(bbox.y) && (e.x > bbox.x)) {
+      filteredElements[element.id] = element;
+    }
+    if (!_.isNumber(bbox.x) && (e.y > bbox.y)) {
+      filteredElements[element.id] = element;
+    }
+    if (e.x > bbox.x && e.y > bbox.y) {
+      if (_.isNumber(bbox.width) && _.isNumber(bbox.height) &&
+          e.width  + e.x < bbox.width  + bbox.x &&
+          e.height + e.y < bbox.height + bbox.y) {
+
+        filteredElements[element.id] = element;
+      } else if (!_.isNumber(bbox.width) || !_.isNumber(bbox.height)) {
+        filteredElements[element.id] = element;
+      }
+    }
+  });
+
+  return filteredElements;
+}
+
+
+
+module.exports.eachElement = eachElement;
+module.exports.selfAndDirectChildren = selfAndDirectChildren;
+module.exports.selfAndAllChildren = selfAndAllChildren;
+module.exports.getBBox = getBBox;
+module.exports.getEnclosedElements = getEnclosedElements;
+
+module.exports.getClosure = getClosure;
+
+},{}],67:[function(_dereq_,module,exports){
 function __preventDefault(event) {
   return event && event.preventDefault();
 }
@@ -12175,7 +12648,8 @@ function toPoint(event) {
 }
 
 module.exports.toPoint = toPoint;
-},{}],61:[function(_dereq_,module,exports){
+
+},{}],68:[function(_dereq_,module,exports){
 /**
  * SVGs for elements are generated by the {@link GraphicsFactory}.
  *
@@ -12219,7 +12693,7 @@ function getBBox(gfx) {
 module.exports.getVisual = getVisual;
 module.exports.getChildren = getChildren;
 module.exports.getBBox = getBBox;
-},{}],62:[function(_dereq_,module,exports){
+},{}],69:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -12253,7 +12727,7 @@ IdGenerator.prototype.next = function() {
   return this._prefix + (++this._counter);
 };
 
-},{}],63:[function(_dereq_,module,exports){
+},{}],70:[function(_dereq_,module,exports){
 'use strict';
 
 var Snap = (window.Snap);
@@ -12450,10 +12924,6 @@ Text.prototype.createText = function(parent, text, options) {
     return sum + line.height;
   }, 0);
 
-
-  // the center x position to align against
-  var cx = box.width / 2;
-
   // the y position of the next line
   var y, x;
 
@@ -12500,7 +12970,7 @@ Text.prototype.createText = function(parent, text, options) {
 
 
 module.exports = Text;
-},{}],64:[function(_dereq_,module,exports){
+},{}],71:[function(_dereq_,module,exports){
 
 var isArray = function(obj) {
   return Object.prototype.toString.call(obj) === '[object Array]';
@@ -12550,18 +13020,18 @@ exports.annotate = annotate;
 exports.parse = parse;
 exports.isArray = isArray;
 
-},{}],65:[function(_dereq_,module,exports){
+},{}],72:[function(_dereq_,module,exports){
 module.exports = {
-  annotate: _dereq_('./annotation').annotate,
-  Module: _dereq_('./module'),
-  Injector: _dereq_('./injector')
+  annotate: _dereq_(71).annotate,
+  Module: _dereq_(74),
+  Injector: _dereq_(73)
 };
 
-},{"./annotation":64,"./injector":66,"./module":67}],66:[function(_dereq_,module,exports){
-var Module = _dereq_('./module');
-var autoAnnotate = _dereq_('./annotation').parse;
-var annotate = _dereq_('./annotation').annotate;
-var isArray = _dereq_('./annotation').isArray;
+},{}],73:[function(_dereq_,module,exports){
+var Module = _dereq_(74);
+var autoAnnotate = _dereq_(71).parse;
+var annotate = _dereq_(71).annotate;
+var isArray = _dereq_(71).isArray;
 
 
 var Injector = function(modules, parent) {
@@ -12773,7 +13243,7 @@ var Injector = function(modules, parent) {
 
 module.exports = Injector;
 
-},{"./annotation":64,"./module":67}],67:[function(_dereq_,module,exports){
+},{}],74:[function(_dereq_,module,exports){
 var Module = function() {
   var providers = [];
 
@@ -12799,11 +13269,11 @@ var Module = function() {
 
 module.exports = Module;
 
-},{}],68:[function(_dereq_,module,exports){
-module.exports = _dereq_('./lib/refs');
+},{}],75:[function(_dereq_,module,exports){
+module.exports = _dereq_(77);
 
-module.exports.Collection = _dereq_('./lib/collection');
-},{"./lib/collection":69,"./lib/refs":70}],69:[function(_dereq_,module,exports){
+module.exports.Collection = _dereq_(76);
+},{}],76:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -12885,10 +13355,10 @@ function extend(collection, refs, property, target) {
 
 
 module.exports.extend = extend;
-},{}],70:[function(_dereq_,module,exports){
+},{}],77:[function(_dereq_,module,exports){
 'use strict';
 
-var Collection = _dereq_('./collection');
+var Collection = _dereq_(76);
 
 function hasOwnProperty(e, property) {
   return Object.prototype.hasOwnProperty.call(e, property.name || property);
@@ -13067,6 +13537,6 @@ module.exports = Refs;
  * @property {boolean} [collection=false]
  * @property {boolean} [enumerable=false]
  */
-},{"./collection":69}]},{},[1])
-(1)
+},{}]},{},[1])(1)
 });
+//# sourceMappingURL=bpmn-navigated-viewer.js.map

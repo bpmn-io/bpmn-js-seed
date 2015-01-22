@@ -1,0 +1,355 @@
+/**
+ * outline styles
+ */
+
+.djs-outline {
+  fill: none;
+  visibility: hidden;
+}
+
+.djs-element.hover .djs-outline,
+.djs-element.selected .djs-outline {
+  visibility: visible;
+  shape-rendering: crispEdges;
+  stroke-dasharray: 3,3;
+}
+
+.djs-element.selected .djs-outline {
+  stroke: #8888FF;
+  stroke-width: 1px;
+}
+
+.djs-element.hover .djs-outline {
+  stroke: #FF8888;
+  stroke-width: 1px;
+}
+
+.djs-shape.connect-ok .djs-visual > :nth-child(1),
+.djs-shape.drop-ok .djs-visual > :nth-child(1) {
+  fill: #90DD5F /* light-green */ !important;
+}
+
+.djs-shape.connect-not-ok .djs-visual > :nth-child(1),
+.djs-shape.drop-not-ok .djs-visual > :nth-child(1) {
+  fill: #E56283 /* light-red */ !important;
+}
+
+.djs-connection.connect-ok .djs-visual > :nth-child(1),
+.djs-connection.drop-ok .djs-visual > :nth-child(1) {
+  stroke: #90DD5F /* light-green */ !important;
+}
+
+.djs-connection.connect-not-ok .djs-visual > :nth-child(1),
+.djs-connection.drop-not-ok .djs-visual > :nth-child(1) {
+  stroke: #E56283 /* light-red */ !important;
+}
+
+.drop-not-ok,
+.connect-not-ok {
+  cursor: not-allowed;
+}
+
+
+/**
+* Selection box style
+*
+*/
+.djs-lasso-overlay {
+  fill: rgb(255, 116, 0);
+  fill-opacity: 0.1;
+
+  stroke-dasharray: 5 1 3 1;
+  stroke: rgb(255, 116, 0);
+
+  shape-rendering: crispEdges;
+  pointer-events: none;
+}
+
+/**
+ * Resize styles
+ */
+.djs-resize-overlay {
+  fill: white;
+  fill-opacity: 0.8;
+
+  stroke-dasharray: 5 1 3 1;
+  stroke: rgb(255, 116, 0);
+
+  pointer-events: none;
+}
+
+.djs-resizer-hit {
+  fill: none;
+  pointer-events: all;
+}
+
+.djs-resizer-visual {
+  fill: white;
+  stroke-width: 1px;
+  stroke: black;
+}
+
+.djs-resizer-nw, .djs-resizer-se {
+  cursor: nwse-resize;
+}
+
+.djs-resizer-ne, .djs-resizer-sw {
+  cursor: nesw-resize;
+}
+
+.djs-shape.djs-resizing > .djs-outline {
+  visibility: hidden !important;
+}
+
+.djs-shape.djs-resizing > .djs-resizer {
+  visibility: hidden;
+}
+
+.djs-dragger > .djs-resizer {
+  visibility: hidden;
+}
+
+/**
+ * drag styles
+ */
+.djs-dragger {
+  fill: white;
+  opacity: 0.8;
+  stroke: #333;
+}
+
+.djs-dragger .djs-visual > :first-child {
+  stroke: rgb(255, 116, 0) !important;
+}
+
+.djs-dragging {
+  opacity: 0.3;
+}
+
+.djs-dragging,
+.djs-dragging > * {
+  pointer-events: none !important;
+}
+
+.djs-dragging .djs-context-pad,
+.djs-dragging .djs-outline {
+  display: none !important;
+}
+
+/**
+ * no pointer events for visual
+ */
+.djs-visual,
+.djs-outline {
+  pointer-events: none;
+}
+
+/**
+ * all pointer events for hit shape
+ */
+.djs-shape .djs-hit {
+  pointer-events: all;
+}
+
+.djs-connection .djs-hit {
+  pointer-events: stroke;
+}
+
+/**
+ * shape / connection basic styles
+ */
+.djs-connection .djs-visual {
+  stroke-width: 2px;
+  fill: none;
+}
+
+.djs-cursor-grabbing {
+  cursor: -webkit-grabbing;
+  cursor: -moz-grabbing;
+  cursor: grabbing;
+}
+
+.djs-cursor-move {
+  cursor: move;
+}
+
+
+/**
+ * snapping
+ */
+.djs-snap-line {
+  stroke: rgb(255, 195, 66);
+  stroke: rgba(255, 195, 66, 0.50);
+  stroke-linecap: round;
+  stroke-width: 2px;
+  pointer-events: none;
+}
+
+/**
+ * palette
+ */
+
+.djs-palette {
+  position: absolute;
+  left: 30px;
+  top: 30px;
+
+  background: #F0F0F0;
+  border: solid 1px #AAA;
+
+  overflow: hidden;
+}
+
+.djs-palette .entry,
+.djs-palette .djs-palette-toggle {
+  width: 46px;
+  height: 46px;
+  line-height: 46px;
+}
+
+.djs-palette .entry:before {
+  vertical-align: middle;
+}
+
+.djs-palette .djs-palette-toggle {
+  cursor: pointer;
+}
+
+.djs-palette .entry,
+.djs-palette .djs-palette-toggle {
+  color: #333;
+  font-size: 30px;
+
+  text-align: center;
+}
+
+.djs-palette.open .djs-palette-toggle {
+  height: 10px;
+}
+
+.djs-palette:not(.open) .djs-palette-entries {
+  display: none;
+}
+
+.djs-palette .djs-palette-toggle:hover {
+  background: #666;
+}
+
+.djs-palette .entry:hover {
+  color: rgb(255, 116, 0);
+}
+
+/**
+ * context-pad
+ */
+.djs-overlay-context-pad {
+  width: 72px;
+}
+
+.djs-context-pad {
+  position: absolute;
+  display: none;
+  pointer-events: none;
+}
+
+.djs-context-pad .entry {
+  width: 20px;
+  height: 20px;
+  text-align: center;
+  display: inline-block;
+  font-size: 20px;
+  margin: 0 2px 2px 0;
+
+  border-radius: 3px;
+
+  cursor: default;
+
+  background-color: rgba(255,255,255, 0.85);
+  box-shadow: 0 0 2px 1px rgba(255,255,255, 0.85);
+
+  pointer-events: all;
+}
+
+.djs-context-pad .entry:before {
+  vertical-align: top;
+}
+
+.djs-context-pad .entry:hover {
+  background: rgb(255, 252, 176);
+}
+
+.djs-context-pad.open {
+  display: block;
+}
+
+/**
+ * touch
+ */
+
+.djs-shape,
+.djs-connection {
+  touch-action: none;
+}
+
+.djs-bendpoint {
+  display: none;
+}
+
+/**
+ * bendpoints
+ */
+.djs-bendpoint .djs-visual {
+  pointer-events: none;
+  fill: rgba(255, 255, 121, 0.8);
+  stroke-width: 1px;
+  stroke-opacity: 0.5;
+  stroke: black;
+}
+
+.djs-bendpoint:hover,
+.djs-bendpoints.hover .djs-bendpoint,
+.djs-bendpoints.selected .djs-bendpoint {
+  display: block;
+}
+
+.djs-bendpoints:not(.hover) .floating {
+  display: none;
+}
+
+.djs-bendpoint:hover .djs-visual,
+.djs-bendpoint.floating .djs-visual {
+  fill: yellow;
+}
+
+.djs-bendpoint.floating .djs-hit {
+  pointer-events: none;
+}
+
+.djs-bendpoint .djs-hit {
+  pointer-events: all;
+  fill: none;
+}
+
+.djs-updating,
+.djs-updating > * {
+  pointer-events: none !important;
+}
+
+.djs-updating .djs-context-pad,
+.djs-updating .djs-outline,
+.djs-updating .djs-bendpoint,
+.connect-ok .djs-bendpoint,
+.connect-not-ok .djs-bendpoint,
+.drop-ok .djs-bendpoint,
+.drop-not-ok .djs-bendpoint {
+  display: none !important;
+}
+
+.djs-bendpoint.djs-dragging {
+  display: block;
+  opacity: 1.0;
+}
+
+.djs-bendpoint.djs-dragging .djs-visual {
+  fill: yellow;
+}
