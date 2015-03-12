@@ -1,6 +1,6 @@
 {
   "name": "bpmn-js",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "authors": [
     "bpmn.io"
   ],
@@ -16,13 +16,5 @@
   "ignore": [
     "test/*"
   ],
-  "dependencies": {
-    "lodash": "~2.4.1",
-    "jquery": "~2.1.1",
-    "jquery-mousewheel": "~3.1.11",
-    "sax": "https://github.com/isaacs/sax-js/archive/v0.6.0.tar.gz",
-    "Snap.svg": "~0.3.0",
-    "hammerjs": "~2.0.1"
-  },
   "homepage": "http://bpmn.io"
 }

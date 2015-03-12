@@ -191,11 +191,8 @@
 
 .djs-palette {
   position: absolute;
-  left: 30px;
-  top: 30px;
-
-  background: #F0F0F0;
-  border: solid 1px #AAA;
+  left: 20px;
+  top: 20px;
 
   overflow: hidden;
 }
@@ -253,11 +250,11 @@
 }
 
 .djs-context-pad .entry {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   text-align: center;
   display: inline-block;
-  font-size: 20px;
+  font-size: 22px;
   margin: 0 2px 2px 0;
 
   border-radius: 3px;
@@ -280,6 +277,39 @@
 
 .djs-context-pad.open {
   display: block;
+}
+
+.djs-popup-entry {
+  font-size: 20px;
+  line-height: 20px;
+  padding: 2px 10px 2px 5px;
+  background-color: rgba(255,255,255, 0.85);
+  white-space: nowrap;
+}
+
+.djs-popup-entry:hover {
+  background: rgb(255, 252, 176);
+}
+
+.djs-popup-entry > span {
+  font-size: 14px;
+  margin-left: 5px;
+
+  vertical-align: middle;
+}
+
+.djs-popup-entry:before {
+  vertical-align: middle;
+}
+
+/**
+ * popup / palette styles
+ */
+.djs-popup, .djs-palette {
+  background: #FAFAFA;
+  border: solid 1px #CCC;
+  border-radius: 2px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
 }
 
 /**

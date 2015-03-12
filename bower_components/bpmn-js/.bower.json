@@ -1,6 +1,6 @@
 {
   "name": "bpmn-js",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "authors": [
     "bpmn.io"
   ],
@@ -16,23 +16,15 @@
   "ignore": [
     "test/*"
   ],
-  "dependencies": {
-    "lodash": "~2.4.1",
-    "jquery": "~2.1.1",
-    "jquery-mousewheel": "~3.1.11",
-    "sax": "https://github.com/isaacs/sax-js/archive/v0.6.0.tar.gz",
-    "Snap.svg": "~0.3.0",
-    "hammerjs": "~2.0.1"
-  },
   "homepage": "http://bpmn.io",
-  "_release": "0.8.0",
+  "_release": "0.9.0",
   "_resolution": {
     "type": "version",
-    "tag": "v0.8.0",
-    "commit": "95cd03dd50eccee96b674952403c02d82177f1ed"
+    "tag": "v0.9.0",
+    "commit": "5759fa6eb2c363337ab2383b40507541fb085bd0"
   },
   "_source": "git://github.com/bpmn-io/bower-bpmn-js.git",
-  "_target": "~0.8.0",
+  "_target": "~0.9.0",
   "_originalSource": "bpmn-js",
   "_direct": true
 }
