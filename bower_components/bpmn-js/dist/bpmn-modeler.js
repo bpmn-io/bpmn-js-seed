@@ -1,5 +1,5 @@
 /*!
- * bpmn-js - bpmn-modeler v0.9.0
+ * bpmn-js - bpmn-modeler v0.9.1
 
  * Copyright 2014, 2015 camunda Services GmbH and other contributors
  *
@@ -8,7 +8,7 @@
  *
  * Source Code: https://github.com/bpmn-io/bpmn-js
  *
- * Date: 2015-03-12
+ * Date: 2015-03-13
  */
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.BpmnJS=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
@@ -4194,7 +4194,7 @@ module.exports = {
     _dereq_(125)
   ],
   __init__: [ 'paletteProvider' ],
-  paletteProvider: [ 'type', _dereq_(26) ],
+  paletteProvider: [ 'type', _dereq_(26) ]
 };
 
 },{"125":125,"26":26}],28:[function(_dereq_,module,exports){
@@ -9350,7 +9350,7 @@ var BUILTINS = {
   Boolean: true,
   Integer: true,
   Real: true,
-  Element: true,
+  Element: true
 };
 
 /**
@@ -16983,7 +16983,7 @@ function InteractionEvents(eventBus, elementRegistry, styles) {
     click: 'element.click',
     dblclick: 'element.dblclick',
     mousedown: 'element.mousedown',
-    mouseup: 'element.mouseup',
+    mouseup: 'element.mouseup'
   };
 
   var elementSelector = 'svg, .djs-element';
@@ -20104,7 +20104,7 @@ Palette.HTML_MARKUP =
 },{"179":179,"271":271,"291":291,"292":292,"293":293,"295":295,"296":296,"297":297,"298":298,"299":299}],125:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'palette' ],
-  palette: [ 'type', _dereq_(124) ],
+  palette: [ 'type', _dereq_(124) ]
 };
 
 },{"124":124}],126:[function(_dereq_,module,exports){
@@ -21160,7 +21160,7 @@ Snapping.prototype.showSnap = function(orientation, points, pos) {
     snap = {
       snap: pos[vertical ? 'x' : 'y'],
       start: Math.min.apply(null, coordinates) - 5000,
-      end: Math.max.apply(null, coordinates) + 5000,
+      end: Math.max.apply(null, coordinates) + 5000
     };
   }
 
@@ -21294,7 +21294,7 @@ var mouseEvents = [
   'mouseover',
   'mouseout',
   'click',
-  'dblclick',
+  'dblclick'
 ];
 
 function log() {
