@@ -24,14 +24,19 @@
   stroke-width: 1px;
 }
 
-.djs-shape.connect-ok .djs-visual > :nth-child(1),
-.djs-shape.drop-ok .djs-visual > :nth-child(1) {
-  fill: #90DD5F /* light-green */ !important;
+.djs-shape.connect-ok .djs-visual > :nth-child(1) {
+  fill: #54FF00 /* light-green */ !important;
+  fill-opacity: 0.2;
 }
 
 .djs-shape.connect-not-ok .djs-visual > :nth-child(1),
 .djs-shape.drop-not-ok .djs-visual > :nth-child(1) {
   fill: #E56283 /* light-red */ !important;
+  fill-opacity: 0.2;
+}
+
+svg.drop-not-ok {
+  background: rgba(229, 98, 131, 0.2) /* light-red */ !important;
 }
 
 .djs-connection.connect-ok .djs-visual > :nth-child(1),
@@ -87,13 +92,19 @@
   fill: white;
   stroke-width: 1px;
   stroke: black;
+  shape-rendering: crispEdges;
+  stroke-opacity: 0.2;
 }
 
-.djs-resizer-nw, .djs-resizer-se {
+.djs-cursor-resize-nwse,
+.djs-resizer-nw,
+.djs-resizer-se {
   cursor: nwse-resize;
 }
 
-.djs-resizer-ne, .djs-resizer-sw {
+.djs-cursor-resize-nesw,
+.djs-resizer-ne,
+.djs-resizer-sw {
   cursor: nesw-resize;
 }
 
@@ -114,7 +125,7 @@
  */
 .djs-dragger {
   fill: white;
-  opacity: 0.8;
+  fill-opacity: 0.6;
   stroke: #333;
 }
 
@@ -169,8 +180,20 @@
   cursor: grabbing;
 }
 
+.djs-cursor-crosshair {
+  cursor: crosshair;
+}
+
 .djs-cursor-move {
   cursor: move;
+}
+
+.djs-cursor-resize-ns {
+  cursor: ns-resize;
+}
+
+.djs-cursor-resize-ew {
+  cursor: ew-resize;
 }
 
 
@@ -186,6 +209,18 @@
 }
 
 /**
+ * snapping
+ */
+.djs-crosshair {
+  stroke: #555;
+  stroke-linecap: round;
+  stroke-width: 1px;
+  pointer-events: none;
+  shape-rendering: crispEdges;
+  stroke-dasharray: 5, 5;
+}
+
+/**
  * palette
  */
 
@@ -193,7 +228,9 @@
   position: absolute;
   left: 20px;
   top: 20px;
+}
 
+.djs-palette:not(.open) {
   overflow: hidden;
 }
 
@@ -203,6 +240,12 @@
   height: 46px;
   line-height: 46px;
 }
+
+.djs-palette .separator {
+  margin: 3px 5px 5px 5px;
+  border: solid 1px #DDD;
+  border-radius: 1px;
+};
 
 .djs-palette .entry:before {
   vertical-align: middle;
@@ -382,4 +425,33 @@
 
 .djs-bendpoint.djs-dragging .djs-visual {
   fill: yellow;
+}
+
+
+/**
+ * tooltips
+ */
+.djs-tooltip-error {
+  font-size: 11px;
+  line-height: 18px;
+  text-align: left;
+
+  padding: 5px;
+
+  opacity: 0.7;
+}
+
+.djs-tooltip-error > * {
+  width: 160px;
+
+  background: rgb(252, 236, 240);
+  color: rgb(158, 76, 76);
+  padding: 3px 7px;
+  box-shadow: 0 1px 3px rgba(0,0,0, 0.2);
+  border-radius: 5px;
+  border-left: solid 5px rgb(174, 73, 73);
+}
+
+.djs-tooltip-error:hover {
+  opacity: 1;
 }
