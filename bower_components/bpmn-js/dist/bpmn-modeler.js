@@ -1,5 +1,5 @@
 /*!
- * bpmn-js - bpmn-modeler v0.11.0
+ * bpmn-js - bpmn-modeler v0.12.0
 
  * Copyright 2014, 2015 camunda Services GmbH and other contributors
  *
@@ -8,15 +8,15 @@
  *
  * Source Code: https://github.com/bpmn-io/bpmn-js
  *
- * Date: 2015-08-06
+ * Date: 2015-10-23
  */
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.BpmnJS=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(207);
+var inherits = _dereq_(232);
 
-var IdSupport = _dereq_(53),
-    Ids = _dereq_(205);
+var IdSupport = _dereq_(69),
+    Ids = _dereq_(230);
 
 var Viewer = _dereq_(2);
 
@@ -134,24 +134,26 @@ Modeler.prototype.createModdle = function() {
 
 Modeler.prototype._interactionModules = [
   // non-modeling components
-  _dereq_(14),
-  _dereq_(182),
-  _dereq_(178),
-  _dereq_(179)
+  _dereq_(16),
+  _dereq_(8),
+  _dereq_(205),
+  _dereq_(201),
+  _dereq_(202)
 ];
 
 Modeler.prototype._modelingModules = [
   // modeling components
-  _dereq_(139),
-  _dereq_(96),
-  _dereq_(152),
-  _dereq_(166),
+  _dereq_(159),
   _dereq_(114),
-  _dereq_(10),
+  _dereq_(175),
+  _dereq_(189),
+  _dereq_(134),
+  _dereq_(12),
+  _dereq_(58),
   _dereq_(42),
-  _dereq_(32),
-  _dereq_(8),
-  _dereq_(36)
+  _dereq_(10),
+  _dereq_(48),
+  _dereq_(50)
 ];
 
 
@@ -169,29 +171,29 @@ Modeler.prototype._modules = [].concat(
 
 module.exports = Modeler;
 
-},{"10":10,"114":114,"139":139,"14":14,"152":152,"166":166,"178":178,"179":179,"182":182,"2":2,"205":205,"207":207,"32":32,"36":36,"42":42,"53":53,"8":8,"96":96}],2:[function(_dereq_,module,exports){
+},{"10":10,"114":114,"12":12,"134":134,"159":159,"16":16,"175":175,"189":189,"2":2,"201":201,"202":202,"205":205,"230":230,"232":232,"42":42,"48":48,"50":50,"58":58,"69":69,"8":8}],2:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(339),
-    omit = _dereq_(343),
-    isString = _dereq_(336),
-    isNumber = _dereq_(333);
+var assign = _dereq_(366),
+    omit = _dereq_(370),
+    isString = _dereq_(363),
+    isNumber = _dereq_(360);
 
-var domify = _dereq_(356),
-    domQuery = _dereq_(359),
-    domRemove = _dereq_(360);
+var domify = _dereq_(383),
+    domQuery = _dereq_(386),
+    domRemove = _dereq_(387);
 
-var Diagram = _dereq_(76),
-    BpmnModdle = _dereq_(51);
+var Diagram = _dereq_(92),
+    BpmnModdle = _dereq_(67);
 
-var Importer = _dereq_(45);
+var Importer = _dereq_(61);
 
 
 function initListeners(diagram, listeners) {
   var events = diagram.get('eventBus');
 
   listeners.forEach(function(l) {
-    events.on(l.event, l.handler);
+    events.on(l.event, l.priority, l.handler, l.that);
   });
 }
 
@@ -503,63 +505,68 @@ Viewer.prototype.destroy = function() {
  * @param {String} event
  * @param {Function} handler
  */
-Viewer.prototype.on = function(event, handler) {
+Viewer.prototype.on = function(event, priority, handler, that) {
   var diagram = this.diagram,
       listeners = this.__listeners = this.__listeners || [];
 
-  listeners.push({ event: event, handler: handler });
+  listeners.push({ event: event, priority: priority, handler: handler, that: that });
 
   if (diagram) {
-    diagram.get('eventBus').on(event, handler);
+    diagram.get('eventBus').on(event, priority, handler, that);
   }
 };
 
 // modules the viewer is composed of
 Viewer.prototype._modules = [
   _dereq_(3),
-  _dereq_(159),
-  _dereq_(143)
+  _dereq_(182),
+  _dereq_(164)
 ];
 
 module.exports = Viewer;
 
-},{"143":143,"159":159,"3":3,"333":333,"336":336,"339":339,"343":343,"356":356,"359":359,"360":360,"45":45,"51":51,"76":76}],3:[function(_dereq_,module,exports){
+},{"164":164,"182":182,"3":3,"360":360,"363":363,"366":366,"370":370,"383":383,"386":386,"387":387,"61":61,"67":67,"92":92}],3:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
     _dereq_(6),
-    _dereq_(47)
+    _dereq_(63)
   ]
 };
-},{"47":47,"6":6}],4:[function(_dereq_,module,exports){
+},{"6":6,"63":63}],4:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(207),
-    isArray = _dereq_(330),
-    isObject = _dereq_(334),
-    assign = _dereq_(339),
-    forEach = _dereq_(218),
-    every = _dereq_(215),
-    includes = _dereq_(220),
-    some = _dereq_(224);
+var inherits = _dereq_(232),
+    isObject = _dereq_(361),
+    assign = _dereq_(366),
+    forEach = _dereq_(244),
+    every = _dereq_(241),
+    includes = _dereq_(246),
+    some = _dereq_(250);
 
-var DefaultRenderer = _dereq_(87),
-    TextUtil = _dereq_(196),
-    DiUtil = _dereq_(48);
+var BaseRenderer = _dereq_(103),
+    TextUtil = _dereq_(221),
+    DiUtil = _dereq_(64);
 
-var createLine = DefaultRenderer.createLine;
+var is = _dereq_(66).is;
+
+var RenderUtil = _dereq_(220);
+
+var componentsToPath = RenderUtil.componentsToPath,
+    createLine = RenderUtil.createLine;
 
 
-function BpmnRenderer(events, styles, pathMap) {
+var TASK_BORDER_RADIUS = 10;
+var INNER_OUTER_DIST = 3;
 
-  DefaultRenderer.call(this, styles);
+var LABEL_STYLE = {
+  fontFamily: 'Arial, sans-serif',
+  fontSize: '12px'
+};
 
-  var TASK_BORDER_RADIUS = 10;
-  var INNER_OUTER_DIST = 3;
 
-  var LABEL_STYLE = {
-    fontFamily: 'Arial, sans-serif',
-    fontSize: '12px'
-  };
+function BpmnRenderer(eventBus, styles, pathMap, priority) {
+
+  BaseRenderer.call(this, eventBus, priority);
 
   var textUtil = new TextUtil({
     style: LABEL_STYLE,
@@ -567,6 +574,8 @@ function BpmnRenderer(events, styles, pathMap) {
   });
 
   var markers = {};
+
+  var computeStyle = styles.computeStyle;
 
   function addMarker(id, element) {
     markers[id] = element;
@@ -661,15 +670,6 @@ function BpmnRenderer(events, styles, pathMap) {
       ref: { x: -5, y: 10 },
       scale: 0.5
     });
-  }
-
-  function computeStyle(custom, traits, defaultStyles) {
-    if (!isArray(traits)) {
-      defaultStyles = traits;
-      traits = [];
-    }
-
-    return styles.style(traits || [], assign(defaultStyles, custom || {}));
   }
 
   function drawCircle(p, width, height, offset, attrs) {
@@ -826,11 +826,6 @@ function BpmnRenderer(events, styles, pathMap) {
 
   function renderExternalLabel(p, element, align) {
     var semantic = getSemantic(element);
-
-    if (!semantic.name) {
-      element.hidden = true;
-    }
-
     return renderLabel(p, semantic.name, { box: element, align: align, style: { fontSize: '11px' } });
   }
 
@@ -857,7 +852,7 @@ function BpmnRenderer(events, styles, pathMap) {
     return pathData;
   }
 
-  var handlers = {
+  var handlers = this.handlers = {
     'bpmn:Event': function(p, element, attrs) {
       return drawCircle(p, element.width, element.height,  attrs);
     },
@@ -1361,11 +1356,10 @@ function BpmnRenderer(events, styles, pathMap) {
     'bpmn:SubProcess': function(p, element, attrs) {
       var rect = renderer('bpmn:Activity')(p, element, attrs);
 
-      var semantic = getSemantic(element);
+      var expanded = DiUtil.isExpanded(element);
 
-      var expanded = DiUtil.isExpanded(semantic);
+      var isEventSubProcess = DiUtil.isEventSubProcess(element);
 
-      var isEventSubProcess = !!semantic.triggeredByEvent;
       if (isEventSubProcess) {
         rect.attr({
           strokeDasharray: '1,2'
@@ -1599,7 +1593,7 @@ function BpmnRenderer(events, styles, pathMap) {
       var source = element.source.businessObject;
 
       // conditional flow marker
-      if (sequenceFlow.conditionExpression && source.$instanceOf('bpmn:Task')) {
+      if (sequenceFlow.conditionExpression && source.$instanceOf('bpmn:Activity')) {
         path.attr({
           markerStart: marker('conditional-flow-marker')
         });
@@ -1957,30 +1951,6 @@ function BpmnRenderer(events, styles, pathMap) {
     }
   }
 
-  function drawShape(parent, element) {
-    var type = element.type;
-    var h = handlers[type];
-
-    /* jshint -W040 */
-    if (!h) {
-      return DefaultRenderer.prototype.drawShape.apply(this, [ parent, element ]);
-    } else {
-      return h(parent, element);
-    }
-  }
-
-  function drawConnection(parent, element) {
-    var type = element.type;
-    var h = handlers[type];
-
-    /* jshint -W040 */
-    if (!h) {
-      return DefaultRenderer.prototype.drawConnection.apply(this, [ parent, element ]);
-    } else {
-      return h(parent, element);
-    }
-  }
-
   function renderDataItemCollection(p, element) {
 
     var yPosition = (element.height - 16) / element.height;
@@ -2001,172 +1971,185 @@ function BpmnRenderer(events, styles, pathMap) {
     });
   }
 
-  function isCollection(element, filter) {
-    return element.isCollection ||
-           (element.elementObjectRef && element.elementObjectRef.isCollection);
-  }
-
-  function getDi(element) {
-    return element.businessObject.di;
-  }
-
-  function getSemantic(element) {
-    return element.businessObject;
-  }
-
-  /**
-   * Checks if eventDefinition of the given element matches with semantic type.
-   *
-   * @return {boolean} true if element is of the given semantic type
-   */
-  function isTypedEvent(event, eventDefinitionType, filter) {
-
-    function matches(definition, filter) {
-      return every(filter, function(val, key) {
-
-        // we want a == conversion here, to be able to catch
-        // undefined == false and friends
-        /* jshint -W116 */
-        return definition[key] == val;
-      });
-    }
-
-    return some(event.eventDefinitions, function(definition) {
-      return definition.$type === eventDefinitionType && matches(event, filter);
-    });
-  }
-
-  function isThrowEvent(event) {
-    return (event.$type === 'bpmn:IntermediateThrowEvent') || (event.$type === 'bpmn:EndEvent');
-  }
-
-
-  /////// cropping path customizations /////////////////////////
-
-  function componentsToPath(elements) {
-    return elements.join(',').replace(/,?([A-z]),?/g, '$1');
-  }
-
-  function getCirclePath(shape) {
-
-    var cx = shape.x + shape.width / 2,
-        cy = shape.y + shape.height / 2,
-        radius = shape.width / 2;
-
-    var circlePath = [
-        ['M', cx, cy],
-        ['m', 0, -radius],
-        ['a', radius, radius, 0, 1, 1, 0, 2 * radius],
-        ['a', radius, radius, 0, 1, 1, 0, -2 * radius],
-        ['z']
-    ];
-
-    return componentsToPath(circlePath);
-  }
-
-  function getRoundRectPath(shape) {
-
-    var radius = TASK_BORDER_RADIUS,
-        x = shape.x,
-        y = shape.y,
-        width = shape.width,
-        height = shape.height;
-
-    var roundRectPath = [
-      ['M', x + radius, y],
-      ['l', width - radius * 2, 0],
-      ['a', radius, radius, 0, 0, 1, radius, radius],
-      ['l', 0, height - radius * 2],
-      ['a', radius, radius, 0, 0, 1, -radius, radius],
-      ['l', radius * 2 - width, 0],
-      ['a', radius, radius, 0, 0, 1, -radius, -radius],
-      ['l', 0, radius * 2 - height],
-      ['a', radius, radius, 0, 0, 1, radius, -radius],
-      ['z']
-    ];
-
-    return componentsToPath(roundRectPath);
-  }
-
-  function getDiamondPath(shape) {
-
-    var width = shape.width,
-        height = shape.height,
-        x = shape.x,
-        y = shape.y,
-        halfWidth = width / 2,
-        halfHeight = height / 2;
-
-    var diamondPath = [
-      ['M', x + halfWidth, y],
-      ['l', halfWidth, halfHeight],
-      ['l', -halfWidth, halfHeight],
-      ['l', -halfWidth, -halfHeight],
-      ['z']
-    ];
-
-    return componentsToPath(diamondPath);
-  }
-
-  function getRectPath(shape) {
-    var x = shape.x,
-        y = shape.y,
-        width = shape.width,
-        height = shape.height;
-
-    var rectPath = [
-      ['M', x, y],
-      ['l', width, 0],
-      ['l', 0, height],
-      ['l', -width, 0],
-      ['z']
-    ];
-
-    return componentsToPath(rectPath);
-  }
-
-  function getShapePath(element) {
-    var obj = getSemantic(element);
-
-    if (obj.$instanceOf('bpmn:Event')) {
-      return getCirclePath(element);
-    }
-
-    if (obj.$instanceOf('bpmn:Activity')) {
-      return getRoundRectPath(element);
-    }
-
-    if (obj.$instanceOf('bpmn:Gateway')) {
-      return getDiamondPath(element);
-    }
-
-    return getRectPath(element);
-  }
-
-
   // hook onto canvas init event to initialize
   // connection start/end markers on svg
-  events.on('canvas.init', function(event) {
+  eventBus.on('canvas.init', function(event) {
     initMarkers(event.svg);
   });
-
-  this.drawShape = drawShape;
-  this.drawConnection = drawConnection;
-
-  this.getShapePath = getShapePath;
 }
 
-inherits(BpmnRenderer, DefaultRenderer);
 
+inherits(BpmnRenderer, BaseRenderer);
 
 BpmnRenderer.$inject = [ 'eventBus', 'styles', 'pathMap' ];
 
 module.exports = BpmnRenderer;
 
-},{"196":196,"207":207,"215":215,"218":218,"220":220,"224":224,"330":330,"334":334,"339":339,"48":48,"87":87}],5:[function(_dereq_,module,exports){
+
+BpmnRenderer.prototype.canRender = function(element) {
+  return is(element, 'bpmn:BaseElement');
+};
+
+BpmnRenderer.prototype.drawShape = function(visuals, element) {
+  var type = element.type;
+  var h = this.handlers[type];
+
+  /* jshint -W040 */
+  return h(visuals, element);
+};
+
+BpmnRenderer.prototype.drawConnection = function(visuals, element) {
+  var type = element.type;
+  var h = this.handlers[type];
+
+  /* jshint -W040 */
+  return h(visuals, element);
+};
+
+BpmnRenderer.prototype.getShapePath = function(element) {
+
+  if (is(element, 'bpmn:Event')) {
+    return getCirclePath(element);
+  }
+
+  if (is(element, 'bpmn:Activity')) {
+    return getRoundRectPath(element, TASK_BORDER_RADIUS);
+  }
+
+  if (is(element, 'bpmn:Gateway')) {
+    return getDiamondPath(element);
+  }
+
+  return getRectPath(element);
+};
+
+
+///////// helper functions /////////////////////////////
+
+/**
+ * Checks if eventDefinition of the given element matches with semantic type.
+ *
+ * @return {boolean} true if element is of the given semantic type
+ */
+function isTypedEvent(event, eventDefinitionType, filter) {
+
+  function matches(definition, filter) {
+    return every(filter, function(val, key) {
+
+      // we want a == conversion here, to be able to catch
+      // undefined == false and friends
+      /* jshint -W116 */
+      return definition[key] == val;
+    });
+  }
+
+  return some(event.eventDefinitions, function(definition) {
+    return definition.$type === eventDefinitionType && matches(event, filter);
+  });
+}
+
+function isThrowEvent(event) {
+  return (event.$type === 'bpmn:IntermediateThrowEvent') || (event.$type === 'bpmn:EndEvent');
+}
+
+function isCollection(element) {
+  return element.isCollection ||
+        (element.elementObjectRef && element.elementObjectRef.isCollection);
+}
+
+function getDi(element) {
+  return element.businessObject.di;
+}
+
+function getSemantic(element) {
+  return element.businessObject;
+}
+
+
+
+/////// cropping path customizations /////////////////////////
+
+function getCirclePath(shape) {
+
+  var cx = shape.x + shape.width / 2,
+      cy = shape.y + shape.height / 2,
+      radius = shape.width / 2;
+
+  var circlePath = [
+    ['M', cx, cy],
+    ['m', 0, -radius],
+    ['a', radius, radius, 0, 1, 1, 0, 2 * radius],
+    ['a', radius, radius, 0, 1, 1, 0, -2 * radius],
+    ['z']
+  ];
+
+  return componentsToPath(circlePath);
+}
+
+function getRoundRectPath(shape, borderRadius) {
+
+  var x = shape.x,
+      y = shape.y,
+      width = shape.width,
+      height = shape.height;
+
+  var roundRectPath = [
+    ['M', x + borderRadius, y],
+    ['l', width - borderRadius * 2, 0],
+    ['a', borderRadius, borderRadius, 0, 0, 1, borderRadius, borderRadius],
+    ['l', 0, height - borderRadius * 2],
+    ['a', borderRadius, borderRadius, 0, 0, 1, -borderRadius, borderRadius],
+    ['l', borderRadius * 2 - width, 0],
+    ['a', borderRadius, borderRadius, 0, 0, 1, -borderRadius, -borderRadius],
+    ['l', 0, borderRadius * 2 - height],
+    ['a', borderRadius, borderRadius, 0, 0, 1, borderRadius, -borderRadius],
+    ['z']
+  ];
+
+  return componentsToPath(roundRectPath);
+}
+
+function getDiamondPath(shape) {
+
+  var width = shape.width,
+      height = shape.height,
+      x = shape.x,
+      y = shape.y,
+      halfWidth = width / 2,
+      halfHeight = height / 2;
+
+  var diamondPath = [
+    ['M', x + halfWidth, y],
+    ['l', halfWidth, halfHeight],
+    ['l', -halfWidth, halfHeight],
+    ['l', -halfWidth, -halfHeight],
+    ['z']
+  ];
+
+  return componentsToPath(diamondPath);
+}
+
+function getRectPath(shape) {
+  var x = shape.x,
+      y = shape.y,
+      width = shape.width,
+      height = shape.height;
+
+  var rectPath = [
+    ['M', x, y],
+    ['l', width, 0],
+    ['l', 0, height],
+    ['l', -width, 0],
+    ['z']
+  ];
+
+  return componentsToPath(rectPath);
+}
+
+},{"103":103,"220":220,"221":221,"232":232,"241":241,"244":244,"246":246,"250":250,"361":361,"366":366,"64":64,"66":66}],5:[function(_dereq_,module,exports){
 'use strict';
 
-var Snap = _dereq_(200);
+var Snap = _dereq_(229);
 
 /**
  * Map containing SVG paths needed by BpmnRenderer.
@@ -2618,18 +2601,180 @@ function PathMap() {
 
 module.exports = PathMap;
 
-},{"200":200}],6:[function(_dereq_,module,exports){
+},{"229":229}],6:[function(_dereq_,module,exports){
 module.exports = {
-  renderer: [ 'type', _dereq_(4) ],
+  __init__: [ 'bpmnRenderer' ],
+  bpmnRenderer: [ 'type', _dereq_(4) ],
   pathMap: [ 'type', _dereq_(5) ]
 };
+
 },{"4":4,"5":5}],7:[function(_dereq_,module,exports){
 'use strict';
 
+var inherits = _dereq_(232);
 
-var assign = _dereq_(339),
-    forEach = _dereq_(218),
-    is = _dereq_(50).is;
+var is = _dereq_(66).is,
+    getBoundingBox = _dereq_(210).getBBox;
+
+var pick = _dereq_(372),
+    assign = _dereq_(366),
+    forEach = _dereq_(244),
+    values = _dereq_(374),
+    flatten = _dereq_(234),
+    groupBy = _dereq_(245);
+
+var CommandInterceptor = _dereq_(94);
+
+var OFFSET = { top: 60, bottom: 60, left: 100, right: 100 };
+var PADDING = { top: 2, bottom: 2, left: 15, right: 15 };
+
+/**
+ * An auto resize component that takes care of expanding parent participants
+ * and lanes if elements are modeled close to an edge of the parent element.
+ */
+function AutoResize(eventBus, canvas, modeling, elementRegistry){
+
+  CommandInterceptor.call(this, eventBus);
+
+  this.postExecuted([ 'shape.create' ], function(event) {
+    var context = event.context,
+        shape = context.shape,
+        parent = context.parent || context.newParent;
+
+    expand([ shape ], parent);
+  });
+
+  this.postExecuted([ 'elements.move' ], function(event) {
+
+    var context = event.context,
+        elements = flatten(values(context.closure.topLevel));
+
+    var expandings = groupBy(elements, function(element){
+      return element.parent.id;
+    });
+
+    forEach(expandings, function(elements, parentId) {
+      expand(elements, parentId);
+    });
+  });
+
+  /**
+   * Returns an object which indicates near which bounding edge(s)
+   * of a target a bounding box is located.
+   *
+   * @param  {Object} bbox  bounding box object with x, y, width and height properties
+   * @param  {Shape}  target
+   * @param  {Number} padding
+   *
+   * @return {Object} {top, bottom, left, right}
+   *
+   * @example
+   *
+   * // If the bounding box is near the bottom left corner of a target the return object is:
+   * { top: false, bottom: true, left: true, right: false }
+   *
+   */
+  function isInbounds(bbox, target, padding) {
+    return {
+      top: bbox.y < target.y + padding.top,
+      bottom: bbox.y + bbox.height > target.y + target.height - padding.bottom,
+      left: bbox.x < target.x + padding.left,
+      right: bbox.x + bbox.width > target.x + target.width - padding.right,
+    };
+  }
+
+  /**
+   * Expand the target shape if the bounding box of the moved elements is near or on an edge,
+   * considering the position of the bounding box in relation to the parent's edge plus padding.
+   * The amount to expand can be defined for each edge in the OFFSET object.
+   *
+   * @param  {Array<Shape>} elements
+   * @param  {Shape|String} target|targetId
+   */
+  function expand(elements, target) {
+
+    if (typeof target === 'string') {
+      target = elementRegistry.get(target);
+    }
+
+    var bbox = getBoundingBox(elements),
+        canExpand = true;
+
+    if (!is(target, 'bpmn:Participant') && !is(target, 'bpmn:Lane') && !(is(target, 'bpmn:SubProcess'))) {
+      return;
+    }
+
+    forEach(elements, function(element) {
+
+      if (is(element, 'bpmn:Lane') || element.labelTarget) {
+        canExpand = false;
+        return;
+      }
+    });
+
+    if (!canExpand) {
+      return;
+    }
+
+    var inbounds = isInbounds(bbox, target, PADDING);
+
+    var newBounds = pick(target, [ 'x', 'y', 'width', 'height' ]);
+
+    if (inbounds.top) {
+      var topPosition = bbox.y - OFFSET.top;
+      assign(newBounds, { y: topPosition, height: newBounds.height + newBounds.y - topPosition });
+    }
+
+    if (inbounds.bottom) {
+      assign(newBounds, { height: bbox.y + bbox.height + OFFSET.bottom - newBounds.y });
+    }
+
+    if (inbounds.left) {
+      var leftPosition = bbox.x - OFFSET.left;
+      assign(newBounds, { x: leftPosition, width: newBounds.width + newBounds.x - leftPosition });
+    }
+
+    if (inbounds.right) {
+      assign(newBounds, { width: bbox.x + bbox.width + OFFSET.right - newBounds.x });
+    }
+
+    if (is(target, 'bpmn:Participant')) {
+      modeling.resizeLane(target, newBounds);
+    } else {
+      modeling.resizeShape(target, newBounds);
+    }
+
+    var parent = target.parent;
+
+    // recursively expand parent elements
+    if (parent) {
+      expand([ target ], parent);
+    }
+  }
+}
+
+AutoResize.$inject = [ 'eventBus', 'canvas', 'modeling', 'elementRegistry' ];
+
+inherits(AutoResize, CommandInterceptor);
+
+module.exports = AutoResize;
+
+},{"210":210,"232":232,"234":234,"244":244,"245":245,"366":366,"372":372,"374":374,"66":66,"94":94}],8:[function(_dereq_,module,exports){
+module.exports = {
+  __init__: [ 'autoResize' ],
+  autoResize: [ 'type', _dereq_(7) ]
+};
+
+},{"7":7}],9:[function(_dereq_,module,exports){
+'use strict';
+
+
+var assign = _dereq_(366),
+    forEach = _dereq_(244),
+    is = _dereq_(66).is,
+    isAny = _dereq_(44).isAny,
+    getChildLanes = _dereq_(43).getChildLanes,
+    isEventSubProcess = _dereq_(64).isEventSubProcess;
 
 
 /**
@@ -2662,6 +2807,9 @@ ContextPadProvider.$inject = [
   'canvas'
 ];
 
+module.exports = ContextPadProvider;
+
+
 ContextPadProvider.prototype.getContextPadEntries = function(element) {
 
   var contextPad = this._contextPad,
@@ -2679,18 +2827,14 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
     return actions;
   }
 
-  var bpmnElement = element.businessObject;
+  var businessObject = element.businessObject;
 
   function startConnect(event, element, autoActivate) {
     connect.start(event, element, autoActivate);
   }
 
   function removeElement(e) {
-    if (element.waypoints) {
-      modeling.removeConnection(element);
-    } else {
-      modeling.removeShape(element);
-    }
+    modeling.removeElements([ element ]);
   }
 
   function getReplaceMenuPosition(element) {
@@ -2736,11 +2880,85 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
     };
   }
 
-  if (is(bpmnElement, 'bpmn:FlowNode')) {
+  function splitLaneHandler(count) {
 
-    if (!is(bpmnElement, 'bpmn:EndEvent') &&
-        !is(bpmnElement, 'bpmn:EventBasedGateway') &&
-        !isEventType(bpmnElement, 'bpmn:IntermediateThrowEvent', 'bpmn:LinkEventDefinition')) {
+    return function(event, element) {
+      // actual split
+      modeling.splitLane(element, count);
+
+      // refresh context pad after split to
+      // get rid of split icons
+      contextPad.open(element, true);
+    };
+  }
+
+  if (isAny(businessObject, [ 'bpmn:Lane', 'bpmn:Participant' ])) {
+
+    var childLanes = getChildLanes(element);
+
+    assign(actions, {
+      'lane-insert-above': {
+        group: 'lane-insert-above',
+        className: 'icon-lane-insert-above',
+        title: 'Add Lane above',
+        action: {
+          click: function(event, element) {
+            modeling.addLane(element, 'top');
+          }
+        }
+      }
+    });
+
+    if (childLanes.length < 2) {
+
+      if (element.height >= 120) {
+        assign(actions, {
+          'lane-divide-two': {
+            group: 'lane-divide',
+            className: 'icon-lane-divide-two',
+            title: 'Divide into two Lanes',
+            action: {
+              click: splitLaneHandler(2)
+            }
+          }
+        });
+      }
+
+      if (element.height >= 180) {
+        assign(actions, {
+          'lane-divide-three': {
+            group: 'lane-divide',
+            className: 'icon-lane-divide-three',
+            title: 'Divide into three Lanes',
+            action: {
+              click: splitLaneHandler(3)
+            }
+          }
+        });
+      }
+    }
+
+    assign(actions, {
+      'lane-insert-below': {
+        group: 'lane-insert-below',
+        className: 'icon-lane-insert-below',
+        title: 'Add Lane below',
+        action: {
+          click: function(event, element) {
+            modeling.addLane(element, 'bottom');
+          }
+        }
+      }
+    });
+
+  }
+
+  if (is(businessObject, 'bpmn:FlowNode')) {
+
+    if (!is(businessObject, 'bpmn:EndEvent') &&
+        !is(businessObject, 'bpmn:EventBasedGateway') &&
+        !isEventType(businessObject, 'bpmn:IntermediateThrowEvent', 'bpmn:LinkEventDefinition') &&
+        !isEventSubProcess(businessObject)) {
 
       assign(actions, {
         'append.end-event': appendAction('bpmn:EndEvent', 'icon-end-event-none'),
@@ -2751,7 +2969,7 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
       });
     }
 
-    if (is(bpmnElement, 'bpmn:EventBasedGateway')) {
+    if (is(businessObject, 'bpmn:EventBasedGateway')) {
 
       assign(actions, {
         'append.receive-task': appendAction('bpmn:ReceiveTask', 'icon-receive-task'),
@@ -2769,8 +2987,11 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
                                                   { _eventDefinitionType: 'bpmn:SignalEventDefinition'})
       });
     }
+  }
 
+  var replaceOptions = bpmnReplace.getReplaceOptions(element);
 
+  if (replaceOptions.length) {
     // Replace menu entry
     assign(actions, {
       'replace': {
@@ -2786,8 +3007,7 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
     });
   }
 
-  if (is(bpmnElement, 'bpmn:FlowNode') ||
-      is(bpmnElement, 'bpmn:InteractionNode')) {
+  if (isAny(businessObject, [ 'bpmn:FlowNode', 'bpmn:InteractionNode' ])) {
 
     assign(actions, {
       'append.text-annotation': appendAction('bpmn:TextAnnotation', 'icon-text-annotation'),
@@ -2796,6 +3016,20 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
         group: 'connect',
         className: 'icon-connection-multi',
         title: 'Connect using Sequence/MessageFlow',
+        action: {
+          click: startConnect,
+          dragstart: startConnect
+        }
+      }
+    });
+  }
+
+  if (is(businessObject, 'bpmn:DataObjectReference')) {
+    assign(actions, {
+      'connect': {
+        group: 'connect',
+        className: 'icon-connection-multi',
+        title: 'Connect using DataInputAssociation',
         action: {
           click: startConnect,
           dragstart: startConnect
@@ -2834,37 +3068,27 @@ function isEventType(eventBo, type, definition) {
 
   return isType && isDefinition;
 }
-
-
-module.exports = ContextPadProvider;
-
-},{"218":218,"339":339,"50":50}],8:[function(_dereq_,module,exports){
+},{"244":244,"366":366,"43":43,"44":44,"64":64,"66":66}],10:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(73),
-    _dereq_(102),
-    _dereq_(159),
-    _dereq_(100),
-    _dereq_(104),
-    _dereq_(39)
+    _dereq_(89),
+    _dereq_(120),
+    _dereq_(182),
+    _dereq_(118),
+    _dereq_(122),
+    _dereq_(53)
   ],
   __init__: [ 'contextPadProvider' ],
-  contextPadProvider: [ 'type', _dereq_(7) ]
+  contextPadProvider: [ 'type', _dereq_(9) ]
 };
-},{"100":100,"102":102,"104":104,"159":159,"39":39,"7":7,"73":73}],9:[function(_dereq_,module,exports){
+},{"118":118,"120":120,"122":122,"182":182,"53":53,"89":89,"9":9}],11:[function(_dereq_,module,exports){
 'use strict';
 
-function BpmnKeyBindings(
-    keyboard, spaceTool, lassoTool,
-    directEditing, selection, canvas,
-    elementRegistry) {
+function BpmnKeyBindings(keyboard, spaceTool, lassoTool, directEditing,
+  selection, canvas, elementRegistry, editorActions) {
 
-
-  keyboard.addListener(function(key, modifiers) {
-
-    // ctrl + a -> select all elements
-    if (key === 65 && keyboard.isCmd(modifiers)) {
-
+  var actions = {
+    selectElements: function() {
       // select all elements except for the invisible
       // root element
       var rootElement = canvas.getRootElement();
@@ -2874,6 +3098,29 @@ function BpmnKeyBindings(
       });
 
       selection.select(elements);
+    },
+    spaceTool: function() {
+      spaceTool.activateSelection();
+    },
+    lassoTool: function() {
+      lassoTool.activateSelection();
+    },
+    directEditing: function() {
+      var currentSelection = selection.get();
+
+      if (currentSelection.length) {
+        directEditing.activate(currentSelection[0]);
+      }
+    }
+  };
+
+  editorActions.register(actions);
+
+  keyboard.addListener(function(key, modifiers) {
+
+    // ctrl + a -> select all elements
+    if (key === 65 && keyboard.isCmd(modifiers)) {
+      editorActions.trigger('selectElements');
 
       return true;
     }
@@ -2884,25 +3131,21 @@ function BpmnKeyBindings(
 
     // s -> activate space tool
     if (key === 83) {
-      spaceTool.activateSelection();
+      editorActions.trigger('spaceTool');
 
       return true;
     }
 
     // l -> activate lasso tool
     if (key === 76) {
-      lassoTool.activateSelection();
+      editorActions.trigger('lassoTool');
 
       return true;
     }
 
-    var currentSelection = selection.get();
-
     // e -> activate direct editing
     if (key === 69) {
-      if (currentSelection.length) {
-        directEditing.activate(currentSelection[0]);
-      }
+      editorActions.trigger('directEditing');
 
       return true;
     }
@@ -2916,28 +3159,29 @@ BpmnKeyBindings.$inject = [
   'directEditing',
   'selection',
   'canvas',
-  'elementRegistry'
+  'elementRegistry',
+  'editorActions'
 ];
 
 module.exports = BpmnKeyBindings;
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(110)
+    _dereq_(130)
   ],
   __init__: [ 'bpmnKeyBindings' ],
-  bpmnKeyBindings: [ 'type', _dereq_(9) ]
+  bpmnKeyBindings: [ 'type', _dereq_(11) ]
 };
-},{"110":110,"9":9}],11:[function(_dereq_,module,exports){
+},{"11":11,"130":130}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var UpdateLabelHandler = _dereq_(13);
+var UpdateLabelHandler = _dereq_(15);
 
-var LabelUtil = _dereq_(12);
+var LabelUtil = _dereq_(14);
 
-var is = _dereq_(50).is,
-    isExpanded = _dereq_(48).isExpanded;
+var is = _dereq_(66).is,
+    isExpanded = _dereq_(64).isExpanded;
 
 
 var MIN_BOUNDS = {
@@ -2946,7 +3190,7 @@ var MIN_BOUNDS = {
 };
 
 
-function LabelEditingProvider(eventBus, canvas, directEditing, commandStack, injector) {
+function LabelEditingProvider(eventBus, canvas, directEditing, commandStack) {
 
   directEditing.registerProvider(this);
   commandStack.registerHandler('element.updateLabel', UpdateLabelHandler);
@@ -2998,7 +3242,7 @@ function LabelEditingProvider(eventBus, canvas, directEditing, commandStack, inj
   this._commandStack = commandStack;
 }
 
-LabelEditingProvider.$inject = [ 'eventBus', 'canvas', 'directEditing', 'commandStack', 'injector' ];
+LabelEditingProvider.$inject = [ 'eventBus', 'canvas', 'directEditing', 'commandStack' ];
 
 module.exports = LabelEditingProvider;
 
@@ -3067,19 +3311,22 @@ LabelEditingProvider.prototype.update = function(element, newLabel) {
     newLabel: newLabel
   });
 };
-},{"12":12,"13":13,"48":48,"50":50}],12:[function(_dereq_,module,exports){
+},{"14":14,"15":15,"64":64,"66":66}],14:[function(_dereq_,module,exports){
 'use strict';
 
+var is = _dereq_(66).is;
+
 function getLabelAttr(semantic) {
-  if (semantic.$instanceOf('bpmn:FlowElement') ||
-      semantic.$instanceOf('bpmn:Participant') ||
-      semantic.$instanceOf('bpmn:Lane') ||
-      semantic.$instanceOf('bpmn:SequenceFlow') ||
-      semantic.$instanceOf('bpmn:MessageFlow')) {
+  if (is(semantic, 'bpmn:FlowElement') ||
+      is(semantic, 'bpmn:Participant') ||
+      is(semantic, 'bpmn:Lane') ||
+      is(semantic, 'bpmn:SequenceFlow') ||
+      is(semantic, 'bpmn:MessageFlow')) {
+
     return 'name';
   }
 
-  if (semantic.$instanceOf('bpmn:TextAnnotation')) {
+  if (is(semantic, 'bpmn:TextAnnotation')) {
     return 'text';
   }
 }
@@ -3109,10 +3356,10 @@ module.exports.setLabel = function(element, text) {
 
   return label;
 };
-},{}],13:[function(_dereq_,module,exports){
+},{"66":66}],15:[function(_dereq_,module,exports){
 'use strict';
 
-var LabelUtil = _dereq_(12);
+var LabelUtil = _dereq_(14);
 
 
 /**
@@ -3154,22 +3401,22 @@ function UpdateTextHandler(eventBus) {
 UpdateTextHandler.$inject = [ 'eventBus' ];
 
 module.exports = UpdateTextHandler;
-},{"12":12}],14:[function(_dereq_,module,exports){
+},{"14":14}],16:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(80),
-    _dereq_(98),
-    _dereq_(73)
+    _dereq_(96),
+    _dereq_(116),
+    _dereq_(89)
   ],
   __init__: [ 'labelEditingProvider' ],
-  labelEditingProvider: [ 'type', _dereq_(11) ]
+  labelEditingProvider: [ 'type', _dereq_(13) ]
 };
-},{"11":11,"73":73,"80":80,"98":98}],15:[function(_dereq_,module,exports){
+},{"116":116,"13":13,"89":89,"96":96}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var map = _dereq_(221),
-    assign = _dereq_(339),
-    pick = _dereq_(345);
+var map = _dereq_(247),
+    assign = _dereq_(366),
+    pick = _dereq_(372);
 
 
 function BpmnFactory(moddle) {
@@ -3183,8 +3430,10 @@ BpmnFactory.prototype._needsId = function(element) {
   return element.$instanceOf('bpmn:RootElement') ||
          element.$instanceOf('bpmn:FlowElement') ||
          element.$instanceOf('bpmn:MessageFlow') ||
+         element.$instanceOf('bpmn:DataAssociation') ||
          element.$instanceOf('bpmn:Artifact') ||
          element.$instanceOf('bpmn:Participant') ||
+         element.$instanceOf('bpmn:Lane') ||
          element.$instanceOf('bpmn:Process') ||
          element.$instanceOf('bpmn:Collaboration') ||
          element.$instanceOf('bpmndi:BPMNShape') ||
@@ -3260,18 +3509,19 @@ BpmnFactory.prototype.createDiPlane = function(semantic) {
 
 module.exports = BpmnFactory;
 
-},{"221":221,"339":339,"345":345}],16:[function(_dereq_,module,exports){
+},{"247":247,"366":366,"372":372}],18:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(339),
-    inherits = _dereq_(207);
+var assign = _dereq_(366),
+    inherits = _dereq_(232);
 
-var LabelUtil = _dereq_(49);
+var LabelUtil = _dereq_(65),
+    is = _dereq_(66).is;
 
 var hasExternalLabel = LabelUtil.hasExternalLabel,
     getExternalLabelMid = LabelUtil.getExternalLabelMid;
 
-var CommandInterceptor = _dereq_(78);
+var CommandInterceptor = _dereq_(94);
 
 
 function LabelSupport(eventBus, modeling, bpmnFactory) {
@@ -3292,23 +3542,31 @@ function LabelSupport(eventBus, modeling, bpmnFactory) {
       position = getExternalLabelMid(element);
       modeling.createLabel(element, position, {
         id: businessObject.id + '_label',
+        hidden: true,
         businessObject: businessObject
       });
     }
   });
 
   // update di information on label movement and creation
-
   this.executed([ 'label.create', 'shape.moved' ], function(e) {
-
     var element = e.context.shape,
-        businessObject = element.businessObject,
-        di = businessObject.di;
+        businessObject,
+        di;
 
     // we want to trigger on real labels only
     if (!element.labelTarget) {
       return;
     }
+
+    // we want to trigger on BPMN elements only
+    if (!is(element.labelTarget || element, 'bpmn:BaseElement')) {
+      return;
+    }
+
+    businessObject = element.businessObject,
+    di = businessObject.di;
+
 
     if (!di.label) {
       di.label = bpmnFactory.create('bpmndi:BPMNLabel', {
@@ -3331,22 +3589,22 @@ LabelSupport.$inject = [ 'eventBus', 'modeling', 'bpmnFactory' ];
 
 module.exports = LabelSupport;
 
-},{"207":207,"339":339,"49":49,"78":78}],17:[function(_dereq_,module,exports){
+},{"232":232,"366":366,"65":65,"66":66,"94":94}],19:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(207);
+var inherits = _dereq_(232);
 
-var assign = _dereq_(339);
+var assign = _dereq_(366);
 
-var BaseLayouter = _dereq_(172),
-    ManhattanLayout = _dereq_(175);
+var BaseLayouter = _dereq_(195),
+    ManhattanLayout = _dereq_(198);
 
-var LayoutUtil = _dereq_(174);
+var LayoutUtil = _dereq_(197);
 
 var getMid = LayoutUtil.getMid,
     getOrientation = LayoutUtil.getOrientation;
 
-var is = _dereq_(50).is;
+var is = _dereq_(66).is;
 
 
 function BpmnLayouter() {}
@@ -3372,12 +3630,21 @@ BpmnLayouter.prototype.layoutConnection = function(connection, layoutHints) {
   // TODO (nre): support vertical modeling
   // and invert preferredLayouts accordingly
 
+  if ((is(connection, 'bpmn:Association') || is(connection, 'bpmn:DataAssociation')) && waypoints) {
+    return waypoints;
+  }
 
   // manhattan layout sequence / message flows
   if (is(connection, 'bpmn:MessageFlow')) {
     manhattanOptions = {
       preferredLayouts: [ 'straight', 'v:v' ]
     };
+
+    if (is(target, 'bpmn:Event')) {
+      manhattanOptions = {
+        preferredLayouts: [ 'v:v' ]
+      };
+    }
   } else
 
 
@@ -3462,20 +3729,20 @@ function getConnectionDocking(waypoints, idx, shape) {
   return point ? (point.original || point) : getMid(shape);
 }
 
-},{"172":172,"174":174,"175":175,"207":207,"339":339,"50":50}],18:[function(_dereq_,module,exports){
+},{"195":195,"197":197,"198":198,"232":232,"366":366,"66":66}],20:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(339),
-    forEach = _dereq_(218),
-    inherits = _dereq_(207);
+var assign = _dereq_(366),
+    forEach = _dereq_(244),
+    inherits = _dereq_(232);
 
-var Collections = _dereq_(184),
-    Model = _dereq_(176);
+var Collections = _dereq_(208),
+    Model = _dereq_(199);
 
-var getBusinessObject = _dereq_(50).getBusinessObject,
-    is = _dereq_(50).is;
+var getBusinessObject = _dereq_(66).getBusinessObject,
+    is = _dereq_(66).is;
 
-var CommandInterceptor = _dereq_(78);
+var CommandInterceptor = _dereq_(94);
 
 
 /**
@@ -3524,7 +3791,19 @@ function BpmnUpdater(eventBus, bpmnFactory, connectionDocking) {
 
   // update parent
   function updateParent(e) {
-    self.updateParent(e.context.shape || e.context.connection);
+    var context = e.context;
+
+    self.updateParent(context.shape || context.connection, context.oldParent);
+  }
+
+  function reverseUpdateParent(e) {
+    var context = e.context;
+
+    var element = context.shape || context.connection,
+        // oldParent is the (old) new parent, because we are undoing
+        oldParent = context.parent || context.newParent;
+
+    self.updateParent(element, oldParent);
   }
 
   this.executed([ 'shape.move',
@@ -3532,13 +3811,14 @@ function BpmnUpdater(eventBus, bpmnFactory, connectionDocking) {
                   'shape.delete',
                   'connection.create',
                   'connection.move',
-                  'connection.delete' ], updateParent);
+                  'connection.delete' ], ifBpmn(updateParent));
+
   this.reverted([ 'shape.move',
                   'shape.create',
                   'shape.delete',
                   'connection.create',
                   'connection.move',
-                  'connection.delete' ], updateParent);
+                  'connection.delete' ], ifBpmn(reverseUpdateParent));
 
   /*
    * ## Updating Parent
@@ -3564,16 +3844,22 @@ function BpmnUpdater(eventBus, bpmnFactory, connectionDocking) {
 
   // update bounds
   function updateBounds(e) {
-    self.updateBounds(e.context.shape);
+    var shape = e.context.shape;
+
+    if (!is(shape, 'bpmn:BaseElement')) {
+      return;
+    }
+
+    self.updateBounds(shape);
   }
 
-  this.executed([ 'shape.move', 'shape.create', 'shape.resize' ], updateBounds);
-  this.reverted([ 'shape.move', 'shape.create', 'shape.resize' ], updateBounds);
+  this.executed([ 'shape.move', 'shape.create', 'shape.resize' ], ifBpmn(updateBounds));
+  this.reverted([ 'shape.move', 'shape.create', 'shape.resize' ], ifBpmn(updateBounds));
 
 
   // attach / detach connection
   function updateConnection(e) {
-    self.updateConnection(e.context.connection);
+    self.updateConnection(e.context);
   }
 
   this.executed([
@@ -3582,7 +3868,7 @@ function BpmnUpdater(eventBus, bpmnFactory, connectionDocking) {
     'connection.delete',
     'connection.reconnectEnd',
     'connection.reconnectStart'
-  ], updateConnection);
+  ], ifBpmn(updateConnection));
 
   this.reverted([
     'connection.create',
@@ -3590,7 +3876,7 @@ function BpmnUpdater(eventBus, bpmnFactory, connectionDocking) {
     'connection.delete',
     'connection.reconnectEnd',
     'connection.reconnectStart'
-  ], updateConnection);
+  ], ifBpmn(updateConnection));
 
 
   // update waypoints
@@ -3604,7 +3890,7 @@ function BpmnUpdater(eventBus, bpmnFactory, connectionDocking) {
     'connection.updateWaypoints',
     'connection.reconnectEnd',
     'connection.reconnectStart'
-  ], updateConnectionWaypoints);
+  ], ifBpmn(updateConnectionWaypoints));
 
   this.reverted([
     'connection.layout',
@@ -3612,22 +3898,87 @@ function BpmnUpdater(eventBus, bpmnFactory, connectionDocking) {
     'connection.updateWaypoints',
     'connection.reconnectEnd',
     'connection.reconnectStart'
-  ], updateConnectionWaypoints);
+  ], ifBpmn(updateConnectionWaypoints));
+
+
+  // update Default & Conditional flows
+  this.executed([
+    'connection.reconnectEnd',
+    'connection.reconnectStart'
+  ], ifBpmn(function(e) {
+    var context = e.context,
+        connection = context.connection,
+        businessObject = getBusinessObject(connection),
+        oldSource = getBusinessObject(context.oldSource),
+        oldTarget = getBusinessObject(context.oldTarget),
+        newSource = getBusinessObject(connection.source),
+        newTarget = getBusinessObject(connection.target);
+
+    if (oldSource === newSource || oldTarget === newTarget) {
+      return;
+    }
+
+    // on reconnectStart -> default flow
+    if (oldSource && oldSource.default) {
+      context.default = oldSource.default;
+      oldSource.default = undefined;
+    }
+
+    // on reconnectEnd -> default flow
+    if ((businessObject.sourceRef && businessObject.sourceRef.default) && !is(newTarget, 'bpmn:Activity')) {
+      context.default = businessObject.sourceRef.default;
+      businessObject.sourceRef.default = undefined;
+    }
+
+    // on reconnectStart -> condtional flow
+    if ((businessObject.conditionExpression) && is(oldSource, 'bpmn:Activity')) {
+      context.conditionExpression = businessObject.conditionExpression;
+      businessObject.conditionExpression = undefined;
+    }
+
+    // on reconnectEnd -> condtional flow
+    if ((businessObject.conditionExpression) && !is(newTarget, 'bpmn:Activity')) {
+      context.conditionExpression = businessObject.conditionExpression;
+      businessObject.conditionExpression = undefined;
+    }
+  }));
+
+  this.reverted([
+    'connection.reconnectEnd',
+    'connection.reconnectStart'
+  ], ifBpmn(function(e) {
+    var context = e.context,
+        connection = context.connection,
+        businessObject = getBusinessObject(connection),
+        newSource = getBusinessObject(connection.source);
+
+    // default flow
+    if (context.default) {
+      if (is(newSource, 'bpmn:ExclusiveGateway') || is(newSource, 'bpmn:InclusiveGateway')) {
+        newSource.default = context.default;
+      }
+    }
+
+    // conditional flow
+    if (context.conditionExpression && is(newSource, 'bpmn:Activity')) {
+      businessObject.conditionExpression = context.conditionExpression;
+    }
+  }));
 
   // update attachments
   function updateAttachment(e) {
     self.updateAttachment(e.context);
   }
 
-  this.executed([ 'shape.attach' ], updateAttachment);
-  this.reverted([ 'shape.attach' ], updateAttachment);
+  this.executed([ 'element.updateAttachment' ], ifBpmn(updateAttachment));
+  this.reverted([ 'element.updateAttachment' ], ifBpmn(updateAttachment));
 }
 
 inherits(BpmnUpdater, CommandInterceptor);
 
 module.exports = BpmnUpdater;
 
-BpmnUpdater.$inject = [ 'eventBus', 'bpmnFactory', 'connectionDocking'];
+BpmnUpdater.$inject = [ 'eventBus', 'bpmnFactory', 'connectionDocking' ];
 
 
 /////// implementation //////////////////////////////////
@@ -3641,7 +3992,7 @@ BpmnUpdater.prototype.updateAttachment = function(context) {
   businessObject.attachedToRef = host && host.businessObject;
 };
 
-BpmnUpdater.prototype.updateParent = function(element) {
+BpmnUpdater.prototype.updateParent = function(element, oldParent) {
   // do not update BPMN 2.0 label parent
   if (element instanceof Model.Label) {
     return;
@@ -3653,7 +4004,31 @@ BpmnUpdater.prototype.updateParent = function(element) {
       parentBusinessObject = parentShape && parentShape.businessObject,
       parentDi = parentBusinessObject && parentBusinessObject.di;
 
+  if (is(element, 'bpmn:FlowNode')) {
+    this.updateFlowNodeRefs(businessObject, parentBusinessObject, oldParent && oldParent.businessObject);
+  }
+
+  if (is(element, 'bpmn:DataOutputAssociation')) {
+    if (element.source) {
+      parentBusinessObject = element.source.businessObject;
+    } else {
+      parentBusinessObject = null;
+    }
+  }
+
+  if (is(element, 'bpmn:DataInputAssociation')) {
+    if (element.target) {
+      parentBusinessObject = element.target.businessObject;
+    } else {
+      parentBusinessObject = null;
+    }
+  }
+
   this.updateSemanticParent(businessObject, parentBusinessObject);
+
+  if (is(element, 'bpmn:DataObjectReference') && businessObject.dataObjectRef) {
+    this.updateSemanticParent(businessObject.dataObjectRef, parentBusinessObject);
+  }
 
   this.updateDiParent(businessObject.di, parentDi);
 };
@@ -3673,6 +4048,24 @@ BpmnUpdater.prototype.updateBounds = function(shape) {
   });
 };
 
+BpmnUpdater.prototype.updateFlowNodeRefs = function(businessObject, newContainment, oldContainment) {
+
+  if (oldContainment === newContainment) {
+    return;
+  }
+
+  var oldRefs, newRefs;
+
+  if (is (oldContainment, 'bpmn:Lane')) {
+    oldRefs = oldContainment.get('flowNodeRef');
+    Collections.remove(oldRefs, businessObject);
+  }
+
+  if (is(newContainment, 'bpmn:Lane')) {
+    newRefs = newContainment.get('flowNodeRef');
+    Collections.add(newRefs, businessObject);
+  }
+};
 
 BpmnUpdater.prototype.updateDiParent = function(di, parentDi) {
 
@@ -3703,6 +4096,41 @@ function getDefinitions(element) {
   return element;
 }
 
+BpmnUpdater.prototype.getLaneSet = function(container) {
+
+  var laneSet, laneSets;
+
+  // bpmn:Lane
+  if (is(container, 'bpmn:Lane')) {
+    laneSet = container.childLaneSet;
+
+    if (!laneSet) {
+      laneSet = this._bpmnFactory.create('bpmn:LaneSet');
+      container.childLaneSet = laneSet;
+      laneSet.$parent = container;
+    }
+
+    return laneSet;
+  }
+
+  // bpmn:Participant
+  if (is(container, 'bpmn:Participant')) {
+    container = container.processRef;
+  }
+
+  // bpmn:FlowElementsContainer
+  laneSets = container.get('laneSets');
+  laneSet = laneSets[0];
+
+  if (!laneSet) {
+    laneSet = this._bpmnFactory.create('bpmn:LaneSet');
+    laneSet.$parent = container;
+    laneSets.push(laneSet);
+  }
+
+  return laneSet;
+};
+
 BpmnUpdater.prototype.updateSemanticParent = function(businessObject, newParent) {
 
   var containment;
@@ -3711,10 +4139,30 @@ BpmnUpdater.prototype.updateSemanticParent = function(businessObject, newParent)
     return;
   }
 
+  if (is(businessObject, 'bpmn:Lane')) {
+
+    if (newParent) {
+      newParent = this.getLaneSet(newParent);
+    }
+
+    containment = 'lanes';
+  } else
+
   if (is(businessObject, 'bpmn:FlowElement')) {
 
-    if (newParent && is(newParent, 'bpmn:Participant')) {
-      newParent = newParent.processRef;
+    if (newParent) {
+
+      if (is(newParent, 'bpmn:Participant')) {
+        newParent = newParent.processRef;
+      } else
+
+      if (is(newParent, 'bpmn:Lane')) {
+        do {
+          // unwrap Lane -> LaneSet -> (Lane | FlowElementsContainer)
+          newParent = newParent.$parent.$parent;
+        } while(is(newParent, 'bpmn:Lane'));
+
+      }
     }
 
     containment = 'flowElements';
@@ -3766,6 +4214,14 @@ BpmnUpdater.prototype.updateSemanticParent = function(businessObject, newParent)
         process.$parent = definitions;
       }
     }
+  } else
+
+  if (is(businessObject, 'bpmn:DataOutputAssociation')) {
+    containment = 'dataOutputAssociations';
+  } else
+
+  if (is(businessObject, 'bpmn:DataInputAssociation')) {
+    containment = 'dataInputAssociations';
   }
 
   if (!containment) {
@@ -3792,43 +4248,63 @@ BpmnUpdater.prototype.updateSemanticParent = function(businessObject, newParent)
 
 
 BpmnUpdater.prototype.updateConnectionWaypoints = function(connection) {
-
   connection.businessObject.di.set('waypoint', this._bpmnFactory.createDiWaypoints(connection.waypoints));
 };
 
 
-BpmnUpdater.prototype.updateConnection = function(connection) {
+BpmnUpdater.prototype.updateConnection = function(context) {
 
-  var businessObject = getBusinessObject(connection),
+  var connection = context.connection,
+      businessObject = getBusinessObject(connection),
       newSource = getBusinessObject(connection.source),
       newTarget = getBusinessObject(connection.target);
 
-  var inverseSet = is(businessObject, 'bpmn:SequenceFlow');
+  if (!is(businessObject, 'bpmn:DataAssociation')) {
 
-  if (businessObject.sourceRef !== newSource) {
-    if (inverseSet) {
-      Collections.remove(businessObject.sourceRef && businessObject.sourceRef.get('outgoing'), businessObject);
+    var inverseSet = is(businessObject, 'bpmn:SequenceFlow');
 
-      if (newSource && newSource.get('outgoing')) {
-        newSource.get('outgoing').push(businessObject);
+    if (businessObject.sourceRef !== newSource) {
+      if (inverseSet) {
+        Collections.remove(businessObject.sourceRef && businessObject.sourceRef.get('outgoing'), businessObject);
+
+        if (newSource && newSource.get('outgoing')) {
+          newSource.get('outgoing').push(businessObject);
+        }
       }
+
+      businessObject.sourceRef = newSource;
     }
 
-    businessObject.sourceRef = newSource;
-  }
-  if (businessObject.targetRef !== newTarget) {
-    if (inverseSet) {
-      Collections.remove(businessObject.targetRef && businessObject.targetRef.get('incoming'), businessObject);
+    if (businessObject.targetRef !== newTarget) {
+      if (inverseSet) {
+        Collections.remove(businessObject.targetRef && businessObject.targetRef.get('incoming'), businessObject);
 
-      if (newTarget && newTarget.get('incoming')) {
-        newTarget.get('incoming').push(businessObject);
+        if (newTarget && newTarget.get('incoming')) {
+          newTarget.get('incoming').push(businessObject);
+        }
       }
-    }
 
+      businessObject.targetRef = newTarget;
+    }
+  } else
+
+  if (is(businessObject, 'bpmn:DataInputAssociation')) {
+    // handle obnoxious isMany sourceRef
+    businessObject.get('sourceRef')[0] = newSource;
+
+    // targetRef = new parent
+    this.updateSemanticParent(businessObject, newTarget);
+  } else
+
+  if (is(businessObject, 'bpmn:DataOutputAssociation')) {
+    // sourceRef = new parent
+    this.updateSemanticParent(businessObject, newSource);
+
+    // targetRef = new target
     businessObject.targetRef = newTarget;
   }
 
-  businessObject.di.set('waypoint', this._bpmnFactory.createDiWaypoints(connection.waypoints));
+  this.updateConnectionWaypoints(connection);
 };
 
 
@@ -3842,14 +4318,35 @@ BpmnUpdater.prototype._getLabel = function(di) {
   return di.label;
 };
 
-},{"176":176,"184":184,"207":207,"218":218,"339":339,"50":50,"78":78}],19:[function(_dereq_,module,exports){
+
+/**
+ * Make sure the event listener is only called
+ * if the touched element is a BPMN element.
+ *
+ * @param  {Function} fn
+ * @return {Function} guarded function
+ */
+function ifBpmn(fn) {
+
+  return function(event) {
+
+    var context = event.context,
+        element = context.shape || context.connection;
+
+    if (is(element, 'bpmn:BaseElement')) {
+      fn(event);
+    }
+  };
+}
+
+},{"199":199,"208":208,"232":232,"244":244,"366":366,"66":66,"94":94}],21:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(339),
-    inherits = _dereq_(207);
+var assign = _dereq_(366),
+    inherits = _dereq_(232);
 
-var BaseElementFactory = _dereq_(82),
-    LabelUtil = _dereq_(49);
+var BaseElementFactory = _dereq_(98),
+    LabelUtil = _dereq_(65);
 
 
 /**
@@ -3872,7 +4369,6 @@ module.exports = ElementFactory;
 ElementFactory.prototype.baseCreate = BaseElementFactory.prototype.create;
 
 ElementFactory.prototype.create = function(elementType, attrs) {
-
   // no special magic for labels,
   // we assume their businessObjects have already been created
   // and wired via attrs
@@ -3880,10 +4376,15 @@ ElementFactory.prototype.create = function(elementType, attrs) {
     return this.baseCreate(elementType, assign({ type: 'label' }, LabelUtil.DEFAULT_LABEL_SIZE, attrs));
   }
 
+  return this.createBpmnElement(elementType, attrs);
+};
+
+ElementFactory.prototype.createBpmnElement = function(elementType, attrs) {
+  var size;
+
   attrs = attrs || {};
 
-  var businessObject = attrs.businessObject,
-      size;
+  var businessObject = attrs.businessObject;
 
   if (!businessObject) {
     if (!attrs.type) {
@@ -3910,30 +4411,34 @@ ElementFactory.prototype.create = function(elementType, attrs) {
     }
   }
 
- if (!!attrs.isExpanded) {
-   businessObject.di.isExpanded = attrs.isExpanded;
- }
+  if (!!attrs.isExpanded) {
+    businessObject.di.isExpanded = attrs.isExpanded;
+  }
 
- if (businessObject.$instanceOf('bpmn:ExclusiveGateway')) {
-   businessObject.di.isMarkerVisible = true;
- }
+  if (businessObject.$instanceOf('bpmn:ExclusiveGateway')) {
+    businessObject.di.isMarkerVisible = true;
+  }
 
- if (attrs._eventDefinitionType) {
-   var eventDefinitions = businessObject.get('eventDefinitions') || [],
-       newEventDefinition = this._moddle.create(attrs._eventDefinitionType);
+  if (attrs.isInterrupting === false) {
+    businessObject.isInterrupting = false;
+  }
 
-   eventDefinitions.push(newEventDefinition);
-   businessObject.eventDefinitions = eventDefinitions;
- }
+  if (attrs._eventDefinitionType) {
+    var eventDefinitions = businessObject.get('eventDefinitions') || [],
+        newEventDefinition = this._moddle.create(attrs._eventDefinitionType);
 
- size = this._getDefaultSize(businessObject);
+    eventDefinitions.push(newEventDefinition);
+    businessObject.eventDefinitions = eventDefinitions;
+  }
 
- attrs = assign({
-   businessObject: businessObject,
-   id: businessObject.id
- }, size, attrs);
+  size = this._getDefaultSize(businessObject);
 
- return this.baseCreate(elementType, attrs);
+  attrs = assign({
+    businessObject: businessObject,
+    id: businessObject.id
+  }, size, attrs);
+
+  return this.baseCreate(elementType, attrs);
 };
 
 
@@ -3965,6 +4470,14 @@ ElementFactory.prototype._getDefaultSize = function(semantic) {
     return { width: 600, height: 250 };
   }
 
+  if (semantic.$instanceOf('bpmn:Lane')) {
+    return { width: 400, height: 100 };
+  }
+
+  if (semantic.$instanceOf('bpmn:DataObjectReference')) {
+    return { width: 36, height: 50 };
+  }
+
   return { width: 100, height: 80 };
 };
 
@@ -3979,15 +4492,20 @@ ElementFactory.prototype.createParticipantShape = function(collapsed) {
 
   return participantShape;
 };
-},{"207":207,"339":339,"49":49,"82":82}],20:[function(_dereq_,module,exports){
+
+},{"232":232,"366":366,"65":65,"98":98}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(207);
+var inherits = _dereq_(232);
 
-var BaseModeling = _dereq_(115);
+var BaseModeling = _dereq_(135);
 
-var UpdatePropertiesHandler = _dereq_(31),
-    UpdateCanvasRootHandler = _dereq_(30);
+var UpdatePropertiesHandler = _dereq_(41),
+    UpdateCanvasRootHandler = _dereq_(39),
+    AddLaneHandler = _dereq_(36),
+    SplitLaneHandler = _dereq_(38),
+    ResizeLaneHandler = _dereq_(37),
+    UpdateFlowNodeRefsHandler = _dereq_(40);
 
 
 /**
@@ -4016,6 +4534,10 @@ Modeling.prototype.getHandlers = function() {
 
   handlers['element.updateProperties'] = UpdatePropertiesHandler;
   handlers['canvas.updateRoot'] = UpdateCanvasRootHandler;
+  handlers['lane.add'] = AddLaneHandler;
+  handlers['lane.resize'] = ResizeLaneHandler;
+  handlers['lane.split'] = SplitLaneHandler;
+  handlers['lane.updateRefs'] = UpdateFlowNodeRefsHandler;
 
   return handlers;
 };
@@ -4029,30 +4551,15 @@ Modeling.prototype.updateLabel = function(element, newLabel) {
 };
 
 
-var getSharedParent = _dereq_(21).getSharedParent;
-
 Modeling.prototype.connect = function(source, target, attrs) {
 
   var bpmnRules = this._bpmnRules;
 
   if (!attrs) {
-    if (bpmnRules.canConnectMessageFlow(source, target)) {
-      attrs = {
-        type: 'bpmn:MessageFlow'
-      };
-    } else
-    if (bpmnRules.canConnectSequenceFlow(source, target)) {
-      attrs = {
-        type: 'bpmn:SequenceFlow'
-      };
-    } else {
-      attrs = {
-        type: 'bpmn:Association'
-      };
-    }
+    attrs = bpmnRules.canConnect(source, target) || { type: 'bpmn:Association' };
   }
 
-  return this.createConnection(source, target, attrs, getSharedParent(source, target));
+  return this.createConnection(source, target, attrs, source.parent);
 };
 
 
@@ -4063,6 +4570,31 @@ Modeling.prototype.updateProperties = function(element, properties) {
   });
 };
 
+Modeling.prototype.resizeLane = function(laneShape, newBounds, balanced) {
+  this._commandStack.execute('lane.resize', {
+    shape: laneShape,
+    newBounds: newBounds,
+    balanced: balanced
+  });
+};
+
+Modeling.prototype.addLane = function(targetLaneShape, location) {
+  var context = {
+    shape: targetLaneShape,
+    location: location
+  };
+
+  this._commandStack.execute('lane.add', context);
+
+  return context.newLane;
+};
+
+Modeling.prototype.splitLane = function(targetLane, count) {
+  this._commandStack.execute('lane.split', {
+    shape: targetLane,
+    count: count
+  });
+};
 
 /**
  * Transform the current diagram into a collaboration.
@@ -4084,6 +4616,14 @@ Modeling.prototype.makeCollaboration = function() {
   return collaborationElement;
 };
 
+Modeling.prototype.updateLaneRefs = function(flowNodeShapes, laneShapes) {
+
+  this._commandStack.execute('lane.updateRefs', {
+    flowNodeShapes: flowNodeShapes,
+    laneShapes: laneShapes
+  });
+};
+
 /**
  * Transform the current diagram into a process.
  *
@@ -4102,49 +4642,14 @@ Modeling.prototype.makeProcess = function() {
   this._commandStack.execute('canvas.updateRoot', context);
 };
 
-},{"115":115,"207":207,"21":21,"30":30,"31":31}],21:[function(_dereq_,module,exports){
+},{"135":135,"232":232,"36":36,"37":37,"38":38,"39":39,"40":40,"41":41}],23:[function(_dereq_,module,exports){
 'use strict';
 
-var find = _dereq_(217);
+var inherits = _dereq_(232);
 
+var is = _dereq_(66).is;
 
-function getParents(element) {
-
-  var parents = [];
-
-  while (element) {
-    element = element.parent;
-
-    if (element) {
-      parents.push(element);
-    }
-  }
-
-  return parents;
-}
-
-module.exports.getParents = getParents;
-
-
-function getSharedParent(a, b) {
-
-  var parentsA = getParents(a),
-      parentsB = getParents(b);
-
-  return find(parentsA, function(parent) {
-    return parentsB.indexOf(parent) !== -1;
-  });
-}
-
-module.exports.getSharedParent = getSharedParent;
-},{"217":217}],22:[function(_dereq_,module,exports){
-'use strict';
-
-var inherits = _dereq_(207);
-
-var is = _dereq_(50).is;
-
-var CommandInterceptor = _dereq_(78);
+var CommandInterceptor = _dereq_(94);
 
 
 function AppendBehavior(eventBus, elementFactory, bpmnRules) {
@@ -4181,14 +4686,14 @@ AppendBehavior.$inject = [ 'eventBus', 'elementFactory', 'bpmnRules' ];
 inherits(AppendBehavior, CommandInterceptor);
 
 module.exports = AppendBehavior;
-},{"207":207,"50":50,"78":78}],23:[function(_dereq_,module,exports){
+},{"232":232,"66":66,"94":94}],24:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(207);
+var inherits = _dereq_(232);
 
-var CommandInterceptor = _dereq_(78);
+var CommandInterceptor = _dereq_(94);
 
-var is = _dereq_(50).is;
+var is = _dereq_(66).is;
 
 
 /**
@@ -4234,16 +4739,55 @@ inherits(CreateBoundaryEventBehavior, CommandInterceptor);
 
 module.exports = CreateBoundaryEventBehavior;
 
-},{"207":207,"50":50,"78":78}],24:[function(_dereq_,module,exports){
+},{"232":232,"66":66,"94":94}],25:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(207);
+var inherits = _dereq_(232);
 
-var assign = _dereq_(339);
+var CommandInterceptor = _dereq_(94);
 
-var CommandInterceptor = _dereq_(78);
+var is = _dereq_(66).is;
 
-var getApproxIntersection = _dereq_(191).getApproxIntersection;
+/**
+ * BPMN specific create data object behavior
+ */
+function CreateDataObjectBehavior(eventBus, bpmnFactory, moddle) {
+
+  CommandInterceptor.call(this, eventBus);
+
+  this.preExecute('shape.create', function(event) {
+
+    var context = event.context,
+        shape = context.shape;
+
+    if(is(shape, 'bpmn:DataObjectReference') && shape.type !== 'label') {
+
+      // create a DataObject every time a DataObjectReference is created
+      var dataObjectShape = bpmnFactory.create('bpmn:DataObject');
+
+      // set the reference to the DataObject
+      shape.businessObject.dataObjectRef = dataObjectShape;
+    }
+  });
+
+}
+
+CreateDataObjectBehavior.$inject = [ 'eventBus', 'bpmnFactory', 'moddle' ];
+
+inherits(CreateDataObjectBehavior, CommandInterceptor);
+
+module.exports = CreateDataObjectBehavior;
+
+},{"232":232,"66":66,"94":94}],26:[function(_dereq_,module,exports){
+'use strict';
+
+var inherits = _dereq_(232);
+
+var assign = _dereq_(366);
+
+var CommandInterceptor = _dereq_(94);
+
+var getApproxIntersection = _dereq_(215).getApproxIntersection;
 
 
 function copy(obj) {
@@ -4331,14 +4875,14 @@ CreateOnFlowBehavior.$inject = [ 'eventBus', 'bpmnRules', 'modeling' ];
 
 module.exports = CreateOnFlowBehavior;
 
-},{"191":191,"207":207,"339":339,"78":78}],25:[function(_dereq_,module,exports){
+},{"215":215,"232":232,"366":366,"94":94}],27:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(207);
+var inherits = _dereq_(232);
 
-var CommandInterceptor = _dereq_(78);
+var CommandInterceptor = _dereq_(94);
 
-var is = _dereq_(50).is;
+var is = _dereq_(66).is;
 
 /**
  * BPMN specific create participant behavior
@@ -4409,7 +4953,7 @@ function CreateParticipantBehavior(eventBus, modeling, elementFactory, bpmnFacto
     if (processRoot) {
       // process root is already detached at this point
       var processChildren = processRoot.children.slice();
-      modeling.moveShapes(processChildren, { x: 0, y: 0 }, shape);
+      modeling.moveElements(processChildren, { x: 0, y: 0 }, shape);
     }
 
   }, true);
@@ -4422,10 +4966,119 @@ inherits(CreateParticipantBehavior, CommandInterceptor);
 
 module.exports = CreateParticipantBehavior;
 
-},{"207":207,"50":50,"78":78}],26:[function(_dereq_,module,exports){
+},{"232":232,"66":66,"94":94}],28:[function(_dereq_,module,exports){
 'use strict';
 
-var is = _dereq_(50).is;
+var inherits = _dereq_(232);
+
+var CommandInterceptor = _dereq_(94);
+
+var is = _dereq_(66).is;
+
+var getChildLanes = _dereq_(43).getChildLanes;
+
+var eachElement = _dereq_(210).eachElement;
+
+
+var LOW_PRIORITY = 500;
+
+
+/**
+ * BPMN specific delete lane behavior
+ */
+function DeleteLaneBehavior(eventBus, modeling, spaceTool) {
+
+  CommandInterceptor.call(this, eventBus);
+
+
+  function compensateLaneDelete(shape, oldParent) {
+
+    var siblings = getChildLanes(oldParent);
+
+    var topAffected = [];
+    var bottomAffected = [];
+
+    eachElement(siblings, function(element) {
+
+      if (element.y > shape.y) {
+        bottomAffected.push(element);
+      } else {
+        topAffected.push(element);
+      }
+
+      return element.children;
+    });
+
+    if (!siblings.length) {
+      return;
+    }
+
+    var offset;
+
+    if (bottomAffected.length && topAffected.length) {
+      offset = shape.height / 2;
+    } else {
+      offset = shape.height;
+    }
+
+    var topAdjustments,
+        bottomAdjustments;
+
+    if (topAffected.length) {
+      topAdjustments = spaceTool.calculateAdjustments(
+        topAffected, 'y', offset, shape.y - 10);
+
+      spaceTool.makeSpace(
+        topAdjustments.movingShapes,
+        topAdjustments.resizingShapes,
+        { x: 0, y: offset }, 's');
+    }
+
+    if (bottomAffected.length) {
+      bottomAdjustments = spaceTool.calculateAdjustments(
+        bottomAffected, 'y', -offset, shape.y + shape.height + 10);
+
+      spaceTool.makeSpace(
+        bottomAdjustments.movingShapes,
+        bottomAdjustments.resizingShapes,
+        { x: 0, y: -offset }, 'n');
+    }
+  }
+
+
+  /**
+   * Adjust sizes of other lanes after lane deletion
+   */
+  this.postExecuted('shape.delete', LOW_PRIORITY, function(event) {
+
+    var context = event.context,
+        hints = context.hints,
+        shape = context.shape,
+        oldParent = context.oldParent;
+
+    // only compensate lane deletes
+    if (!is(shape, 'bpmn:Lane')) {
+      return;
+    }
+
+    // compensate root deletes only
+    if (hints && hints.nested) {
+      return;
+    }
+
+    compensateLaneDelete(shape, oldParent);
+  });
+}
+
+DeleteLaneBehavior.$inject = [ 'eventBus', 'modeling', 'spaceTool' ];
+
+inherits(DeleteLaneBehavior, CommandInterceptor);
+
+module.exports = DeleteLaneBehavior;
+},{"210":210,"232":232,"43":43,"66":66,"94":94}],29:[function(_dereq_,module,exports){
+'use strict';
+
+var is = _dereq_(66).is;
 
 
 function ModelingFeedback(eventBus, tooltips) {
@@ -4459,20 +5112,20 @@ function ModelingFeedback(eventBus, tooltips) {
 ModelingFeedback.$inject = [ 'eventBus', 'tooltips' ];
 
 module.exports = ModelingFeedback;
-},{"50":50}],27:[function(_dereq_,module,exports){
+},{"66":66}],30:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(207);
+var inherits = _dereq_(232);
 
-var CommandInterceptor = _dereq_(78);
+var CommandInterceptor = _dereq_(94);
 
-var is = _dereq_(50).is;
+var is = _dereq_(66).is;
 
 
 /**
  * BPMN specific remove behavior
  */
-function RemoveBehavior(eventBus, modeling) {
+function RemoveParticipantBehavior(eventBus, modeling) {
 
   CommandInterceptor.call(this, eventBus);
 
@@ -4506,30 +5159,37 @@ function RemoveBehavior(eventBus, modeling) {
 
 }
 
-RemoveBehavior.$inject = [ 'eventBus', 'modeling' ];
+RemoveParticipantBehavior.$inject = [ 'eventBus', 'modeling' ];
 
-inherits(RemoveBehavior, CommandInterceptor);
+inherits(RemoveParticipantBehavior, CommandInterceptor);
 
-module.exports = RemoveBehavior;
-},{"207":207,"50":50,"78":78}],28:[function(_dereq_,module,exports){
+module.exports = RemoveParticipantBehavior;
+},{"232":232,"66":66,"94":94}],31:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218),
-    inherits = _dereq_(207);
+var forEach = _dereq_(244),
+    inherits = _dereq_(232);
 
-var CommandInterceptor = _dereq_(78);
+var CommandInterceptor = _dereq_(94);
 
-var is = _dereq_(50).is,
-    getSharedParent = _dereq_(21).getSharedParent;
+var is = _dereq_(66).is;
 
 function ReplaceConnectionBehavior(eventBus, modeling, bpmnRules) {
 
   CommandInterceptor.call(this, eventBus);
 
-  function replaceConnection(connection) {
+  function fixConnection(connection) {
 
     var source = connection.source,
-        target = connection.target;
+        target = connection.target,
+        parent = connection.parent;
+
+    // do not do anything if connection
+    // is already deleted (may happen due to other
+    // behaviors plugged-in before)
+    if (!parent) {
+      return;
+    }
 
     var replacementType,
         remove;
@@ -4570,7 +5230,8 @@ function ReplaceConnectionBehavior(eventBus, modeling, bpmnRules) {
     }
 
 
-    // remove invalid connection
+    // remove invalid connection,
+    // unless it has been removed already
     if (remove) {
       modeling.removeConnection(connection);
     }
@@ -4578,19 +5239,19 @@ function ReplaceConnectionBehavior(eventBus, modeling, bpmnRules) {
     // replace SequenceFlow <> MessageFlow
 
     if (replacementType) {
-      modeling.createConnection(source, target, {
+      modeling.connect(source, target, {
         type: replacementType,
         waypoints: connection.waypoints.slice()
-      }, getSharedParent(source, target));
+      });
     }
   }
 
-  this.postExecuted('shapes.move', function(context) {
+  this.postExecuted('elements.move', function(context) {
 
     var closure = context.closure,
         allConnections = closure.allConnections;
 
-    forEach(allConnections, replaceConnection);
+    forEach(allConnections, fixConnection);
   }, true);
 
   this.postExecuted([
@@ -4600,7 +5261,7 @@ function ReplaceConnectionBehavior(eventBus, modeling, bpmnRules) {
 
     var connection = event.context.connection;
 
-    replaceConnection(connection);
+    fixConnection(connection);
   });
 
 }
@@ -4611,30 +5272,662 @@ ReplaceConnectionBehavior.$inject = [ 'eventBus', 'modeling', 'bpmnRules' ];
 
 module.exports = ReplaceConnectionBehavior;
 
-},{"207":207,"21":21,"218":218,"50":50,"78":78}],29:[function(_dereq_,module,exports){
+},{"232":232,"244":244,"66":66,"94":94}],32:[function(_dereq_,module,exports){
+'use strict';
+
+var inherits = _dereq_(232);
+
+var CommandInterceptor = _dereq_(94);
+
+var forEach = _dereq_(244);
+
+var isEventSubProcess = _dereq_(64).isEventSubProcess;
+var is = _dereq_(66).is;
+
+/**
+ * Defines the behaviour of what happens to the elements inside a container
+ * that morphs into another BPMN element
+ */
+function ReplaceElementBehaviour(eventBus, bpmnReplace, bpmnRules, elementRegistry, selection, modeling) {
+  CommandInterceptor.call(this, eventBus);
+
+  this._bpmnReplace = bpmnReplace;
+  this._elementRegistry = elementRegistry;
+  this._selection = selection;
+  this._modeling = modeling;
+
+  this.postExecuted([ 'elements.move' ], 500, function(event) {
+
+    var context = event.context,
+        target = context.newParent,
+        newHost = context.newHost,
+        elements = [];
+
+    forEach(context.closure.topLevel, function(topLevelElements) {
+      if (isEventSubProcess(topLevelElements)) {
+        elements = elements.concat(topLevelElements.children);
+      } else {
+        elements = elements.concat(topLevelElements);
+      }
+    });
+
+    // Change target to host when the moving element is a `bpmn:BoundaryEvent`
+    if (elements.length === 1 && newHost) {
+      target = newHost;
+    }
+
+    var canReplace = bpmnRules.canReplace(elements, target);
+
+    if (canReplace) {
+      this.replaceElements(elements, canReplace.replacements, newHost);
+    }
+  }, this);
+
+  // update attachments if the host is replaced
+  this.postExecute([ 'shape.replace' ], 1500, function(e) {
+
+    var context = e.context,
+        oldShape = context.oldShape,
+        newShape = context.newShape,
+        attachers = oldShape.attachers,
+        canReplace;
+
+    if (attachers && attachers.length) {
+      canReplace = bpmnRules.canReplace(attachers, newShape);
+
+      this.replaceElements(attachers, canReplace.replacements);
+    }
+
+  }, this);
+}
+
+inherits(ReplaceElementBehaviour, CommandInterceptor);
+
+
+ReplaceElementBehaviour.prototype.replaceElements = function(elements, newElements, newHost) {
+  var elementRegistry = this._elementRegistry,
+      bpmnReplace = this._bpmnReplace,
+      selection = this._selection,
+      modeling = this._modeling;
+
+  forEach(newElements, function(replacement) {
+
+    var newElement = {
+      type: replacement.newElementType
+    };
+
+    var oldElement = elementRegistry.get(replacement.oldElementId);
+
+    if (newHost && is(oldElement, 'bpmn:BoundaryEvent')) {
+      modeling.updateAttachment(oldElement, null);
+    }
+
+    var idx = elements.indexOf(oldElement);
+
+    elements[idx] = bpmnReplace.replaceElement(oldElement, newElement, { select: false });
+
+    if (newHost && is(elements[idx], 'bpmn:BoundaryEvent')) {
+      modeling.updateAttachment(elements[idx], newHost);
+    }
+  });
+
+  if (newElements) {
+    selection.select(elements);
+  }
+};
+
+ReplaceElementBehaviour.$inject = [ 'eventBus', 'bpmnReplace', 'bpmnRules', 'elementRegistry',
+ 'selection', 'modeling' ];
+
+module.exports = ReplaceElementBehaviour;
+
+},{"232":232,"244":244,"64":64,"66":66,"94":94}],33:[function(_dereq_,module,exports){
+'use strict';
+
+var is = _dereq_(66).is;
+
+var roundBounds = _dereq_(197).roundBounds;
+
+var hasPrimaryModifier = _dereq_(217).hasPrimaryModifier;
+
+var SLIGHTLY_HIGHER_PRIORITY = 1001;
+
+
+/**
+ * Invoke {@link Modeling#resizeLane} instead of
+ * {@link Modeling#resizeShape} when resizing a Lane
+ * or Participant shape.
+ */
+function ResizeLaneBehavior(eventBus, modeling) {
+
+  eventBus.on('resize.start', SLIGHTLY_HIGHER_PRIORITY + 500, function(event) {
+    var context = event.context,
+        shape = context.shape;
+
+    if (is(shape, 'bpmn:Lane') || is(shape, 'bpmn:Participant')) {
+
+      // should we resize the opposite lane(s) in
+      // order to compensate for the resize operation?
+      context.balanced = !hasPrimaryModifier(event);
+    }
+  });
+
+  /**
+   * Intercept resize end and call resize lane function instead.
+   */
+  eventBus.on('resize.end', SLIGHTLY_HIGHER_PRIORITY, function(event) {
+    var context = event.context,
+        shape = context.shape,
+        canExecute = context.canExecute,
+        newBounds = context.newBounds;
+
+    if (is(shape, 'bpmn:Lane') || is(shape, 'bpmn:Participant')) {
+
+      if (canExecute) {
+        // ensure we have actual pixel values for new bounds
+        // (important when zoom level was > 1 during move)
+        newBounds = roundBounds(newBounds);
+
+        // perform the actual resize
+        modeling.resizeLane(shape, newBounds, context.balanced);
+      }
+
+      // stop propagation
+      return false;
+    }
+  });
+}
+
+ResizeLaneBehavior.$inject = [ 'eventBus', 'modeling' ];
+
+module.exports = ResizeLaneBehavior;
+
+},{"197":197,"217":217,"66":66}],34:[function(_dereq_,module,exports){
+'use strict';
+
+
+var inherits = _dereq_(232);
+
+var CommandInterceptor = _dereq_(94);
+
+var is = _dereq_(66).is;
+
+var LOW_PRIORITY = 500,
+    HIGH_PRIORITY = 5000;
+
+
+/**
+ * BPMN specific delete lane behavior
+ */
+function UpdateFlowNodeRefsBehavior(eventBus, modeling) {
+
+  CommandInterceptor.call(this, eventBus);
+
+  /**
+   * Ok, this is it:
+   *
+   * We have to update the Lane#flowNodeRefs _and_
+   * FlowNode#lanes with every FlowNode move/resize and
+   * Lane move/resize.
+   *
+   * We want to group that stuff to recompute containments
+   * as efficient as possible.
+   *
+   * Yea!
+   */
+
+  // the update context
+  var context;
+
+
+  function initContext() {
+    context = context || new UpdateContext();
+    context.enter();
+
+    return context;
+  }
+
+  function getContext() {
+    if (!context) {
+      throw new Error('out of bounds release');
+    }
+
+    return context;
+  }
+
+  function releaseContext() {
+
+    if (!context) {
+      throw new Error('out of bounds release');
+    }
+
+    var triggerUpdate = context.leave();
+
+    if (triggerUpdate) {
+      modeling.updateLaneRefs(context.flowNodes, context.lanes);
+
+      context = null;
+    }
+
+    return triggerUpdate;
+  }
+
+
+  var laneRefUpdateEvents = [
+    'spaceTool',
+    'lane.add',
+    'lane.resize',
+    'lane.split',
+    'elements.move',
+    'elements.delete',
+    'shape.create',
+    'shape.delete',
+    'shape.move',
+    'shape.resize'
+  ];
+
+
+  // listen to a lot of stuff to group lane updates
+
+  this.preExecute(laneRefUpdateEvents, HIGH_PRIORITY, function(event) {
+    initContext();
+  });
+
+  this.postExecuted(laneRefUpdateEvents, LOW_PRIORITY, function(event) {
+    releaseContext();
+  });
+
+
+  // Mark flow nodes + lanes that need an update
+
+  this.preExecute([
+    'shape.create',
+    'shape.move',
+    'shape.delete',
+    'shape.resize'
+  ], function(event) {
+
+    var context = event.context,
+        shape = context.shape;
+
+    var updateContext = getContext();
+
+    // no need to update labels
+    if (shape.labelTarget) {
+      return;
+    }
+
+    if (is(shape, 'bpmn:Lane')) {
+      updateContext.addLane(shape);
+    }
+
+    if (is(shape, 'bpmn:FlowNode')) {
+      updateContext.addFlowNode(shape);
+    }
+  });
+}
+
+UpdateFlowNodeRefsBehavior.$inject = [ 'eventBus', 'modeling' ];
+
+inherits(UpdateFlowNodeRefsBehavior, CommandInterceptor);
+
+module.exports = UpdateFlowNodeRefsBehavior;
+
+
+
+function UpdateContext() {
+
+  this.flowNodes = [];
+  this.lanes = [];
+
+  this.counter = 0;
+
+  this.addLane = function(lane) {
+    this.lanes.push(lane);
+  };
+
+  this.addFlowNode = function(flowNode) {
+    this.flowNodes.push(flowNode);
+  };
+
+  this.enter = function() {
+    this.counter++;
+  };
+
+  this.leave = function() {
+    this.counter--;
+
+    return !this.counter;
+  };
+}
+},{"232":232,"66":66,"94":94}],35:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [
     'appendBehavior',
-    'createParticipantBehavior',
     'createBoundaryEventBehavior',
+    'createDataObjectBehavior',
+    'deleteLaneBehavior',
     'createOnFlowBehavior',
+    'createParticipantBehavior',
+    'modelingFeedback',
+    'removeParticipantBehavior',
     'replaceConnectionBehavior',
-    'removeBehavior',
-    'modelingFeedback'
+    'replaceElementBehaviour',
+    'resizeLaneBehavior',
+    'updateFlowNodeRefsBehavior'
   ],
-  appendBehavior: [ 'type', _dereq_(22) ],
-  createParticipantBehavior: [ 'type', _dereq_(25) ],
-  createBoundaryEventBehavior: [ 'type', _dereq_(23) ],
-  createOnFlowBehavior: [ 'type', _dereq_(24) ],
-  replaceConnectionBehavior: [ 'type', _dereq_(28) ],
-  removeBehavior: [ 'type', _dereq_(27) ],
-  modelingFeedback: [ 'type', _dereq_(26) ]
+  appendBehavior: [ 'type', _dereq_(23) ],
+  createBoundaryEventBehavior: [ 'type', _dereq_(24) ],
+  createDataObjectBehavior: [ 'type', _dereq_(25) ],
+  deleteLaneBehavior: [ 'type', _dereq_(28) ],
+  createOnFlowBehavior: [ 'type', _dereq_(26) ],
+  createParticipantBehavior: [ 'type', _dereq_(27) ],
+  modelingFeedback: [ 'type', _dereq_(29) ],
+  removeParticipantBehavior: [ 'type', _dereq_(30) ],
+  replaceConnectionBehavior: [ 'type', _dereq_(31) ],
+  replaceElementBehaviour: [ 'type', _dereq_(32) ],
+  resizeLaneBehavior: [ 'type', _dereq_(33) ],
+  updateFlowNodeRefsBehavior: [ 'type', _dereq_(34) ]
 };
 
-},{"22":22,"23":23,"24":24,"25":25,"26":26,"27":27,"28":28}],30:[function(_dereq_,module,exports){
+},{"23":23,"24":24,"25":25,"26":26,"27":27,"28":28,"29":29,"30":30,"31":31,"32":32,"33":33,"34":34}],36:[function(_dereq_,module,exports){
 'use strict';
 
-var Collections = _dereq_(184);
+var filter = _dereq_(242);
+
+var Elements = _dereq_(210);
+
+var getLanesRoot = _dereq_(43).getLanesRoot,
+    getChildLanes = _dereq_(43).getChildLanes,
+    LANE_INDENTATION = _dereq_(43).LANE_INDENTATION;
+
+/**
+ * A handler that allows us to add a new lane
+ * above or below an existing one.
+ *
+ * @param {Modeling} modeling
+ */
+function AddLaneHandler(modeling, spaceTool) {
+  this._modeling = modeling;
+  this._spaceTool = spaceTool;
+}
+
+AddLaneHandler.$inject = [ 'modeling', 'spaceTool' ];
+
+module.exports = AddLaneHandler;
+
+
+AddLaneHandler.prototype.preExecute = function(context) {
+
+  var spaceTool = this._spaceTool,
+      modeling = this._modeling;
+
+  var shape = context.shape,
+      location = context.location;
+
+  var lanesRoot = getLanesRoot(shape);
+
+  var isRoot = lanesRoot === shape,
+      laneParent = isRoot ? shape : shape.parent;
+
+  var existingChildLanes = getChildLanes(laneParent);
+
+  // (0) add a lane if we currently got none and are adding to root
+  if (!existingChildLanes.length) {
+    modeling.createShape({ type: 'bpmn:Lane' }, {
+      x: shape.x + LANE_INDENTATION,
+      y: shape.y,
+      width: shape.width - LANE_INDENTATION,
+      height: shape.height
+    }, laneParent);
+  }
+
+  // (1) collect affected elements to create necessary space
+  var allAffected = [];
+
+  Elements.eachElement(lanesRoot, function(element) {
+    allAffected.push(element);
+
+    if (element === shape) {
+      return [];
+    }
+
+    return filter(element.children, function(c) {
+      return c !== shape;
+    });
+  });
+
+  var offset = location === 'top' ? -120 : 120,
+      lanePosition = location === 'top' ? shape.y : shape.y + shape.height,
+      spacePos = lanePosition + (location === 'top' ? 10 : -10),
+      direction = location === 'top' ? 'n' : 's';
+
+  var adjustments = spaceTool.calculateAdjustments(allAffected, 'y', offset, spacePos);
+
+  spaceTool.makeSpace(adjustments.movingShapes, adjustments.resizingShapes, { x: 0, y: offset }, direction);
+
+  // (2) create new lane at open space
+  context.newLane = modeling.createShape({ type: 'bpmn:Lane' }, {
+    x: shape.x + (isRoot ? LANE_INDENTATION : 0),
+    y: lanePosition - (location === 'top' ? 120 : 0),
+    width: shape.width - (isRoot ? LANE_INDENTATION : 0),
+    height: 120
+  }, laneParent);
+};
+
+},{"210":210,"242":242,"43":43}],37:[function(_dereq_,module,exports){
+'use strict';
+
+var is = _dereq_(66).is;
+
+var getLanesRoot = _dereq_(43).getLanesRoot,
+    computeLanesResize = _dereq_(43).computeLanesResize;
+
+var eachElement = _dereq_(210).eachElement;
+
+var asTRBL = _dereq_(197).asTRBL,
+    substractTRBL = _dereq_(173).substractTRBL;
+
+
+/**
+ * A handler that resizes a lane.
+ *
+ * @param {Modeling} modeling
+ */
+function ResizeLaneHandler(modeling, spaceTool) {
+  this._modeling = modeling;
+  this._spaceTool = spaceTool;
+}
+
+ResizeLaneHandler.$inject = [ 'modeling', 'spaceTool' ];
+
+module.exports = ResizeLaneHandler;
+
+
+ResizeLaneHandler.prototype.preExecute = function(context) {
+
+  var shape = context.shape,
+      newBounds = context.newBounds,
+      balanced = context.balanced;
+
+  if (balanced !== false) {
+    this.resizeBalanced(shape, newBounds);
+  } else {
+    this.resizeSpace(shape, newBounds);
+  }
+};
+
+
+/**
+ * Resize balanced, adjusting next / previous lane sizes.
+ *
+ * @param {djs.model.Shape} shape
+ * @param {Bounds} newBounds
+ */
+ResizeLaneHandler.prototype.resizeBalanced = function(shape, newBounds) {
+
+  var modeling = this._modeling;
+
+  var resizeNeeded = computeLanesResize(shape, newBounds);
+
+  // resize the lane
+  modeling.resizeShape(shape, newBounds);
+
+  // resize other lanes as needed
+  resizeNeeded.forEach(function(r) {
+    modeling.resizeShape(r.shape, r.newBounds);
+  });
+};
+
+
+/**
+ * Resize, making actual space and moving below / above elements.
+ *
+ * @param {djs.model.Shape} shape
+ * @param {Bounds} newBounds
+ */
+ResizeLaneHandler.prototype.resizeSpace = function(shape, newBounds) {
+  var spaceTool = this._spaceTool;
+
+  var shapeTrbl = asTRBL(shape),
+      newTrbl = asTRBL(newBounds);
+
+  var trblDiff = substractTRBL(newTrbl, shapeTrbl);
+
+  var lanesRoot = getLanesRoot(shape);
+
+  var allAffected = [],
+      allLanes = [];
+
+  eachElement(lanesRoot, function(element) {
+    allAffected.push(element);
+
+    if (is(element, 'bpmn:Lane') || is(element, 'bpmn:Participant')) {
+      allLanes.push(element);
+    }
+
+    return element.children;
+  });
+
+  var change,
+      spacePos,
+      direction,
+      offset,
+      adjustments;
+
+  if (trblDiff.bottom || trblDiff.top) {
+
+    change = trblDiff.bottom || trblDiff.top;
+    spacePos = shape.y + (trblDiff.bottom ? shape.height : 0) + (trblDiff.bottom ? -10 : 10);
+    direction = trblDiff.bottom ? 's' : 'n';
+
+    offset = trblDiff.top > 0 || trblDiff.bottom < 0 ? -change : change;
+
+    adjustments = spaceTool.calculateAdjustments(allAffected, 'y', offset, spacePos);
+
+    spaceTool.makeSpace(adjustments.movingShapes, adjustments.resizingShapes, { x: 0, y: change }, direction);
+  }
+
+
+  if (trblDiff.left || trblDiff.right) {
+
+    change = trblDiff.right || trblDiff.left;
+    spacePos = shape.x + (trblDiff.right ? shape.width : 0) + (trblDiff.right ? -10 : 100);
+    direction = trblDiff.right ? 'e' : 'w';
+
+    offset = trblDiff.left > 0 || trblDiff.right < 0 ? -change : change;
+
+    adjustments = spaceTool.calculateAdjustments(allLanes, 'x', offset, spacePos);
+
+    spaceTool.makeSpace(adjustments.movingShapes, adjustments.resizingShapes, { x: change, y: 0 }, direction);
+  }
+};
+},{"173":173,"197":197,"210":210,"43":43,"66":66}],38:[function(_dereq_,module,exports){
+'use strict';
+
+var getChildLanes = _dereq_(43).getChildLanes;
+
+var LANE_INDENTATION = _dereq_(43).LANE_INDENTATION;
+
+/**
+ * A handler that splits a lane into a number of sub-lanes,
+ * creating new sub lanes, if neccessary.
+ *
+ * @param {Modeling} modeling
+ */
+function SplitLaneHandler(modeling) {
+  this._modeling = modeling;
+}
+
+SplitLaneHandler.$inject = [ 'modeling' ];
+
+module.exports = SplitLaneHandler;
+
+
+SplitLaneHandler.prototype.preExecute = function(context) {
+
+  var modeling = this._modeling;
+
+  var shape = context.shape,
+      newLanesCount = context.count;
+
+  var childLanes = getChildLanes(shape),
+      existingLanesCount = childLanes.length;
+
+  if (existingLanesCount > newLanesCount) {
+    throw new Error('more than ' + newLanesCount + ' child lanes');
+  }
+
+  var newLanesHeight = Math.round(shape.height / newLanesCount);
+
+  // Iterate from top to bottom in child lane order,
+  // resizing existing lanes and creating new ones
+  // so that they split the parent proportionally.
+  //
+  // Due to rounding related errors, the bottom lane
+  // needs to take up all the remaining space.
+  var laneY,
+      laneHeight,
+      laneBounds,
+      newLaneAttrs,
+      idx;
+
+  for (idx = 0; idx < newLanesCount; idx++) {
+
+    laneY = shape.y + idx * newLanesHeight;
+
+    // if bottom lane
+    if (idx === newLanesCount - 1) {
+      laneHeight = shape.height - (newLanesHeight * idx);
+    } else {
+      laneHeight = newLanesHeight;
+    }
+
+    laneBounds = {
+      x: shape.x + LANE_INDENTATION,
+      y: laneY,
+      width: shape.width - LANE_INDENTATION,
+      height: laneHeight
+    };
+
+    if (idx < existingLanesCount) {
+      // resize existing lane
+      modeling.resizeShape(childLanes[idx], laneBounds);
+    } else {
+      // create a new lane at position
+      newLaneAttrs = {
+        type: 'bpmn:Lane'
+      };
+
+      modeling.createShape(newLaneAttrs, laneBounds, shape);
+    }
+  }
+};
+
+},{"43":43}],39:[function(_dereq_,module,exports){
+'use strict';
+
+var Collections = _dereq_(208);
 
 
 function UpdateCanvasRootHandler(canvas, modeling) {
@@ -4705,12 +5998,193 @@ UpdateCanvasRootHandler.prototype.revert = function(context) {
   diPlane.bpmnElement = oldRootBusinessObject;
   oldRootBusinessObject.di = diPlane;
 };
-},{"184":184}],31:[function(_dereq_,module,exports){
+},{"208":208}],40:[function(_dereq_,module,exports){
 'use strict';
 
-var reduce = _dereq_(346),
-    keys = _dereq_(340),
-    forEach = _dereq_(218);
+var collectLanes = _dereq_(43).collectLanes;
+
+var getLanesRoot = _dereq_(43).getLanesRoot;
+
+var is = _dereq_(66).is;
+
+var Collections = _dereq_(208);
+
+var asTRBL = _dereq_(197).asTRBL;
+
+var FLOW_NODE_REFS_ATTR = 'flowNodeRef',
+    LANES_ATTR = 'lanes';
+
+/**
+ * A handler that updates lane refs on changed elements
+ */
+function UpdateFlowNodeRefsHandler(elementRegistry) {
+  this._elementRegistry = elementRegistry;
+}
+
+UpdateFlowNodeRefsHandler.$inject = [ 'elementRegistry' ];
+
+module.exports = UpdateFlowNodeRefsHandler;
+
+
+UpdateFlowNodeRefsHandler.prototype.computeUpdates = function(flowNodeShapes, laneShapes) {
+
+  var handledNodes = {};
+
+  var updates = [];
+
+  var participantCache = {};
+
+  var allFlowNodeShapes = [];
+
+  function isInLaneShape(element, laneShape) {
+
+    var laneTrbl = asTRBL(laneShape);
+
+    var elementMid = {
+      x: element.x + element.width / 2,
+      y: element.y + element.height / 2
+    };
+
+    return elementMid.x > laneTrbl.left &&
+           elementMid.x < laneTrbl.right &&
+           elementMid.y > laneTrbl.top &&
+           elementMid.y < laneTrbl.bottom;
+  }
+
+  function addFlowNodeShape(flowNodeShape) {
+    if (!handledNodes[flowNodeShape.id]) {
+      allFlowNodeShapes.push(flowNodeShape);
+      handledNodes[flowNodeShape.id] = flowNodeShape;
+    }
+  }
+
+  function getAllLaneShapes(flowNodeShape) {
+
+    var root = getLanesRoot(flowNodeShape);
+
+    if (!participantCache[root.id]) {
+      participantCache[root.id] = collectLanes(root);
+    }
+
+    return participantCache[root.id];
+  }
+
+  function getNewLanes(flowNodeShape) {
+    if (!flowNodeShape.parent) {
+      return [];
+    }
+
+    var allLaneShapes = getAllLaneShapes(flowNodeShape);
+
+    return allLaneShapes.filter(function(l) {
+      return isInLaneShape(flowNodeShape, l);
+    }).map(function(shape) {
+      return shape.businessObject;
+    });
+  }
+
+  laneShapes.forEach(function(laneShape) {
+    var root = getLanesRoot(laneShape);
+
+    if (!root || handledNodes[root.id]) {
+      return;
+    }
+
+    var children = root.children.filter(function(c) {
+      return is(c, 'bpmn:FlowNode');
+    });
+
+    children.forEach(addFlowNodeShape);
+
+    handledNodes[root.id] = root;
+  });
+
+  flowNodeShapes.forEach(addFlowNodeShape);
+
+
+  allFlowNodeShapes.forEach(function(flowNodeShape) {
+
+    var flowNode = flowNodeShape.businessObject;
+
+    var lanes = flowNode.get(LANES_ATTR),
+        remove = lanes.slice(),
+        add = getNewLanes(flowNodeShape);
+
+    updates.push({ flowNode: flowNode, remove: remove, add: add });
+  });
+
+  laneShapes.forEach(function(laneShape) {
+
+    var lane = laneShape.businessObject;
+
+    // lane got removed XX-)
+    if (!laneShape.parent) {
+      lane.get(FLOW_NODE_REFS_ATTR).forEach(function(flowNode) {
+        updates.push({ flowNode: flowNode, remove: [ lane ], add: [] });
+      });
+    }
+  });
+
+  return updates;
+};
+
+UpdateFlowNodeRefsHandler.prototype.execute = function(context) {
+
+  var updates = context.updates;
+
+  if (!updates) {
+    updates = context.updates = this.computeUpdates(context.flowNodeShapes, context.laneShapes);
+  }
+
+
+  updates.forEach(function(update) {
+
+    var flowNode = update.flowNode,
+        lanes = flowNode.get(LANES_ATTR);
+
+    // unwire old
+    update.remove.forEach(function(oldLane) {
+      Collections.remove(lanes, oldLane);
+      Collections.remove(oldLane.get(FLOW_NODE_REFS_ATTR), flowNode);
+    });
+
+    // wire new
+    update.add.forEach(function(newLane) {
+      Collections.add(lanes, newLane);
+      Collections.add(newLane.get(FLOW_NODE_REFS_ATTR), flowNode);
+    });
+  });
+};
+
+
+UpdateFlowNodeRefsHandler.prototype.revert = function(context) {
+
+  var updates = context.updates;
+
+  updates.forEach(function(update) {
+
+    var flowNode = update.flowNode,
+        lanes = flowNode.get(LANES_ATTR);
+
+    // unwire new
+    update.add.forEach(function(newLane) {
+      Collections.remove(lanes, newLane);
+      Collections.remove(newLane.get(FLOW_NODE_REFS_ATTR), flowNode);
+    });
+
+    // wire old
+    update.remove.forEach(function(oldLane) {
+      Collections.add(lanes, oldLane);
+      Collections.add(oldLane.get(FLOW_NODE_REFS_ATTR), flowNode);
+    });
+  });
+};
+},{"197":197,"208":208,"43":43,"66":66}],41:[function(_dereq_,module,exports){
+'use strict';
+
+var reduce = _dereq_(373),
+    keys = _dereq_(367),
+    forEach = _dereq_(244);
 
 var DEFAULT_FLOW = 'default',
     NAME = 'name',
@@ -4726,11 +6200,12 @@ var DEFAULT_FLOW = 'default',
  * Use respective diagram-js provided handlers if you would
  * like to perform automated modeling.
  */
-function UpdatePropertiesHandler(elementRegistry) {
+function UpdatePropertiesHandler(elementRegistry, moddle) {
   this._elementRegistry = elementRegistry;
+  this._moddle = moddle;
 }
 
-UpdatePropertiesHandler.$inject = [ 'elementRegistry' ];
+UpdatePropertiesHandler.$inject = [ 'elementRegistry', 'moddle' ];
 
 module.exports = UpdatePropertiesHandler;
 
@@ -4771,13 +6246,16 @@ UpdatePropertiesHandler.prototype.execute = function(context) {
     throw new Error('element required');
   }
 
-  var elementRegistry = this._elementRegistry;
+  var elementRegistry = this._elementRegistry,
+      ids = this._moddle.ids;
 
   var businessObject = element.businessObject,
       properties = context.properties,
       oldProperties = context.oldProperties || getProperties(businessObject, keys(properties));
 
   if (ID in properties) {
+    ids.unclaim(businessObject[ID]);
+
     elementRegistry.updateId(element, properties[ID]);
   }
 
@@ -4795,6 +6273,9 @@ UpdatePropertiesHandler.prototype.execute = function(context) {
 
   if (NAME in properties && element.label) {
     changed.push(element.label);
+
+    // show the label
+    element.label.hidden = !properties[NAME];
   }
 
   // update properties
@@ -4818,539 +6299,418 @@ UpdatePropertiesHandler.prototype.execute = function(context) {
 UpdatePropertiesHandler.prototype.revert = function(context) {
 
   var element = context.element,
+      properties = context.properties,
       oldProperties = context.oldProperties,
       businessObject = element.businessObject,
-      elementRegistry = this._elementRegistry;
+      elementRegistry = this._elementRegistry,
+      ids = this._moddle.ids;
 
   // update properties
   setProperties(businessObject, oldProperties);
 
-  if (ID in oldProperties) {
+  if (ID in properties) {
+    ids.unclaim(properties[ID]);
+
     elementRegistry.updateId(element, oldProperties[ID]);
   }
 
   return context.changed;
 };
 
-},{"218":218,"340":340,"346":346}],32:[function(_dereq_,module,exports){
+},{"244":244,"367":367,"373":373}],42:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'modeling', 'bpmnUpdater', 'bpmnLabelSupport' ],
   __depends__: [
-    _dereq_(14),
-    _dereq_(34),
-    _dereq_(29),
-    _dereq_(80),
-    _dereq_(168),
-    _dereq_(112),
-    _dereq_(91),
-    _dereq_(159),
-    _dereq_(98)
+    _dereq_(35),
+    _dereq_(16),
+    _dereq_(55),
+    _dereq_(46),
+    _dereq_(53),
+    _dereq_(96),
+    _dereq_(191),
+    _dereq_(132),
+    _dereq_(108),
+    _dereq_(182),
+    _dereq_(116),
+    _dereq_(189)
   ],
-  bpmnFactory: [ 'type', _dereq_(15) ],
-  bpmnUpdater: [ 'type', _dereq_(18) ],
-  elementFactory: [ 'type', _dereq_(19) ],
-  modeling: [ 'type', _dereq_(20) ],
-  bpmnLabelSupport: [ 'type', _dereq_(16) ],
-  layouter: [ 'type', _dereq_(17) ],
-  connectionDocking: [ 'type', _dereq_(173) ]
+  bpmnFactory: [ 'type', _dereq_(17) ],
+  bpmnUpdater: [ 'type', _dereq_(20) ],
+  elementFactory: [ 'type', _dereq_(21) ],
+  modeling: [ 'type', _dereq_(22) ],
+  bpmnLabelSupport: [ 'type', _dereq_(18) ],
+  layouter: [ 'type', _dereq_(19) ],
+  connectionDocking: [ 'type', _dereq_(196) ]
 };
 
-},{"112":112,"14":14,"15":15,"159":159,"16":16,"168":168,"17":17,"173":173,"18":18,"19":19,"20":20,"29":29,"34":34,"80":80,"91":91,"98":98}],33:[function(_dereq_,module,exports){
+},{"108":108,"116":116,"132":132,"16":16,"17":17,"18":18,"182":182,"189":189,"19":19,"191":191,"196":196,"20":20,"21":21,"22":22,"35":35,"46":46,"53":53,"55":55,"96":96}],43:[function(_dereq_,module,exports){
 'use strict';
 
-var groupBy = _dereq_(219),
-    size = _dereq_(223),
-    find = _dereq_(217),
-    any = _dereq_(214),
-    inherits = _dereq_(207);
+var is = _dereq_(66).is;
 
-var getParents = _dereq_(21).getParents,
-    is = _dereq_(50).is,
-    getBusinessObject = _dereq_(50).getBusinessObject,
-    isExpanded = _dereq_(48).isExpanded;
+var getParent = _dereq_(44).getParent;
+
+var asTRBL = _dereq_(197).asTRBL,
+    substractTRBL = _dereq_(173).substractTRBL,
+    resizeTRBL = _dereq_(173).resizeTRBL;
+
+var abs = Math.abs;
 
 
-var RuleProvider = _dereq_(153);
+function getTRBLResize(oldBounds, newBounds) {
+  return substractTRBL(asTRBL(newBounds), asTRBL(oldBounds));
+}
 
-var isBoundaryAttachment = _dereq_(41).getBoundaryAttachment;
+
+var LANE_PARENTS = [
+  'bpmn:Participant',
+  'bpmn:Process',
+  'bpmn:SubProcess'
+];
+
+var LANE_INDENTATION = 30;
+
+module.exports.LANE_INDENTATION = LANE_INDENTATION;
+
 
 /**
- * BPMN specific modeling rule
+ * Collect all lane shapes in the given paren
+ *
+ * @param  {djs.model.Shape} shape
+ * @param  {Array<djs.model.Base>} [collectedShapes]
+ *
+ * @return {Array<djs.model.Base>}
  */
-function BpmnRules(eventBus) {
-  RuleProvider.call(this, eventBus);
+function collectLanes(shape, collectedShapes) {
+
+  collectedShapes = collectedShapes || [];
+
+  shape.children.filter(function(s) {
+    if (is(s, 'bpmn:Lane')) {
+      collectLanes(s, collectedShapes);
+
+      collectedShapes.push(s);
+    }
+  });
+
+  return collectedShapes;
 }
 
-inherits(BpmnRules, RuleProvider);
-
-BpmnRules.$inject = [ 'eventBus' ];
-
-module.exports = BpmnRules;
-
-BpmnRules.prototype.init = function() {
-
-  this.addRule('connection.create', function(context) {
-    var source = context.source,
-        target = context.target;
-
-    return canConnect(source, target);
-  });
-
-  this.addRule('connection.reconnectStart', function(context) {
-
-    var connection = context.connection,
-        source = context.hover || context.source,
-        target = connection.target;
-
-    return canConnect(source, target, connection);
-  });
-
-  this.addRule('connection.reconnectEnd', function(context) {
-
-    var connection = context.connection,
-        source = connection.source,
-        target = context.hover || context.target;
-
-    return canConnect(source, target, connection);
-  });
-
-  this.addRule('connection.updateWaypoints', function(context) {
-    // OK! but visually ignore
-    return null;
-  });
-
-  this.addRule('shape.resize', function(context) {
-
-    var shape = context.shape,
-        newBounds = context.newBounds;
-
-    return canResize(shape, newBounds);
-  });
-
-  this.addRule('shapes.move', function(context) {
-
-    var target = context.target,
-        shapes = context.shapes,
-        position = context.position;
-
-    return canAttach(shapes, target, null, position) || canMove(shapes, target, position);
-  });
-
-  this.addRule([ 'shape.create', 'shape.append' ], function(context) {
-    var target = context.target,
-        shape = context.shape,
-        source = context.source,
-        position = context.position;
-
-    return canAttach([ shape ], target, source, position) || canCreate(shape, target, source, position);
-  });
-
-};
-
-BpmnRules.prototype.canConnectMessageFlow = canConnectMessageFlow;
-
-BpmnRules.prototype.canConnectSequenceFlow = canConnectSequenceFlow;
-
-BpmnRules.prototype.canConnectAssociation = canConnectAssociation;
-
-BpmnRules.prototype.canMove = canMove;
-
-BpmnRules.prototype.canAttach = canAttach;
-
-BpmnRules.prototype.canDrop = canDrop;
-
-BpmnRules.prototype.canInsert = canInsert;
-
-BpmnRules.prototype.canCreate = canCreate;
-
-BpmnRules.prototype.canConnect = canConnect;
-
-BpmnRules.prototype.canResize = canResize;
+module.exports.collectLanes = collectLanes;
 
 /**
- * Utility functions for rule checking
+ * Return the lane children of the given element.
+ *
+ * @param {djs.model.Shape} shape
+ *
+ * @return {Array<djs.model.Shape>}
  */
-
-function nonExistantOrLabel(element) {
-  return !element || isLabel(element);
+function getChildLanes(shape) {
+  return shape.children.filter(function(c) {
+    return is(c, 'bpmn:Lane');
+  });
 }
 
-function isSame(a, b) {
-  return a === b;
+module.exports.getChildLanes = getChildLanes;
+
+/**
+ * Return the root element containing the given lane shape
+ *
+ * @param {djs.model.Shape} shape
+ *
+ * @return {djs.model.Shape}
+ */
+function getLanesRoot(shape) {
+  return getParent(shape, LANE_PARENTS) || shape;
 }
 
-function getOrganizationalParent(element) {
+module.exports.getLanesRoot = getLanesRoot;
 
-  var bo = getBusinessObject(element);
 
-  while (bo && !is(bo, 'bpmn:Process')) {
-    if (is(bo, 'bpmn:Participant')) {
-      return bo.processRef || bo;
+/**
+ * Compute the required resize operations for lanes
+ * adjacent to the given shape, assuming it will be
+ * resized to the given new bounds.
+ *
+ * @param {djs.model.Shape} shape
+ * @param {Bounds} newBounds
+ *
+ * @return {Array<Object>}
+ */
+function computeLanesResize(shape, newBounds) {
+
+  var rootElement = getLanesRoot(shape);
+
+  var initialShapes = is(rootElement, 'bpmn:Process') ? [] : [ rootElement ];
+
+  var allLanes = collectLanes(rootElement, initialShapes),
+      shapeTrbl = asTRBL(shape),
+      shapeNewTrbl = asTRBL(newBounds),
+      trblResize = getTRBLResize(shape, newBounds),
+      resizeNeeded = [];
+
+  allLanes.forEach(function(other) {
+
+    if (other === shape) {
+      return;
     }
 
-    bo = bo.$parent;
-  }
+    var topResize = 0,
+        rightResize = trblResize.right,
+        bottomResize = 0,
+        leftResize = trblResize.left;
 
-  return bo;
+    var otherTrbl = asTRBL(other);
+
+    if (trblResize.top) {
+      if (abs(otherTrbl.bottom - shapeTrbl.top) < 10) {
+        bottomResize = shapeNewTrbl.top - otherTrbl.bottom;
+      }
+
+      if (abs(otherTrbl.top - shapeTrbl.top) < 5) {
+        topResize = shapeNewTrbl.top - otherTrbl.top;
+      }
+    }
+
+    if (trblResize.bottom) {
+      if (abs(otherTrbl.top - shapeTrbl.bottom) < 10) {
+        topResize = shapeNewTrbl.bottom - otherTrbl.top;
+      }
+
+      if (abs(otherTrbl.bottom - shapeTrbl.bottom) < 5) {
+        bottomResize = shapeNewTrbl.bottom - otherTrbl.bottom;
+      }
+    }
+
+    if (topResize || rightResize || bottomResize || leftResize) {
+
+      resizeNeeded.push({
+        shape: other,
+        newBounds: resizeTRBL(other, {
+          top: topResize,
+          right: rightResize,
+          bottom: bottomResize,
+          left: leftResize
+        })
+      });
+    }
+
+  });
+
+  return resizeNeeded;
 }
 
-function isSameOrganization(a, b) {
-  var parentA = getOrganizationalParent(a),
-      parentB = getOrganizationalParent(b);
+module.exports.computeLanesResize = computeLanesResize;
 
-  return parentA === parentB;
-}
+},{"173":173,"197":197,"44":44,"66":66}],44:[function(_dereq_,module,exports){
+'use strict';
 
-function isMessageFlowSource(element) {
-  return is(element, 'bpmn:InteractionNode') && (
-            !is(element, 'bpmn:Event') || (
-              is(element, 'bpmn:ThrowEvent') &&
-              hasEventDefinitionOrNone(element, 'bpmn:MessageEventDefinition')
-            )
-  );
-}
+var any = _dereq_(240);
 
-function isMessageFlowTarget(element) {
-  return is(element, 'bpmn:InteractionNode') && (
-            !is(element, 'bpmn:Event') || (
-              is(element, 'bpmn:CatchEvent') &&
-              hasEventDefinitionOrNone(element, 'bpmn:MessageEventDefinition')
-            )
-  );
-}
+var is = _dereq_(66).is;
 
-function getScopeParent(element) {
 
-  var bo = getBusinessObject(element);
+function getParents(element) {
 
-  if (is(bo, 'bpmn:Participant')) {
-    return null;
-  }
+  var parents = [];
 
-  while (bo) {
-    bo = bo.$parent;
+  while (element) {
+    element = element.parent;
 
-    if (is(bo, 'bpmn:FlowElementsContainer')) {
-      return bo;
+    if (element) {
+      parents.push(element);
     }
   }
 
-  return bo;
+  return parents;
 }
 
-function isSameScope(a, b) {
-  var scopeParentA = getScopeParent(a),
-      scopeParentB = getScopeParent(b);
+module.exports.getParents = getParents;
 
-  return scopeParentA && (scopeParentA === scopeParentB);
-}
-
-function hasEventDefinition(element, eventDefinition) {
-  var bo = getBusinessObject(element);
-
-  return !!find(bo.eventDefinitions || [], function(definition) {
-    return is(definition, eventDefinition);
-  });
-}
-
-function hasEventDefinitionOrNone(element, eventDefinition) {
-  var bo = getBusinessObject(element);
-
-  return (bo.eventDefinitions || []).every(function(definition) {
-    return is(definition, eventDefinition);
-  });
-}
-
-function isSequenceFlowSource(element) {
-  return is(element, 'bpmn:FlowNode') && !is(element, 'bpmn:EndEvent') &&
-        !(is(element, 'bpmn:IntermediateThrowEvent') &&
-          hasEventDefinition(element, 'bpmn:LinkEventDefinition')
-        );
-}
-
-function isSequenceFlowTarget(element) {
-  return is(element, 'bpmn:FlowNode') &&
-        !is(element, 'bpmn:StartEvent') &&
-        !is(element, 'bpmn:BoundaryEvent') &&
-        !(is(element, 'bpmn:IntermediateCatchEvent') &&
-          hasEventDefinition(element, 'bpmn:LinkEventDefinition'));
-}
-
-function isEventBasedTarget(element) {
-  return is(element, 'bpmn:ReceiveTask') || (
-         is(element, 'bpmn:IntermediateCatchEvent') && (
-           hasEventDefinition(element, 'bpmn:MessageEventDefinition') ||
-           hasEventDefinition(element, 'bpmn:TimerEventDefinition') ||
-           hasEventDefinition(element, 'bpmn:ConditionalEventDefinition') ||
-           hasEventDefinition(element, 'bpmn:SignalEventDefinition')
-         )
-  );
-}
-
-function isLabel(element) {
-  return element.labelTarget;
-}
-
-function isConnection(element) {
-  return element.waypoints;
-}
-
-function isParent(possibleParent, element) {
-  var allParents = getParents(element);
-  return allParents.indexOf(possibleParent) !== -1;
-}
-
-function canConnect(source, target, connection) {
-
-  if (nonExistantOrLabel(source) || nonExistantOrLabel(target)) {
-    return null;
-  }
-
-  // See https://github.com/bpmn-io/bpmn-js/issues/178
-  // as a workround we disallow connections with same
-  // target and source element.
-  // This rule must be removed if a auto layout for this
-  // connections is implemented.
-  if (isSame(source, target)) {
-    return false;
-  }
-
-  if (canConnectMessageFlow(source, target) ||
-      canConnectSequenceFlow(source, target)) {
-    return true;
-  }
-
-
-  if (is(connection, 'bpmn:Association')) {
-    return canConnectAssociation(source, target);
-  }
-
-  return false;
-}
 
 /**
- * Can an element be dropped into the target element
+ * Return true if element has any of the given types.
+ *
+ * @param {djs.model.Base} element
+ * @param {Array<String>} types
  *
  * @return {Boolean}
  */
-function canDrop(element, target) {
-
-  // can move labels everywhere
-  if (isLabel(element) && !isConnection(target)) {
-    return true;
-  }
-
-  // allow to create new participants on
-  // on existing collaboration and process diagrams
-  if (is(element, 'bpmn:Participant')) {
-    return is(target, 'bpmn:Process') || is(target, 'bpmn:Collaboration');
-  }
-
-  if (is(element, 'bpmn:BoundaryEvent')) {
-    return false;
-  }
-
-  // drop flow elements onto flow element containers
-  // and participants
-  if (is(element, 'bpmn:FlowElement')) {
-    if (is(target, 'bpmn:FlowElementsContainer')) {
-      return isExpanded(target) !== false;
-    }
-
-    return is(target, 'bpmn:Participant');
-  }
-
-  if (is(element, 'bpmn:Artifact')) {
-    return is(target, 'bpmn:Collaboration') ||
-           is(target, 'bpmn:Participant') ||
-           is(target, 'bpmn:Process');
-  }
-
-  if (is(element, 'bpmn:MessageFlow')) {
-    return is(target, 'bpmn:Collaboration');
-  }
-
-  return false;
-}
-
-function isBoundaryEvent(element) {
-  return !isLabel(element) && is(element, 'bpmn:BoundaryEvent');
-}
-
-/**
- * We treat IntermediateThrowEvents as boundary events during create,
- * this must be reflected in the rules.
- */
-function isBoundaryCandidate(element) {
-  return isBoundaryEvent(element) ||
-        (is(element, 'bpmn:IntermediateThrowEvent') && !element.parent);
-}
-
-
-function canAttach(elements, target, source, position) {
-
-  // disallow appending as boundary event
-  if (source) {
-    return false;
-  }
-
-  // only (re-)attach one element at a time
-  if (elements.length !== 1) {
-    return false;
-  }
-
-  var element = elements[0];
-
-  // do not attach labels
-  if (isLabel(element)) {
-    return false;
-  }
-
-  // only handle boundary events
-  if (!isBoundaryCandidate(element)) {
-    return false;
-  }
-
-  // allow default move operation
-  if (!target) {
-    return true;
-  }
-
-  // only allow drop on activities
-  if (!is(target, 'bpmn:Activity')) {
-    return false;
-  }
-
-  // only attach to subprocess border
-  if (position && !isBoundaryAttachment(position, target)) {
-    return false;
-  }
-
-  return 'attach';
-}
-
-function canMove(elements, target) {
-
-  // only move if they have the same parent
-  if (!haveSameParent(elements)) {
-    return false;
-  }
-
-  // do not move selection containing boundary events
-  if (any(elements, isBoundaryEvent)) {
-    return false;
-  }
-
-  // allow default move check to start move operation
-  if (!target) {
-    return true;
-  }
-
-  return elements.every(function(element) {
-    return canDrop(element, target);
+function isAny(element, types) {
+  return any(types, function(t) {
+    return is(element, t);
   });
 }
 
-function canCreate(shape, target, source, position) {
+module.exports.isAny = isAny;
 
-  if (!target) {
-    return false;
+
+/**
+ * Return the parent of the element with any of the given types.
+ *
+ * @param {djs.model.Base} element
+ * @param {String|Array<String>} anyType
+ *
+ * @return {djs.model.Base}
+ */
+function getParent(element, anyType) {
+
+  if (typeof anyType === 'string') {
+    anyType = [ anyType ];
   }
 
-  if (isLabel(target)) {
-    return null;
+  while ((element = element.parent)) {
+    if (isAny(element, anyType)) {
+      return element;
+    }
   }
 
-  if (isSame(source, target)) {
-    return false;
-  }
-
-  // ensure we do not drop the element
-  // into source
-  if (source && isParent(source, target)) {
-    return false;
-  }
-
-  return canDrop(shape, target, position) || canInsert(shape, target, position);
+  return null;
 }
 
-function canResize(shape, newBounds) {
-  if (is(shape, 'bpmn:SubProcess')) {
-    return (!!isExpanded(shape)) && (
-          !newBounds || (newBounds.width >= 100 && newBounds.height >= 80)
-    );
-  }
-
-  if (is(shape, 'bpmn:Participant')) {
-    return !newBounds || (newBounds.width >= 100 && newBounds.height >= 80);
-  }
-
-  if (is(shape, 'bpmn:TextAnnotation')) {
-    return true;
-  }
-
-  return false;
-}
-
-function canConnectAssociation(source, target) {
-
-  // do not connect connections
-  if (isConnection(source) || isConnection(target)) {
-    return false;
-  }
-
-  // connect if different parent
-  return !isParent(target, source) &&
-         !isParent(source, target);
-}
-
-function canConnectMessageFlow(source, target) {
-
-  return isMessageFlowSource(source) &&
-         isMessageFlowTarget(target) &&
-        !isSameOrganization(source, target);
-}
-
-function canConnectSequenceFlow(source, target) {
-
-  return isSequenceFlowSource(source) &&
-         isSequenceFlowTarget(target) &&
-         isSameScope(source, target) &&
-         !(is(source, 'bpmn:EventBasedGateway') && !isEventBasedTarget(target));
-}
-
-function canInsert(shape, flow, position) {
-
-  // return true if we can drop on the
-  // underlying flow parent
-  //
-  // at this point we are not really able to talk
-  // about connection rules (yet)
-  return (
-    is(flow, 'bpmn:SequenceFlow') ||
-    is(flow, 'bpmn:MessageFlow')
-  ) && is(shape, 'bpmn:FlowNode') && !is(shape, 'bpmn:BoundaryEvent') &&
-
-  canDrop(shape, flow.parent, position);
-}
-
-function haveSameParent(elements) {
-  return size(groupBy(elements, function(e) { return e.parent && e.parent.id; })) === 1;
-}
-
-},{"153":153,"207":207,"21":21,"214":214,"217":217,"219":219,"223":223,"41":41,"48":48,"50":50}],34:[function(_dereq_,module,exports){
-module.exports = {
-  __depends__: [
-    _dereq_(155)
-  ],
-  __init__: [ 'bpmnRules' ],
-  bpmnRules: [ 'type', _dereq_(33) ]
-};
-
-},{"155":155,"33":33}],35:[function(_dereq_,module,exports){
+module.exports.getParent = getParent;
+},{"240":240,"66":66}],45:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(339);
+var inherits = _dereq_(232);
+
+var OrderingProvider = _dereq_(160);
+
+var isAny = _dereq_(44).isAny;
+
+var findIndex = _dereq_(233);
+
+var find = _dereq_(243);
+
+
+/**
+ * a simple ordering provider that makes sure:
+ *
+ * (1) elements are ordered by a {level} property
+ * (2) elements with {alwaysOnTop} are always added to the root
+ */
+function BpmnOrderingProvider(eventBus) {
+
+  OrderingProvider.call(this, eventBus);
+
+  var orders = [
+    { type: 'label', order: { level: 10 } },
+    { type: 'bpmn:SubProcess', order: { level: 6 } },
+    {
+      type: 'bpmn:SequenceFlow',
+      order: {
+        level: 5,
+        containers: [
+          'bpmn:Participant',
+          'bpmn:FlowElementsContainer'
+        ]
+      }
+    },
+    {
+      type: 'bpmn:Association',
+      order: {
+        level: 6,
+        containers: [
+          'bpmn:Participant',
+          'bpmn:FlowElementsContainer',
+          'bpmn:Collaboration'
+        ]
+      }
+    },
+    { type: 'bpmn:MessageFlow', order: { level: 9, containers: [ 'bpmn:Collaboration' ] } },
+    { type: 'bpmn:BoundaryEvent', order: { level: 8 } },
+    { type: 'bpmn:Participant', order: { level: -2 } },
+    { type: 'bpmn:Lane', order: { level: -1 } }
+  ];
+
+  function computeOrder(element) {
+    var entry = find(orders, function(o) {
+      return element.type === o.type;
+    });
+
+    return entry && entry.order || { level: 1 };
+  }
+
+  function getOrder(element) {
+
+    var order = element.order;
+
+    if (!order) {
+      element.order = order = computeOrder(element);
+    }
+
+    return order;
+  }
+
+  function findActualParent(element, newParent, containers) {
+
+    var actualParent = newParent;
+
+    while (actualParent) {
+
+      if (isAny(actualParent, containers)) {
+        break;
+      }
+
+      actualParent = actualParent.parent;
+    }
+
+    if (!actualParent) {
+      throw new Error('no parent for ' + element.id + ' in ' + newParent.id);
+    }
+
+    return actualParent;
+  }
+
+  this.getOrdering = function(element, newParent) {
+
+    var elementOrder = getOrder(element);
+
+
+    if (elementOrder.containers) {
+      newParent = findActualParent(element, newParent, elementOrder.containers);
+    }
+
+
+    var currentIndex = newParent.children.indexOf(element);
+
+    var insertIndex = findIndex(newParent.children, function(child) {
+      return elementOrder.level < getOrder(child).level;
+    });
+
+
+    // if the element is already in the child list at
+    // a smaller index, we need to adjust the inser index.
+    // this takes into account that the element is being removed
+    // before being re-inserted
+    if (insertIndex !== -1) {
+      if (currentIndex !== -1 && currentIndex < insertIndex) {
+        insertIndex -= 1;
+      }
+    }
+
+    return {
+      index: insertIndex,
+      parent: newParent
+    };
+  };
+}
+
+BpmnOrderingProvider.$inject = [ 'eventBus' ];
+
+inherits(BpmnOrderingProvider, OrderingProvider);
+
+module.exports = BpmnOrderingProvider;
+
+},{"160":160,"232":232,"233":233,"243":243,"44":44}],46:[function(_dereq_,module,exports){
+module.exports = {
+  __init__: [ 'bpmnOrderingProvider' ],
+  bpmnOrderingProvider: [ 'type', _dereq_(45) ]
+};
+},{"45":45}],47:[function(_dereq_,module,exports){
+'use strict';
+
+var assign = _dereq_(366);
 
 /**
  * A palette provider for BPMN 2.0 elements.
@@ -5448,6 +6808,9 @@ PaletteProvider.prototype.getPaletteEntries = function(element) {
     'create.task': createAction(
       'bpmn:Task', 'activity', 'icon-task'
     ),
+    'create.data-object': createAction(
+      'bpmn:DataObjectReference', 'data-object', 'icon-data-object'
+    ),
     'create.subprocess-expanded': createAction(
       'bpmn:SubProcess', 'activity', 'icon-subprocess-expanded', 'Create expanded SubProcess',
       { isExpanded: true }
@@ -5466,27 +6829,145 @@ PaletteProvider.prototype.getPaletteEntries = function(element) {
   return actions;
 };
 
-},{"339":339}],36:[function(_dereq_,module,exports){
+},{"366":366}],48:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(145),
-    _dereq_(104),
     _dereq_(166),
-    _dereq_(114)
+    _dereq_(122),
+    _dereq_(189),
+    _dereq_(134)
   ],
   __init__: [ 'paletteProvider' ],
-  paletteProvider: [ 'type', _dereq_(35) ]
+  paletteProvider: [ 'type', _dereq_(47) ]
 };
 
-},{"104":104,"114":114,"145":145,"166":166,"35":35}],37:[function(_dereq_,module,exports){
+},{"122":122,"134":134,"166":166,"189":189,"47":47}],49:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218),
-    filter = _dereq_(216),
-    pick = _dereq_(345),
-    assign = _dereq_(339);
+var CommandInterceptor = _dereq_(94);
 
-var REPLACE_OPTIONS = _dereq_(38);
+var inherits = _dereq_(232);
+
+var assign = _dereq_(366),
+    forEach = _dereq_(244);
+
+var LOW_PRIORITY = 250;
+
+function BpmnReplacePreview(eventBus, elementRegistry, elementFactory, canvas, moveVisuals) {
+
+  CommandInterceptor.call(this, eventBus);
+
+  /**
+   * Replace the visuals of all elements in the context which can be replaced
+   *
+   * @param  {Object} context
+   */
+  function replaceVisual(context) {
+
+    var replacements = context.canExecute.replacements;
+
+    forEach(replacements, function(replacement) {
+
+      var id = replacement.oldElementId;
+
+      var newElement = {
+        type: replacement.newElementType
+      };
+
+      // if the visual of the element is already replaced
+      if (context.visualReplacements[id]) {
+        return;
+      }
+
+      var element = elementRegistry.get(id);
+
+      assign(newElement, { x: element.x, y: element.y });
+
+      // create a temporary shape
+      var tempShape = elementFactory.createShape(newElement);
+
+      canvas.addShape(tempShape, element.parent);
+
+      // select the original SVG element related to the element and hide it
+      var gfx = context.dragGroup.select('[data-element-id=' + element.id + ']');
+
+      if (gfx) {
+        gfx.attr({ display: 'none' });
+      }
+
+      // clone the gfx of the temporary shape and add it to the drag group
+      var dragger = moveVisuals.addDragger(context, tempShape);
+
+      context.visualReplacements[id] = dragger;
+
+      canvas.removeShape(tempShape);
+    });
+  }
+
+  /**
+   * Restore the original visuals of the previously replaced elements
+   *
+   * @param  {Object} context
+   */
+  function restoreVisual(context) {
+
+    var visualReplacements = context.visualReplacements;
+
+    forEach(visualReplacements, function(dragger, id) {
+
+      var originalGfx = context.dragGroup.select('[data-element-id=' + id + ']');
+
+      if (originalGfx) {
+        originalGfx.attr({ display: 'inline' });
+      }
+
+      dragger.remove();
+
+      if (visualReplacements[id]) {
+        delete visualReplacements[id];
+      }
+    });
+  }
+
+  eventBus.on('shape.move.move', LOW_PRIORITY, function(event) {
+
+    var context = event.context,
+        canExecute = context.canExecute;
+
+    if (!context.visualReplacements) {
+      context.visualReplacements = {};
+    }
+
+    if (canExecute.replacements) {
+      replaceVisual(context);
+    } else {
+      restoreVisual(context);
+    }
+  });
+}
+
+BpmnReplacePreview.$inject = [ 'eventBus', 'elementRegistry', 'elementFactory', 'canvas', 'moveVisuals' ];
+
+inherits(BpmnReplacePreview, CommandInterceptor);
+
+module.exports = BpmnReplacePreview;
+
+},{"232":232,"244":244,"366":366,"94":94}],50:[function(_dereq_,module,exports){
+module.exports = {
+  __depends__: [ _dereq_(159) ],
+  __init__: ['bpmnReplacePreview'],
+  bpmnReplacePreview: [ 'type', _dereq_(49) ]
+};
+
+},{"159":159,"49":49}],51:[function(_dereq_,module,exports){
+'use strict';
+
+var forEach = _dereq_(244),
+    filter = _dereq_(242),
+    pick = _dereq_(372),
+    assign = _dereq_(366);
+
+var REPLACE_OPTIONS = _dereq_(52);
 
 var startEventReplace =  REPLACE_OPTIONS.START_EVENT,
     intermediateEventReplace =  REPLACE_OPTIONS.INTERMEDIATE_EVENT,
@@ -5495,16 +6976,23 @@ var startEventReplace =  REPLACE_OPTIONS.START_EVENT,
     taskReplace =  REPLACE_OPTIONS.TASK,
     subProcessExpandedReplace = REPLACE_OPTIONS.SUBPROCESS_EXPANDED,
     transactionReplace = REPLACE_OPTIONS.TRANSACTION,
-    boundaryEventReplace =  REPLACE_OPTIONS.BOUNDARY_EVENT;
+    eventSubProcessReplace = REPLACE_OPTIONS.EVENT_SUB_PROCESS,
+    boundaryEventReplace =  REPLACE_OPTIONS.BOUNDARY_EVENT,
+    eventSubProcessStartEventReplace = REPLACE_OPTIONS.EVENT_SUB_PROCESS_START_EVENT,
+    sequenceFlowReplace = REPLACE_OPTIONS.SEQUENCE_FLOW;
 
-var is = _dereq_(50).is,
-    getBusinessObject = _dereq_(50).getBusinessObject,
-    isExpanded = _dereq_(48).isExpanded;
+var is = _dereq_(66).is,
+    getBusinessObject = _dereq_(66).getBusinessObject,
+    isExpanded = _dereq_(64).isExpanded,
+    isEventSubProcess = _dereq_(64).isEventSubProcess;
+
 
 var CUSTOM_PROPERTIES = [
   'cancelActivity',
   'instantiate',
-  'eventGatewayType'
+  'eventGatewayType',
+  'triggeredByEvent',
+  'isInterrupting'
 ];
 
 
@@ -5529,9 +7017,12 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
    *
    * @param  {djs.model.Base} element
    * @param  {Object} target
+   * @param  {Object} [hints]
    * @return {djs.model.Base} the newly created element
    */
-  function replaceElement(element, target) {
+  function replaceElement(element, target, hints) {
+
+    hints = hints || {};
 
     var type = target.type,
         oldBusinessObject = element.businessObject,
@@ -5543,7 +7034,6 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
     };
 
     // initialize custom BPMN extensions
-
     if (target.eventDefinition) {
       var eventDefinitions = businessObject.get('eventDefinitions'),
           eventDefinition = moddle.create(target.eventDefinition);
@@ -5552,9 +7042,7 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
     }
 
     // initialize special properties defined in target definition
-
     assign(businessObject, pick(target, CUSTOM_PROPERTIES));
-
 
     // copy size (for activities only)
     if (is(oldBusinessObject, 'bpmn:Activity')) {
@@ -5565,18 +7053,29 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
       newElement.height = element.height;
     }
 
-
     if (is(oldBusinessObject, 'bpmn:SubProcess')) {
       newElement.isExpanded = isExpanded(oldBusinessObject);
     }
 
-    // TODO: copy other elligable properties from old business object
     businessObject.name = oldBusinessObject.name;
-    businessObject.loopCharacteristics = oldBusinessObject.loopCharacteristics;
+
+    // retain loop characteristics if the target element is not an event sub process
+    if (!isEventSubProcess(businessObject)) {
+      businessObject.loopCharacteristics = oldBusinessObject.loopCharacteristics;
+    }
+
+    // retain default flow's reference between inclusive and exclusive gateways
+    if ((is(oldBusinessObject, 'bpmn:ExclusiveGateway') || is(oldBusinessObject, 'bpmn:InclusiveGateway')) &&
+        (is(businessObject, 'bpmn:ExclusiveGateway') || is(businessObject, 'bpmn:InclusiveGateway')))
+    {
+      businessObject.default = oldBusinessObject.default;
+    }
 
     newElement = replace.replaceElement(element, newElement);
 
-    selection.select(newElement);
+    if (hints.select !== false) {
+      selection.select(newElement);
+    }
 
     return newElement;
   }
@@ -5627,6 +7126,7 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
       {
         id: 'toggle-parallel-mi',
         className: 'icon-parallel-mi-marker',
+        title: 'Parallel Multi Instance',
         active: isParallel,
         action: toggleLoopEntry,
         options: {
@@ -5637,6 +7137,7 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
       {
         id: 'toggle-sequential-mi',
         className: 'icon-sequential-mi-marker',
+        title: 'Sequential Multi Instance',
         active: isSequential,
         action: toggleLoopEntry,
         options: {
@@ -5647,6 +7148,7 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
       {
         id: 'toggle-loop',
         className: 'icon-loop-marker',
+        title: 'Loop',
         active: isLoop,
         action: toggleLoopEntry,
         options: {
@@ -5666,6 +7168,7 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
     var adHocEntry = {
       id: 'toggle-adhoc',
       className: 'icon-ad-hoc-marker',
+      title: 'Ad-hoc',
       active: isAdHoc,
       action: function(event, entry) {
         if (isAdHoc) {
@@ -5680,13 +7183,19 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
   }
 
 
-  function getReplaceOptions(element) {
+  this.getReplaceOptions = function(element) {
 
     var menuEntries = [];
     var businessObject = element.businessObject;
 
-    if (is(businessObject, 'bpmn:StartEvent')) {
+    // start events outside event sub processes
+    if (is(businessObject, 'bpmn:StartEvent') && !isEventSubProcess(businessObject.$parent)) {
       addEntries(startEventReplace, filterEvents);
+    } else
+
+    // start events inside event sub processes
+    if (is(businessObject, 'bpmn:StartEvent') && isEventSubProcess(businessObject.$parent)) {
+      addEntries(eventSubProcessStartEventReplace, filterEvents);
     } else
 
     if (is(businessObject, 'bpmn:IntermediateCatchEvent') ||
@@ -5710,16 +7219,20 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
 
     if (is(businessObject, 'bpmn:Transaction')) {
 
-      addEntries(transactionReplace, filterEvents);
+      addEntries(transactionReplace);
+    } else
+
+    if (isEventSubProcess(businessObject) && isExpanded(businessObject)) {
+
+      addEntries(eventSubProcessReplace);
     } else
 
     if (is(businessObject, 'bpmn:SubProcess') && isExpanded(businessObject)) {
 
-      addEntries(subProcessExpandedReplace, filterEvents);
+      addEntries(subProcessExpandedReplace);
     } else
 
     if (is(businessObject, 'bpmn:AdHocSubProcess') && !isExpanded(businessObject)) {
-
       addEntries(taskReplace, function(entry) {
         return entry.target.type !== 'bpmn:SubProcess';
       });
@@ -5729,31 +7242,98 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
       addEntries(boundaryEventReplace, filterEvents);
     } else
 
+    if (is(businessObject, 'bpmn:SequenceFlow')) {
+      addSequenceFlowEntries(sequenceFlowReplace);
+    } else
+
     if (is(businessObject, 'bpmn:FlowNode')) {
       addEntries(taskReplace, function(entry) {
         return entry.target.type  !== businessObject.$type;
       });
     }
 
+    function addSequenceFlowEntries(entries) {
+      forEach(entries, function(entry) {
+
+        switch (entry.actionName) {
+          case 'replace-with-default-flow':
+            if (businessObject.sourceRef.default !== businessObject &&
+                is(businessObject.sourceRef, 'bpmn:ExclusiveGateway') ||
+                is(businessObject.sourceRef, 'bpmn:InclusiveGateway')) {
+
+              menuEntries.push(addMenuEntry(entry, function() {
+                modeling.updateProperties(element.source, { default: businessObject });
+              }));
+            }
+            break;
+          case 'replace-with-conditional-flow':
+            if (!businessObject.conditionExpression && is(businessObject.sourceRef, 'bpmn:Activity')) {
+
+              menuEntries.push(addMenuEntry(entry, function() {
+                var conditionExpression = moddle.create('bpmn:FormalExpression', { body: ''});
+
+                modeling.updateProperties(element, { conditionExpression: conditionExpression });
+              }));
+            }
+            break;
+          default:
+            // default flows
+            if (is(businessObject.sourceRef, 'bpmn:Activity') && businessObject.conditionExpression) {
+              return menuEntries.push(addMenuEntry(entry, function() {
+                modeling.updateProperties(element, { conditionExpression: undefined });
+              }));
+            }
+            // conditional flows
+            if ((is(businessObject.sourceRef, 'bpmn:ExclusiveGateway') ||
+               is(businessObject.sourceRef, 'bpmn:InclusiveGateway')) &&
+               businessObject.sourceRef.default === businessObject) {
+
+              return menuEntries.push(addMenuEntry(entry, function() {
+                modeling.updateProperties(element.source, { default: undefined });
+              }));
+            }
+        }
+      });
+    }
 
     function filterEvents(entry) {
 
       var target = entry.target;
 
-      var eventDefinition = businessObject.eventDefinitions && businessObject.eventDefinitions[0].$type,
-          cancelActivity;
-
-      if (businessObject.$type === 'bpmn:BoundaryEvent') {
-        cancelActivity = target.cancelActivity !== false;
-      }
+      var eventDefinition = businessObject.eventDefinitions && businessObject.eventDefinitions[0].$type;
 
       var isEventDefinitionEqual = target.eventDefinition == eventDefinition,
-          isEventTypeEqual = businessObject.$type == target.type,
-          isInterruptingEqual = businessObject.cancelActivity == cancelActivity;
+          isEventTypeEqual = businessObject.$type == target.type;
 
-      return ((!isEventDefinitionEqual && isEventTypeEqual) ||
-              !isEventTypeEqual) ||
-              !(isEventDefinitionEqual && isEventTypeEqual && isInterruptingEqual);
+      // filter for boundary events
+      if (is(businessObject, 'bpmn:BoundaryEvent')) {
+        if (target.eventDefinition == 'bpmn:CancelEventDefinition' &&
+           !is(businessObject.attachedToRef, 'bpmn:Transaction')) {
+          return false;
+        }
+        var cancelActivity = target.cancelActivity !== false;
+
+        var isCancelActivityEqual = businessObject.cancelActivity == cancelActivity;
+
+        return !(isEventDefinitionEqual && isEventTypeEqual && isCancelActivityEqual);
+      }
+
+      // filter for start events inside event sub processes
+      if (is(businessObject, 'bpmn:StartEvent') && isEventSubProcess(businessObject.$parent)) {
+        var isInterrupting = target.isInterrupting !== false;
+
+        var isInterruptingEqual = businessObject.isInterrupting == isInterrupting;
+
+        return !(isEventDefinitionEqual && isEventDefinitionEqual && isInterruptingEqual);
+      }
+
+      if (is(businessObject, 'bpmn:EndEvent') && target.eventDefinition == 'bpmn:CancelEventDefinition' &&
+         !is(businessObject.$parent, 'bpmn:Transaction')) {
+          return false;
+      }
+
+      // filter for all other elements
+      return (!isEventDefinitionEqual && isEventTypeEqual) || !isEventTypeEqual;
     }
 
 
@@ -5763,30 +7343,37 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
 
       // Add entries to replace menu
       forEach(filteredEntries, function(definition) {
-
         var entry = addMenuEntry(definition);
+
         menuEntries.push(entry);
       });
     }
 
 
-    function addMenuEntry(definition) {
+    function addMenuEntry(definition, action) {
 
-      return {
+      var menuEntry = {
         label: definition.label,
         className: definition.className,
         id: definition.actionName,
-        action: function() {
-          return replaceElement(element, definition.target);
-        }
+        action: action
       };
+
+      if (!menuEntry.action) {
+        menuEntry.action = function() {
+          return replaceElement(element, definition.target);
+        };
+      }
+
+      return menuEntry;
     }
 
     return menuEntries;
-  }
+  };
 
   /**
-   * [function description]
+   * Open a replace chooser for an element on the specified position.
+   *
    * @param  {Object} position
    * @param  {Object} element
    */
@@ -5794,11 +7381,13 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
     var entries = this.getReplaceOptions(element),
         headerEntries = [];
 
-    if (is(element, 'bpmn:Activity')) {
+    if (is(element, 'bpmn:Activity') && !isEventSubProcess(element)) {
       headerEntries = headerEntries.concat(this.getLoopEntries(element));
     }
 
-    if (is(element, 'bpmn:SubProcess') && !is(element, 'bpmn:Transaction')) {
+    if (is(element, 'bpmn:SubProcess') &&
+        !is(element, 'bpmn:Transaction') &&
+        !isEventSubProcess(element)) {
       headerEntries.push(this.getAdHocEntry(element));
     }
 
@@ -5811,8 +7400,6 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
     });
   };
 
-  this.getReplaceOptions = getReplaceOptions;
-
   this.getLoopEntries = getLoopEntries;
 
   this.getAdHocEntry = getAdHocEntry;
@@ -5824,7 +7411,7 @@ BpmnReplace.$inject = [ 'bpmnFactory', 'moddle', 'popupMenu', 'replace', 'select
 
 module.exports = BpmnReplace;
 
-},{"216":216,"218":218,"339":339,"345":345,"38":38,"48":48,"50":50}],38:[function(_dereq_,module,exports){
+},{"242":242,"244":244,"366":366,"372":372,"52":52,"64":64,"66":66}],52:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports.START_EVENT = [
@@ -6174,6 +7761,16 @@ module.exports.SUBPROCESS_EXPANDED = [
       type: 'bpmn:Transaction',
       isExpanded: true
     }
+  },
+  {
+    label: 'Event Sub Process',
+    actionName: 'replace-with-event-subprocess',
+    className: 'icon-event-subprocess-expanded',
+    target: {
+      type: 'bpmn:SubProcess',
+      triggeredByEvent: true,
+      isExpanded: true
+    }
   }
 ];
 
@@ -6183,9 +7780,41 @@ module.exports.TRANSACTION = [
     actionName: 'replace-with-subprocess',
     className: 'icon-subprocess-expanded',
     target: {
-      type: 'bpmn:SubProcess'
+      type: 'bpmn:SubProcess',
+      isExpanded: true
+    }
+  },
+  {
+    label: 'Event Sub Process',
+    actionName: 'replace-with-event-subprocess',
+    className: 'icon-event-subprocess-expanded',
+    target: {
+      type: 'bpmn:SubProcess',
+      triggeredByEvent: true,
+      isExpanded: true
     }
   }
+];
+
+module.exports.EVENT_SUB_PROCESS = [
+  {
+    label: 'Sub Process',
+    actionName: 'replace-with-subprocess',
+    className: 'icon-subprocess-expanded',
+    target: {
+      type: 'bpmn:SubProcess',
+      isExpanded: true
+    }
+  },
+  {
+    label: 'Transaction',
+    actionName: 'replace-with-transaction',
+    className: 'icon-transaction',
+    target: {
+      type: 'bpmn:Transaction',
+      isExpanded: true
+    }
+  },
 ];
 
 module.exports.TASK = [
@@ -6319,6 +7948,15 @@ module.exports.BOUNDARY_EVENT = [
     }
   },
   {
+    label: 'Cancel Boundary Event',
+    actionName: 'replace-with-cancel-boundary',
+    className: 'icon-intermediate-event-catch-cancel',
+    target: {
+      type: 'bpmn:BoundaryEvent',
+      eventDefinition: 'bpmn:CancelEventDefinition'
+    }
+  },
+  {
     label: 'Signal Boundary Event',
     actionName: 'replace-with-signal-boundary',
     className: 'icon-intermediate-event-catch-signal',
@@ -6379,31 +8017,788 @@ module.exports.BOUNDARY_EVENT = [
   },
 ];
 
-},{}],39:[function(_dereq_,module,exports){
+module.exports.EVENT_SUB_PROCESS_START_EVENT = [
+  {
+    label: 'Message Start Event',
+    actionName: 'replace-with-message-start',
+    className: 'icon-start-event-message',
+    target: {
+      type: 'bpmn:StartEvent',
+      eventDefinition: 'bpmn:MessageEventDefinition'
+    }
+  },
+  {
+    label: 'Timer Start Event',
+    actionName: 'replace-with-timer-start',
+    className: 'icon-start-event-timer',
+    target: {
+      type: 'bpmn:StartEvent',
+      eventDefinition: 'bpmn:TimerEventDefinition'
+    }
+  },
+  {
+    label: 'Conditional Start Event',
+    actionName: 'replace-with-conditional-start',
+    className: 'icon-start-event-condition',
+    target: {
+      type: 'bpmn:StartEvent',
+      eventDefinition: 'bpmn:ConditionalEventDefinition'
+    }
+  },
+  {
+    label: 'Signal Start Event',
+    actionName: 'replace-with-signal-start',
+    className: 'icon-start-event-signal',
+    target: {
+      type: 'bpmn:StartEvent',
+      eventDefinition: 'bpmn:SignalEventDefinition'
+    }
+  },
+  {
+    label: 'Error Start Event',
+    actionName: 'replace-with-error-start',
+    className: 'icon-start-event-error',
+    target: {
+      type: 'bpmn:StartEvent',
+      eventDefinition: 'bpmn:ErrorEventDefinition'
+    }
+  },
+  {
+    label: 'Escalation Start Event',
+    actionName: 'replace-with-escalation-start',
+    className: 'icon-start-event-escalation',
+    target: {
+      type: 'bpmn:StartEvent',
+      eventDefinition: 'bpmn:EscalationEventDefinition'
+    }
+  },
+  {
+    label: 'Compensation Start Event',
+    actionName: 'replace-with-compensation-start',
+    className: 'icon-start-event-compensation',
+    target: {
+      type: 'bpmn:StartEvent',
+      eventDefinition: 'bpmn:CompensateEventDefinition'
+    }
+  },
+  {
+    label: 'Message Start Event (non-interrupting)',
+    actionName: 'replace-with-non-interrupting-message-start',
+    className: 'icon-start-event-non-interrupting-message',
+    target: {
+      type: 'bpmn:StartEvent',
+      eventDefinition: 'bpmn:MessageEventDefinition',
+      isInterrupting: false
+    }
+  },
+  {
+    label: 'Timer Start Event (non-interrupting)',
+    actionName: 'replace-with-non-interrupting-timer-start',
+    className: 'icon-start-event-non-interrupting-timer',
+    target: {
+      type: 'bpmn:StartEvent',
+      eventDefinition: 'bpmn:TimerEventDefinition',
+      isInterrupting: false
+    }
+  },
+  {
+    label: 'Conditional Start Event (non-interrupting)',
+    actionName: 'replace-with-non-interrupting-conditional-start',
+    className: 'icon-start-event-non-interrupting-condition',
+    target: {
+      type: 'bpmn:StartEvent',
+      eventDefinition: 'bpmn:ConditionalEventDefinition',
+      isInterrupting: false
+    }
+  },
+  {
+    label: 'Signal Start Event (non-interrupting)',
+    actionName: 'replace-with-non-interrupting-signal-start',
+    className: 'icon-start-event-non-interrupting-signal',
+    target: {
+      type: 'bpmn:StartEvent',
+      eventDefinition: 'bpmn:SignalEventDefinition',
+      isInterrupting: false
+    }
+  },
+  {
+    label: 'Escalation Start Event (non-interrupting)',
+    actionName: 'replace-with-non-interrupting-escalation-start',
+    className: 'icon-start-event-non-interrupting-escalation',
+    target: {
+      type: 'bpmn:StartEvent',
+      eventDefinition: 'bpmn:EscalationEventDefinition',
+      isInterrupting: false
+    }
+  },
+];
+
+module.exports.SEQUENCE_FLOW = [
+  {
+    label: 'Sequence Flow',
+    actionName: 'replace-with-sequence-flow',
+    className: 'icon-connection',
+  },
+  {
+    label: 'Default Flow',
+    actionName: 'replace-with-default-flow',
+    className: 'icon-default-flow',
+  },
+  {
+    label: 'Conditional Flow',
+    actionName: 'replace-with-conditional-flow',
+    className: 'icon-conditional-flow',
+  }
+];
+
+},{}],53:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(147),
-    _dereq_(149),
-    _dereq_(159)
+    _dereq_(168),
+    _dereq_(170),
+    _dereq_(182)
   ],
-  bpmnReplace: [ 'type', _dereq_(37) ]
+  bpmnReplace: [ 'type', _dereq_(51) ]
 };
-},{"147":147,"149":149,"159":159,"37":37}],40:[function(_dereq_,module,exports){
+},{"168":168,"170":170,"182":182,"51":51}],54:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(207);
+var find = _dereq_(243),
+    any = _dereq_(240),
+    forEach = _dereq_(244),
+    inherits = _dereq_(232);
 
-var forEach = _dereq_(218);
+var getParents = _dereq_(44).getParents,
+    is = _dereq_(66).is,
+    isAny = _dereq_(44).isAny,
+    getBusinessObject = _dereq_(66).getBusinessObject,
+    isExpanded = _dereq_(64).isExpanded,
+    isEventSubProcess = _dereq_(64).isEventSubProcess,
+    isInterrupting = _dereq_(64).isInterrupting;
 
-var getBoundingBox = _dereq_(186).getBBox;
-var is = _dereq_(21).is,
-    isExpanded = _dereq_(48).isExpanded;
 
-var Snapping = _dereq_(162),
-    SnapUtil = _dereq_(161);
+var RuleProvider = _dereq_(176);
 
-var is = _dereq_(50).is;
+var isBoundaryAttachment = _dereq_(57).getBoundaryAttachment;
 
+/**
+ * BPMN specific modeling rule
+ */
+function BpmnRules(eventBus) {
+  RuleProvider.call(this, eventBus);
+}
+
+inherits(BpmnRules, RuleProvider);
+
+BpmnRules.$inject = [ 'eventBus' ];
+
+module.exports = BpmnRules;
+
+BpmnRules.prototype.init = function() {
+
+  this.addRule('connection.create', function(context) {
+    var source = context.source,
+        target = context.target;
+
+    return canConnect(source, target);
+  });
+
+  this.addRule('connection.reconnectStart', function(context) {
+
+    var connection = context.connection,
+        source = context.hover || context.source,
+        target = connection.target;
+
+    return canConnect(source, target, connection);
+  });
+
+  this.addRule('connection.reconnectEnd', function(context) {
+
+    var connection = context.connection,
+        source = connection.source,
+        target = context.hover || context.target;
+
+    return canConnect(source, target, connection);
+  });
+
+  this.addRule('connection.updateWaypoints', function(context) {
+    // OK! but visually ignore
+    return null;
+  });
+
+  this.addRule('shape.resize', function(context) {
+
+    var shape = context.shape,
+        newBounds = context.newBounds;
+
+    return canResize(shape, newBounds);
+  });
+
+  this.addRule('elements.move', function(context) {
+
+    var target = context.target,
+        shapes = context.shapes,
+        position = context.position;
+
+    return canAttach(shapes, target, null, position) ||
+           canReplace(shapes, target, position) ||
+           canMove(shapes, target, position);
+  });
+
+  this.addRule([ 'shape.create', 'shape.append' ], function(context) {
+    var target = context.target,
+        shape = context.shape,
+        source = context.source,
+        position = context.position;
+
+    return canAttach([ shape ], target, source, position) || canCreate(shape, target, source, position);
+  });
+
+};
+
+BpmnRules.prototype.canConnectMessageFlow = canConnectMessageFlow;
+
+BpmnRules.prototype.canConnectSequenceFlow = canConnectSequenceFlow;
+
+BpmnRules.prototype.canConnectDataAssociation = canConnectDataAssociation;
+
+BpmnRules.prototype.canConnectAssociation = canConnectAssociation;
+
+BpmnRules.prototype.canMove = canMove;
+
+BpmnRules.prototype.canAttach = canAttach;
+
+BpmnRules.prototype.canReplace = canReplace;
+
+BpmnRules.prototype.canDrop = canDrop;
+
+BpmnRules.prototype.canInsert = canInsert;
+
+BpmnRules.prototype.canCreate = canCreate;
+
+BpmnRules.prototype.canConnect = canConnect;
+
+BpmnRules.prototype.canResize = canResize;
+
+/**
+ * Utility functions for rule checking
+ */
+
+function nonExistantOrLabel(element) {
+  return !element || isLabel(element);
+}
+
+function isSame(a, b) {
+  return a === b;
+}
+
+function getOrganizationalParent(element) {
+
+  var bo = getBusinessObject(element);
+
+  while (bo && !is(bo, 'bpmn:Process')) {
+    if (is(bo, 'bpmn:Participant')) {
+      return bo.processRef || bo;
+    }
+
+    bo = bo.$parent;
+  }
+
+  return bo;
+}
+
+function isSameOrganization(a, b) {
+  var parentA = getOrganizationalParent(a),
+      parentB = getOrganizationalParent(b);
+
+  return parentA === parentB;
+}
+
+function isMessageFlowSource(element) {
+  return is(element, 'bpmn:InteractionNode') && (
+            !is(element, 'bpmn:Event') || (
+              is(element, 'bpmn:ThrowEvent') &&
+              hasEventDefinitionOrNone(element, 'bpmn:MessageEventDefinition')
+            )
+  );
+}
+
+function isMessageFlowTarget(element) {
+  return is(element, 'bpmn:InteractionNode') && (
+            !is(element, 'bpmn:Event') || (
+              is(element, 'bpmn:CatchEvent') &&
+              hasEventDefinitionOrNone(element, 'bpmn:MessageEventDefinition')
+            )
+  );
+}
+
+function getScopeParent(element) {
+
+  var bo = getBusinessObject(element);
+
+  if (is(bo, 'bpmn:Participant')) {
+    return null;
+  }
+
+  while (bo) {
+    bo = bo.$parent;
+
+    if (is(bo, 'bpmn:FlowElementsContainer')) {
+      return bo;
+    }
+  }
+
+  return bo;
+}
+
+function isSameScope(a, b) {
+  var scopeParentA = getScopeParent(a),
+      scopeParentB = getScopeParent(b);
+
+  return scopeParentA && (scopeParentA === scopeParentB);
+}
+
+function hasEventDefinition(element, eventDefinition) {
+  var bo = getBusinessObject(element);
+
+  return !!find(bo.eventDefinitions || [], function(definition) {
+    return is(definition, eventDefinition);
+  });
+}
+
+function hasEventDefinitionOrNone(element, eventDefinition) {
+  var bo = getBusinessObject(element);
+
+  return (bo.eventDefinitions || []).every(function(definition) {
+    return is(definition, eventDefinition);
+  });
+}
+
+function isSequenceFlowSource(element) {
+  return is(element, 'bpmn:FlowNode') &&
+        !is(element, 'bpmn:EndEvent') &&
+        !isEventSubProcess(element) &&
+        !(is(element, 'bpmn:IntermediateThrowEvent') &&
+          hasEventDefinition(element, 'bpmn:LinkEventDefinition')
+        );
+
+}
+
+function isSequenceFlowTarget(element) {
+  return is(element, 'bpmn:FlowNode') &&
+        !is(element, 'bpmn:StartEvent') &&
+        !is(element, 'bpmn:BoundaryEvent') &&
+        !isEventSubProcess(element) &&
+        !(is(element, 'bpmn:IntermediateCatchEvent') &&
+          hasEventDefinition(element, 'bpmn:LinkEventDefinition')
+        );
+
+}
+
+function isEventBasedTarget(element) {
+  return is(element, 'bpmn:ReceiveTask') || (
+         is(element, 'bpmn:IntermediateCatchEvent') && (
+           hasEventDefinition(element, 'bpmn:MessageEventDefinition') ||
+           hasEventDefinition(element, 'bpmn:TimerEventDefinition') ||
+           hasEventDefinition(element, 'bpmn:ConditionalEventDefinition') ||
+           hasEventDefinition(element, 'bpmn:SignalEventDefinition')
+         )
+  );
+}
+
+function isLabel(element) {
+  return element.labelTarget;
+}
+
+function isConnection(element) {
+  return element.waypoints;
+}
+
+function isParent(possibleParent, element) {
+  var allParents = getParents(element);
+  return allParents.indexOf(possibleParent) !== -1;
+}
+
+function canConnect(source, target, connection) {
+
+  if (nonExistantOrLabel(source) || nonExistantOrLabel(target)) {
+    return null;
+  }
+
+  // See https://github.com/bpmn-io/bpmn-js/issues/178
+  // as a workround we disallow connections with same
+  // target and source element.
+  // This rule must be removed if a auto layout for this
+  // connections is implemented.
+  if (isSame(source, target)) {
+    return false;
+  }
+
+  if (canConnectMessageFlow(source, target) && !is(connection, 'bpmn:DataAssociation')) {
+    return { type: 'bpmn:MessageFlow' };
+  }
+
+  if (canConnectSequenceFlow(source, target) && !is(connection, 'bpmn:DataAssociation')) {
+    return { type: 'bpmn:SequenceFlow' };
+  }
+
+  var dataAssociation = canConnectDataAssociation(source, target);
+
+  if (dataAssociation && (!connection || is(connection, 'bpmn:DataAssociation'))) {
+    return dataAssociation;
+  }
+
+  if (is(connection, 'bpmn:Association') && !is(connection, 'bpmn:DataAssociation')) {
+    if (canConnectAssociation(source, target)) {
+      return { type: 'bpmn:Association' };
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Can an element be dropped into the target element
+ *
+ * @return {Boolean}
+ */
+function canDrop(element, target, position) {
+
+  // can move labels everywhere
+  if (isLabel(element) && !isConnection(target)) {
+    return true;
+  }
+
+  // allow to create new participants on
+  // on existing collaboration and process diagrams
+  if (is(element, 'bpmn:Participant')) {
+    return is(target, 'bpmn:Process') || is(target, 'bpmn:Collaboration');
+  }
+
+  // allow creating lanes on participants and other lanes only
+  if (is(element, 'bpmn:Lane')) {
+    return is(target, 'bpmn:Participant') || is(target, 'bpmn:Lane');
+  }
+
+  if (is(element, 'bpmn:BoundaryEvent')) {
+    return false;
+  }
+
+  // drop flow elements onto flow element containers
+  // and participants
+  if (is(element, 'bpmn:FlowElement')) {
+    if (is(target, 'bpmn:FlowElementsContainer')) {
+      return isExpanded(target) !== false;
+    }
+
+    return isAny(target, [ 'bpmn:Participant', 'bpmn:Lane' ]);
+  }
+
+  if (is(element, 'bpmn:Artifact')) {
+    return isAny(target, [
+              'bpmn:Collaboration',
+              'bpmn:Lane',
+              'bpmn:Participant',
+              'bpmn:Process' ]);
+  }
+
+  if (is(element, 'bpmn:MessageFlow')) {
+    return is(target, 'bpmn:Collaboration');
+  }
+
+  return false;
+}
+
+function isBoundaryEvent(element) {
+  return !isLabel(element) && is(element, 'bpmn:BoundaryEvent');
+}
+
+function isLane(element) {
+  return is(element, 'bpmn:Lane');
+}
+
+/**
+ * We treat IntermediateThrowEvents as boundary events during create,
+ * this must be reflected in the rules.
+ */
+function isBoundaryCandidate(element) {
+  return isBoundaryEvent(element) ||
+        (is(element, 'bpmn:IntermediateThrowEvent') && !element.parent);
+}
+
+
+function canAttach(elements, target, source, position) {
+  if (!Array.isArray(elements)) {
+    elements = [ elements ];
+  }
+
+  // disallow appending as boundary event
+  if (source) {
+    return false;
+  }
+
+  // only (re-)attach one element at a time
+  if (elements.length !== 1) {
+    return false;
+  }
+
+  var element = elements[0];
+
+  // do not attach labels
+  if (isLabel(element)) {
+    return false;
+  }
+
+  // only handle boundary events
+  if (!isBoundaryCandidate(element)) {
+    return false;
+  }
+
+  // allow default move operation
+  if (!target) {
+    return true;
+  }
+
+  // disallow drop on event sub processes
+  if (isEventSubProcess(target)) {
+    return false;
+  }
+
+  // only allow drop on activities
+  if (!is(target, 'bpmn:Activity')) {
+    return false;
+  }
+
+  // only attach to subprocess border
+  if (position && !isBoundaryAttachment(position, target)) {
+    return false;
+  }
+
+  return 'attach';
+}
+
+
+/**
+ * Defines how to replace elements for a given target.
+ *
+ * Returns an array containing all elements which will be replaced.
+ *
+ * @example
+ *
+ *  [{ id: 'IntermediateEvent_2',
+ *     type: 'bpmn:StartEvent'
+ *   },
+ *   { id: 'IntermediateEvent_5',
+ *     type: 'bpmn:EndEvent'
+ *   }]
+ *
+ * @param  {Array} elements
+ * @param  {Object} target
+ *
+ * @return {Object} an object containing all elements which have to be replaced
+ */
+function canReplace(elements, target, position) {
+
+  if (!target) {
+    return false;
+  }
+
+  var canExecute = {
+    replacements: []
+  };
+
+  forEach(elements, function(element) {
+
+    // replace a non-interrupting start event by a blank interrupting start event
+    // when the target is not an event sub process
+    if (!isEventSubProcess(target)) {
+
+      if (is(element, 'bpmn:StartEvent') &&
+          !isInterrupting(element) &&
+          element.type !== 'label' &&
+          canDrop(element, target)) {
+
+        canExecute.replacements.push({
+          oldElementId: element.id,
+          newElementType: 'bpmn:StartEvent'
+        });
+      }
+    }
+
+    if (!is(target, 'bpmn:Transaction')) {
+      if (hasEventDefinition(element, 'bpmn:CancelEventDefinition') &&
+          element.type !== 'label') {
+
+        if (is(element, 'bpmn:EndEvent') && canDrop(element, target)) {
+          canExecute.replacements.push({
+            oldElementId: element.id,
+            newElementType: 'bpmn:EndEvent'
+          });
+        }
+
+        if (is(element, 'bpmn:BoundaryEvent') && canAttach(element, target, null, position)) {
+          canExecute.replacements.push({
+            oldElementId: element.id,
+            newElementType: 'bpmn:BoundaryEvent'
+          });
+        }
+      }
+    }
+  });
+
+  return canExecute.replacements.length ? canExecute : false;
+}
+
+function canMove(elements, target) {
+
+  // do not move selection containing boundary events
+  if (any(elements, isBoundaryEvent)) {
+    return false;
+  }
+
+  // do not move selection containing lanes
+  if (any(elements, isLane)) {
+    return false;
+  }
+
+  // allow default move check to start move operation
+  if (!target) {
+    return true;
+  }
+
+  return elements.every(function(element) {
+    return canDrop(element, target);
+  });
+}
+
+function canCreate(shape, target, source, position) {
+
+  if (!target) {
+    return false;
+  }
+
+  if (isLabel(target)) {
+    return null;
+  }
+
+  if (isSame(source, target)) {
+    return false;
+  }
+
+  // ensure we do not drop the element
+  // into source
+  if (source && isParent(source, target)) {
+    return false;
+  }
+
+  return canDrop(shape, target, position) || canInsert(shape, target, position);
+}
+
+function canResize(shape, newBounds) {
+  if (is(shape, 'bpmn:SubProcess')) {
+    return (!!isExpanded(shape)) && (
+          !newBounds || (newBounds.width >= 100 && newBounds.height >= 80)
+    );
+  }
+
+  if (is(shape, 'bpmn:Lane')) {
+    return !newBounds || (newBounds.width >= 130 && newBounds.height >= 60);
+  }
+
+  if (is(shape, 'bpmn:Participant')) {
+    return !newBounds || (newBounds.width >= 250 && newBounds.height >= 50);
+  }
+
+  if (is(shape, 'bpmn:TextAnnotation')) {
+    return true;
+  }
+
+  return false;
+}
+
+function canConnectAssociation(source, target) {
+
+  // do not connect connections
+  if (isConnection(source) || isConnection(target)) {
+    return false;
+  }
+
+  // connect if different parent
+  return !isParent(target, source) &&
+         !isParent(source, target);
+}
+
+function canConnectMessageFlow(source, target) {
+
+  return isMessageFlowSource(source) &&
+         isMessageFlowTarget(target) &&
+        !isSameOrganization(source, target);
+}
+
+function canConnectSequenceFlow(source, target) {
+
+  return isSequenceFlowSource(source) &&
+         isSequenceFlowTarget(target) &&
+         isSameScope(source, target) &&
+         !(is(source, 'bpmn:EventBasedGateway') && !isEventBasedTarget(target));
+}
+
+
+function canConnectDataAssociation(source, target) {
+
+  if (is(source, 'bpmn:DataObjectReference') &&
+      isAny(target, [ 'bpmn:Activity', 'bpmn:ThrowEvent' ])) {
+    return { type: 'bpmn:DataInputAssociation' };
+  }
+
+  if (is(target, 'bpmn:DataObjectReference') &&
+      isAny(source, [ 'bpmn:Activity', 'bpmn:CatchEvent' ])) {
+    return { type: 'bpmn:DataOutputAssociation' };
+  }
+
+  return false;
+}
+
+function canInsert(shape, flow, position) {
+
+  // return true if we can drop on the
+  // underlying flow parent
+  //
+  // at this point we are not really able to talk
+  // about connection rules (yet)
+  return (
+    isAny(flow, [ 'bpmn:SequenceFlow', 'bpmn:MessageFlow' ]) &&
+    is(shape, 'bpmn:FlowNode') &&
+    !is(shape, 'bpmn:BoundaryEvent') &&
+    canDrop(shape, flow.parent, position));
+}
+
+},{"176":176,"232":232,"240":240,"243":243,"244":244,"44":44,"57":57,"64":64,"66":66}],55:[function(_dereq_,module,exports){
+module.exports = {
+  __depends__: [
+    _dereq_(178)
+  ],
+  __init__: [ 'bpmnRules' ],
+  bpmnRules: [ 'type', _dereq_(54) ]
+};
+
+},{"178":178,"54":54}],56:[function(_dereq_,module,exports){
+'use strict';
+
+var inherits = _dereq_(232);
+
+var forEach = _dereq_(244);
+
+var getBoundingBox = _dereq_(210).getBBox;
+
+var is = _dereq_(66).is,
+    isAny = _dereq_(44).isAny,
+    isExpanded = _dereq_(64).isExpanded;
+
+var Snapping = _dereq_(185),
+    SnapUtil = _dereq_(184);
+
+var asTRBL = _dereq_(197).asTRBL;
 
 var round = Math.round;
 
@@ -6411,8 +8806,12 @@ var mid = SnapUtil.mid,
     topLeft = SnapUtil.topLeft,
     bottomRight = SnapUtil.bottomRight,
     isSnapped = SnapUtil.isSnapped,
-    setSnapped = SnapUtil.setSnapped,
-    getBoundaryAttachment = _dereq_(41).getBoundaryAttachment;
+    setSnapped = SnapUtil.setSnapped;
+
+var getBoundaryAttachment = _dereq_(57).getBoundaryAttachment,
+    getParticipantSizeConstraints = _dereq_(57).getParticipantSizeConstraints,
+    getLanesRoot = _dereq_(43).getLanesRoot;
+
 
 /**
  * BPMN specific snapping functionality
@@ -6423,7 +8822,7 @@ var mid = SnapUtil.mid,
  * @param {EventBus} eventBus
  * @param {Canvas} canvas
  */
-function BpmnSnapping(eventBus, canvas, bpmnRules) {
+function BpmnSnapping(eventBus, canvas, bpmnRules, elementRegistry) {
 
   // instantiate super
   Snapping.call(this, eventBus, canvas);
@@ -6475,7 +8874,12 @@ function BpmnSnapping(eventBus, canvas, bpmnRules) {
   /**
    * Snap boundary events to elements border
    */
-  eventBus.on([ 'create.move', 'create.end' ], 1500, function(event) {
+  eventBus.on([
+    'create.move',
+    'create.end',
+    'shape.move.move',
+    'shape.move.end'
+  ], 1500, function(event) {
 
     var context = event.context,
         target = context.target,
@@ -6486,32 +8890,132 @@ function BpmnSnapping(eventBus, canvas, bpmnRules) {
     }
   });
 
-  eventBus.on([ 'shape.move.move', 'shape.move.end' ], 1500, function(event) {
-
+  /**
+   * Adjust parent for flowElements to the target participant
+   * when droping onto lanes.
+   */
+  eventBus.on([
+    'shape.move.hover',
+    'shape.move.move',
+    'shape.move.end',
+    'create.hover',
+    'create.move',
+    'create.end'
+  ], 1500, function(event) {
     var context = event.context,
-        target = context.target,
-        shape = context.shape;
+        shape = context.shape,
+        hover = event.hover;
 
-    if (target && !isSnapped(event) && canAttach(shape, target, event)) {
-      snapBoundaryEvent(event, shape, target);
+    if (is(hover, 'bpmn:Lane') && !isAny(shape, [ 'bpmn:Lane', 'bpmn:Participant' ])) {
+      event.hover = getLanesRoot(hover);
+      event.hoverGfx = elementRegistry.getGraphics(event.hover);
     }
   });
 
+
+  var abs = Math.abs;
+
+  var filter = _dereq_(242),
+      assign = _dereq_(366);
+
+
+  eventBus.on([
+    'create.move',
+    'shape.move.move'
+  ], function(event) {
+
+    var context = event.context,
+        shape = context.shape,
+        target = context.target;
+
+    var threshold = 30;
+
+    if (is(shape, 'bpmn:Lane')) {
+      if (isAny(target, [ 'bpmn:Lane', 'bpmn:Participant' ])) {
+
+        var childLanes = filter(target.children, function(c) {
+          return is(c, 'bpmn:Lane');
+        });
+
+        var y = event.y,
+            targetTrbl;
+
+        var insert = childLanes.reduce(function(insert, l) {
+
+          var laneTrbl = asTRBL(l);
+
+          if (abs(laneTrbl.top - y) < threshold) {
+            insert = assign(insert || {}, { before: { element: l, y: laneTrbl.top } });
+          } else
+          if (abs(laneTrbl.bottom - y) < threshold) {
+            insert = assign(insert || {}, { after: { element: l, y: laneTrbl.bottom } });
+          } else
+          if (laneTrbl.top < y && laneTrbl.bottom > y) {
+            if (abs(laneTrbl.top - y) > abs(laneTrbl.bottom - y)) {
+              insert = assign(insert || {}, { after: { element: l, y: laneTrbl.bottom } });
+            } else {
+              insert = assign(insert || {}, { before: { element: l, y: laneTrbl.top } });
+            }
+
+          }
+
+          return insert;
+        }, false);
+
+
+        if (!insert) {
+          targetTrbl = asTRBL(target);
+
+          if (abs(targetTrbl.top - y) < threshold) {
+            insert = { before: { element: target, y: targetTrbl.top } };
+          } else
+          if (abs(targetTrbl.bottom - y) < threshold) {
+            insert = { after: { element: target, y: targetTrbl.bottom } };
+          } else {
+            insert = { into: { element: target, y: (targetTrbl.top + targetTrbl.bottom) / 2 } };
+          }
+
+        }
+
+        if (insert.before && insert.after) {
+          console.log('insert between', insert.before.element.id, 'and', insert.after.element.id);
+          setSnapped(event, 'x', insert.before.element.x + insert.before.element.width / 2);
+          setSnapped(event, 'y', insert.before.y);
+        } else
+        if (insert.after) {
+          console.log('insert after', insert.after.element.id);
+          setSnapped(event, 'x', insert.after.element.x + insert.after.element.width / 2);
+          setSnapped(event, 'y', insert.after.y);
+        } else
+        if (insert.before) {
+          console.log('insert before', insert.before.element.id);
+          setSnapped(event, 'x', insert.before.element.x + insert.before.element.width / 2);
+          setSnapped(event, 'y', insert.before.y);
+        } else
+        if (insert.into) {
+          console.log('insert into', insert.into.element.id);
+          setSnapped(event, 'x', insert.into.element.x + insert.into.element.width / 2);
+          setSnapped(event, 'y', insert.into.y);
+        }
+      }
+    }
+
+  });
 
   eventBus.on('resize.start', 1500, function(event) {
     var context = event.context,
         shape = context.shape;
 
     if (is(shape, 'bpmn:SubProcess') && isExpanded(shape)) {
-        context.minDimensions = { width: 140, height: 120 };
+      context.minDimensions = { width: 140, height: 120 };
     }
 
     if (is(shape, 'bpmn:Participant')) {
-        context.minDimensions = { width: 300, height: 150 };
-        context.childrenBoxPadding = {
-          left: 50,
-          right: 35
-        };
+      context.minDimensions = { width: 300, height: 150 };
+    }
+
+    if (is(shape, 'bpmn:Lane') || is(shape, 'bpmn:Participant')) {
+      context.resizeConstraints = getParticipantSizeConstraints(shape, context.direction, context.balanced);
     }
 
     if (is(shape, 'bpmn:TextAnnotation')) {
@@ -6523,7 +9027,7 @@ function BpmnSnapping(eventBus, canvas, bpmnRules) {
 
 inherits(BpmnSnapping, Snapping);
 
-BpmnSnapping.$inject = [ 'eventBus', 'canvas', 'bpmnRules' ];
+BpmnSnapping.$inject = [ 'eventBus', 'canvas', 'bpmnRules', 'elementRegistry' ];
 
 module.exports = BpmnSnapping;
 
@@ -6606,7 +9110,7 @@ BpmnSnapping.prototype.initSnap = function(event) {
 BpmnSnapping.prototype.addTargetSnaps = function(snapPoints, shape, target) {
 
   // use target parent as snap target
-  if (is(shape, 'bpmn:BoundaryEvent')) {
+  if (is(shape, 'bpmn:BoundaryEvent') && shape.type !== 'label') {
     target = target.parent;
   }
 
@@ -6618,6 +9122,12 @@ BpmnSnapping.prototype.addTargetSnaps = function(snapPoints, shape, target) {
   var siblings = this.getSiblings(shape, target) || [];
 
   forEach(siblings, function(s) {
+
+    // do not snap to lanes
+    if (is(s, 'bpmn:Lane')) {
+      return;
+    }
+
     snapPoints.add('mid', mid(s));
 
     if (is(s, 'bpmn:Participant')) {
@@ -6712,11 +9222,8 @@ function snapParticipant(snapBox, shape, event, offset) {
 /////// boundary event snapping /////////////////////////
 
 
-var LayoutUtil = _dereq_(174);
-
-
 function snapBoundaryEvent(event, shape, target) {
-  var targetTRBL = LayoutUtil.asTRBL(target);
+  var targetTRBL = asTRBL(target);
 
   var direction = getBoundaryAttachment(event, target);
 
@@ -6734,13 +9241,13 @@ function snapBoundaryEvent(event, shape, target) {
     setSnapped(event, 'x', targetTRBL.right);
   }
 }
-},{"161":161,"162":162,"174":174,"186":186,"207":207,"21":21,"218":218,"41":41,"48":48,"50":50}],41:[function(_dereq_,module,exports){
+},{"184":184,"185":185,"197":197,"210":210,"232":232,"242":242,"244":244,"366":366,"43":43,"44":44,"57":57,"64":64,"66":66}],57:[function(_dereq_,module,exports){
 'use strict';
 
-var getOrientation = _dereq_(174).getOrientation;
+var getOrientation = _dereq_(197).getOrientation;
 
 
-module.exports.getBoundaryAttachment = function(position, targetBounds) {
+function getBoundaryAttachment(position, targetBounds) {
 
   var orientation = getOrientation(position, targetBounds, -15);
 
@@ -6749,26 +9256,171 @@ module.exports.getBoundaryAttachment = function(position, targetBounds) {
   } else {
     return null;
   }
-};
-},{"174":174}],42:[function(_dereq_,module,exports){
+}
+
+module.exports.getBoundaryAttachment = getBoundaryAttachment;
+
+
+
+// participant snapping box implementation /////////////////
+
+var is = _dereq_(66).is;
+
+var asTRBL = _dereq_(197).asTRBL;
+
+var collectLanes = _dereq_(43).collectLanes,
+    getLanesRoot = _dereq_(43).getLanesRoot;
+
+var abs = Math.abs,
+    min = Math.min,
+    max = Math.max;
+
+
+function addToTrbl(trbl, attr, value, choice) {
+
+  var current = trbl[attr];
+
+  // make sure to set the value if it does not exist
+  // or apply the correct value by comparing against
+  // choice(value, currentValue)
+  trbl[attr] = current === undefined ? value : choice(value, current);
+}
+
+function addMin(trbl, attr, value) {
+  return addToTrbl(trbl, attr, value, min);
+}
+
+function addMax(trbl, attr, value) {
+  return addToTrbl(trbl, attr, value, max);
+}
+
+
+var LANE_MIN_HEIGHT = 60,
+    LANE_MIN_WIDTH = 300,
+    LANE_RIGHT_PADDING = 20,
+    LANE_LEFT_PADDING = 50,
+    LANE_TOP_PADDING = 20,
+    LANE_BOTTOM_PADDING = 20;
+
+
+function getParticipantSizeConstraints(laneShape, resizeDirection, balanced) {
+
+  var lanesRoot = getLanesRoot(laneShape);
+
+  var isFirst = true,
+      isLast = true;
+
+  ///// max top/bottom size for lanes
+
+  var allLanes = collectLanes(lanesRoot, [ lanesRoot ]);
+
+  var laneTrbl = asTRBL(laneShape);
+
+  var maxTrbl = {},
+      minTrbl = {};
+
+  if (/e/.test(resizeDirection)) {
+    minTrbl.right = laneTrbl.left + LANE_MIN_WIDTH;
+  } else
+  if (/w/.test(resizeDirection)) {
+    minTrbl.left = laneTrbl.right - LANE_MIN_WIDTH;
+  }
+
+  allLanes.forEach(function(other) {
+
+    var otherTrbl = asTRBL(other);
+
+    if (/n/.test(resizeDirection)) {
+
+      if (otherTrbl.top < (laneTrbl.top - 10)) {
+        isFirst = false;
+      }
+
+      // max top size (based on next element)
+      if (balanced && abs(laneTrbl.top - otherTrbl.bottom) < 10) {
+        addMax(maxTrbl, 'top', otherTrbl.top + LANE_MIN_HEIGHT);
+      }
+
+      // min top size (based on self or nested element)
+      if (abs(laneTrbl.top - otherTrbl.top) < 5) {
+        addMin(minTrbl, 'top', otherTrbl.bottom - LANE_MIN_HEIGHT);
+      }
+    }
+
+    if (/s/.test(resizeDirection)) {
+
+      if (otherTrbl.bottom > (laneTrbl.bottom + 10)) {
+        isLast = false;
+      }
+
+      // max bottom size (based on previous element)
+      if (balanced && abs(laneTrbl.bottom - otherTrbl.top) < 10) {
+        addMin(maxTrbl, 'bottom', otherTrbl.bottom - LANE_MIN_HEIGHT);
+      }
+
+      // min bottom size (based on self or nested element)
+      if (abs(laneTrbl.bottom - otherTrbl.bottom) < 5) {
+        addMax(minTrbl, 'bottom', otherTrbl.top + LANE_MIN_HEIGHT);
+      }
+    }
+  });
+
+
+  ///// max top/bottom/left/right size based on flow nodes
+
+  var flowElements = lanesRoot.children.filter(function(s) {
+    return !s.hidden && !s.waypoints && (is(s, 'bpmn:FlowElement') || is(s, 'bpmn:Artifact'));
+  });
+
+  flowElements.forEach(function(flowElement) {
+
+    var flowElementTrbl = asTRBL(flowElement);
+
+    if (isFirst && /n/.test(resizeDirection)) {
+      addMin(minTrbl, 'top', flowElementTrbl.top - LANE_TOP_PADDING);
+    }
+
+    if (/e/.test(resizeDirection)) {
+      addMax(minTrbl, 'right', flowElementTrbl.right + LANE_RIGHT_PADDING);
+    }
+
+    if (isLast && /s/.test(resizeDirection)) {
+      addMax(minTrbl, 'bottom', flowElementTrbl.bottom + LANE_BOTTOM_PADDING);
+    }
+
+    if (/w/.test(resizeDirection)) {
+      addMin(minTrbl, 'left', flowElementTrbl.left - LANE_LEFT_PADDING);
+    }
+  });
+
+
+  return {
+    min: minTrbl,
+    max: maxTrbl
+  };
+}
+
+
+module.exports.getParticipantSizeConstraints = getParticipantSizeConstraints;
+},{"197":197,"43":43,"66":66}],58:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'snapping' ],
-  snapping: [ 'type', _dereq_(40) ]
+  snapping: [ 'type', _dereq_(56) ]
 };
-},{"40":40}],43:[function(_dereq_,module,exports){
+},{"56":56}],59:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(339),
-    map = _dereq_(221);
+var assign = _dereq_(366),
+    map = _dereq_(247);
 
-var LabelUtil = _dereq_(49);
+var LabelUtil = _dereq_(65);
 
-var is = _dereq_(50).is;
+var is = _dereq_(66).is;
 
 var hasExternalLabel = LabelUtil.hasExternalLabel,
     getExternalLabelBounds = LabelUtil.getExternalLabelBounds,
-    isExpanded = _dereq_(48).isExpanded,
-    elementToString = _dereq_(46).elementToString;
+    isExpanded = _dereq_(64).isExpanded,
+    elementToString = _dereq_(62).elementToString;
 
 
 function elementData(semantic, attrs) {
@@ -6929,7 +9581,7 @@ BpmnImporter.prototype.addLabel = function(semantic, element) {
     id: semantic.id + '_label',
     labelTarget: element,
     type: 'label',
-    hidden: element.hidden,
+    hidden: element.hidden || !semantic.name,
     x: Math.round(bounds.x),
     y: Math.round(bounds.y),
     width: Math.round(bounds.width),
@@ -6989,16 +9641,16 @@ BpmnImporter.prototype._getTarget = function(semantic) {
 BpmnImporter.prototype._getElement = function(semantic) {
   return this._elementRegistry.get(semantic.id);
 };
-},{"221":221,"339":339,"46":46,"48":48,"49":49,"50":50}],44:[function(_dereq_,module,exports){
+},{"247":247,"366":366,"62":62,"64":64,"65":65,"66":66}],60:[function(_dereq_,module,exports){
 'use strict';
 
-var filter = _dereq_(216),
-    find = _dereq_(217),
-    forEach = _dereq_(218);
+var filter = _dereq_(242),
+    find = _dereq_(243),
+    forEach = _dereq_(244);
 
-var Refs = _dereq_(369);
+var Refs = _dereq_(396);
 
-var elementToString = _dereq_(46).elementToString;
+var elementToString = _dereq_(62).elementToString;
 
 var diRefs = new Refs({ name: 'bpmnElement', enumerable: true }, { name: 'di' });
 
@@ -7029,7 +9681,7 @@ function findDisplayCandidate(definitions) {
 function BpmnTreeWalker(handler) {
 
   // list of containers already walked
-  var handledProcesses = [];
+  var handledElements = {};
 
   // list of elements to handle deferred to ensure
   // prerequisites are drawn
@@ -7041,6 +9693,14 @@ function BpmnTreeWalker(handler) {
     return function(e) {
       fn(e, ctx);
     };
+  }
+
+  function handled(element) {
+    handledElements[element.id] = element;
+  }
+
+  function isHandled(element) {
+    return handledElements[element.id];
   }
 
   function visit(element, ctx) {
@@ -7061,8 +9721,13 @@ function BpmnTreeWalker(handler) {
   }
 
   function visitIfDi(element, ctx) {
+
     try {
-      return element.di && visit(element, ctx);
+      var gfx = element.di && visit(element, ctx);
+
+      handled(element);
+
+      return gfx;
     } catch (e) {
       logError(e.message, { element: element, error: e });
 
@@ -7186,7 +9851,7 @@ function BpmnTreeWalker(handler) {
     handleArtifacts(process.artifacts, context);
 
     // log process handled
-    handledProcesses.push(process);
+    handled(process);
   }
 
   function handleUnhandledProcesses(rootElements) {
@@ -7195,7 +9860,7 @@ function BpmnTreeWalker(handler) {
     // if they contain lanes with DI information.
     // we do this to pass the free-floating lane test cases in the MIWG test suite
     var processes = filter(rootElements, function(e) {
-      return is(e, 'bpmn:Process') && e.laneSets && handledProcesses.indexOf(e) === -1;
+      return !isHandled(e) && is(e, 'bpmn:Process') && e.laneSets;
     });
 
     processes.forEach(contextual(handleProcess));
@@ -7264,6 +9929,17 @@ function BpmnTreeWalker(handler) {
     if (is(flowNode, 'bpmn:SubProcess')) {
       handleSubProcess(flowNode, childCtx || context);
     }
+
+    if (is(flowNode, 'bpmn:Activity')) {
+
+      handleIoSpecification(flowNode.ioSpecification, context);
+
+      // defer handling of associations
+      deferred.push(function() {
+        forEach(flowNode.dataInputAssociations, contextual(handleDataAssociation, context));
+        forEach(flowNode.dataOutputAssociations, contextual(handleDataAssociation, context));
+      });
+    }
   }
 
   function handleSequenceFlow(sequenceFlow, context) {
@@ -7283,12 +9959,9 @@ function BpmnTreeWalker(handler) {
 
     if (lane.childLaneSet) {
       handleLaneSet(lane.childLaneSet, newContext || context);
-    } else {
-      var filterList = filter(lane.flowNodeRef, function(e) {
-        return e.$type !== 'bpmn:BoundaryEvent';
-      });
-      handleFlowElements(filterList, newContext || context);
     }
+
+    wireFlowNodeRefs(lane);
   }
 
   function handleLaneSet(laneSet, context) {
@@ -7300,33 +9973,11 @@ function BpmnTreeWalker(handler) {
   }
 
   function handleFlowElementsContainer(container, context) {
-
     if (container.laneSets) {
       handleLaneSets(container.laneSets, context);
-      handleNonFlowNodes(container.flowElements);
-    } else {
-      handleFlowElements(container.flowElements, context);
     }
-  }
 
-  function handleNonFlowNodes(flowElements, context) {
-    forEach(flowElements, function(e) {
-      if (is(e, 'bpmn:SequenceFlow')) {
-        deferred.push(function() {
-          handleSequenceFlow(e, context);
-        });
-      } else if (is(e, 'bpmn:BoundaryEvent')) {
-        deferred.unshift(function() {
-          handleBoundaryEvent(e, context);
-        });
-      } else if (is(e, 'bpmn:DataObject')) {
-        // SKIP (assume correct referencing via DataObjectReference)
-      } else if (is(e, 'bpmn:DataStoreReference')) {
-        handleDataElement(e, context);
-      } else if (is(e, 'bpmn:DataObjectReference')) {
-        handleDataElement(e, context);
-      }
-    });
+    handleFlowElements(container.flowElements, context);
   }
 
   function handleFlowElements(flowElements, context) {
@@ -7341,17 +9992,6 @@ function BpmnTreeWalker(handler) {
         });
       } else if (is(e, 'bpmn:FlowNode')) {
         handleFlowNode(e, context);
-
-        if (is(e, 'bpmn:Activity')) {
-
-          handleIoSpecification(e.ioSpecification, context);
-
-          // defer handling of associations
-          deferred.push(function() {
-            forEach(e.dataInputAssociations, contextual(handleDataAssociation, context));
-            forEach(e.dataOutputAssociations, contextual(handleDataAssociation, context));
-          });
-        }
       } else if (is(e, 'bpmn:DataObject')) {
         // SKIP (assume correct referencing via DataObjectReference)
       } else if (is(e, 'bpmn:DataStoreReference')) {
@@ -7389,6 +10029,17 @@ function BpmnTreeWalker(handler) {
   }
 
 
+  function wireFlowNodeRefs(lane) {
+    // wire the virtual flowNodeRefs <-> relationship
+    forEach(lane.flowNodeRef, function(flowNode) {
+      var lanes = flowNode.get('lanes');
+
+      if (lanes) {
+        lanes.push(lane);
+      }
+    });
+  }
+
   ///// API ////////////////////////////////
 
   return {
@@ -7397,10 +10048,10 @@ function BpmnTreeWalker(handler) {
 }
 
 module.exports = BpmnTreeWalker;
-},{"216":216,"217":217,"218":218,"369":369,"46":46}],45:[function(_dereq_,module,exports){
+},{"242":242,"243":243,"244":244,"396":396,"62":62}],61:[function(_dereq_,module,exports){
 'use strict';
 
-var BpmnTreeWalker = _dereq_(44);
+var BpmnTreeWalker = _dereq_(60);
 
 
 /**
@@ -7456,7 +10107,7 @@ function importBpmnDiagram(diagram, definitions, done) {
 }
 
 module.exports.importBpmnDiagram = importBpmnDiagram;
-},{"44":44}],46:[function(_dereq_,module,exports){
+},{"60":60}],62:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports.elementToString = function(e) {
@@ -7466,15 +10117,15 @@ module.exports.elementToString = function(e) {
 
   return '<' + e.$type + (e.id ? ' id="' + e.id : '') + '" />';
 };
-},{}],47:[function(_dereq_,module,exports){
+},{}],63:[function(_dereq_,module,exports){
 module.exports = {
-  bpmnImporter: [ 'type', _dereq_(43) ]
+  bpmnImporter: [ 'type', _dereq_(59) ]
 };
-},{"43":43}],48:[function(_dereq_,module,exports){
+},{"59":59}],64:[function(_dereq_,module,exports){
 'use strict';
 
-var is = _dereq_(50).is,
-    getBusinessObject = _dereq_(50).getBusinessObject;
+var is = _dereq_(66).is,
+    getBusinessObject = _dereq_(66).getBusinessObject;
 
 module.exports.isExpanded = function(element) {
 
@@ -7493,11 +10144,20 @@ module.exports.isExpanded = function(element) {
   return true;
 };
 
-},{"50":50}],49:[function(_dereq_,module,exports){
+module.exports.isInterrupting = function(element) {
+  return element && getBusinessObject(element).isInterrupting !== false;
+};
+
+module.exports.isEventSubProcess = function(element) {
+  return element && !!getBusinessObject(element).triggeredByEvent;
+};
+
+},{"66":66}],65:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(339);
+var assign = _dereq_(366);
 
+var is = _dereq_(66).is;
 
 var DEFAULT_LABEL_SIZE = module.exports.DEFAULT_LABEL_SIZE = {
   width: 90,
@@ -7512,13 +10172,12 @@ var DEFAULT_LABEL_SIZE = module.exports.DEFAULT_LABEL_SIZE = {
  * @return {Boolean} true if has label
  */
 module.exports.hasExternalLabel = function(semantic) {
-
-  return semantic.$instanceOf('bpmn:Event') ||
-         semantic.$instanceOf('bpmn:Gateway') ||
-         semantic.$instanceOf('bpmn:DataStoreReference') ||
-         semantic.$instanceOf('bpmn:DataObjectReference') ||
-         semantic.$instanceOf('bpmn:SequenceFlow') ||
-         semantic.$instanceOf('bpmn:MessageFlow');
+  return is(semantic, 'bpmn:Event') ||
+         is(semantic, 'bpmn:Gateway') ||
+         is(semantic, 'bpmn:DataStoreReference') ||
+         is(semantic, 'bpmn:DataObjectReference') ||
+         is(semantic, 'bpmn:SequenceFlow') ||
+         is(semantic, 'bpmn:MessageFlow');
 };
 
 
@@ -7528,7 +10187,7 @@ module.exports.hasExternalLabel = function(semantic) {
  * @param  {Array<Point>} waypoints
  * @return {Point} the mid point
  */
-var getWaypointsMid = module.exports.getWaypointsMid = function(waypoints) {
+function getWaypointsMid(waypoints) {
 
   var mid = waypoints.length / 2 - 1;
 
@@ -7539,10 +10198,12 @@ var getWaypointsMid = module.exports.getWaypointsMid = function(waypoints) {
     x: first.x + (second.x - first.x) / 2,
     y: first.y + (second.y - first.y) / 2
   };
-};
+}
+
+module.exports.getWaypointsMid = getWaypointsMid;
 
 
-var getExternalLabelMid = module.exports.getExternalLabelMid = function(element) {
+function getExternalLabelMid(element) {
 
   if (element.waypoints) {
     return getWaypointsMid(element.waypoints);
@@ -7552,7 +10213,10 @@ var getExternalLabelMid = module.exports.getExternalLabelMid = function(element)
       y: element.y + element.height + DEFAULT_LABEL_SIZE.height / 2
     };
   }
-};
+}
+
+module.exports.getExternalLabelMid = getExternalLabelMid;
+
 
 /**
  * Returns the bounds of an elements label, parsed from the elements DI or
@@ -7593,7 +10257,8 @@ module.exports.getExternalLabelBounds = function(semantic, element) {
     y: mid.y - size.height / 2
   }, size);
 };
-},{"339":339}],50:[function(_dereq_,module,exports){
+
+},{"366":366,"66":66}],66:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -7607,7 +10272,7 @@ module.exports.getExternalLabelBounds = function(semantic, element) {
 function is(element, type) {
   var bo = getBusinessObject(element);
 
-  return bo && bo.$instanceOf(type);
+  return bo && (typeof bo.$instanceOf === 'function') && bo.$instanceOf(type);
 }
 
 module.exports.is = is;
@@ -7626,18 +10291,18 @@ function getBusinessObject(element) {
 
 module.exports.getBusinessObject = getBusinessObject;
 
-},{}],51:[function(_dereq_,module,exports){
-module.exports = _dereq_(54);
-},{"54":54}],52:[function(_dereq_,module,exports){
+},{}],67:[function(_dereq_,module,exports){
+module.exports = _dereq_(70);
+},{"70":70}],68:[function(_dereq_,module,exports){
 'use strict';
 
-var isString = _dereq_(336),
-    isFunction = _dereq_(331),
-    assign = _dereq_(339);
+var isString = _dereq_(363),
+    isFunction = _dereq_(358),
+    assign = _dereq_(366);
 
-var Moddle = _dereq_(60),
-    XmlReader = _dereq_(56),
-    XmlWriter = _dereq_(57);
+var Moddle = _dereq_(76),
+    XmlReader = _dereq_(72),
+    XmlWriter = _dereq_(73);
 
 /**
  * A sub class of {@link Moddle} with support for import and export of BPMN 2.0 xml files.
@@ -7709,7 +10374,7 @@ BpmnModdle.prototype.toXML = function(element, options, done) {
   }
 };
 
-},{"331":331,"336":336,"339":339,"56":56,"57":57,"60":60}],53:[function(_dereq_,module,exports){
+},{"358":358,"363":363,"366":366,"72":72,"73":73,"76":76}],69:[function(_dereq_,module,exports){
 'use strict';
 
 var ID_PATTERN = /^(.*:)?id$/;
@@ -7765,24 +10430,24 @@ module.exports.extend = function(model, ids) {
 
   return model;
 };
-},{}],54:[function(_dereq_,module,exports){
+},{}],70:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(339);
+var assign = _dereq_(366);
 
-var BpmnModdle = _dereq_(52);
+var BpmnModdle = _dereq_(68);
 
 var packages = {
-  bpmn: _dereq_(69),
-  bpmndi: _dereq_(70),
-  dc: _dereq_(71),
-  di: _dereq_(72)
+  bpmn: _dereq_(85),
+  bpmndi: _dereq_(86),
+  dc: _dereq_(87),
+  di: _dereq_(88)
 };
 
 module.exports = function(additionalPackages, options) {
   return new BpmnModdle(assign({}, packages, additionalPackages), options);
 };
-},{"339":339,"52":52,"69":69,"70":70,"71":71,"72":72}],55:[function(_dereq_,module,exports){
+},{"366":366,"68":68,"85":85,"86":86,"87":87,"88":88}],71:[function(_dereq_,module,exports){
 'use strict';
 
 function capitalize(string) {
@@ -7831,23 +10496,23 @@ module.exports.serializeAsType = function(element) {
 module.exports.serializeAsProperty = function(element) {
   return serializeFormat(element) === 'property';
 };
-},{}],56:[function(_dereq_,module,exports){
+},{}],72:[function(_dereq_,module,exports){
 'use strict';
 
-var reduce = _dereq_(222),
-    forEach = _dereq_(218),
-    find = _dereq_(217),
-    assign = _dereq_(339),
-    defer = _dereq_(229);
+var reduce = _dereq_(248),
+    forEach = _dereq_(244),
+    find = _dereq_(243),
+    assign = _dereq_(366),
+    defer = _dereq_(255);
 
-var Stack = _dereq_(59),
-    SaxParser = _dereq_(58).parser,
-    Moddle = _dereq_(60),
-    parseNameNs = _dereq_(65).parseName,
-    Types = _dereq_(68),
+var Stack = _dereq_(75),
+    SaxParser = _dereq_(74).parser,
+    Moddle = _dereq_(76),
+    parseNameNs = _dereq_(81).parseName,
+    Types = _dereq_(84),
     coerceType = Types.coerceType,
     isSimpleType = Types.isSimple,
-    common = _dereq_(55),
+    common = _dereq_(71),
     XSI_TYPE = common.XSI_TYPE,
     XSI_URI = common.DEFAULT_NS_MAP.xsi,
     serializeAsType = common.serializeAsType,
@@ -8024,7 +10689,7 @@ ReferenceHandler.prototype.handleEnd = function() {
   this.element.id = this.body;
 };
 
-ReferenceHandler.prototype.createReference = function() {
+ReferenceHandler.prototype.createReference = function(node) {
   return {
     property: this.property.ns.name,
     id: ''
@@ -8120,14 +10785,30 @@ ElementHandler.prototype.createElement = function(node) {
 
   forEach(attributes, function(value, name) {
 
-    var prop = descriptor.propertiesByName[name];
+    var prop = descriptor.propertiesByName[name],
+        values;
 
     if (prop && prop.isReference) {
-      context.addReference({
-        element: instance,
-        property: prop.ns.name,
-        id: value
-      });
+
+      if (!prop.isMany) {
+        context.addReference({
+          element: instance,
+          property: prop.ns.name,
+          id: value
+        });
+      } else {
+        // IDREFS: parse references as whitespace-separated list
+        values = value.split(' ');
+
+        forEach(values, function(v) {
+          context.addReference({
+            element: instance,
+            property: prop.ns.name,
+            id: v
+          });
+        });
+      }
+
     } else {
       if (prop) {
         value = coerceType(prop.type, value);
@@ -8385,11 +11066,17 @@ XMLReader.prototype.fromXML = function(xml, rootHandler, done) {
         var collection = element.get(property.name),
             idx = collection.indexOf(r);
 
+        // we replace an existing place holder (idx != -1) or
+        // append to the collection instead
+        if (idx === -1) {
+          idx = collection.length;
+        }
+
         if (!reference) {
           // remove unresolvable reference
           collection.splice(idx, 1);
         } else {
-          // update reference
+          // add or update reference in collection
           collection[idx] = reference;
         }
       } else {
@@ -8471,18 +11158,18 @@ XMLReader.prototype.handler = function(name) {
 
 module.exports = XMLReader;
 module.exports.ElementHandler = ElementHandler;
-},{"217":217,"218":218,"222":222,"229":229,"339":339,"55":55,"58":58,"59":59,"60":60,"65":65,"68":68}],57:[function(_dereq_,module,exports){
+},{"243":243,"244":244,"248":248,"255":255,"366":366,"71":71,"74":74,"75":75,"76":76,"81":81,"84":84}],73:[function(_dereq_,module,exports){
 'use strict';
 
-var map = _dereq_(221),
-    forEach = _dereq_(218),
-    isString = _dereq_(336),
-    filter = _dereq_(216),
-    assign = _dereq_(339);
+var map = _dereq_(247),
+    forEach = _dereq_(244),
+    isString = _dereq_(363),
+    filter = _dereq_(242),
+    assign = _dereq_(366);
 
-var Types = _dereq_(68),
-    parseNameNs = _dereq_(65).parseName,
-    common = _dereq_(55),
+var Types = _dereq_(84),
+    parseNameNs = _dereq_(81).parseName,
+    common = _dereq_(71),
     nameToAlias = common.nameToAlias,
     serializeAsType = common.serializeAsType,
     serializeAsProperty = common.serializeAsProperty;
@@ -8518,6 +11205,10 @@ function getSerializableProperties(element) {
 
   return filter(descriptor.properties, function(p) {
     var name = p.name;
+
+    if (p.isVirtual) {
+      return false;
+    }
 
     // do not serialize defaults
     if (!element.hasOwnProperty(name)) {
@@ -8895,7 +11586,19 @@ ElementSerializer.prototype.parseAttributes = function(properties) {
     var value = element.get(p.name);
 
     if (p.isReference) {
-      value = value.id;
+
+      if (!p.isMany) {
+        value = value.id;
+      }
+      else {
+        var values = [];
+        forEach(value, function(v) {
+          values.push(v.id);
+        });
+        // IDREFS is a whitespace-separated list of references.
+        value = values.join(' ');
+      }
+
     }
 
     self.addAttribute(self.nsAttributeName(p), value);
@@ -9082,7 +11785,7 @@ function XMLWriter(options) {
 
 module.exports = XMLWriter;
 
-},{"216":216,"218":218,"221":221,"336":336,"339":339,"55":55,"65":65,"68":68}],58:[function(_dereq_,module,exports){
+},{"242":242,"244":244,"247":247,"363":363,"366":366,"71":71,"81":81,"84":84}],74:[function(_dereq_,module,exports){
 (function (Buffer){
 // wrapper for non-node envs
 ;(function (sax) {
@@ -10497,7 +13200,7 @@ if (!String.fromCodePoint) {
 
 }).call(this,undefined)
 //# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy9icG1uLW1vZGRsZS9ub2RlX21vZHVsZXMvbW9kZGxlLXhtbC9ub2RlX21vZHVsZXMvc2F4L2xpYi9zYXguanMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IjtBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBIiwiZmlsZSI6ImdlbmVyYXRlZC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzQ29udGVudCI6WyIvLyB3cmFwcGVyIGZvciBub24tbm9kZSBlbnZzXG47KGZ1bmN0aW9uIChzYXgpIHtcblxuc2F4LnBhcnNlciA9IGZ1bmN0aW9uIChzdHJpY3QsIG9wdCkgeyByZXR1cm4gbmV3IFNBWFBhcnNlcihzdHJpY3QsIG9wdCkgfVxuc2F4LlNBWFBhcnNlciA9IFNBWFBhcnNlclxuc2F4LlNBWFN0cmVhbSA9IFNBWFN0cmVhbVxuc2F4LmNyZWF0ZVN0cmVhbSA9IGNyZWF0ZVN0cmVhbVxuXG4vLyBXaGVuIHdlIHBhc3MgdGhlIE1BWF9CVUZGRVJfTEVOR1RIIHBvc2l0aW9uLCBzdGFydCBjaGVja2luZyBmb3IgYnVmZmVyIG92ZXJydW5zLlxuLy8gV2hlbiB3ZSBjaGVjaywgc2NoZWR1bGUgdGhlIG5leHQgY2hlY2sgZm9yIE1BWF9CVUZGRVJfTEVOR1RIIC0gKG1heChidWZmZXIgbGVuZ3RocykpLFxuLy8gc2luY2UgdGhhdCdzIHRoZSBlYXJsaWVzdCB0aGF0IGEgYnVmZmVyIG92ZXJydW4gY291bGQgb2NjdXIuICBUaGlzIHdheSwgY2hlY2tzIGFyZVxuLy8gYXMgcmFyZSBhcyByZXF1aXJlZCwgYnV0IGFzIG9mdGVuIGFzIG5lY2Vzc2FyeSB0byBlbnN1cmUgbmV2ZXIgY3Jvc3NpbmcgdGhpcyBib3VuZC5cbi8vIEZ1cnRoZXJtb3JlLCBidWZmZXJzIGFyZSBvbmx5IHRlc3RlZCBhdCBtb3N0IG9uY2UgcGVyIHdyaXRlKCksIHNvIHBhc3NpbmcgYSB2ZXJ5XG4vLyBsYXJnZSBzdHJpbmcgaW50byB3cml0ZSgpIG1pZ2h0IGhhdmUgdW5kZXNpcmFibGUgZWZmZWN0cywgYnV0IHRoaXMgaXMgbWFuYWdlYWJsZSBieVxuLy8gdGhlIGNhbGxlciwgc28gaXQgaXMgYXNzdW1lZCB0byBiZSBzYWZlLiAgVGh1cywgYSBjYWxsIHRvIHdyaXRlKCkgbWF5LCBpbiB0aGUgZXh0cmVtZVxuLy8gZWRnZSBjYXNlLCByZXN1bHQgaW4gY3JlYXRpbmcgYXQgbW9zdCBvbmUgY29tcGxldGUgY29weSBvZiB0aGUgc3RyaW5nIHBhc3NlZCBpbi5cbi8vIFNldCB0byBJbmZpbml0eSB0byBoYXZlIHVubGltaXRlZCBidWZmZXJzLlxuc2F4Lk1BWF9CVUZGRVJfTEVOR1RIID0gNjQgKiAxMDI0XG5cbnZhciBidWZmZXJzID0gW1xuICBcImNvbW1lbnRcIiwgXCJzZ21sRGVjbFwiLCBcInRleHROb2RlXCIsIFwidGFnTmFtZVwiLCBcImRvY3R5cGVcIixcbiAgXCJwcm9jSW5zdE5hbWVcIiwgXCJwcm9jSW5zdEJvZHlcIiwgXCJlbnRpdHlcIiwgXCJhdHRyaWJOYW1lXCIsXG4gIFwiYXR0cmliVmFsdWVcIiwgXCJjZGF0YVwiLCBcInNjcmlwdFwiXG5dXG5cbnNheC5FVkVOVFMgPSAvLyBmb3IgZGlzY292ZXJhYmlsaXR5LlxuICBbIFwidGV4dFwiXG4gICwgXCJwcm9jZXNzaW5naW5zdHJ1Y3Rpb25cIlxuICAsIFwic2dtbGRlY2xhcmF0aW9uXCJcbiAgLCBcImRvY3R5cGVcIlxuICAsIFwiY29tbWVudFwiXG4gICwgXCJhdHRyaWJ1dGVcIlxuICAsIFwib3BlbnRhZ1wiXG4gICwgXCJjbG9zZXRhZ1wiXG4gICwgXCJvcGVuY2RhdGFcIlxuICAsIFwiY2RhdGFcIlxuICAsIFwiY2xvc2VjZGF0YVwiXG4gICwgXCJlcnJvclwiXG4gICwgXCJlbmRcIlxuICAsIFwicmVhZHlcIlxuICAsIFwic2NyaXB0XCJcbiAgLCBcIm9wZW5uYW1lc3BhY2VcIlxuICAsIFwiY2xvc2VuYW1lc3BhY2VcIlxuICBdXG5cbmZ1bmN0aW9uIFNBWFBhcnNlciAoc3RyaWN0LCBvcHQpIHtcbiAgaWYgKCEodGhpcyBpbnN0YW5jZW9mIFNBWFBhcnNlcikpIHJldHVybiBuZXcgU0FYUGFyc2VyKHN0cmljdCwgb3B0KVxuXG4gIHZhciBwYXJzZXIgPSB0aGlzXG4gIGNsZWFyQnVmZmVycyhwYXJzZXIpXG4gIHBhcnNlci5xID0gcGFyc2VyLmMgPSBcIlwiXG4gIHBhcnNlci5idWZmZXJDaGVja1Bvc2l0aW9uID0gc2F4Lk1BWF9CVUZGRVJfTEVOR1RIXG4gIHBhcnNlci5vcHQgPSBvcHQgfHwge31cbiAgcGFyc2VyLm9wdC5sb3dlcmNhc2UgPSBwYXJzZXIub3B0Lmxvd2VyY2FzZSB8fCBwYXJzZXIub3B0Lmxvd2VyY2FzZXRhZ3NcbiAgcGFyc2VyLmxvb3NlQ2FzZSA9IHBhcnNlci5vcHQubG93ZXJjYXNlID8gXCJ0b0xvd2VyQ2FzZVwiIDogXCJ0b1VwcGVyQ2FzZVwiXG4gIHBhcnNlci50YWdzID0gW11cbiAgcGFyc2VyLmNsb3NlZCA9IHBhcnNlci5jbG9zZWRSb290ID0gcGFyc2VyLnNhd1Jvb3QgPSBmYWxzZVxuICBwYXJzZXIudGFnID0gcGFyc2VyLmVycm9yID0gbnVsbFxuICBwYXJzZXIuc3RyaWN0ID0gISFzdHJpY3RcbiAgcGFyc2VyLm5vc2NyaXB0ID0gISEoc3RyaWN0IHx8IHBhcnNlci5vcHQubm9zY3JpcHQpXG4gIHBhcnNlci5zdGF0ZSA9IFMuQkVHSU5cbiAgcGFyc2VyLkVOVElUSUVTID0gT2JqZWN0LmNyZWF0ZShzYXguRU5USVRJRVMpXG4gIHBhcnNlci5hdHRyaWJMaXN0ID0gW11cblxuICAvLyBuYW1lc3BhY2VzIGZvcm0gYSBwcm90b3R5cGUgY2hhaW4uXG4gIC8vIGl0IGFsd2F5cyBwb2ludHMgYXQgdGhlIGN1cnJlbnQgdGFnLFxuICAvLyB3aGljaCBwcm90b3MgdG8gaXRzIHBhcmVudCB0YWcuXG4gIGlmIChwYXJzZXIub3B0LnhtbG5zKSBwYXJzZXIubnMgPSBPYmplY3QuY3JlYXRlKHJvb3ROUylcblxuICAvLyBtb3N0bHkganVzdCBmb3IgZXJyb3IgcmVwb3J0aW5nXG4gIHBhcnNlci50cmFja1Bvc2l0aW9uID0gcGFyc2VyLm9wdC5wb3NpdGlvbiAhPT0gZmFsc2VcbiAgaWYgKHBhcnNlci50cmFja1Bvc2l0aW9uKSB7XG4gICAgcGFyc2VyLnBvc2l0aW9uID0gcGFyc2VyLmxpbmUgPSBwYXJzZXIuY29sdW1uID0gMFxuICB9XG4gIGVtaXQocGFyc2VyLCBcIm9ucmVhZHlcIilcbn1cblxuaWYgKCFPYmplY3QuY3JlYXRlKSBPYmplY3QuY3JlYXRlID0gZnVuY3Rpb24gKG8pIHtcbiAgZnVuY3Rpb24gZiAoKSB7IHRoaXMuX19wcm90b19fID0gbyB9XG4gIGYucHJvdG90eXBlID0gb1xuICByZXR1cm4gbmV3IGZcbn1cblxuaWYgKCFPYmplY3QuZ2V0UHJvdG90eXBlT2YpIE9iamVjdC5nZXRQcm90b3R5cGVPZiA9IGZ1bmN0aW9uIChvKSB7XG4gIHJldHVybiBvLl9fcHJvdG9fX1xufVxuXG5pZiAoIU9iamVjdC5rZXlzKSBPYmplY3Qua2V5cyA9IGZ1bmN0aW9uIChvKSB7XG4gIHZhciBhID0gW11cbiAgZm9yICh2YXIgaSBpbiBvKSBpZiAoby5oYXNPd25Qcm9wZXJ0eShpKSkgYS5wdXNoKGkpXG4gIHJldHVybiBhXG59XG5cbmZ1bmN0aW9uIGNoZWNrQnVmZmVyTGVuZ3RoIChwYXJzZXIpIHtcbiAgdmFyIG1heEFsbG93ZWQgPSBNYXRoLm1heChzYXguTUFYX0JVRkZFUl9MRU5HVEgsIDEwKVxuICAgICwgbWF4QWN0dWFsID0gMFxuICBmb3IgKHZhciBpID0gMCwgbCA9IGJ1ZmZlcnMubGVuZ3RoOyBpIDwgbDsgaSArKykge1xuICAgIHZhciBsZW4gPSBwYXJzZXJbYnVmZmVyc1tpXV0ubGVuZ3RoXG4gICAgaWYgKGxlbiA+IG1heEFsbG93ZWQpIHtcbiAgICAgIC8vIFRleHQvY2RhdGEgbm9kZXMgY2FuIGdldCBiaWcsIGFuZCBzaW5jZSB0aGV5J3JlIGJ1ZmZlcmVkLFxuICAgICAgLy8gd2UgY2FuIGdldCBoZXJlIHVuZGVyIG5vcm1hbCBjb25kaXRpb25zLlxuICAgICAgLy8gQXZvaWQgaXNzdWVzIGJ5IGVtaXR0aW5nIHRoZSB0ZXh0IG5vZGUgbm93LFxuICAgICAgLy8gc28gYXQgbGVhc3QgaXQgd29uJ3QgZ2V0IGFueSBiaWdnZXIuXG4gICAgICBzd2l0Y2ggKGJ1ZmZlcnNbaV0pIHtcbiAgICAgICAgY2FzZSBcInRleHROb2RlXCI6XG4gICAgICAgICAgY2xvc2VUZXh0KHBhcnNlcilcbiAgICAgICAgYnJlYWtcblxuICAgICAgICBjYXNlIFwiY2RhdGFcIjpcbiAgICAgICAgICBlbWl0Tm9kZShwYXJzZXIsIFwib25jZGF0YVwiLCBwYXJzZXIuY2RhdGEpXG4gICAgICAgICAgcGFyc2VyLmNkYXRhID0gXCJcIlxuICAgICAgICBicmVha1xuXG4gICAgICAgIGNhc2UgXCJzY3JpcHRcIjpcbiAgICAgICAgICBlbWl0Tm9kZShwYXJzZXIsIFwib25zY3JpcHRcIiwgcGFyc2VyLnNjcmlwdClcbiAgICAgICAgICBwYXJzZXIuc2NyaXB0ID0gXCJcIlxuICAgICAgICBicmVha1xuXG4gICAgICAgIGRlZmF1bHQ6XG4gICAgICAgICAgZXJyb3IocGFyc2VyLCBcIk1heCBidWZmZXIgbGVuZ3RoIGV4Y2VlZGVkOiBcIitidWZmZXJzW2ldKVxuICAgICAgfVxuICAgIH1cbiAgICBtYXhBY3R1YWwgPSBNYXRoLm1heChtYXhBY3R1YWwsIGxlbilcbiAgfVxuICAvLyBzY2hlZHVsZSB0aGUgbmV4dCBjaGVjayBmb3IgdGhlIGVhcmxpZXN0IHBvc3NpYmxlIGJ1ZmZlciBvdmVycnVuLlxuICBwYXJzZXIuYnVmZmVyQ2hlY2tQb3NpdGlvbiA9IChzYXguTUFYX0JVRkZFUl9MRU5HVEggLSBtYXhBY3R1YWwpXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICsgcGFyc2VyLnBvc2l0aW9uXG59XG5cbmZ1bmN0aW9uIGNsZWFyQnVmZmVycyAocGFyc2VyKSB7XG4gIGZvciAodmFyIGkgPSAwLCBsID0gYnVmZmVycy5sZW5ndGg7IGkgPCBsOyBpICsrKSB7XG4gICAgcGFyc2VyW2J1ZmZlcnNbaV1dID0gXCJcIlxuICB9XG59XG5cbmZ1bmN0aW9uIGZsdXNoQnVmZmVycyAocGFyc2VyKSB7XG4gIGNsb3NlVGV4dChwYXJzZXIpXG4gIGlmIChwYXJzZXIuY2RhdGEgIT09IFwiXCIpIHtcbiAgICBlbWl0Tm9kZShwYXJzZXIsIFwib25jZGF0YVwiLCBwYXJzZXIuY2RhdGEpXG4gICAgcGFyc2VyLmNkYXRhID0gXCJcIlxuICB9XG4gIGlmIChwYXJzZXIuc2NyaXB0ICE9PSBcIlwiKSB7XG4gICAgZW1pdE5vZGUocGFyc2VyLCBcIm9uc2NyaXB0XCIsIHBhcnNlci5zY3JpcHQpXG4gICAgcGFyc2VyLnNjcmlwdCA9IFwiXCJcbiAgfVxufVxuXG5TQVhQYXJzZXIucHJvdG90eXBlID1cbiAgeyBlbmQ6IGZ1bmN0aW9uICgpIHsgZW5kKHRoaXMpIH1cbiAgLCB3cml0ZTogd3JpdGVcbiAgLCByZXN1bWU6IGZ1bmN0aW9uICgpIHsgdGhpcy5lcnJvciA9IG51bGw7IHJldHVybiB0aGlzIH1cbiAgLCBjbG9zZTogZnVuY3Rpb24gKCkgeyByZXR1cm4gdGhpcy53cml0ZShudWxsKSB9XG4gICwgZmx1c2g6IGZ1bmN0aW9uICgpIHsgZmx1c2hCdWZmZXJzKHRoaXMpIH1cbiAgfVxuXG50cnkge1xuICB2YXIgU3RyZWFtID0gcmVxdWlyZShcInN0cmVhbVwiKS5TdHJlYW1cbn0gY2F0Y2ggKGV4KSB7XG4gIHZhciBTdHJlYW0gPSBmdW5jdGlvbiAoKSB7fVxufVxuXG5cbnZhciBzdHJlYW1XcmFwcyA9IHNheC5FVkVOVFMuZmlsdGVyKGZ1bmN0aW9uIChldikge1xuICByZXR1cm4gZXYgIT09IFwiZXJyb3JcIiAmJiBldiAhPT0gXCJlbmRcIlxufSlcblxuZnVuY3Rpb24gY3JlYXRlU3RyZWFtIChzdHJpY3QsIG9wdCkge1xuICByZXR1cm4gbmV3IFNBWFN0cmVhbShzdHJpY3QsIG9wdClcbn1cblxuZnVuY3Rpb24gU0FYU3RyZWFtIChzdHJpY3QsIG9wdCkge1xuICBpZiAoISh0aGlzIGluc3RhbmNlb2YgU0FYU3RyZWFtKSkgcmV0dXJuIG5ldyBTQVhTdHJlYW0oc3RyaWN0LCBvcHQpXG5cbiAgU3RyZWFtLmFwcGx5KHRoaXMpXG5cbiAgdGhpcy5fcGFyc2VyID0gbmV3IFNBWFBhcnNlcihzdHJpY3QsIG9wdClcbiAgdGhpcy53cml0YWJsZSA9IHRydWVcbiAgdGhpcy5yZWFkYWJsZSA9IHRydWVcblxuXG4gIHZhciBtZSA9IHRoaXNcblxuICB0aGlzLl9wYXJzZXIub25lbmQgPSBmdW5jdGlvbiAoKSB7XG4gICAgbWUuZW1pdChcImVuZFwiKVxuICB9XG5cbiAgdGhpcy5fcGFyc2VyLm9uZXJyb3IgPSBmdW5jdGlvbiAoZXIpIHtcbiAgICBtZS5lbWl0KFwiZXJyb3JcIiwgZXIpXG5cbiAgICAvLyBpZiBkaWRuJ3QgdGhyb3csIHRoZW4gbWVhbnMgZXJyb3Igd2FzIGhhbmRsZWQuXG4gICAgLy8gZ28gYWhlYWQgYW5kIGNsZWFyIGVycm9yLCBzbyB3ZSBjYW4gd3JpdGUgYWdhaW4uXG4gICAgbWUuX3BhcnNlci5lcnJvciA9IG51bGxcbiAgfVxuXG4gIHRoaXMuX2RlY29kZXIgPSBudWxsO1xuXG4gIHN0cmVhbVdyYXBzLmZvckVhY2goZnVuY3Rpb24gKGV2KSB7XG4gICAgT2JqZWN0LmRlZmluZVByb3BlcnR5KG1lLCBcIm9uXCIgKyBldiwge1xuICAgICAgZ2V0OiBmdW5jdGlvbiAoKSB7IHJldHVybiBtZS5fcGFyc2VyW1wib25cIiArIGV2XSB9LFxuICAgICAgc2V0OiBmdW5jdGlvbiAoaCkge1xuICAgICAgICBpZiAoIWgpIHtcbiAgICAgICAgICBtZS5yZW1vdmVBbGxMaXN0ZW5lcnMoZXYpXG4gICAgICAgICAgcmV0dXJuIG1lLl9wYXJzZXJbXCJvblwiK2V2XSA9IGhcbiAgICAgICAgfVxuICAgICAgICBtZS5vbihldiwgaClcbiAgICAgIH0sXG4gICAgICBlbnVtZXJhYmxlOiB0cnVlLFxuICAgICAgY29uZmlndXJhYmxlOiBmYWxzZVxuICAgIH0pXG4gIH0pXG59XG5cblNBWFN0cmVhbS5wcm90b3R5cGUgPSBPYmplY3QuY3JlYXRlKFN0cmVhbS5wcm90b3R5cGUsXG4gIHsgY29uc3RydWN0b3I6IHsgdmFsdWU6IFNBWFN0cmVhbSB9IH0pXG5cblNBWFN0cmVhbS5wcm90b3R5cGUud3JpdGUgPSBmdW5jdGlvbiAoZGF0YSkge1xuICBpZiAodHlwZW9mIEJ1ZmZlciA9PT0gJ2Z1bmN0aW9uJyAmJlxuICAgICAgdHlwZW9mIEJ1ZmZlci5pc0J1ZmZlciA9PT0gJ2Z1bmN0aW9uJyAmJlxuICAgICAgQnVmZmVyLmlzQnVmZmVyKGRhdGEpKSB7XG4gICAgaWYgKCF0aGlzLl9kZWNvZGVyKSB7XG4gICAgICB2YXIgU0QgPSByZXF1aXJlKCdzdHJpbmdfZGVjb2RlcicpLlN0cmluZ0RlY29kZXJcbiAgICAgIHRoaXMuX2RlY29kZXIgPSBuZXcgU0QoJ3V0ZjgnKVxuICAgIH1cbiAgICBkYXRhID0gdGhpcy5fZGVjb2Rlci53cml0ZShkYXRhKTtcbiAgfVxuXG4gIHRoaXMuX3BhcnNlci53cml0ZShkYXRhLnRvU3RyaW5nKCkpXG4gIHRoaXMuZW1pdChcImRhdGFcIiwgZGF0YSlcbiAgcmV0dXJuIHRydWVcbn1cblxuU0FYU3RyZWFtLnByb3RvdHlwZS5lbmQgPSBmdW5jdGlvbiAoY2h1bmspIHtcbiAgaWYgKGNodW5rICYmIGNodW5rLmxlbmd0aCkgdGhpcy53cml0ZShjaHVuaylcbiAgdGhpcy5fcGFyc2VyLmVuZCgpXG4gIHJldHVybiB0cnVlXG59XG5cblNBWFN0cmVhbS5wcm90b3R5cGUub24gPSBmdW5jdGlvbiAoZXYsIGhhbmRsZXIpIHtcbiAgdmFyIG1lID0gdGhpc1xuICBpZiAoIW1lLl9wYXJzZXJbXCJvblwiK2V2XSAmJiBzdHJlYW1XcmFwcy5pbmRleE9mKGV2KSAhPT0gLTEpIHtcbiAgICBtZS5fcGFyc2VyW1wib25cIitldl0gPSBmdW5jdGlvbiAoKSB7XG4gICAgICB2YXIgYXJncyA9IGFyZ3VtZW50cy5sZW5ndGggPT09IDEgPyBbYXJndW1lbnRzWzBdXVxuICAgICAgICAgICAgICAgOiBBcnJheS5hcHBseShudWxsLCBhcmd1bWVudHMpXG4gICAgICBhcmdzLnNwbGljZSgwLCAwLCBldilcbiAgICAgIG1lLmVtaXQuYXBwbHkobWUsIGFyZ3MpXG4gICAgfVxuICB9XG5cbiAgcmV0dXJuIFN0cmVhbS5wcm90b3R5cGUub24uY2FsbChtZSwgZXYsIGhhbmRsZXIpXG59XG5cblxuXG4vLyBjaGFyYWN0ZXIgY2xhc3NlcyBhbmQgdG9rZW5zXG52YXIgd2hpdGVzcGFjZSA9IFwiXFxyXFxuXFx0IFwiXG4gIC8vIHRoaXMgcmVhbGx5IG5lZWRzIHRvIGJlIHJlcGxhY2VkIHdpdGggY2hhcmFjdGVyIGNsYXNzZXMuXG4gIC8vIFhNTCBhbGxvd3MgYWxsIG1hbm5lciBvZiByaWRpY3Vsb3VzIG51bWJlcnMgYW5kIGRpZ2l0cy5cbiAgLCBudW1iZXIgPSBcIjAxMjQzNTY3ODlcIlxuICAsIGxldHRlciA9IFwiYWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXpBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWlwiXG4gIC8vIChMZXR0ZXIgfCBcIl9cIiB8IFwiOlwiKVxuICAsIHF1b3RlID0gXCInXFxcIlwiXG4gICwgZW50aXR5ID0gbnVtYmVyK2xldHRlcitcIiNcIlxuICAsIGF0dHJpYkVuZCA9IHdoaXRlc3BhY2UgKyBcIj5cIlxuICAsIENEQVRBID0gXCJbQ0RBVEFbXCJcbiAgLCBET0NUWVBFID0gXCJET0NUWVBFXCJcbiAgLCBYTUxfTkFNRVNQQUNFID0gXCJodHRwOi8vd3d3LnczLm9yZy9YTUwvMTk5OC9uYW1lc3BhY2VcIlxuICAsIFhNTE5TX05BTUVTUEFDRSA9IFwiaHR0cDovL3d3dy53My5vcmcvMjAwMC94bWxucy9cIlxuICAsIHJvb3ROUyA9IHsgeG1sOiBYTUxfTkFNRVNQQUNFLCB4bWxuczogWE1MTlNfTkFNRVNQQUNFIH1cblxuLy8gdHVybiBhbGwgdGhlIHN0cmluZyBjaGFyYWN0ZXIgc2V0cyBpbnRvIGNoYXJhY3RlciBjbGFzcyBvYmplY3RzLlxud2hpdGVzcGFjZSA9IGNoYXJDbGFzcyh3aGl0ZXNwYWNlKVxubnVtYmVyID0gY2hhckNsYXNzKG51bWJlcilcbmxldHRlciA9IGNoYXJDbGFzcyhsZXR0ZXIpXG5cbi8vIGh0dHA6Ly93d3cudzMub3JnL1RSL1JFQy14bWwvI05ULU5hbWVTdGFydENoYXJcbi8vIFRoaXMgaW1wbGVtZW50YXRpb24gd29ya3Mgb24gc3RyaW5ncywgYSBzaW5nbGUgY2hhcmFjdGVyIGF0IGEgdGltZVxuLy8gYXMgc3VjaCwgaXQgY2Fubm90IGV2ZXIgc3VwcG9ydCBhc3RyYWwtcGxhbmUgY2hhcmFjdGVycyAoMTAwMDAtRUZGRkYpXG4vLyB3aXRob3V0IGEgc2lnbmlmaWNhbnQgYnJlYWtpbmcgY2hhbmdlIHRvIGVpdGhlciB0aGlzICBwYXJzZXIsIG9yIHRoZVxuLy8gSmF2YVNjcmlwdCBsYW5ndWFnZS4gIEltcGxlbWVudGF0aW9uIG9mIGFuIGVtb2ppLWNhcGFibGUgeG1sIHBhcnNlclxuLy8gaXMgbGVmdCBhcyBhbiBleGVyY2lzZSBmb3IgdGhlIHJlYWRlci5cbnZhciBuYW1lU3RhcnQgPSAvWzpfQS1aYS16XFx1MDBDMC1cXHUwMEQ2XFx1MDBEOC1cXHUwMEY2XFx1MDBGOC1cXHUwMkZGXFx1MDM3MC1cXHUwMzdEXFx1MDM3Ri1cXHUxRkZGXFx1MjAwQy1cXHUyMDBEXFx1MjA3MC1cXHUyMThGXFx1MkMwMC1cXHUyRkVGXFx1MzAwMS1cXHVEN0ZGXFx1RjkwMC1cXHVGRENGXFx1RkRGMC1cXHVGRkZEXS9cblxudmFyIG5hbWVCb2R5ID0gL1s6X0EtWmEtelxcdTAwQzAtXFx1MDBENlxcdTAwRDgtXFx1MDBGNlxcdTAwRjgtXFx1MDJGRlxcdTAzNzAtXFx1MDM3RFxcdTAzN0YtXFx1MUZGRlxcdTIwMEMtXFx1MjAwRFxcdTIwNzAtXFx1MjE4RlxcdTJDMDAtXFx1MkZFRlxcdTMwMDEtXFx1RDdGRlxcdUY5MDAtXFx1RkRDRlxcdUZERjAtXFx1RkZGRFxcdTAwQjdcXHUwMzAwLVxcdTAzNkZcXHUyMDNGLVxcdTIwNDBcXC5cXGQtXS9cblxucXVvdGUgPSBjaGFyQ2xhc3MocXVvdGUpXG5lbnRpdHkgPSBjaGFyQ2xhc3MoZW50aXR5KVxuYXR0cmliRW5kID0gY2hhckNsYXNzKGF0dHJpYkVuZClcblxuZnVuY3Rpb24gY2hhckNsYXNzIChzdHIpIHtcbiAgcmV0dXJuIHN0ci5zcGxpdChcIlwiKS5yZWR1Y2UoZnVuY3Rpb24gKHMsIGMpIHtcbiAgICBzW2NdID0gdHJ1ZVxuICAgIHJldHVybiBzXG4gIH0sIHt9KVxufVxuXG5mdW5jdGlvbiBpc1JlZ0V4cCAoYykge1xuICByZXR1cm4gT2JqZWN0LnByb3RvdHlwZS50b1N0cmluZy5jYWxsKGMpID09PSAnW29iamVjdCBSZWdFeHBdJ1xufVxuXG5mdW5jdGlvbiBpcyAoY2hhcmNsYXNzLCBjKSB7XG4gIHJldHVybiBpc1JlZ0V4cChjaGFyY2xhc3MpID8gISFjLm1hdGNoKGNoYXJjbGFzcykgOiBjaGFyY2xhc3NbY11cbn1cblxuZnVuY3Rpb24gbm90IChjaGFyY2xhc3MsIGMpIHtcbiAgcmV0dXJuICFpcyhjaGFyY2xhc3MsIGMpXG59XG5cbnZhciBTID0gMFxuc2F4LlNUQVRFID1cbnsgQkVHSU4gICAgICAgICAgICAgICAgICAgICA6IFMrK1xuLCBURVhUICAgICAgICAgICAgICAgICAgICAgIDogUysrIC8vIGdlbmVyYWwgc3R1ZmZcbiwgVEVYVF9FTlRJVFkgICAgICAgICAgICAgICA6IFMrKyAvLyAmYW1wIGFuZCBzdWNoLlxuLCBPUEVOX1dBS0EgICAgICAgICAgICAgICAgIDogUysrIC8vIDxcbiwgU0dNTF9ERUNMICAgICAgICAgICAgICAgICA6IFMrKyAvLyA8IUJMQVJHXG4sIFNHTUxfREVDTF9RVU9URUQgICAgICAgICAgOiBTKysgLy8gPCFCTEFSRyBmb28gXCJiYXJcbiwgRE9DVFlQRSAgICAgICAgICAgICAgICAgICA6IFMrKyAvLyA8IURPQ1RZUEVcbiwgRE9DVFlQRV9RVU9URUQgICAgICAgICAgICA6IFMrKyAvLyA8IURPQ1RZUEUgXCIvL2JsYWhcbiwgRE9DVFlQRV9EVEQgICAgICAgICAgICAgICA6IFMrKyAvLyA8IURPQ1RZUEUgXCIvL2JsYWhcIiBbIC4uLlxuLCBET0NUWVBFX0RURF9RVU9URUQgICAgICAgIDogUysrIC8vIDwhRE9DVFlQRSBcIi8vYmxhaFwiIFsgXCJmb29cbiwgQ09NTUVOVF9TVEFSVElORyAgICAgICAgICA6IFMrKyAvLyA8IS1cbiwgQ09NTUVOVCAgICAgICAgICAgICAgICAgICA6IFMrKyAvLyA8IS0tXG4sIENPTU1FTlRfRU5ESU5HICAgICAgICAgICAgOiBTKysgLy8gPCEtLSBibGFoIC1cbiwgQ09NTUVOVF9FTkRFRCAgICAgICAgICAgICA6IFMrKyAvLyA8IS0tIGJsYWggLS1cbiwgQ0RBVEEgICAgICAgICAgICAgICAgICAgICA6IFMrKyAvLyA8IVtDREFUQVsgc29tZXRoaW5nXG4sIENEQVRBX0VORElORyAgICAgICAgICAgICAgOiBTKysgLy8gXVxuLCBDREFUQV9FTkRJTkdfMiAgICAgICAgICAgIDogUysrIC8vIF1dXG4sIFBST0NfSU5TVCAgICAgICAgICAgICAgICAgOiBTKysgLy8gPD9oaVxuLCBQUk9DX0lOU1RfQk9EWSAgICAgICAgICAgIDogUysrIC8vIDw/aGkgdGhlcmVcbiwgUFJPQ19JTlNUX0VORElORyAgICAgICAgICA6IFMrKyAvLyA8P2hpIFwidGhlcmVcIiA/XG4sIE9QRU5fVEFHICAgICAgICAgICAgICAgICAgOiBTKysgLy8gPHN0cm9uZ1xuLCBPUEVOX1RBR19TTEFTSCAgICAgICAgICAgIDogUysrIC8vIDxzdHJvbmcgL1xuLCBBVFRSSUIgICAgICAgICAgICAgICAgICAgIDogUysrIC8vIDxhXG4sIEFUVFJJQl9OQU1FICAgICAgICAgICAgICAgOiBTKysgLy8gPGEgZm9vXG4sIEFUVFJJQl9OQU1FX1NBV19XSElURSAgICAgOiBTKysgLy8gPGEgZm9vIF9cbiwgQVRUUklCX1ZBTFVFICAgICAgICAgICAgICA6IFMrKyAvLyA8YSBmb289XG4sIEFUVFJJQl9WQUxVRV9RVU9URUQgICAgICAgOiBTKysgLy8gPGEgZm9vPVwiYmFyXG4sIEFUVFJJQl9WQUxVRV9DTE9TRUQgICAgICAgOiBTKysgLy8gPGEgZm9vPVwiYmFyXCJcbiwgQVRUUklCX1ZBTFVFX1VOUVVPVEVEICAgICA6IFMrKyAvLyA8YSBmb289YmFyXG4sIEFUVFJJQl9WQUxVRV9FTlRJVFlfUSAgICAgOiBTKysgLy8gPGZvbyBiYXI9XCImcXVvdDtcIlxuLCBBVFRSSUJfVkFMVUVfRU5USVRZX1UgICAgIDogUysrIC8vIDxmb28gYmFyPSZxdW90O1xuLCBDTE9TRV9UQUcgICAgICAgICAgICAgICAgIDogUysrIC8vIDwvYVxuLCBDTE9TRV9UQUdfU0FXX1dISVRFICAgICAgIDogUysrIC8vIDwvYSAgID5cbiwgU0NSSVBUICAgICAgICAgICAgICAgICAgICA6IFMrKyAvLyA8c2NyaXB0PiAuLi5cbiwgU0NSSVBUX0VORElORyAgICAgICAgICAgICA6IFMrKyAvLyA8c2NyaXB0PiAuLi4gPFxufVxuXG5zYXguRU5USVRJRVMgPVxueyBcImFtcFwiIDogXCImXCJcbiwgXCJndFwiIDogXCI+XCJcbiwgXCJsdFwiIDogXCI8XCJcbiwgXCJxdW90XCIgOiBcIlxcXCJcIlxuLCBcImFwb3NcIiA6IFwiJ1wiXG4sIFwiQUVsaWdcIiA6IDE5OFxuLCBcIkFhY3V0ZVwiIDogMTkzXG4sIFwiQWNpcmNcIiA6IDE5NFxuLCBcIkFncmF2ZVwiIDogMTkyXG4sIFwiQXJpbmdcIiA6IDE5N1xuLCBcIkF0aWxkZVwiIDogMTk1XG4sIFwiQXVtbFwiIDogMTk2XG4sIFwiQ2NlZGlsXCIgOiAxOTlcbiwgXCJFVEhcIiA6IDIwOFxuLCBcIkVhY3V0ZVwiIDogMjAxXG4sIFwiRWNpcmNcIiA6IDIwMlxuLCBcIkVncmF2ZVwiIDogMjAwXG4sIFwiRXVtbFwiIDogMjAzXG4sIFwiSWFjdXRlXCIgOiAyMDVcbiwgXCJJY2lyY1wiIDogMjA2XG4sIFwiSWdyYXZlXCIgOiAyMDRcbiwgXCJJdW1sXCIgOiAyMDdcbiwgXCJOdGlsZGVcIiA6IDIwOVxuLCBcIk9hY3V0ZVwiIDogMjExXG4sIFwiT2NpcmNcIiA6IDIxMlxuLCBcIk9ncmF2ZVwiIDogMjEwXG4sIFwiT3NsYXNoXCIgOiAyMTZcbiwgXCJPdGlsZGVcIiA6IDIxM1xuLCBcIk91bWxcIiA6IDIxNFxuLCBcIlRIT1JOXCIgOiAyMjJcbiwgXCJVYWN1dGVcIiA6IDIxOFxuLCBcIlVjaXJjXCIgOiAyMTlcbiwgXCJVZ3JhdmVcIiA6IDIxN1xuLCBcIlV1bWxcIiA6IDIyMFxuLCBcIllhY3V0ZVwiIDogMjIxXG4sIFwiYWFjdXRlXCIgOiAyMjVcbiwgXCJhY2lyY1wiIDogMjI2XG4sIFwiYWVsaWdcIiA6IDIzMFxuLCBcImFncmF2ZVwiIDogMjI0XG4sIFwiYXJpbmdcIiA6IDIyOVxuLCBcImF0aWxkZVwiIDogMjI3XG4sIFwiYXVtbFwiIDogMjI4XG4sIFwiY2NlZGlsXCIgOiAyMzFcbiwgXCJlYWN1dGVcIiA6IDIzM1xuLCBcImVjaXJjXCIgOiAyMzRcbiwgXCJlZ3JhdmVcIiA6IDIzMlxuLCBcImV0aFwiIDogMjQwXG4sIFwiZXVtbFwiIDogMjM1XG4sIFwiaWFjdXRlXCIgOiAyMzdcbiwgXCJpY2lyY1wiIDogMjM4XG4sIFwiaWdyYXZlXCIgOiAyMzZcbiwgXCJpdW1sXCIgOiAyMzlcbiwgXCJudGlsZGVcIiA6IDI0MVxuLCBcIm9hY3V0ZVwiIDogMjQzXG4sIFwib2NpcmNcIiA6IDI0NFxuLCBcIm9ncmF2ZVwiIDogMjQyXG4sIFwib3NsYXNoXCIgOiAyNDhcbiwgXCJvdGlsZGVcIiA6IDI0NVxuLCBcIm91bWxcIiA6IDI0NlxuLCBcInN6bGlnXCIgOiAyMjNcbiwgXCJ0aG9yblwiIDogMjU0XG4sIFwidWFjdXRlXCIgOiAyNTBcbiwgXCJ1Y2lyY1wiIDogMjUxXG4sIFwidWdyYXZlXCIgOiAyNDlcbiwgXCJ1dW1sXCIgOiAyNTJcbiwgXCJ5YWN1dGVcIiA6IDI1M1xuLCBcInl1bWxcIiA6IDI1NVxuLCBcImNvcHlcIiA6IDE2OVxuLCBcInJlZ1wiIDogMTc0XG4sIFwibmJzcFwiIDogMTYwXG4sIFwiaWV4Y2xcIiA6IDE2MVxuLCBcImNlbnRcIiA6IDE2MlxuLCBcInBvdW5kXCIgOiAxNjNcbiwgXCJjdXJyZW5cIiA6IDE2NFxuLCBcInllblwiIDogMTY1XG4sIFwiYnJ2YmFyXCIgOiAxNjZcbiwgXCJzZWN0XCIgOiAxNjdcbiwgXCJ1bWxcIiA6IDE2OFxuLCBcIm9yZGZcIiA6IDE3MFxuLCBcImxhcXVvXCIgOiAxNzFcbiwgXCJub3RcIiA6IDE3MlxuLCBcInNoeVwiIDogMTczXG4sIFwibWFjclwiIDogMTc1XG4sIFwiZGVnXCIgOiAxNzZcbiwgXCJwbHVzbW5cIiA6IDE3N1xuLCBcInN1cDFcIiA6IDE4NVxuLCBcInN1cDJcIiA6IDE3OFxuLCBcInN1cDNcIiA6IDE3OVxuLCBcImFjdXRlXCIgOiAxODBcbiwgXCJtaWNyb1wiIDogMTgxXG4sIFwicGFyYVwiIDogMTgyXG4sIFwibWlkZG90XCIgOiAxODNcbiwgXCJjZWRpbFwiIDogMTg0XG4sIFwib3JkbVwiIDogMTg2XG4sIFwicmFxdW9cIiA6IDE4N1xuLCBcImZyYWMxNFwiIDogMTg4XG4sIFwiZnJhYzEyXCIgOiAxODlcbiwgXCJmcmFjMzRcIiA6IDE5MFxuLCBcImlxdWVzdFwiIDogMTkxXG4sIFwidGltZXNcIiA6IDIxNVxuLCBcImRpdmlkZVwiIDogMjQ3XG4sIFwiT0VsaWdcIiA6IDMzOFxuLCBcIm9lbGlnXCIgOiAzMzlcbiwgXCJTY2Fyb25cIiA6IDM1MlxuLCBcInNjYXJvblwiIDogMzUzXG4sIFwiWXVtbFwiIDogMzc2XG4sIFwiZm5vZlwiIDogNDAyXG4sIFwiY2lyY1wiIDogNzEwXG4sIFwidGlsZGVcIiA6IDczMlxuLCBcIkFscGhhXCIgOiA5MTNcbiwgXCJCZXRhXCIgOiA5MTRcbiwgXCJHYW1tYVwiIDogOTE1XG4sIFwiRGVsdGFcIiA6IDkxNlxuLCBcIkVwc2lsb25cIiA6IDkxN1xuLCBcIlpldGFcIiA6IDkxOFxuLCBcIkV0YVwiIDogOTE5XG4sIFwiVGhldGFcIiA6IDkyMFxuLCBcIklvdGFcIiA6IDkyMVxuLCBcIkthcHBhXCIgOiA5MjJcbiwgXCJMYW1iZGFcIiA6IDkyM1xuLCBcIk11XCIgOiA5MjRcbiwgXCJOdVwiIDogOTI1XG4sIFwiWGlcIiA6IDkyNlxuLCBcIk9taWNyb25cIiA6IDkyN1xuLCBcIlBpXCIgOiA5MjhcbiwgXCJSaG9cIiA6IDkyOVxuLCBcIlNpZ21hXCIgOiA5MzFcbiwgXCJUYXVcIiA6IDkzMlxuLCBcIlVwc2lsb25cIiA6IDkzM1xuLCBcIlBoaVwiIDogOTM0XG4sIFwiQ2hpXCIgOiA5MzVcbiwgXCJQc2lcIiA6IDkzNlxuLCBcIk9tZWdhXCIgOiA5MzdcbiwgXCJhbHBoYVwiIDogOTQ1XG4sIFwiYmV0YVwiIDogOTQ2XG4sIFwiZ2FtbWFcIiA6IDk0N1xuLCBcImRlbHRhXCIgOiA5NDhcbiwgXCJlcHNpbG9uXCIgOiA5NDlcbiwgXCJ6ZXRhXCIgOiA5NTBcbiwgXCJldGFcIiA6IDk1MVxuLCBcInRoZXRhXCIgOiA5NTJcbiwgXCJpb3RhXCIgOiA5NTNcbiwgXCJrYXBwYVwiIDogOTU0XG4sIFwibGFtYmRhXCIgOiA5NTVcbiwgXCJtdVwiIDogOTU2XG4sIFwibnVcIiA6IDk1N1xuLCBcInhpXCIgOiA5NThcbiwgXCJvbWljcm9uXCIgOiA5NTlcbiwgXCJwaVwiIDogOTYwXG4sIFwicmhvXCIgOiA5NjFcbiwgXCJzaWdtYWZcIiA6IDk2MlxuLCBcInNpZ21hXCIgOiA5NjNcbiwgXCJ0YXVcIiA6IDk2NFxuLCBcInVwc2lsb25cIiA6IDk2NVxuLCBcInBoaVwiIDogOTY2XG4sIFwiY2hpXCIgOiA5NjdcbiwgXCJwc2lcIiA6IDk2OFxuLCBcIm9tZWdhXCIgOiA5NjlcbiwgXCJ0aGV0YXN5bVwiIDogOTc3XG4sIFwidXBzaWhcIiA6IDk3OFxuLCBcInBpdlwiIDogOTgyXG4sIFwiZW5zcFwiIDogODE5NFxuLCBcImVtc3BcIiA6IDgxOTVcbiwgXCJ0aGluc3BcIiA6IDgyMDFcbiwgXCJ6d25qXCIgOiA4MjA0XG4sIFwiendqXCIgOiA4MjA1XG4sIFwibHJtXCIgOiA4MjA2XG4sIFwicmxtXCIgOiA4MjA3XG4sIFwibmRhc2hcIiA6IDgyMTFcbiwgXCJtZGFzaFwiIDogODIxMlxuLCBcImxzcXVvXCIgOiA4MjE2XG4sIFwicnNxdW9cIiA6IDgyMTdcbiwgXCJzYnF1b1wiIDogODIxOFxuLCBcImxkcXVvXCIgOiA4MjIwXG4sIFwicmRxdW9cIiA6IDgyMjFcbiwgXCJiZHF1b1wiIDogODIyMlxuLCBcImRhZ2dlclwiIDogODIyNFxuLCBcIkRhZ2dlclwiIDogODIyNVxuLCBcImJ1bGxcIiA6IDgyMjZcbiwgXCJoZWxsaXBcIiA6IDgyMzBcbiwgXCJwZXJtaWxcIiA6IDgyNDBcbiwgXCJwcmltZVwiIDogODI0MlxuLCBcIlByaW1lXCIgOiA4MjQzXG4sIFwibHNhcXVvXCIgOiA4MjQ5XG4sIFwicnNhcXVvXCIgOiA4MjUwXG4sIFwib2xpbmVcIiA6IDgyNTRcbiwgXCJmcmFzbFwiIDogODI2MFxuLCBcImV1cm9cIiA6IDgzNjRcbiwgXCJpbWFnZVwiIDogODQ2NVxuLCBcIndlaWVycFwiIDogODQ3MlxuLCBcInJlYWxcIiA6IDg0NzZcbiwgXCJ0cmFkZVwiIDogODQ4MlxuLCBcImFsZWZzeW1cIiA6IDg1MDFcbiwgXCJsYXJyXCIgOiA4NTkyXG4sIFwidWFyclwiIDogODU5M1xuLCBcInJhcnJcIiA6IDg1OTRcbiwgXCJkYXJyXCIgOiA4NTk1XG4sIFwiaGFyclwiIDogODU5NlxuLCBcImNyYXJyXCIgOiA4NjI5XG4sIFwibEFyclwiIDogODY1NlxuLCBcInVBcnJcIiA6IDg2NTdcbiwgXCJyQXJyXCIgOiA4NjU4XG4sIFwiZEFyclwiIDogODY1OVxuLCBcImhBcnJcIiA6IDg2NjBcbiwgXCJmb3JhbGxcIiA6IDg3MDRcbiwgXCJwYXJ0XCIgOiA4NzA2XG4sIFwiZXhpc3RcIiA6IDg3MDdcbiwgXCJlbXB0eVwiIDogODcwOVxuLCBcIm5hYmxhXCIgOiA4NzExXG4sIFwiaXNpblwiIDogODcxMlxuLCBcIm5vdGluXCIgOiA4NzEzXG4sIFwibmlcIiA6IDg3MTVcbiwgXCJwcm9kXCIgOiA4NzE5XG4sIFwic3VtXCIgOiA4NzIxXG4sIFwibWludXNcIiA6IDg3MjJcbiwgXCJsb3dhc3RcIiA6IDg3MjdcbiwgXCJyYWRpY1wiIDogODczMFxuLCBcInByb3BcIiA6IDg3MzNcbiwgXCJpbmZpblwiIDogODczNFxuLCBcImFuZ1wiIDogODczNlxuLCBcImFuZFwiIDogODc0M1xuLCBcIm9yXCIgOiA4NzQ0XG4sIFwiY2FwXCIgOiA4NzQ1XG4sIFwiY3VwXCIgOiA4NzQ2XG4sIFwiaW50XCIgOiA4NzQ3XG4sIFwidGhlcmU0XCIgOiA4NzU2XG4sIFwic2ltXCIgOiA4NzY0XG4sIFwiY29uZ1wiIDogODc3M1xuLCBcImFzeW1wXCIgOiA4Nzc2XG4sIFwibmVcIiA6IDg4MDBcbiwgXCJlcXVpdlwiIDogODgwMVxuLCBcImxlXCIgOiA4ODA0XG4sIFwiZ2VcIiA6IDg4MDVcbiwgXCJzdWJcIiA6IDg4MzRcbiwgXCJzdXBcIiA6IDg4MzVcbiwgXCJuc3ViXCIgOiA4ODM2XG4sIFwic3ViZVwiIDogODgzOFxuLCBcInN1cGVcIiA6IDg4MzlcbiwgXCJvcGx1c1wiIDogODg1M1xuLCBcIm90aW1lc1wiIDogODg1NVxuLCBcInBlcnBcIiA6IDg4NjlcbiwgXCJzZG90XCIgOiA4OTAxXG4sIFwibGNlaWxcIiA6IDg5NjhcbiwgXCJyY2VpbFwiIDogODk2OVxuLCBcImxmbG9vclwiIDogODk3MFxuLCBcInJmbG9vclwiIDogODk3MVxuLCBcImxhbmdcIiA6IDkwMDFcbiwgXCJyYW5nXCIgOiA5MDAyXG4sIFwibG96XCIgOiA5Njc0XG4sIFwic3BhZGVzXCIgOiA5ODI0XG4sIFwiY2x1YnNcIiA6IDk4MjdcbiwgXCJoZWFydHNcIiA6IDk4MjlcbiwgXCJkaWFtc1wiIDogOTgzMFxufVxuXG5PYmplY3Qua2V5cyhzYXguRU5USVRJRVMpLmZvckVhY2goZnVuY3Rpb24gKGtleSkge1xuICAgIHZhciBlID0gc2F4LkVOVElUSUVTW2tleV1cbiAgICB2YXIgcyA9IHR5cGVvZiBlID09PSAnbnVtYmVyJyA/IFN0cmluZy5mcm9tQ2hhckNvZGUoZSkgOiBlXG4gICAgc2F4LkVOVElUSUVTW2tleV0gPSBzXG59KVxuXG5mb3IgKHZhciBTIGluIHNheC5TVEFURSkgc2F4LlNUQVRFW3NheC5TVEFURVtTXV0gPSBTXG5cbi8vIHNob3J0aGFuZFxuUyA9IHNheC5TVEFURVxuXG5mdW5jdGlvbiBlbWl0IChwYXJzZXIsIGV2ZW50LCBkYXRhKSB7XG4gIHBhcnNlcltldmVudF0gJiYgcGFyc2VyW2V2ZW50XShkYXRhKVxufVxuXG5mdW5jdGlvbiBlbWl0Tm9kZSAocGFyc2VyLCBub2RlVHlwZSwgZGF0YSkge1xuICBpZiAocGFyc2VyLnRleHROb2RlKSBjbG9zZVRleHQocGFyc2VyKVxuICBlbWl0KHBhcnNlciwgbm9kZVR5cGUsIGRhdGEpXG59XG5cbmZ1bmN0aW9uIGNsb3NlVGV4dCAocGFyc2VyKSB7XG4gIHBhcnNlci50ZXh0Tm9kZSA9IHRleHRvcHRzKHBhcnNlci5vcHQsIHBhcnNlci50ZXh0Tm9kZSlcbiAgaWYgKHBhcnNlci50ZXh0Tm9kZSkgZW1pdChwYXJzZXIsIFwib250ZXh0XCIsIHBhcnNlci50ZXh0Tm9kZSlcbiAgcGFyc2VyLnRleHROb2RlID0gXCJcIlxufVxuXG5mdW5jdGlvbiB0ZXh0b3B0cyAob3B0LCB0ZXh0KSB7XG4gIGlmIChvcHQudHJpbSkgdGV4dCA9IHRleHQudHJpbSgpXG4gIGlmIChvcHQubm9ybWFsaXplKSB0ZXh0ID0gdGV4dC5yZXBsYWNlKC9cXHMrL2csIFwiIFwiKVxuICByZXR1cm4gdGV4dFxufVxuXG5mdW5jdGlvbiBlcnJvciAocGFyc2VyLCBlcikge1xuICBjbG9zZVRleHQocGFyc2VyKVxuICBpZiAocGFyc2VyLnRyYWNrUG9zaXRpb24pIHtcbiAgICBlciArPSBcIlxcbkxpbmU6IFwiK3BhcnNlci5saW5lK1xuICAgICAgICAgIFwiXFxuQ29sdW1uOiBcIitwYXJzZXIuY29sdW1uK1xuICAgICAgICAgIFwiXFxuQ2hhcjogXCIrcGFyc2VyLmNcbiAgfVxuICBlciA9IG5ldyBFcnJvcihlcilcbiAgcGFyc2VyLmVycm9yID0gZXJcbiAgZW1pdChwYXJzZXIsIFwib25lcnJvclwiLCBlcilcbiAgcmV0dXJuIHBhcnNlclxufVxuXG5mdW5jdGlvbiBlbmQgKHBhcnNlcikge1xuICBpZiAoIXBhcnNlci5jbG9zZWRSb290KSBzdHJpY3RGYWlsKHBhcnNlciwgXCJVbmNsb3NlZCByb290IHRhZ1wiKVxuICBpZiAoKHBhcnNlci5zdGF0ZSAhPT0gUy5CRUdJTikgJiYgKHBhcnNlci5zdGF0ZSAhPT0gUy5URVhUKSkgZXJyb3IocGFyc2VyLCBcIlVuZXhwZWN0ZWQgZW5kXCIpXG4gIGNsb3NlVGV4dChwYXJzZXIpXG4gIHBhcnNlci5jID0gXCJcIlxuICBwYXJzZXIuY2xvc2VkID0gdHJ1ZVxuICBlbWl0KHBhcnNlciwgXCJvbmVuZFwiKVxuICBTQVhQYXJzZXIuY2FsbChwYXJzZXIsIHBhcnNlci5zdHJpY3QsIHBhcnNlci5vcHQpXG4gIHJldHVybiBwYXJzZXJcbn1cblxuZnVuY3Rpb24gc3RyaWN0RmFpbCAocGFyc2VyLCBtZXNzYWdlKSB7XG4gIGlmICh0eXBlb2YgcGFyc2VyICE9PSAnb2JqZWN0JyB8fCAhKHBhcnNlciBpbnN0YW5jZW9mIFNBWFBhcnNlcikpXG4gICAgdGhyb3cgbmV3IEVycm9yKCdiYWQgY2FsbCB0byBzdHJpY3RGYWlsJyk7XG4gIGlmIChwYXJzZXIuc3RyaWN0KSBlcnJvcihwYXJzZXIsIG1lc3NhZ2UpXG59XG5cbmZ1bmN0aW9uIG5ld1RhZyAocGFyc2VyKSB7XG4gIGlmICghcGFyc2VyLnN0cmljdCkgcGFyc2VyLnRhZ05hbWUgPSBwYXJzZXIudGFnTmFtZVtwYXJzZXIubG9vc2VDYXNlXSgpXG4gIHZhciBwYXJlbnQgPSBwYXJzZXIudGFnc1twYXJzZXIudGFncy5sZW5ndGggLSAxXSB8fCBwYXJzZXJcbiAgICAsIHRhZyA9IHBhcnNlci50YWcgPSB7IG5hbWUgOiBwYXJzZXIudGFnTmFtZSwgYXR0cmlidXRlcyA6IHt9IH1cblxuICAvLyB3aWxsIGJlIG92ZXJyaWRkZW4gaWYgdGFnIGNvbnRhaWxzIGFuIHhtbG5zPVwiZm9vXCIgb3IgeG1sbnM6Zm9vPVwiYmFyXCJcbiAgaWYgKHBhcnNlci5vcHQueG1sbnMpIHRhZy5ucyA9IHBhcmVudC5uc1xuICBwYXJzZXIuYXR0cmliTGlzdC5sZW5ndGggPSAwXG59XG5cbmZ1bmN0aW9uIHFuYW1lIChuYW1lLCBhdHRyaWJ1dGUpIHtcbiAgdmFyIGkgPSBuYW1lLmluZGV4T2YoXCI6XCIpXG4gICAgLCBxdWFsTmFtZSA9IGkgPCAwID8gWyBcIlwiLCBuYW1lIF0gOiBuYW1lLnNwbGl0KFwiOlwiKVxuICAgICwgcHJlZml4ID0gcXVhbE5hbWVbMF1cbiAgICAsIGxvY2FsID0gcXVhbE5hbWVbMV1cblxuICAvLyA8eCBcInhtbG5zXCI9XCJodHRwOi8vZm9vXCI+XG4gIGlmIChhdHRyaWJ1dGUgJiYgbmFtZSA9PT0gXCJ4bWxuc1wiKSB7XG4gICAgcHJlZml4ID0gXCJ4bWxuc1wiXG4gICAgbG9jYWwgPSBcIlwiXG4gIH1cblxuICByZXR1cm4geyBwcmVmaXg6IHByZWZpeCwgbG9jYWw6IGxvY2FsIH1cbn1cblxuZnVuY3Rpb24gYXR0cmliIChwYXJzZXIpIHtcbiAgaWYgKCFwYXJzZXIuc3RyaWN0KSBwYXJzZXIuYXR0cmliTmFtZSA9IHBhcnNlci5hdHRyaWJOYW1lW3BhcnNlci5sb29zZUNhc2VdKClcblxuICBpZiAocGFyc2VyLmF0dHJpYkxpc3QuaW5kZXhPZihwYXJzZXIuYXR0cmliTmFtZSkgIT09IC0xIHx8XG4gICAgICBwYXJzZXIudGFnLmF0dHJpYnV0ZXMuaGFzT3duUHJvcGVydHkocGFyc2VyLmF0dHJpYk5hbWUpKSB7XG4gICAgcmV0dXJuIHBhcnNlci5hdHRyaWJOYW1lID0gcGFyc2VyLmF0dHJpYlZhbHVlID0gXCJcIlxuICB9XG5cbiAgaWYgKHBhcnNlci5vcHQueG1sbnMpIHtcbiAgICB2YXIgcW4gPSBxbmFtZShwYXJzZXIuYXR0cmliTmFtZSwgdHJ1ZSlcbiAgICAgICwgcHJlZml4ID0gcW4ucHJlZml4XG4gICAgICAsIGxvY2FsID0gcW4ubG9jYWxcblxuICAgIGlmIChwcmVmaXggPT09IFwieG1sbnNcIikge1xuICAgICAgLy8gbmFtZXNwYWNlIGJpbmRpbmcgYXR0cmlidXRlOyBwdXNoIHRoZSBiaW5kaW5nIGludG8gc2NvcGVcbiAgICAgIGlmIChsb2NhbCA9PT0gXCJ4bWxcIiAmJiBwYXJzZXIuYXR0cmliVmFsdWUgIT09IFhNTF9OQU1FU1BBQ0UpIHtcbiAgICAgICAgc3RyaWN0RmFpbCggcGFyc2VyXG4gICAgICAgICAgICAgICAgICAsIFwieG1sOiBwcmVmaXggbXVzdCBiZSBib3VuZCB0byBcIiArIFhNTF9OQU1FU1BBQ0UgKyBcIlxcblwiXG4gICAgICAgICAgICAgICAgICArIFwiQWN0dWFsOiBcIiArIHBhcnNlci5hdHRyaWJWYWx1ZSApXG4gICAgICB9IGVsc2UgaWYgKGxvY2FsID09PSBcInhtbG5zXCIgJiYgcGFyc2VyLmF0dHJpYlZhbHVlICE9PSBYTUxOU19OQU1FU1BBQ0UpIHtcbiAgICAgICAgc3RyaWN0RmFpbCggcGFyc2VyXG4gICAgICAgICAgICAgICAgICAsIFwieG1sbnM6IHByZWZpeCBtdXN0IGJlIGJvdW5kIHRvIFwiICsgWE1MTlNfTkFNRVNQQUNFICsgXCJcXG5cIlxuICAgICAgICAgICAgICAgICAgKyBcIkFjdHVhbDogXCIgKyBwYXJzZXIuYXR0cmliVmFsdWUgKVxuICAgICAgfSBlbHNlIHtcbiAgICAgICAgdmFyIHRhZyA9IHBhcnNlci50YWdcbiAgICAgICAgICAsIHBhcmVudCA9IHBhcnNlci50YWdzW3BhcnNlci50YWdzLmxlbmd0aCAtIDFdIHx8IHBhcnNlclxuICAgICAgICBpZiAodGFnLm5zID09PSBwYXJlbnQubnMpIHtcbiAgICAgICAgICB0YWcubnMgPSBPYmplY3QuY3JlYXRlKHBhcmVudC5ucylcbiAgICAgICAgfVxuICAgICAgICB0YWcubnNbbG9jYWxdID0gcGFyc2VyLmF0dHJpYlZhbHVlXG4gICAgICB9XG4gICAgfVxuXG4gICAgLy8gZGVmZXIgb25hdHRyaWJ1dGUgZXZlbnRzIHVudGlsIGFsbCBhdHRyaWJ1dGVzIGhhdmUgYmVlbiBzZWVuXG4gICAgLy8gc28gYW55IG5ldyBiaW5kaW5ncyBjYW4gdGFrZSBlZmZlY3Q7IHByZXNlcnZlIGF0dHJpYnV0ZSBvcmRlclxuICAgIC8vIHNvIGRlZmVycmVkIGV2ZW50cyBjYW4gYmUgZW1pdHRlZCBpbiBkb2N1bWVudCBvcmRlclxuICAgIHBhcnNlci5hdHRyaWJMaXN0LnB1c2goW3BhcnNlci5hdHRyaWJOYW1lLCBwYXJzZXIuYXR0cmliVmFsdWVdKVxuICB9IGVsc2Uge1xuICAgIC8vIGluIG5vbi14bWxucyBtb2RlLCB3ZSBjYW4gZW1pdCB0aGUgZXZlbnQgcmlnaHQgYXdheVxuICAgIHBhcnNlci50YWcuYXR0cmlidXRlc1twYXJzZXIuYXR0cmliTmFtZV0gPSBwYXJzZXIuYXR0cmliVmFsdWVcbiAgICBlbWl0Tm9kZSggcGFyc2VyXG4gICAgICAgICAgICAsIFwib25hdHRyaWJ1dGVcIlxuICAgICAgICAgICAgLCB7IG5hbWU6IHBhcnNlci5hdHRyaWJOYW1lXG4gICAgICAgICAgICAgICwgdmFsdWU6IHBhcnNlci5hdHRyaWJWYWx1ZSB9IClcbiAgfVxuXG4gIHBhcnNlci5hdHRyaWJOYW1lID0gcGFyc2VyLmF0dHJpYlZhbHVlID0gXCJcIlxufVxuXG5mdW5jdGlvbiBvcGVuVGFnIChwYXJzZXIsIHNlbGZDbG9zaW5nKSB7XG4gIGlmIChwYXJzZXIub3B0LnhtbG5zKSB7XG4gICAgLy8gZW1pdCBuYW1lc3BhY2UgYmluZGluZyBldmVudHNcbiAgICB2YXIgdGFnID0gcGFyc2VyLnRhZ1xuXG4gICAgLy8gYWRkIG5hbWVzcGFjZSBpbmZvIHRvIHRhZ1xuICAgIHZhciBxbiA9IHFuYW1lKHBhcnNlci50YWdOYW1lKVxuICAgIHRhZy5wcmVmaXggPSBxbi5wcmVmaXhcbiAgICB0YWcubG9jYWwgPSBxbi5sb2NhbFxuICAgIHRhZy51cmkgPSB0YWcubnNbcW4ucHJlZml4XSB8fCBcIlwiXG5cbiAgICBpZiAodGFnLnByZWZpeCAmJiAhdGFnLnVyaSkge1xuICAgICAgc3RyaWN0RmFpbChwYXJzZXIsIFwiVW5ib3VuZCBuYW1lc3BhY2UgcHJlZml4OiBcIlxuICAgICAgICAgICAgICAgICAgICAgICArIEpTT04uc3RyaW5naWZ5KHBhcnNlci50YWdOYW1lKSlcbiAgICAgIHRhZy51cmkgPSBxbi5wcmVmaXhcbiAgICB9XG5cbiAgICB2YXIgcGFyZW50ID0gcGFyc2VyLnRhZ3NbcGFyc2VyLnRhZ3MubGVuZ3RoIC0gMV0gfHwgcGFyc2VyXG4gICAgaWYgKHRhZy5ucyAmJiBwYXJlbnQubnMgIT09IHRhZy5ucykge1xuICAgICAgT2JqZWN0LmtleXModGFnLm5zKS5mb3JFYWNoKGZ1bmN0aW9uIChwKSB7XG4gICAgICAgIGVtaXROb2RlKCBwYXJzZXJcbiAgICAgICAgICAgICAgICAsIFwib25vcGVubmFtZXNwYWNlXCJcbiAgICAgICAgICAgICAgICAsIHsgcHJlZml4OiBwICwgdXJpOiB0YWcubnNbcF0gfSApXG4gICAgICB9KVxuICAgIH1cblxuICAgIC8vIGhhbmRsZSBkZWZlcnJlZCBvbmF0dHJpYnV0ZSBldmVudHNcbiAgICAvLyBOb3RlOiBkbyBub3QgYXBwbHkgZGVmYXVsdCBucyB0byBhdHRyaWJ1dGVzOlxuICAgIC8vICAgaHR0cDovL3d3dy53My5vcmcvVFIvUkVDLXhtbC1uYW1lcy8jZGVmYXVsdGluZ1xuICAgIGZvciAodmFyIGkgPSAwLCBsID0gcGFyc2VyLmF0dHJpYkxpc3QubGVuZ3RoOyBpIDwgbDsgaSArKykge1xuICAgICAgdmFyIG52ID0gcGFyc2VyLmF0dHJpYkxpc3RbaV1cbiAgICAgIHZhciBuYW1lID0gbnZbMF1cbiAgICAgICAgLCB2YWx1ZSA9IG52WzFdXG4gICAgICAgICwgcXVhbE5hbWUgPSBxbmFtZShuYW1lLCB0cnVlKVxuICAgICAgICAsIHByZWZpeCA9IHF1YWxOYW1lLnByZWZpeFxuICAgICAgICAsIGxvY2FsID0gcXVhbE5hbWUubG9jYWxcbiAgICAgICAgLCB1cmkgPSBwcmVmaXggPT0gXCJcIiA/IFwiXCIgOiAodGFnLm5zW3ByZWZpeF0gfHwgXCJcIilcbiAgICAgICAgLCBhID0geyBuYW1lOiBuYW1lXG4gICAgICAgICAgICAgICwgdmFsdWU6IHZhbHVlXG4gICAgICAgICAgICAgICwgcHJlZml4OiBwcmVmaXhcbiAgICAgICAgICAgICAgLCBsb2NhbDogbG9jYWxcbiAgICAgICAgICAgICAgLCB1cmk6IHVyaVxuICAgICAgICAgICAgICB9XG5cbiAgICAgIC8vIGlmIHRoZXJlJ3MgYW55IGF0dHJpYnV0ZXMgd2l0aCBhbiB1bmRlZmluZWQgbmFtZXNwYWNlLFxuICAgICAgLy8gdGhlbiBmYWlsIG9uIHRoZW0gbm93LlxuICAgICAgaWYgKHByZWZpeCAmJiBwcmVmaXggIT0gXCJ4bWxuc1wiICYmICF1cmkpIHtcbiAgICAgICAgc3RyaWN0RmFpbChwYXJzZXIsIFwiVW5ib3VuZCBuYW1lc3BhY2UgcHJlZml4OiBcIlxuICAgICAgICAgICAgICAgICAgICAgICAgICsgSlNPTi5zdHJpbmdpZnkocHJlZml4KSlcbiAgICAgICAgYS51cmkgPSBwcmVmaXhcbiAgICAgIH1cbiAgICAgIHBhcnNlci50YWcuYXR0cmlidXRlc1tuYW1lXSA9IGFcbiAgICAgIGVtaXROb2RlKHBhcnNlciwgXCJvbmF0dHJpYnV0ZVwiLCBhKVxuICAgIH1cbiAgICBwYXJzZXIuYXR0cmliTGlzdC5sZW5ndGggPSAwXG4gIH1cblxuICBwYXJzZXIudGFnLmlzU2VsZkNsb3NpbmcgPSAhIXNlbGZDbG9zaW5nXG5cbiAgLy8gcHJvY2VzcyB0aGUgdGFnXG4gIHBhcnNlci5zYXdSb290ID0gdHJ1ZVxuICBwYXJzZXIudGFncy5wdXNoKHBhcnNlci50YWcpXG4gIGVtaXROb2RlKHBhcnNlciwgXCJvbm9wZW50YWdcIiwgcGFyc2VyLnRhZylcbiAgaWYgKCFzZWxmQ2xvc2luZykge1xuICAgIC8vIHNwZWNpYWwgY2FzZSBmb3IgPHNjcmlwdD4gaW4gbm9uLXN0cmljdCBtb2RlLlxuICAgIGlmICghcGFyc2VyLm5vc2NyaXB0ICYmIHBhcnNlci50YWdOYW1lLnRvTG93ZXJDYXNlKCkgPT09IFwic2NyaXB0XCIpIHtcbiAgICAgIHBhcnNlci5zdGF0ZSA9IFMuU0NSSVBUXG4gICAgfSBlbHNlIHtcbiAgICAgIHBhcnNlci5zdGF0ZSA9IFMuVEVYVFxuICAgIH1cbiAgICBwYXJzZXIudGFnID0gbnVsbFxuICAgIHBhcnNlci50YWdOYW1lID0gXCJcIlxuICB9XG4gIHBhcnNlci5hdHRyaWJOYW1lID0gcGFyc2VyLmF0dHJpYlZhbHVlID0gXCJcIlxuICBwYXJzZXIuYXR0cmliTGlzdC5sZW5ndGggPSAwXG59XG5cbmZ1bmN0aW9uIGNsb3NlVGFnIChwYXJzZXIpIHtcbiAgaWYgKCFwYXJzZXIudGFnTmFtZSkge1xuICAgIHN0cmljdEZhaWwocGFyc2VyLCBcIldlaXJkIGVtcHR5IGNsb3NlIHRhZy5cIilcbiAgICBwYXJzZXIudGV4dE5vZGUgKz0gXCI8Lz5cIlxuICAgIHBhcnNlci5zdGF0ZSA9IFMuVEVYVFxuICAgIHJldHVyblxuICB9XG5cbiAgaWYgKHBhcnNlci5zY3JpcHQpIHtcbiAgICBpZiAocGFyc2VyLnRhZ05hbWUgIT09IFwic2NyaXB0XCIpIHtcbiAgICAgIHBhcnNlci5zY3JpcHQgKz0gXCI8L1wiICsgcGFyc2VyLnRhZ05hbWUgKyBcIj5cIlxuICAgICAgcGFyc2VyLnRhZ05hbWUgPSBcIlwiXG4gICAgICBwYXJzZXIuc3RhdGUgPSBTLlNDUklQVFxuICAgICAgcmV0dXJuXG4gICAgfVxuICAgIGVtaXROb2RlKHBhcnNlciwgXCJvbnNjcmlwdFwiLCBwYXJzZXIuc2NyaXB0KVxuICAgIHBhcnNlci5zY3JpcHQgPSBcIlwiXG4gIH1cblxuICAvLyBmaXJzdCBtYWtlIHN1cmUgdGhhdCB0aGUgY2xvc2luZyB0YWcgYWN0dWFsbHkgZXhpc3RzLlxuICAvLyA8YT48Yj48L2M+PC9iPjwvYT4gd2lsbCBjbG9zZSBldmVyeXRoaW5nLCBvdGhlcndpc2UuXG4gIHZhciB0ID0gcGFyc2VyLnRhZ3MubGVuZ3RoXG4gIHZhciB0YWdOYW1lID0gcGFyc2VyLnRhZ05hbWVcbiAgaWYgKCFwYXJzZXIuc3RyaWN0KSB0YWdOYW1lID0gdGFnTmFtZVtwYXJzZXIubG9vc2VDYXNlXSgpXG4gIHZhciBjbG9zZVRvID0gdGFnTmFtZVxuICB3aGlsZSAodCAtLSkge1xuICAgIHZhciBjbG9zZSA9IHBhcnNlci50YWdzW3RdXG4gICAgaWYgKGNsb3NlLm5hbWUgIT09IGNsb3NlVG8pIHtcbiAgICAgIC8vIGZhaWwgdGhlIGZpcnN0IHRpbWUgaW4gc3RyaWN0IG1vZGVcbiAgICAgIHN0cmljdEZhaWwocGFyc2VyLCBcIlVuZXhwZWN0ZWQgY2xvc2UgdGFnXCIpXG4gICAgfSBlbHNlIGJyZWFrXG4gIH1cblxuICAvLyBkaWRuJ3QgZmluZCBpdC4gIHdlIGFscmVhZHkgZmFpbGVkIGZvciBzdHJpY3QsIHNvIGp1c3QgYWJvcnQuXG4gIGlmICh0IDwgMCkge1xuICAgIHN0cmljdEZhaWwocGFyc2VyLCBcIlVubWF0Y2hlZCBjbG9zaW5nIHRhZzogXCIrcGFyc2VyLnRhZ05hbWUpXG4gICAgcGFyc2VyLnRleHROb2RlICs9IFwiPC9cIiArIHBhcnNlci50YWdOYW1lICsgXCI+XCJcbiAgICBwYXJzZXIuc3RhdGUgPSBTLlRFWFRcbiAgICByZXR1cm5cbiAgfVxuICBwYXJzZXIudGFnTmFtZSA9IHRhZ05hbWVcbiAgdmFyIHMgPSBwYXJzZXIudGFncy5sZW5ndGhcbiAgd2hpbGUgKHMgLS0+IHQpIHtcbiAgICB2YXIgdGFnID0gcGFyc2VyLnRhZyA9IHBhcnNlci50YWdzLnBvcCgpXG4gICAgcGFyc2VyLnRhZ05hbWUgPSBwYXJzZXIudGFnLm5hbWVcbiAgICBlbWl0Tm9kZShwYXJzZXIsIFwib25jbG9zZXRhZ1wiLCBwYXJzZXIudGFnTmFtZSlcblxuICAgIHZhciB4ID0ge31cbiAgICBmb3IgKHZhciBpIGluIHRhZy5ucykgeFtpXSA9IHRhZy5uc1tpXVxuXG4gICAgdmFyIHBhcmVudCA9IHBhcnNlci50YWdzW3BhcnNlci50YWdzLmxlbmd0aCAtIDFdIHx8IHBhcnNlclxuICAgIGlmIChwYXJzZXIub3B0LnhtbG5zICYmIHRhZy5ucyAhPT0gcGFyZW50Lm5zKSB7XG4gICAgICAvLyByZW1vdmUgbmFtZXNwYWNlIGJpbmRpbmdzIGludHJvZHVjZWQgYnkgdGFnXG4gICAgICBPYmplY3Qua2V5cyh0YWcubnMpLmZvckVhY2goZnVuY3Rpb24gKHApIHtcbiAgICAgICAgdmFyIG4gPSB0YWcubnNbcF1cbiAgICAgICAgZW1pdE5vZGUocGFyc2VyLCBcIm9uY2xvc2VuYW1lc3BhY2VcIiwgeyBwcmVmaXg6IHAsIHVyaTogbiB9KVxuICAgICAgfSlcbiAgICB9XG4gIH1cbiAgaWYgKHQgPT09IDApIHBhcnNlci5jbG9zZWRSb290ID0gdHJ1ZVxuICBwYXJzZXIudGFnTmFtZSA9IHBhcnNlci5hdHRyaWJWYWx1ZSA9IHBhcnNlci5hdHRyaWJOYW1lID0gXCJcIlxuICBwYXJzZXIuYXR0cmliTGlzdC5sZW5ndGggPSAwXG4gIHBhcnNlci5zdGF0ZSA9IFMuVEVYVFxufVxuXG5mdW5jdGlvbiBwYXJzZUVudGl0eSAocGFyc2VyKSB7XG4gIHZhciBlbnRpdHkgPSBwYXJzZXIuZW50aXR5XG4gICAgLCBlbnRpdHlMQyA9IGVudGl0eS50b0xvd2VyQ2FzZSgpXG4gICAgLCBudW1cbiAgICAsIG51bVN0ciA9IFwiXCJcbiAgaWYgKHBhcnNlci5FTlRJVElFU1tlbnRpdHldKVxuICAgIHJldHVybiBwYXJzZXIuRU5USVRJRVNbZW50aXR5XVxuICBpZiAocGFyc2VyLkVOVElUSUVTW2VudGl0eUxDXSlcbiAgICByZXR1cm4gcGFyc2VyLkVOVElUSUVTW2VudGl0eUxDXVxuICBlbnRpdHkgPSBlbnRpdHlMQ1xuICBpZiAoZW50aXR5LmNoYXJBdCgwKSA9PT0gXCIjXCIpIHtcbiAgICBpZiAoZW50aXR5LmNoYXJBdCgxKSA9PT0gXCJ4XCIpIHtcbiAgICAgIGVudGl0eSA9IGVudGl0eS5zbGljZSgyKVxuICAgICAgbnVtID0gcGFyc2VJbnQoZW50aXR5LCAxNilcbiAgICAgIG51bVN0ciA9IG51bS50b1N0cmluZygxNilcbiAgICB9IGVsc2Uge1xuICAgICAgZW50aXR5ID0gZW50aXR5LnNsaWNlKDEpXG4gICAgICBudW0gPSBwYXJzZUludChlbnRpdHksIDEwKVxuICAgICAgbnVtU3RyID0gbnVtLnRvU3RyaW5nKDEwKVxuICAgIH1cbiAgfVxuICBlbnRpdHkgPSBlbnRpdHkucmVwbGFjZSgvXjArLywgXCJcIilcbiAgaWYgKG51bVN0ci50b0xvd2VyQ2FzZSgpICE9PSBlbnRpdHkpIHtcbiAgICBzdHJpY3RGYWlsKHBhcnNlciwgXCJJbnZhbGlkIGNoYXJhY3RlciBlbnRpdHlcIilcbiAgICByZXR1cm4gXCImXCIrcGFyc2VyLmVudGl0eSArIFwiO1wiXG4gIH1cblxuICByZXR1cm4gU3RyaW5nLmZyb21Db2RlUG9pbnQobnVtKVxufVxuXG5mdW5jdGlvbiB3cml0ZSAoY2h1bmspIHtcbiAgdmFyIHBhcnNlciA9IHRoaXNcbiAgaWYgKHRoaXMuZXJyb3IpIHRocm93IHRoaXMuZXJyb3JcbiAgaWYgKHBhcnNlci5jbG9zZWQpIHJldHVybiBlcnJvcihwYXJzZXIsXG4gICAgXCJDYW5ub3Qgd3JpdGUgYWZ0ZXIgY2xvc2UuIEFzc2lnbiBhbiBvbnJlYWR5IGhhbmRsZXIuXCIpXG4gIGlmIChjaHVuayA9PT0gbnVsbCkgcmV0dXJuIGVuZChwYXJzZXIpXG4gIHZhciBpID0gMCwgYyA9IFwiXCJcbiAgd2hpbGUgKHBhcnNlci5jID0gYyA9IGNodW5rLmNoYXJBdChpKyspKSB7XG4gICAgaWYgKHBhcnNlci50cmFja1Bvc2l0aW9uKSB7XG4gICAgICBwYXJzZXIucG9zaXRpb24gKytcbiAgICAgIGlmIChjID09PSBcIlxcblwiKSB7XG4gICAgICAgIHBhcnNlci5saW5lICsrXG4gICAgICAgIHBhcnNlci5jb2x1bW4gPSAwXG4gICAgICB9IGVsc2UgcGFyc2VyLmNvbHVtbiArK1xuICAgIH1cbiAgICBzd2l0Y2ggKHBhcnNlci5zdGF0ZSkge1xuXG4gICAgICBjYXNlIFMuQkVHSU46XG4gICAgICAgIGlmIChjID09PSBcIjxcIikge1xuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuT1BFTl9XQUtBXG4gICAgICAgICAgcGFyc2VyLnN0YXJ0VGFnUG9zaXRpb24gPSBwYXJzZXIucG9zaXRpb25cbiAgICAgICAgfSBlbHNlIGlmIChub3Qod2hpdGVzcGFjZSxjKSkge1xuICAgICAgICAgIC8vIGhhdmUgdG8gcHJvY2VzcyB0aGlzIGFzIGEgdGV4dCBub2RlLlxuICAgICAgICAgIC8vIHdlaXJkLCBidXQgaGFwcGVucy5cbiAgICAgICAgICBzdHJpY3RGYWlsKHBhcnNlciwgXCJOb24td2hpdGVzcGFjZSBiZWZvcmUgZmlyc3QgdGFnLlwiKVxuICAgICAgICAgIHBhcnNlci50ZXh0Tm9kZSA9IGNcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLlRFWFRcbiAgICAgICAgfVxuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLlRFWFQ6XG4gICAgICAgIGlmIChwYXJzZXIuc2F3Um9vdCAmJiAhcGFyc2VyLmNsb3NlZFJvb3QpIHtcbiAgICAgICAgICB2YXIgc3RhcnRpID0gaS0xXG4gICAgICAgICAgd2hpbGUgKGMgJiYgYyE9PVwiPFwiICYmIGMhPT1cIiZcIikge1xuICAgICAgICAgICAgYyA9IGNodW5rLmNoYXJBdChpKyspXG4gICAgICAgICAgICBpZiAoYyAmJiBwYXJzZXIudHJhY2tQb3NpdGlvbikge1xuICAgICAgICAgICAgICBwYXJzZXIucG9zaXRpb24gKytcbiAgICAgICAgICAgICAgaWYgKGMgPT09IFwiXFxuXCIpIHtcbiAgICAgICAgICAgICAgICBwYXJzZXIubGluZSArK1xuICAgICAgICAgICAgICAgIHBhcnNlci5jb2x1bW4gPSAwXG4gICAgICAgICAgICAgIH0gZWxzZSBwYXJzZXIuY29sdW1uICsrXG4gICAgICAgICAgICB9XG4gICAgICAgICAgfVxuICAgICAgICAgIHBhcnNlci50ZXh0Tm9kZSArPSBjaHVuay5zdWJzdHJpbmcoc3RhcnRpLCBpLTEpXG4gICAgICAgIH1cbiAgICAgICAgaWYgKGMgPT09IFwiPFwiKSB7XG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5PUEVOX1dBS0FcbiAgICAgICAgICBwYXJzZXIuc3RhcnRUYWdQb3NpdGlvbiA9IHBhcnNlci5wb3NpdGlvblxuICAgICAgICB9IGVsc2Uge1xuICAgICAgICAgIGlmIChub3Qod2hpdGVzcGFjZSwgYykgJiYgKCFwYXJzZXIuc2F3Um9vdCB8fCBwYXJzZXIuY2xvc2VkUm9vdCkpXG4gICAgICAgICAgICBzdHJpY3RGYWlsKHBhcnNlciwgXCJUZXh0IGRhdGEgb3V0c2lkZSBvZiByb290IG5vZGUuXCIpXG4gICAgICAgICAgaWYgKGMgPT09IFwiJlwiKSBwYXJzZXIuc3RhdGUgPSBTLlRFWFRfRU5USVRZXG4gICAgICAgICAgZWxzZSBwYXJzZXIudGV4dE5vZGUgKz0gY1xuICAgICAgICB9XG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuU0NSSVBUOlxuICAgICAgICAvLyBvbmx5IG5vbi1zdHJpY3RcbiAgICAgICAgaWYgKGMgPT09IFwiPFwiKSB7XG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5TQ1JJUFRfRU5ESU5HXG4gICAgICAgIH0gZWxzZSBwYXJzZXIuc2NyaXB0ICs9IGNcbiAgICAgIGNvbnRpbnVlXG5cbiAgICAgIGNhc2UgUy5TQ1JJUFRfRU5ESU5HOlxuICAgICAgICBpZiAoYyA9PT0gXCIvXCIpIHtcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLkNMT1NFX1RBR1xuICAgICAgICB9IGVsc2Uge1xuICAgICAgICAgIHBhcnNlci5zY3JpcHQgKz0gXCI8XCIgKyBjXG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5TQ1JJUFRcbiAgICAgICAgfVxuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLk9QRU5fV0FLQTpcbiAgICAgICAgLy8gZWl0aGVyIGEgLywgPywgISwgb3IgdGV4dCBpcyBjb21pbmcgbmV4dC5cbiAgICAgICAgaWYgKGMgPT09IFwiIVwiKSB7XG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5TR01MX0RFQ0xcbiAgICAgICAgICBwYXJzZXIuc2dtbERlY2wgPSBcIlwiXG4gICAgICAgIH0gZWxzZSBpZiAoaXMod2hpdGVzcGFjZSwgYykpIHtcbiAgICAgICAgICAvLyB3YWl0IGZvciBpdC4uLlxuICAgICAgICB9IGVsc2UgaWYgKGlzKG5hbWVTdGFydCxjKSkge1xuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuT1BFTl9UQUdcbiAgICAgICAgICBwYXJzZXIudGFnTmFtZSA9IGNcbiAgICAgICAgfSBlbHNlIGlmIChjID09PSBcIi9cIikge1xuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuQ0xPU0VfVEFHXG4gICAgICAgICAgcGFyc2VyLnRhZ05hbWUgPSBcIlwiXG4gICAgICAgIH0gZWxzZSBpZiAoYyA9PT0gXCI/XCIpIHtcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLlBST0NfSU5TVFxuICAgICAgICAgIHBhcnNlci5wcm9jSW5zdE5hbWUgPSBwYXJzZXIucHJvY0luc3RCb2R5ID0gXCJcIlxuICAgICAgICB9IGVsc2Uge1xuICAgICAgICAgIHN0cmljdEZhaWwocGFyc2VyLCBcIlVuZW5jb2RlZCA8XCIpXG4gICAgICAgICAgLy8gaWYgdGhlcmUgd2FzIHNvbWUgd2hpdGVzcGFjZSwgdGhlbiBhZGQgdGhhdCBpbi5cbiAgICAgICAgICBpZiAocGFyc2VyLnN0YXJ0VGFnUG9zaXRpb24gKyAxIDwgcGFyc2VyLnBvc2l0aW9uKSB7XG4gICAgICAgICAgICB2YXIgcGFkID0gcGFyc2VyLnBvc2l0aW9uIC0gcGFyc2VyLnN0YXJ0VGFnUG9zaXRpb25cbiAgICAgICAgICAgIGMgPSBuZXcgQXJyYXkocGFkKS5qb2luKFwiIFwiKSArIGNcbiAgICAgICAgICB9XG4gICAgICAgICAgcGFyc2VyLnRleHROb2RlICs9IFwiPFwiICsgY1xuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuVEVYVFxuICAgICAgICB9XG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuU0dNTF9ERUNMOlxuICAgICAgICBpZiAoKHBhcnNlci5zZ21sRGVjbCtjKS50b1VwcGVyQ2FzZSgpID09PSBDREFUQSkge1xuICAgICAgICAgIGVtaXROb2RlKHBhcnNlciwgXCJvbm9wZW5jZGF0YVwiKVxuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuQ0RBVEFcbiAgICAgICAgICBwYXJzZXIuc2dtbERlY2wgPSBcIlwiXG4gICAgICAgICAgcGFyc2VyLmNkYXRhID0gXCJcIlxuICAgICAgICB9IGVsc2UgaWYgKHBhcnNlci5zZ21sRGVjbCtjID09PSBcIi0tXCIpIHtcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLkNPTU1FTlRcbiAgICAgICAgICBwYXJzZXIuY29tbWVudCA9IFwiXCJcbiAgICAgICAgICBwYXJzZXIuc2dtbERlY2wgPSBcIlwiXG4gICAgICAgIH0gZWxzZSBpZiAoKHBhcnNlci5zZ21sRGVjbCtjKS50b1VwcGVyQ2FzZSgpID09PSBET0NUWVBFKSB7XG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5ET0NUWVBFXG4gICAgICAgICAgaWYgKHBhcnNlci5kb2N0eXBlIHx8IHBhcnNlci5zYXdSb290KSBzdHJpY3RGYWlsKHBhcnNlcixcbiAgICAgICAgICAgIFwiSW5hcHByb3ByaWF0ZWx5IGxvY2F0ZWQgZG9jdHlwZSBkZWNsYXJhdGlvblwiKVxuICAgICAgICAgIHBhcnNlci5kb2N0eXBlID0gXCJcIlxuICAgICAgICAgIHBhcnNlci5zZ21sRGVjbCA9IFwiXCJcbiAgICAgICAgfSBlbHNlIGlmIChjID09PSBcIj5cIikge1xuICAgICAgICAgIGVtaXROb2RlKHBhcnNlciwgXCJvbnNnbWxkZWNsYXJhdGlvblwiLCBwYXJzZXIuc2dtbERlY2wpXG4gICAgICAgICAgcGFyc2VyLnNnbWxEZWNsID0gXCJcIlxuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuVEVYVFxuICAgICAgICB9IGVsc2UgaWYgKGlzKHF1b3RlLCBjKSkge1xuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuU0dNTF9ERUNMX1FVT1RFRFxuICAgICAgICAgIHBhcnNlci5zZ21sRGVjbCArPSBjXG4gICAgICAgIH0gZWxzZSBwYXJzZXIuc2dtbERlY2wgKz0gY1xuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLlNHTUxfREVDTF9RVU9URUQ6XG4gICAgICAgIGlmIChjID09PSBwYXJzZXIucSkge1xuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuU0dNTF9ERUNMXG4gICAgICAgICAgcGFyc2VyLnEgPSBcIlwiXG4gICAgICAgIH1cbiAgICAgICAgcGFyc2VyLnNnbWxEZWNsICs9IGNcbiAgICAgIGNvbnRpbnVlXG5cbiAgICAgIGNhc2UgUy5ET0NUWVBFOlxuICAgICAgICBpZiAoYyA9PT0gXCI+XCIpIHtcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLlRFWFRcbiAgICAgICAgICBlbWl0Tm9kZShwYXJzZXIsIFwib25kb2N0eXBlXCIsIHBhcnNlci5kb2N0eXBlKVxuICAgICAgICAgIHBhcnNlci5kb2N0eXBlID0gdHJ1ZSAvLyBqdXN0IHJlbWVtYmVyIHRoYXQgd2Ugc2F3IGl0LlxuICAgICAgICB9IGVsc2Uge1xuICAgICAgICAgIHBhcnNlci5kb2N0eXBlICs9IGNcbiAgICAgICAgICBpZiAoYyA9PT0gXCJbXCIpIHBhcnNlci5zdGF0ZSA9IFMuRE9DVFlQRV9EVERcbiAgICAgICAgICBlbHNlIGlmIChpcyhxdW90ZSwgYykpIHtcbiAgICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuRE9DVFlQRV9RVU9URURcbiAgICAgICAgICAgIHBhcnNlci5xID0gY1xuICAgICAgICAgIH1cbiAgICAgICAgfVxuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLkRPQ1RZUEVfUVVPVEVEOlxuICAgICAgICBwYXJzZXIuZG9jdHlwZSArPSBjXG4gICAgICAgIGlmIChjID09PSBwYXJzZXIucSkge1xuICAgICAgICAgIHBhcnNlci5xID0gXCJcIlxuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuRE9DVFlQRVxuICAgICAgICB9XG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuRE9DVFlQRV9EVEQ6XG4gICAgICAgIHBhcnNlci5kb2N0eXBlICs9IGNcbiAgICAgICAgaWYgKGMgPT09IFwiXVwiKSBwYXJzZXIuc3RhdGUgPSBTLkRPQ1RZUEVcbiAgICAgICAgZWxzZSBpZiAoaXMocXVvdGUsYykpIHtcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLkRPQ1RZUEVfRFREX1FVT1RFRFxuICAgICAgICAgIHBhcnNlci5xID0gY1xuICAgICAgICB9XG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuRE9DVFlQRV9EVERfUVVPVEVEOlxuICAgICAgICBwYXJzZXIuZG9jdHlwZSArPSBjXG4gICAgICAgIGlmIChjID09PSBwYXJzZXIucSkge1xuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuRE9DVFlQRV9EVERcbiAgICAgICAgICBwYXJzZXIucSA9IFwiXCJcbiAgICAgICAgfVxuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLkNPTU1FTlQ6XG4gICAgICAgIGlmIChjID09PSBcIi1cIikgcGFyc2VyLnN0YXRlID0gUy5DT01NRU5UX0VORElOR1xuICAgICAgICBlbHNlIHBhcnNlci5jb21tZW50ICs9IGNcbiAgICAgIGNvbnRpbnVlXG5cbiAgICAgIGNhc2UgUy5DT01NRU5UX0VORElORzpcbiAgICAgICAgaWYgKGMgPT09IFwiLVwiKSB7XG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5DT01NRU5UX0VOREVEXG4gICAgICAgICAgcGFyc2VyLmNvbW1lbnQgPSB0ZXh0b3B0cyhwYXJzZXIub3B0LCBwYXJzZXIuY29tbWVudClcbiAgICAgICAgICBpZiAocGFyc2VyLmNvbW1lbnQpIGVtaXROb2RlKHBhcnNlciwgXCJvbmNvbW1lbnRcIiwgcGFyc2VyLmNvbW1lbnQpXG4gICAgICAgICAgcGFyc2VyLmNvbW1lbnQgPSBcIlwiXG4gICAgICAgIH0gZWxzZSB7XG4gICAgICAgICAgcGFyc2VyLmNvbW1lbnQgKz0gXCItXCIgKyBjXG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5DT01NRU5UXG4gICAgICAgIH1cbiAgICAgIGNvbnRpbnVlXG5cbiAgICAgIGNhc2UgUy5DT01NRU5UX0VOREVEOlxuICAgICAgICBpZiAoYyAhPT0gXCI+XCIpIHtcbiAgICAgICAgICBzdHJpY3RGYWlsKHBhcnNlciwgXCJNYWxmb3JtZWQgY29tbWVudFwiKVxuICAgICAgICAgIC8vIGFsbG93IDwhLS0gYmxhaCAtLSBibG9vIC0tPiBpbiBub24tc3RyaWN0IG1vZGUsXG4gICAgICAgICAgLy8gd2hpY2ggaXMgYSBjb21tZW50IG9mIFwiIGJsYWggLS0gYmxvbyBcIlxuICAgICAgICAgIHBhcnNlci5jb21tZW50ICs9IFwiLS1cIiArIGNcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLkNPTU1FTlRcbiAgICAgICAgfSBlbHNlIHBhcnNlci5zdGF0ZSA9IFMuVEVYVFxuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLkNEQVRBOlxuICAgICAgICBpZiAoYyA9PT0gXCJdXCIpIHBhcnNlci5zdGF0ZSA9IFMuQ0RBVEFfRU5ESU5HXG4gICAgICAgIGVsc2UgcGFyc2VyLmNkYXRhICs9IGNcbiAgICAgIGNvbnRpbnVlXG5cbiAgICAgIGNhc2UgUy5DREFUQV9FTkRJTkc6XG4gICAgICAgIGlmIChjID09PSBcIl1cIikgcGFyc2VyLnN0YXRlID0gUy5DREFUQV9FTkRJTkdfMlxuICAgICAgICBlbHNlIHtcbiAgICAgICAgICBwYXJzZXIuY2RhdGEgKz0gXCJdXCIgKyBjXG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5DREFUQVxuICAgICAgICB9XG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuQ0RBVEFfRU5ESU5HXzI6XG4gICAgICAgIGlmIChjID09PSBcIj5cIikge1xuICAgICAgICAgIGlmIChwYXJzZXIuY2RhdGEpIGVtaXROb2RlKHBhcnNlciwgXCJvbmNkYXRhXCIsIHBhcnNlci5jZGF0YSlcbiAgICAgICAgICBlbWl0Tm9kZShwYXJzZXIsIFwib25jbG9zZWNkYXRhXCIpXG4gICAgICAgICAgcGFyc2VyLmNkYXRhID0gXCJcIlxuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuVEVYVFxuICAgICAgICB9IGVsc2UgaWYgKGMgPT09IFwiXVwiKSB7XG4gICAgICAgICAgcGFyc2VyLmNkYXRhICs9IFwiXVwiXG4gICAgICAgIH0gZWxzZSB7XG4gICAgICAgICAgcGFyc2VyLmNkYXRhICs9IFwiXV1cIiArIGNcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLkNEQVRBXG4gICAgICAgIH1cbiAgICAgIGNvbnRpbnVlXG5cbiAgICAgIGNhc2UgUy5QUk9DX0lOU1Q6XG4gICAgICAgIGlmIChjID09PSBcIj9cIikgcGFyc2VyLnN0YXRlID0gUy5QUk9DX0lOU1RfRU5ESU5HXG4gICAgICAgIGVsc2UgaWYgKGlzKHdoaXRlc3BhY2UsIGMpKSBwYXJzZXIuc3RhdGUgPSBTLlBST0NfSU5TVF9CT0RZXG4gICAgICAgIGVsc2UgcGFyc2VyLnByb2NJbnN0TmFtZSArPSBjXG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuUFJPQ19JTlNUX0JPRFk6XG4gICAgICAgIGlmICghcGFyc2VyLnByb2NJbnN0Qm9keSAmJiBpcyh3aGl0ZXNwYWNlLCBjKSkgY29udGludWVcbiAgICAgICAgZWxzZSBpZiAoYyA9PT0gXCI/XCIpIHBhcnNlci5zdGF0ZSA9IFMuUFJPQ19JTlNUX0VORElOR1xuICAgICAgICBlbHNlIHBhcnNlci5wcm9jSW5zdEJvZHkgKz0gY1xuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLlBST0NfSU5TVF9FTkRJTkc6XG4gICAgICAgIGlmIChjID09PSBcIj5cIikge1xuICAgICAgICAgIGVtaXROb2RlKHBhcnNlciwgXCJvbnByb2Nlc3NpbmdpbnN0cnVjdGlvblwiLCB7XG4gICAgICAgICAgICBuYW1lIDogcGFyc2VyLnByb2NJbnN0TmFtZSxcbiAgICAgICAgICAgIGJvZHkgOiBwYXJzZXIucHJvY0luc3RCb2R5XG4gICAgICAgICAgfSlcbiAgICAgICAgICBwYXJzZXIucHJvY0luc3ROYW1lID0gcGFyc2VyLnByb2NJbnN0Qm9keSA9IFwiXCJcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLlRFWFRcbiAgICAgICAgfSBlbHNlIHtcbiAgICAgICAgICBwYXJzZXIucHJvY0luc3RCb2R5ICs9IFwiP1wiICsgY1xuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuUFJPQ19JTlNUX0JPRFlcbiAgICAgICAgfVxuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLk9QRU5fVEFHOlxuICAgICAgICBpZiAoaXMobmFtZUJvZHksIGMpKSBwYXJzZXIudGFnTmFtZSArPSBjXG4gICAgICAgIGVsc2Uge1xuICAgICAgICAgIG5ld1RhZyhwYXJzZXIpXG4gICAgICAgICAgaWYgKGMgPT09IFwiPlwiKSBvcGVuVGFnKHBhcnNlcilcbiAgICAgICAgICBlbHNlIGlmIChjID09PSBcIi9cIikgcGFyc2VyLnN0YXRlID0gUy5PUEVOX1RBR19TTEFTSFxuICAgICAgICAgIGVsc2Uge1xuICAgICAgICAgICAgaWYgKG5vdCh3aGl0ZXNwYWNlLCBjKSkgc3RyaWN0RmFpbChcbiAgICAgICAgICAgICAgcGFyc2VyLCBcIkludmFsaWQgY2hhcmFjdGVyIGluIHRhZyBuYW1lXCIpXG4gICAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLkFUVFJJQlxuICAgICAgICAgIH1cbiAgICAgICAgfVxuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLk9QRU5fVEFHX1NMQVNIOlxuICAgICAgICBpZiAoYyA9PT0gXCI+XCIpIHtcbiAgICAgICAgICBvcGVuVGFnKHBhcnNlciwgdHJ1ZSlcbiAgICAgICAgICBjbG9zZVRhZyhwYXJzZXIpXG4gICAgICAgIH0gZWxzZSB7XG4gICAgICAgICAgc3RyaWN0RmFpbChwYXJzZXIsIFwiRm9yd2FyZC1zbGFzaCBpbiBvcGVuaW5nIHRhZyBub3QgZm9sbG93ZWQgYnkgPlwiKVxuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuQVRUUklCXG4gICAgICAgIH1cbiAgICAgIGNvbnRpbnVlXG5cbiAgICAgIGNhc2UgUy5BVFRSSUI6XG4gICAgICAgIC8vIGhhdmVuJ3QgcmVhZCB0aGUgYXR0cmlidXRlIG5hbWUgeWV0LlxuICAgICAgICBpZiAoaXMod2hpdGVzcGFjZSwgYykpIGNvbnRpbnVlXG4gICAgICAgIGVsc2UgaWYgKGMgPT09IFwiPlwiKSBvcGVuVGFnKHBhcnNlcilcbiAgICAgICAgZWxzZSBpZiAoYyA9PT0gXCIvXCIpIHBhcnNlci5zdGF0ZSA9IFMuT1BFTl9UQUdfU0xBU0hcbiAgICAgICAgZWxzZSBpZiAoaXMobmFtZVN0YXJ0LCBjKSkge1xuICAgICAgICAgIHBhcnNlci5hdHRyaWJOYW1lID0gY1xuICAgICAgICAgIHBhcnNlci5hdHRyaWJWYWx1ZSA9IFwiXCJcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSBTLkFUVFJJQl9OQU1FXG4gICAgICAgIH0gZWxzZSBzdHJpY3RGYWlsKHBhcnNlciwgXCJJbnZhbGlkIGF0dHJpYnV0ZSBuYW1lXCIpXG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuQVRUUklCX05BTUU6XG4gICAgICAgIGlmIChjID09PSBcIj1cIikgcGFyc2VyLnN0YXRlID0gUy5BVFRSSUJfVkFMVUVcbiAgICAgICAgZWxzZSBpZiAoYyA9PT0gXCI+XCIpIHtcbiAgICAgICAgICBzdHJpY3RGYWlsKHBhcnNlciwgXCJBdHRyaWJ1dGUgd2l0aG91dCB2YWx1ZVwiKVxuICAgICAgICAgIHBhcnNlci5hdHRyaWJWYWx1ZSA9IHBhcnNlci5hdHRyaWJOYW1lXG4gICAgICAgICAgYXR0cmliKHBhcnNlcilcbiAgICAgICAgICBvcGVuVGFnKHBhcnNlcilcbiAgICAgICAgfVxuICAgICAgICBlbHNlIGlmIChpcyh3aGl0ZXNwYWNlLCBjKSkgcGFyc2VyLnN0YXRlID0gUy5BVFRSSUJfTkFNRV9TQVdfV0hJVEVcbiAgICAgICAgZWxzZSBpZiAoaXMobmFtZUJvZHksIGMpKSBwYXJzZXIuYXR0cmliTmFtZSArPSBjXG4gICAgICAgIGVsc2Ugc3RyaWN0RmFpbChwYXJzZXIsIFwiSW52YWxpZCBhdHRyaWJ1dGUgbmFtZVwiKVxuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLkFUVFJJQl9OQU1FX1NBV19XSElURTpcbiAgICAgICAgaWYgKGMgPT09IFwiPVwiKSBwYXJzZXIuc3RhdGUgPSBTLkFUVFJJQl9WQUxVRVxuICAgICAgICBlbHNlIGlmIChpcyh3aGl0ZXNwYWNlLCBjKSkgY29udGludWVcbiAgICAgICAgZWxzZSB7XG4gICAgICAgICAgc3RyaWN0RmFpbChwYXJzZXIsIFwiQXR0cmlidXRlIHdpdGhvdXQgdmFsdWVcIilcbiAgICAgICAgICBwYXJzZXIudGFnLmF0dHJpYnV0ZXNbcGFyc2VyLmF0dHJpYk5hbWVdID0gXCJcIlxuICAgICAgICAgIHBhcnNlci5hdHRyaWJWYWx1ZSA9IFwiXCJcbiAgICAgICAgICBlbWl0Tm9kZShwYXJzZXIsIFwib25hdHRyaWJ1dGVcIixcbiAgICAgICAgICAgICAgICAgICB7IG5hbWUgOiBwYXJzZXIuYXR0cmliTmFtZSwgdmFsdWUgOiBcIlwiIH0pXG4gICAgICAgICAgcGFyc2VyLmF0dHJpYk5hbWUgPSBcIlwiXG4gICAgICAgICAgaWYgKGMgPT09IFwiPlwiKSBvcGVuVGFnKHBhcnNlcilcbiAgICAgICAgICBlbHNlIGlmIChpcyhuYW1lU3RhcnQsIGMpKSB7XG4gICAgICAgICAgICBwYXJzZXIuYXR0cmliTmFtZSA9IGNcbiAgICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuQVRUUklCX05BTUVcbiAgICAgICAgICB9IGVsc2Uge1xuICAgICAgICAgICAgc3RyaWN0RmFpbChwYXJzZXIsIFwiSW52YWxpZCBhdHRyaWJ1dGUgbmFtZVwiKVxuICAgICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5BVFRSSUJcbiAgICAgICAgICB9XG4gICAgICAgIH1cbiAgICAgIGNvbnRpbnVlXG5cbiAgICAgIGNhc2UgUy5BVFRSSUJfVkFMVUU6XG4gICAgICAgIGlmIChpcyh3aGl0ZXNwYWNlLCBjKSkgY29udGludWVcbiAgICAgICAgZWxzZSBpZiAoaXMocXVvdGUsIGMpKSB7XG4gICAgICAgICAgcGFyc2VyLnEgPSBjXG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5BVFRSSUJfVkFMVUVfUVVPVEVEXG4gICAgICAgIH0gZWxzZSB7XG4gICAgICAgICAgc3RyaWN0RmFpbChwYXJzZXIsIFwiVW5xdW90ZWQgYXR0cmlidXRlIHZhbHVlXCIpXG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5BVFRSSUJfVkFMVUVfVU5RVU9URURcbiAgICAgICAgICBwYXJzZXIuYXR0cmliVmFsdWUgPSBjXG4gICAgICAgIH1cbiAgICAgIGNvbnRpbnVlXG5cbiAgICAgIGNhc2UgUy5BVFRSSUJfVkFMVUVfUVVPVEVEOlxuICAgICAgICBpZiAoYyAhPT0gcGFyc2VyLnEpIHtcbiAgICAgICAgICBpZiAoYyA9PT0gXCImXCIpIHBhcnNlci5zdGF0ZSA9IFMuQVRUUklCX1ZBTFVFX0VOVElUWV9RXG4gICAgICAgICAgZWxzZSBwYXJzZXIuYXR0cmliVmFsdWUgKz0gY1xuICAgICAgICAgIGNvbnRpbnVlXG4gICAgICAgIH1cbiAgICAgICAgYXR0cmliKHBhcnNlcilcbiAgICAgICAgcGFyc2VyLnEgPSBcIlwiXG4gICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuQVRUUklCX1ZBTFVFX0NMT1NFRFxuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLkFUVFJJQl9WQUxVRV9DTE9TRUQ6XG4gICAgICAgIGlmIChpcyh3aGl0ZXNwYWNlLCBjKSkge1xuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuQVRUUklCXG4gICAgICAgIH0gZWxzZSBpZiAoYyA9PT0gXCI+XCIpIG9wZW5UYWcocGFyc2VyKVxuICAgICAgICBlbHNlIGlmIChjID09PSBcIi9cIikgcGFyc2VyLnN0YXRlID0gUy5PUEVOX1RBR19TTEFTSFxuICAgICAgICBlbHNlIGlmIChpcyhuYW1lU3RhcnQsIGMpKSB7XG4gICAgICAgICAgc3RyaWN0RmFpbChwYXJzZXIsIFwiTm8gd2hpdGVzcGFjZSBiZXR3ZWVuIGF0dHJpYnV0ZXNcIilcbiAgICAgICAgICBwYXJzZXIuYXR0cmliTmFtZSA9IGNcbiAgICAgICAgICBwYXJzZXIuYXR0cmliVmFsdWUgPSBcIlwiXG4gICAgICAgICAgcGFyc2VyLnN0YXRlID0gUy5BVFRSSUJfTkFNRVxuICAgICAgICB9IGVsc2Ugc3RyaWN0RmFpbChwYXJzZXIsIFwiSW52YWxpZCBhdHRyaWJ1dGUgbmFtZVwiKVxuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLkFUVFJJQl9WQUxVRV9VTlFVT1RFRDpcbiAgICAgICAgaWYgKG5vdChhdHRyaWJFbmQsYykpIHtcbiAgICAgICAgICBpZiAoYyA9PT0gXCImXCIpIHBhcnNlci5zdGF0ZSA9IFMuQVRUUklCX1ZBTFVFX0VOVElUWV9VXG4gICAgICAgICAgZWxzZSBwYXJzZXIuYXR0cmliVmFsdWUgKz0gY1xuICAgICAgICAgIGNvbnRpbnVlXG4gICAgICAgIH1cbiAgICAgICAgYXR0cmliKHBhcnNlcilcbiAgICAgICAgaWYgKGMgPT09IFwiPlwiKSBvcGVuVGFnKHBhcnNlcilcbiAgICAgICAgZWxzZSBwYXJzZXIuc3RhdGUgPSBTLkFUVFJJQlxuICAgICAgY29udGludWVcblxuICAgICAgY2FzZSBTLkNMT1NFX1RBRzpcbiAgICAgICAgaWYgKCFwYXJzZXIudGFnTmFtZSkge1xuICAgICAgICAgIGlmIChpcyh3aGl0ZXNwYWNlLCBjKSkgY29udGludWVcbiAgICAgICAgICBlbHNlIGlmIChub3QobmFtZVN0YXJ0LCBjKSkge1xuICAgICAgICAgICAgaWYgKHBhcnNlci5zY3JpcHQpIHtcbiAgICAgICAgICAgICAgcGFyc2VyLnNjcmlwdCArPSBcIjwvXCIgKyBjXG4gICAgICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuU0NSSVBUXG4gICAgICAgICAgICB9IGVsc2Uge1xuICAgICAgICAgICAgICBzdHJpY3RGYWlsKHBhcnNlciwgXCJJbnZhbGlkIHRhZ25hbWUgaW4gY2xvc2luZyB0YWcuXCIpXG4gICAgICAgICAgICB9XG4gICAgICAgICAgfSBlbHNlIHBhcnNlci50YWdOYW1lID0gY1xuICAgICAgICB9XG4gICAgICAgIGVsc2UgaWYgKGMgPT09IFwiPlwiKSBjbG9zZVRhZyhwYXJzZXIpXG4gICAgICAgIGVsc2UgaWYgKGlzKG5hbWVCb2R5LCBjKSkgcGFyc2VyLnRhZ05hbWUgKz0gY1xuICAgICAgICBlbHNlIGlmIChwYXJzZXIuc2NyaXB0KSB7XG4gICAgICAgICAgcGFyc2VyLnNjcmlwdCArPSBcIjwvXCIgKyBwYXJzZXIudGFnTmFtZVxuICAgICAgICAgIHBhcnNlci50YWdOYW1lID0gXCJcIlxuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuU0NSSVBUXG4gICAgICAgIH0gZWxzZSB7XG4gICAgICAgICAgaWYgKG5vdCh3aGl0ZXNwYWNlLCBjKSkgc3RyaWN0RmFpbChwYXJzZXIsXG4gICAgICAgICAgICBcIkludmFsaWQgdGFnbmFtZSBpbiBjbG9zaW5nIHRhZ1wiKVxuICAgICAgICAgIHBhcnNlci5zdGF0ZSA9IFMuQ0xPU0VfVEFHX1NBV19XSElURVxuICAgICAgICB9XG4gICAgICBjb250aW51ZVxuXG4gICAgICBjYXNlIFMuQ0xPU0VfVEFHX1NBV19XSElURTpcbiAgICAgICAgaWYgKGlzKHdoaXRlc3BhY2UsIGMpKSBjb250aW51ZVxuICAgICAgICBpZiAoYyA9PT0gXCI+XCIpIGNsb3NlVGFnKHBhcnNlcilcbiAgICAgICAgZWxzZSBzdHJpY3RGYWlsKHBhcnNlciwgXCJJbnZhbGlkIGNoYXJhY3RlcnMgaW4gY2xvc2luZyB0YWdcIilcbiAgICAgIGNvbnRpbnVlXG5cbiAgICAgIGNhc2UgUy5URVhUX0VOVElUWTpcbiAgICAgIGNhc2UgUy5BVFRSSUJfVkFMVUVfRU5USVRZX1E6XG4gICAgICBjYXNlIFMuQVRUUklCX1ZBTFVFX0VOVElUWV9VOlxuICAgICAgICBzd2l0Y2gocGFyc2VyLnN0YXRlKSB7XG4gICAgICAgICAgY2FzZSBTLlRFWFRfRU5USVRZOlxuICAgICAgICAgICAgdmFyIHJldHVyblN0YXRlID0gUy5URVhULCBidWZmZXIgPSBcInRleHROb2RlXCJcbiAgICAgICAgICBicmVha1xuXG4gICAgICAgICAgY2FzZSBTLkFUVFJJQl9WQUxVRV9FTlRJVFlfUTpcbiAgICAgICAgICAgIHZhciByZXR1cm5TdGF0ZSA9IFMuQVRUUklCX1ZBTFVFX1FVT1RFRCwgYnVmZmVyID0gXCJhdHRyaWJWYWx1ZVwiXG4gICAgICAgICAgYnJlYWtcblxuICAgICAgICAgIGNhc2UgUy5BVFRSSUJfVkFMVUVfRU5USVRZX1U6XG4gICAgICAgICAgICB2YXIgcmV0dXJuU3RhdGUgPSBTLkFUVFJJQl9WQUxVRV9VTlFVT1RFRCwgYnVmZmVyID0gXCJhdHRyaWJWYWx1ZVwiXG4gICAgICAgICAgYnJlYWtcbiAgICAgICAgfVxuICAgICAgICBpZiAoYyA9PT0gXCI7XCIpIHtcbiAgICAgICAgICBwYXJzZXJbYnVmZmVyXSArPSBwYXJzZUVudGl0eShwYXJzZXIpXG4gICAgICAgICAgcGFyc2VyLmVudGl0eSA9IFwiXCJcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSByZXR1cm5TdGF0ZVxuICAgICAgICB9XG4gICAgICAgIGVsc2UgaWYgKGlzKGVudGl0eSwgYykpIHBhcnNlci5lbnRpdHkgKz0gY1xuICAgICAgICBlbHNlIHtcbiAgICAgICAgICBzdHJpY3RGYWlsKHBhcnNlciwgXCJJbnZhbGlkIGNoYXJhY3RlciBlbnRpdHlcIilcbiAgICAgICAgICBwYXJzZXJbYnVmZmVyXSArPSBcIiZcIiArIHBhcnNlci5lbnRpdHkgKyBjXG4gICAgICAgICAgcGFyc2VyLmVudGl0eSA9IFwiXCJcbiAgICAgICAgICBwYXJzZXIuc3RhdGUgPSByZXR1cm5TdGF0ZVxuICAgICAgICB9XG4gICAgICBjb250aW51ZVxuXG4gICAgICBkZWZhdWx0OlxuICAgICAgICB0aHJvdyBuZXcgRXJyb3IocGFyc2VyLCBcIlVua25vd24gc3RhdGU6IFwiICsgcGFyc2VyLnN0YXRlKVxuICAgIH1cbiAgfSAvLyB3aGlsZVxuICAvLyBjZGF0YSBibG9ja3MgY2FuIGdldCB2ZXJ5IGJpZyB1bmRlciBub3JtYWwgY29uZGl0aW9ucy4gZW1pdCBhbmQgbW92ZSBvbi5cbiAgLy8gaWYgKHBhcnNlci5zdGF0ZSA9PT0gUy5DREFUQSAmJiBwYXJzZXIuY2RhdGEpIHtcbiAgLy8gICBlbWl0Tm9kZShwYXJzZXIsIFwib25jZGF0YVwiLCBwYXJzZXIuY2RhdGEpXG4gIC8vICAgcGFyc2VyLmNkYXRhID0gXCJcIlxuICAvLyB9XG4gIGlmIChwYXJzZXIucG9zaXRpb24gPj0gcGFyc2VyLmJ1ZmZlckNoZWNrUG9zaXRpb24pIGNoZWNrQnVmZmVyTGVuZ3RoKHBhcnNlcilcbiAgcmV0dXJuIHBhcnNlclxufVxuXG4vKiEgaHR0cDovL210aHMuYmUvZnJvbWNvZGVwb2ludCB2MC4xLjAgYnkgQG1hdGhpYXMgKi9cbmlmICghU3RyaW5nLmZyb21Db2RlUG9pbnQpIHtcbiAgICAgICAgKGZ1bmN0aW9uKCkge1xuICAgICAgICAgICAgICAgIHZhciBzdHJpbmdGcm9tQ2hhckNvZGUgPSBTdHJpbmcuZnJvbUNoYXJDb2RlO1xuICAgICAgICAgICAgICAgIHZhciBmbG9vciA9IE1hdGguZmxvb3I7XG4gICAgICAgICAgICAgICAgdmFyIGZyb21Db2RlUG9pbnQgPSBmdW5jdGlvbigpIHtcbiAgICAgICAgICAgICAgICAgICAgICAgIHZhciBNQVhfU0laRSA9IDB4NDAwMDtcbiAgICAgICAgICAgICAgICAgICAgICAgIHZhciBjb2RlVW5pdHMgPSBbXTtcbiAgICAgICAgICAgICAgICAgICAgICAgIHZhciBoaWdoU3Vycm9nYXRlO1xuICAgICAgICAgICAgICAgICAgICAgICAgdmFyIGxvd1N1cnJvZ2F0ZTtcbiAgICAgICAgICAgICAgICAgICAgICAgIHZhciBpbmRleCA9IC0xO1xuICAgICAgICAgICAgICAgICAgICAgICAgdmFyIGxlbmd0aCA9IGFyZ3VtZW50cy5sZW5ndGg7XG4gICAgICAgICAgICAgICAgICAgICAgICBpZiAoIWxlbmd0aCkge1xuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gJyc7XG4gICAgICAgICAgICAgICAgICAgICAgICB9XG4gICAgICAgICAgICAgICAgICAgICAgICB2YXIgcmVzdWx0ID0gJyc7XG4gICAgICAgICAgICAgICAgICAgICAgICB3aGlsZSAoKytpbmRleCA8IGxlbmd0aCkge1xuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB2YXIgY29kZVBvaW50ID0gTnVtYmVyKGFyZ3VtZW50c1tpbmRleF0pO1xuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBpZiAoXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIWlzRmluaXRlKGNvZGVQb2ludCkgfHwgLy8gYE5hTmAsIGArSW5maW5pdHlgLCBvciBgLUluZmluaXR5YFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvZGVQb2ludCA8IDAgfHwgLy8gbm90IGEgdmFsaWQgVW5pY29kZSBjb2RlIHBvaW50XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY29kZVBvaW50ID4gMHgxMEZGRkYgfHwgLy8gbm90IGEgdmFsaWQgVW5pY29kZSBjb2RlIHBvaW50XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZmxvb3IoY29kZVBvaW50KSAhPSBjb2RlUG9pbnQgLy8gbm90IGFuIGludGVnZXJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKSB7XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdGhyb3cgUmFuZ2VFcnJvcignSW52YWxpZCBjb2RlIHBvaW50OiAnICsgY29kZVBvaW50KTtcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfVxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBpZiAoY29kZVBvaW50IDw9IDB4RkZGRikgeyAvLyBCTVAgY29kZSBwb2ludFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvZGVVbml0cy5wdXNoKGNvZGVQb2ludCk7XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIH0gZWxzZSB7IC8vIEFzdHJhbCBjb2RlIHBvaW50OyBzcGxpdCBpbiBzdXJyb2dhdGUgaGFsdmVzXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgLy8gaHR0cDovL21hdGhpYXNieW5lbnMuYmUvbm90ZXMvamF2YXNjcmlwdC1lbmNvZGluZyNzdXJyb2dhdGUtZm9ybXVsYWVcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjb2RlUG9pbnQgLT0gMHgxMDAwMDtcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBoaWdoU3Vycm9nYXRlID0gKGNvZGVQb2ludCA+PiAxMCkgKyAweEQ4MDA7XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbG93U3Vycm9nYXRlID0gKGNvZGVQb2ludCAlIDB4NDAwKSArIDB4REMwMDtcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjb2RlVW5pdHMucHVzaChoaWdoU3Vycm9nYXRlLCBsb3dTdXJyb2dhdGUpO1xuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB9XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGlmIChpbmRleCArIDEgPT0gbGVuZ3RoIHx8IGNvZGVVbml0cy5sZW5ndGggPiBNQVhfU0laRSkge1xuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHJlc3VsdCArPSBzdHJpbmdGcm9tQ2hhckNvZGUuYXBwbHkobnVsbCwgY29kZVVuaXRzKTtcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjb2RlVW5pdHMubGVuZ3RoID0gMDtcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfVxuICAgICAgICAgICAgICAgICAgICAgICAgfVxuICAgICAgICAgICAgICAgICAgICAgICAgcmV0dXJuIHJlc3VsdDtcbiAgICAgICAgICAgICAgICB9O1xuICAgICAgICAgICAgICAgIGlmIChPYmplY3QuZGVmaW5lUHJvcGVydHkpIHtcbiAgICAgICAgICAgICAgICAgICAgICAgIE9iamVjdC5kZWZpbmVQcm9wZXJ0eShTdHJpbmcsICdmcm9tQ29kZVBvaW50Jywge1xuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAndmFsdWUnOiBmcm9tQ29kZVBvaW50LFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAnY29uZmlndXJhYmxlJzogdHJ1ZSxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgJ3dyaXRhYmxlJzogdHJ1ZVxuICAgICAgICAgICAgICAgICAgICAgICAgfSk7XG4gICAgICAgICAgICAgICAgfSBlbHNlIHtcbiAgICAgICAgICAgICAgICAgICAgICAgIFN0cmluZy5mcm9tQ29kZVBvaW50ID0gZnJvbUNvZGVQb2ludDtcbiAgICAgICAgICAgICAgICB9XG4gICAgICAgIH0oKSk7XG59XG5cbn0pKHR5cGVvZiBleHBvcnRzID09PSBcInVuZGVmaW5lZFwiID8gc2F4ID0ge30gOiBleHBvcnRzKTtcbiJdfQ==
-},{"undefined":undefined}],59:[function(_dereq_,module,exports){
+},{"undefined":undefined}],75:[function(_dereq_,module,exports){
 /**
  * Tiny stack for browser or server
  *
@@ -10614,9 +13317,9 @@ else {
 }
 } )( this );
 
-},{}],60:[function(_dereq_,module,exports){
-module.exports = _dereq_(64);
-},{"64":64}],61:[function(_dereq_,module,exports){
+},{}],76:[function(_dereq_,module,exports){
+module.exports = _dereq_(80);
+},{"80":80}],77:[function(_dereq_,module,exports){
 'use strict';
 
 function Base() { }
@@ -10631,14 +13334,14 @@ Base.prototype.set = function(name, value) {
 
 
 module.exports = Base;
-},{}],62:[function(_dereq_,module,exports){
+},{}],78:[function(_dereq_,module,exports){
 'use strict';
 
-var pick = _dereq_(345),
-    assign = _dereq_(339),
-    forEach = _dereq_(218);
+var pick = _dereq_(372),
+    assign = _dereq_(366),
+    forEach = _dereq_(244);
 
-var parseNameNs = _dereq_(65).parseName;
+var parseNameNs = _dereq_(81).parseName;
 
 
 function DescriptorBuilder(nameNs) {
@@ -10817,12 +13520,12 @@ DescriptorBuilder.prototype.addTrait = function(t) {
   allTypes.push(t);
 };
 
-},{"218":218,"339":339,"345":345,"65":65}],63:[function(_dereq_,module,exports){
+},{"244":244,"366":366,"372":372,"81":81}],79:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218);
+var forEach = _dereq_(244);
 
-var Base = _dereq_(61);
+var Base = _dereq_(77);
 
 
 function Factory(model, properties) {
@@ -10875,20 +13578,20 @@ Factory.prototype.createType = function(descriptor) {
 
   return ModdleElement;
 };
-},{"218":218,"61":61}],64:[function(_dereq_,module,exports){
+},{"244":244,"77":77}],80:[function(_dereq_,module,exports){
 'use strict';
 
-var isString = _dereq_(336),
-    isObject = _dereq_(334),
-    forEach = _dereq_(218),
-    find = _dereq_(217);
+var isString = _dereq_(363),
+    isObject = _dereq_(361),
+    forEach = _dereq_(244),
+    find = _dereq_(243);
 
 
-var Factory = _dereq_(63),
-    Registry = _dereq_(67),
-    Properties = _dereq_(66);
+var Factory = _dereq_(79),
+    Registry = _dereq_(83),
+    Properties = _dereq_(82);
 
-var parseNameNs = _dereq_(65).parseName;
+var parseNameNs = _dereq_(81).parseName;
 
 
 //// Moddle implementation /////////////////////////////////////////////////
@@ -11097,7 +13800,7 @@ Moddle.prototype.getPropertyDescriptor = function(element, property) {
   return this.getElementDescriptor(element).propertiesByName[property];
 };
 
-},{"217":217,"218":218,"334":334,"336":336,"63":63,"65":65,"66":66,"67":67}],65:[function(_dereq_,module,exports){
+},{"243":243,"244":244,"361":361,"363":363,"79":79,"81":81,"82":82,"83":83}],81:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -11134,7 +13837,7 @@ module.exports.parseName = function(name, defaultPrefix) {
     localName: localName
   };
 };
-},{}],66:[function(_dereq_,module,exports){
+},{}],82:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -11228,16 +13931,16 @@ Properties.prototype.defineDescriptor = function(target, descriptor) {
 Properties.prototype.defineModel = function(target, model) {
   this.define(target, '$model', { value: model });
 };
-},{}],67:[function(_dereq_,module,exports){
+},{}],83:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(339),
-    forEach = _dereq_(218);
+var assign = _dereq_(366),
+    forEach = _dereq_(244);
 
-var Types = _dereq_(68),
-    DescriptorBuilder = _dereq_(62);
+var Types = _dereq_(84),
+    DescriptorBuilder = _dereq_(78);
 
-var parseNameNs = _dereq_(65).parseName,
+var parseNameNs = _dereq_(81).parseName,
     isBuiltInType = Types.isBuiltIn;
 
 
@@ -11404,7 +14107,7 @@ Registry.prototype.getEffectiveDescriptor = function(name) {
 Registry.prototype.definePackage = function(target, pkg) {
   this.properties.define(target, '$pkg', { value: pkg });
 };
-},{"218":218,"339":339,"62":62,"65":65,"68":68}],68:[function(_dereq_,module,exports){
+},{"244":244,"366":366,"78":78,"81":81,"84":84}],84:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -11455,7 +14158,7 @@ module.exports.isBuiltIn = function(type) {
 module.exports.isSimple = function(type) {
   return !!TYPE_CONVERTERS[type];
 };
-},{}],69:[function(_dereq_,module,exports){
+},{}],85:[function(_dereq_,module,exports){
 module.exports={
   "name": "BPMN20",
   "uri": "http://www.omg.org/spec/BPMN/20100524/MODEL",
@@ -11498,13 +14201,11 @@ module.exports={
         {
           "name": "inMessageRef",
           "type": "Message",
-          "isAttr": true,
           "isReference": true
         },
         {
           "name": "outMessageRef",
           "type": "Message",
-          "isAttr": true,
           "isReference": true
         },
         {
@@ -12057,7 +14758,7 @@ module.exports={
           "isReference": true
         },
         {
-          "name": "dataInputAssociation",
+          "name": "dataInputAssociations",
           "type": "DataInputAssociation",
           "isMany": true
         },
@@ -12097,7 +14798,7 @@ module.exports={
           "isReference": true
         },
         {
-          "name": "dataOutputAssociation",
+          "name": "dataOutputAssociations",
           "type": "DataOutputAssociation",
           "isMany": true
         },
@@ -14384,7 +17085,7 @@ module.exports={
     "typePrefix": "t"
   }
 }
-},{}],70:[function(_dereq_,module,exports){
+},{}],86:[function(_dereq_,module,exports){
 module.exports={
   "name": "BPMNDI",
   "uri": "http://www.omg.org/spec/BPMN/20100524/DI",
@@ -14578,7 +17279,7 @@ module.exports={
   "associations": [],
   "prefix": "bpmndi"
 }
-},{}],71:[function(_dereq_,module,exports){
+},{}],87:[function(_dereq_,module,exports){
 module.exports={
   "name": "DC",
   "uri": "http://www.omg.org/spec/DD/20100524/DC",
@@ -14678,7 +17379,7 @@ module.exports={
   "prefix": "dc",
   "associations": []
 }
-},{}],72:[function(_dereq_,module,exports){
+},{}],88:[function(_dereq_,module,exports){
 module.exports={
   "name": "DI",
   "uri": "http://www.omg.org/spec/DD/20100524/DI",
@@ -14897,19 +17598,19 @@ module.exports={
     "tagAlias": "lowerCase"
   }
 }
-},{}],73:[function(_dereq_,module,exports){
+},{}],89:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(108) ],
+  __depends__: [ _dereq_(128) ],
   __init__: [ 'directEditing' ],
-  directEditing: [ 'type', _dereq_(74) ]
+  directEditing: [ 'type', _dereq_(90) ]
 };
-},{"108":108,"74":74}],74:[function(_dereq_,module,exports){
+},{"128":128,"90":90}],90:[function(_dereq_,module,exports){
 'use strict';
 
-var bind = _dereq_(227),
-    find = _dereq_(217);
+var bind = _dereq_(253),
+    find = _dereq_(243);
 
-var TextBox = _dereq_(75);
+var TextBox = _dereq_(91);
 
 
 /**
@@ -15065,12 +17766,12 @@ DirectEditing.prototype.activate = function(element) {
 
 
 module.exports = DirectEditing;
-},{"217":217,"227":227,"75":75}],75:[function(_dereq_,module,exports){
+},{"243":243,"253":253,"91":91}],91:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(339),
-    domEvent = _dereq_(357),
-    domRemove = _dereq_(360);
+var assign = _dereq_(366),
+    domEvent = _dereq_(384),
+    domRemove = _dereq_(387);
 
 function stopPropagation(event) {
   event.stopPropagation();
@@ -15133,12 +17834,12 @@ TextBox.prototype.getValue = function() {
   return this.textarea.value;
 };
 
-},{"339":339,"357":357,"360":360}],76:[function(_dereq_,module,exports){
-module.exports = _dereq_(77);
-},{"77":77}],77:[function(_dereq_,module,exports){
+},{"366":366,"384":384,"387":387}],92:[function(_dereq_,module,exports){
+module.exports = _dereq_(93);
+},{"93":93}],93:[function(_dereq_,module,exports){
 'use strict';
 
-var di = _dereq_(202);
+var di = _dereq_(223);
 
 
 /**
@@ -15215,7 +17916,7 @@ function createInjector(options) {
     'config': ['value', options]
   };
 
-  var coreModule = _dereq_(86);
+  var coreModule = _dereq_(102);
 
   var modules = [ configModule, coreModule ].concat(options.modules || []);
 
@@ -15279,7 +17980,7 @@ function Diagram(options, injector) {
    * @method Diagram#get
    *
    * @param {String} name the name of the diagram service to be retrieved
-   * @param {Object} [locals] a number of locals to use to resolve certain dependencies
+   * @param {Boolean} [strict=true] if false, resolve missing services to null
    */
   this.get = injector.get;
 
@@ -15329,17 +18030,21 @@ module.exports = Diagram;
 Diagram.prototype.destroy = function() {
   this.get('eventBus').fire('diagram.destroy');
 };
-},{"202":202,"86":86}],78:[function(_dereq_,module,exports){
+},{"102":102,"223":223}],94:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218),
-    isFunction = _dereq_(331),
-    isArray = _dereq_(330),
-    isNumber = _dereq_(333);
+var forEach = _dereq_(244),
+    isFunction = _dereq_(358),
+    isArray = _dereq_(357),
+    isNumber = _dereq_(360);
 
 
 var DEFAULT_PRIORITY = 1000;
 
+
+function isObject(element) {
+  return typeof element === 'object';
+}
 
 /**
  * A utility that can be used to plug-in into the command execution for
@@ -15372,9 +18077,9 @@ CommandInterceptor.$inject = [ 'eventBus' ];
 
 module.exports = CommandInterceptor;
 
-function unwrapEvent(fn) {
+function unwrapEvent(fn, that) {
   return function(event) {
-    return fn(event.context, event.command, event);
+    return fn.call(that || null, event.context, event.command, event);
   };
 }
 
@@ -15387,10 +18092,12 @@ function unwrapEvent(fn) {
  * @param {Function} handlerFn interceptor to be invoked with (event)
  * @param {Boolean} unwrap if true, unwrap the event and pass (context, command, event) to the
  *                          listener instead
+ * @param {Object} [that] Pass context (`this`) to the handler function
  */
-CommandInterceptor.prototype.on = function(events, hook, priority, handlerFn, unwrap) {
+CommandInterceptor.prototype.on = function(events, hook, priority, handlerFn, unwrap, that) {
 
   if (isFunction(hook) || isNumber(hook)) {
+    that = unwrap;
     unwrap = handlerFn;
     handlerFn = priority;
     priority = hook;
@@ -15398,9 +18105,15 @@ CommandInterceptor.prototype.on = function(events, hook, priority, handlerFn, un
   }
 
   if (isFunction(priority)) {
+    that = unwrap;
     unwrap = handlerFn;
     handlerFn = priority;
     priority = DEFAULT_PRIORITY;
+  }
+
+  if (isObject(unwrap)) {
+    that = unwrap;
+    unwrap = false;
   }
 
   if (!isFunction(handlerFn)) {
@@ -15417,7 +18130,7 @@ CommandInterceptor.prototype.on = function(events, hook, priority, handlerFn, un
     // concat commandStack(.event)?(.hook)?
     var fullEvent = [ 'commandStack', event, hook ].filter(function(e) { return e; }).join('.');
 
-    eventBus.on(fullEvent, priority, unwrap ? unwrapEvent(handlerFn) : handlerFn);
+    eventBus.on(fullEvent, priority, unwrap ? unwrapEvent(handlerFn, that) : handlerFn, that);
   });
 };
 
@@ -15452,27 +18165,30 @@ forEach(hooks, function(hook) {
    * @param {Function} handlerFn interceptor to be invoked with (event)
    * @param {Boolean} [unwrap=false] if true, unwrap the event and pass (context, command, event) to the
    *                          listener instead
+   * @param {Object} [that] Pass context (`this`) to the handler function
    */
-  CommandInterceptor.prototype[hook] = function(events, priority, handlerFn, unwrap) {
+  CommandInterceptor.prototype[hook] = function(events, priority, handlerFn, unwrap, that) {
 
     if (isFunction(events) || isNumber(events)) {
+      that = unwrap;
       unwrap = handlerFn;
       handlerFn = priority;
       priority = events;
       events = null;
     }
 
-    this.on(events, hook, priority, handlerFn, unwrap);
+    this.on(events, hook, priority, handlerFn, unwrap, that);
   };
 });
-},{"218":218,"330":330,"331":331,"333":333}],79:[function(_dereq_,module,exports){
+
+},{"244":244,"357":357,"358":358,"360":360}],95:[function(_dereq_,module,exports){
 'use strict';
 
-var unique = _dereq_(211),
-    isArray = _dereq_(330),
-    assign = _dereq_(339);
+var unique = _dereq_(237),
+    isArray = _dereq_(357),
+    assign = _dereq_(366);
 
-var InternalEvent = _dereq_(84).Event;
+var InternalEvent = _dereq_(100).Event;
 
 
 /**
@@ -15774,7 +18490,9 @@ CommandStack.prototype._internalUndo = function(action) {
 
   this._fire(command, 'revert', action);
 
-  this._markDirty(handler.revert(context));
+  if (handler.revert) {
+    this._markDirty(handler.revert(context));
+  }
 
   this._revertedAction(action);
 
@@ -15833,8 +18551,10 @@ CommandStack.prototype._internalExecute = function(action, redo) {
 
   this._fire(command, 'execute', action);
 
-  // execute
-  this._markDirty(handler.execute(context));
+  if (handler.execute) {
+    // actual execute + mark return results as dirty
+    this._markDirty(handler.execute(context));
+  }
 
   // log to stack
   this._executedAction(action, redo);
@@ -15930,22 +18650,23 @@ CommandStack.prototype._setHandler = function(command, handler) {
   this._handlerMap[command] = handler;
 };
 
-},{"211":211,"330":330,"339":339,"84":84}],80:[function(_dereq_,module,exports){
+},{"100":100,"237":237,"357":357,"366":366}],96:[function(_dereq_,module,exports){
 module.exports = {
-  commandStack: [ 'type', _dereq_(79) ]
+  commandStack: [ 'type', _dereq_(95) ]
 };
 
-},{"79":79}],81:[function(_dereq_,module,exports){
+},{"95":95}],97:[function(_dereq_,module,exports){
 'use strict';
 
-var isNumber = _dereq_(333),
-    assign = _dereq_(339),
-    forEach = _dereq_(218),
-    every = _dereq_(215);
+var isNumber = _dereq_(360),
+    assign = _dereq_(366),
+    forEach = _dereq_(244),
+    every = _dereq_(241),
+    debounce = _dereq_(254);
 
-var Collections = _dereq_(184);
+var Collections = _dereq_(208);
 
-var Snap = _dereq_(200);
+var Snap = _dereq_(229);
 
 function round(number, resolution) {
   return Math.round(number * resolution) / resolution;
@@ -16083,6 +18804,11 @@ Canvas.prototype._init = function(config) {
     self._svg = self._container = self._layers = self._viewport = null;
   });
 
+  // debounce canvas.viewbox.changed events
+  // for smoother diagram interaction
+  if (config.deferUpdate !== false) {
+    this._viewboxChanged = debounce(this._viewboxChanged, 300);
+  }
 };
 
 /**
@@ -16235,7 +18961,7 @@ Canvas.prototype.toggleMarker = function(element, marker) {
 
 Canvas.prototype.getRootElement = function() {
   if (!this._rootElement) {
-    this.setRootElement({ id: '__implicitroot' });
+    this.setRootElement({ id: '__implicitroot', children: [] });
   }
 
   return this._rootElement;
@@ -16313,8 +19039,8 @@ Canvas.prototype._ensureValid = function(type, element) {
   }
 };
 
-Canvas.prototype._setParent = function(element, parent, idx) {
-  Collections.add(parent.children, element, idx);
+Canvas.prototype._setParent = function(element, parent, parentIndex) {
+  Collections.add(parent.children, element, parentIndex);
   element.parent = parent;
 };
 
@@ -16334,22 +19060,22 @@ Canvas.prototype._setParent = function(element, parent, idx) {
  * @param {String} type
  * @param {Object|djs.model.Base} element
  * @param {Object|djs.model.Base} [parent]
+ * @param {Number} [parentIndex]
  *
  * @return {Object|djs.model.Base} the added element
  */
-Canvas.prototype._addElement = function(type, element, parent) {
+Canvas.prototype._addElement = function(type, element, parent, parentIndex) {
 
   parent = parent || this.getRootElement();
 
   var eventBus = this._eventBus,
-      graphicsFactory = this._graphicsFactory,
-      idx;
+      graphicsFactory = this._graphicsFactory;
 
   this._ensureValid(type, element);
 
   eventBus.fire(type + '.add', { element: element, parent: parent });
 
-  this._setParent(element, parent, idx);
+  this._setParent(element, parent, parentIndex);
 
   // create graphics
   var gfx = graphicsFactory.create(type, element);
@@ -16369,11 +19095,12 @@ Canvas.prototype._addElement = function(type, element, parent) {
  *
  * @param {Object|djs.model.Shape} shape to add to the diagram
  * @param {djs.model.Base} [parent]
+ * @param {Number} [parentIndex]
  *
  * @return {djs.model.Shape} the added shape
  */
-Canvas.prototype.addShape = function(shape, parent) {
-  return this._addElement('shape', shape, parent);
+Canvas.prototype.addShape = function(shape, parent, parentIndex) {
+  return this._addElement('shape', shape, parent, parentIndex);
 };
 
 /**
@@ -16381,11 +19108,12 @@ Canvas.prototype.addShape = function(shape, parent) {
  *
  * @param {Object|djs.model.Connection} connection to add to the diagram
  * @param {djs.model.Base} [parent]
+ * @param {Number} [parentIndex]
  *
  * @return {djs.model.Connection} the added connection
  */
-Canvas.prototype.addConnection = function(connection, parent) {
-  return this._addElement('connection', connection, parent);
+Canvas.prototype.addConnection = function(connection, parent, parentIndex) {
+  return this._addElement('connection', connection, parent, parentIndex);
 };
 
 
@@ -16532,19 +19260,21 @@ Canvas.prototype.getGraphics = function(element, secondary) {
 };
 
 
-Canvas.prototype._fireViewboxChange = function() {
+Canvas.prototype._viewboxChanging = function() {
+  this._eventBus.fire('canvas.viewbox.changing');
+};
+
+Canvas.prototype._viewboxChanged = function() {
   this._eventBus.fire('canvas.viewbox.changed', { viewbox: this.viewbox(false) });
 };
 
 
 /**
- * Gets or sets the view box of the canvas, i.e. the area that is currently displayed
+ * Gets or sets the view box of the canvas, i.e. the
+ * area that is currently displayed.
  *
- * @param  {Object} [box] the new view box to set
- * @param  {Number} box.x the top left X coordinate of the canvas visible in view box
- * @param  {Number} box.y the top left Y coordinate of the canvas visible in view box
- * @param  {Number} box.width the visible width
- * @param  {Number} box.height
+ * The getter may return a cached viewbox (if it is currently
+ * changing). To force a recomputation, pass `false` as the first argument.
  *
  * @example
  *
@@ -16552,6 +19282,23 @@ Canvas.prototype._fireViewboxChange = function() {
  *
  * // sets the visible area of the diagram to (100|100) -> (600|100)
  * // and and scales it according to the diagram width
+ *
+ * var viewbox = canvas.viewbox(); // pass `false` to force recomputing the box.
+ *
+ * console.log(viewbox);
+ * // {
+ * //   inner: Dimensions,
+ * //   outer: Dimensions,
+ * //   scale,
+ * //   x, y,
+ * //   width, height
+ * // }
+ *
+ * @param  {Object} [box] the new view box to set
+ * @param  {Number} box.x the top left X coordinate of the canvas visible in view box
+ * @param  {Number} box.y the top left Y coordinate of the canvas visible in view box
+ * @param  {Number} box.width the visible width
+ * @param  {Number} box.height
  *
  * @return {Object} the current view box
  */
@@ -16597,12 +19344,14 @@ Canvas.prototype.viewbox = function(box) {
 
     return box;
   } else {
+    this._viewboxChanging();
+
     scale = Math.min(outerBox.width / box.width, outerBox.height / box.height);
 
     matrix = new Snap.Matrix().scale(scale).translate(-box.x, -box.y);
     viewport.transform(matrix);
 
-    this._fireViewboxChange();
+    this._viewboxChanged();
   }
 
   return box;
@@ -16623,13 +19372,15 @@ Canvas.prototype.scroll = function(delta) {
   var matrix = node.getCTM();
 
   if (delta) {
+    this._viewboxChanging();
+
     delta = assign({ dx: 0, dy: 0 }, delta || {});
 
     matrix = this._svg.node.createSVGMatrix().translate(delta.dx, delta.dy).multiply(matrix);
 
     setCTM(node, matrix);
 
-    this._fireViewboxChange();
+    this._viewboxChanged();
   }
 
   return { x: matrix.e, y: matrix.f };
@@ -16637,7 +19388,11 @@ Canvas.prototype.scroll = function(delta) {
 
 
 /**
- * Gets or sets the current zoom of the canvas, optionally zooming to the specified position.
+ * Gets or sets the current zoom of the canvas, optionally zooming
+ * to the specified position.
+ *
+ * The getter may return a cached zoom level. Call it with `false` as
+ * the first argument to force recomputation of the current level.
  *
  * @param {String|Number} [newScale] the new zoom level, either a number, i.e. 0.9,
  *                                   or `fit-viewport` to adjust the size to fit the current viewport
@@ -16647,20 +19402,21 @@ Canvas.prototype.scroll = function(delta) {
  */
 Canvas.prototype.zoom = function(newScale, center) {
 
+  if (!newScale) {
+    return this.viewbox(newScale).scale;
+  }
+
   if (newScale === 'fit-viewport') {
     return this._fitViewport(center);
   }
 
-  var vbox = this.viewbox(),
-      outer,
+  var outer,
       matrix;
 
-  if (newScale === undefined) {
-    return vbox.scale;
-  }
+  this._viewboxChanging();
 
   if (typeof center !== 'object') {
-    outer = vbox.outer;
+    outer = this.viewbox().outer;
 
     center = {
       x: outer.width / 2,
@@ -16670,7 +19426,7 @@ Canvas.prototype.zoom = function(newScale, center) {
 
   matrix = this._setZoom(newScale, center);
 
-  this._fireViewboxChange();
+  this._viewboxChanged();
 
   return round(matrix.a, 1000);
 };
@@ -16720,7 +19476,7 @@ Canvas.prototype._fitViewport = function(center) {
 
   this.viewbox(newViewbox);
 
-  return this.viewbox().scale;
+  return this.viewbox(false).scale;
 };
 
 
@@ -16827,10 +19583,10 @@ Canvas.prototype.getAbsoluteBBox = function(element) {
   };
 };
 
-},{"184":184,"200":200,"215":215,"218":218,"333":333,"339":339}],82:[function(_dereq_,module,exports){
+},{"208":208,"229":229,"241":241,"244":244,"254":254,"360":360,"366":366}],98:[function(_dereq_,module,exports){
 'use strict';
 
-var Model = _dereq_(176);
+var Model = _dereq_(199);
 
 
 /**
@@ -16877,7 +19633,7 @@ ElementFactory.prototype.create = function(type, attrs) {
 
   return Model.create(type, attrs);
 };
-},{"176":176}],83:[function(_dereq_,module,exports){
+},{"199":199}],99:[function(_dereq_,module,exports){
 'use strict';
 
 var ELEMENT_ID = 'data-element-id';
@@ -17076,16 +19832,18 @@ ElementRegistry.prototype._validateId = function(id) {
     throw new Error('element with id ' + id + ' already added');
   }
 };
-},{}],84:[function(_dereq_,module,exports){
+},{}],100:[function(_dereq_,module,exports){
 'use strict';
 
-var isFunction = _dereq_(331),
-    isArray = _dereq_(330),
-    isNumber = _dereq_(333),
-    assign = _dereq_(339);
+var isFunction = _dereq_(358),
+    isArray = _dereq_(357),
+    isNumber = _dereq_(360),
+    bind = _dereq_(253),
+    assign = _dereq_(366);
 
 var DEFAULT_PRIORITY = 1000;
 
+var slice = Array.prototype.slice;
 
 /**
  * A general purpose event bus.
@@ -17138,6 +19896,12 @@ var DEFAULT_PRIORITY = 1000;
  * eventBus.on('priorityfoo', 1500, function(event) {
  *   console.log('invoked first!');
  * });
+ *
+ *
+ * // listen for event and pass the context (`this`)
+ * eventBus.on('foobar', function(event) {
+ *   this.foo();
+ * }, this);
  * ```
  *
  *
@@ -17196,18 +19960,24 @@ module.exports = EventBus;
  * @param {String|Array<String>} events
  * @param {Number} [priority=1000] the priority in which this listener is called, larger is higher
  * @param {Function} callback
+ * @param {Object} [that] Pass context (`this`) to the callback
  */
-EventBus.prototype.on = function(events, priority, callback) {
+EventBus.prototype.on = function(events, priority, callback, that) {
 
   events = isArray(events) ? events : [ events ];
 
   if (isFunction(priority)) {
+    that = callback;
     callback = priority;
     priority = DEFAULT_PRIORITY;
   }
 
   if (!isNumber(priority)) {
     throw new Error('priority must be a number');
+  }
+
+  if (that) {
+    callback = bind(callback, that);
   }
 
   var self = this,
@@ -17224,13 +19994,13 @@ EventBus.prototype.on = function(events, priority, callback) {
  *
  * @param {String} event the event name to register for
  * @param {Function} callback the callback to execute
+ * @param {Object} [that] Pass context (`this`) to the callback
  */
-EventBus.prototype.once = function(event, callback) {
-
+EventBus.prototype.once = function(event, callback, that) {
   var self = this;
 
   function wrappedCallback() {
-    callback.apply(self, arguments);
+    callback.apply(that || self, arguments);
     self.off(event, wrappedCallback);
   }
 
@@ -17299,12 +20069,11 @@ EventBus.prototype.off = function(event, callback) {
 EventBus.prototype.fire = function(type, data) {
 
   var event,
-      originalType,
-      listeners, idx, listener,
+      listeners,
       returnValue,
       args;
 
-  args = Array.prototype.slice.call(arguments);
+  args = slice.call(arguments);
 
   if (typeof type === 'object') {
     event = type;
@@ -17335,44 +20104,15 @@ EventBus.prototype.fire = function(type, data) {
   args[0] = event;
 
   // original event type (in case we delegate)
-  originalType = event.type;
+  var originalType = event.type;
+
+  // update event type before delegation
+  if (type !== originalType) {
+    event.type = type;
+  }
 
   try {
-
-    // update event type before delegation
-    if (type !== originalType) {
-      event.type = type;
-    }
-
-    for (idx = 0; !!(listener = listeners[idx]); idx++) {
-
-      // handle stopped propagation
-      if (event.cancelBubble) {
-        break;
-      }
-
-      try {
-        // returning false prevents the default action
-        returnValue = event.returnValue = listener.callback.apply(null, args);
-
-        // stop propagation on return value
-        if (returnValue !== undefined) {
-          event.stopPropagation();
-        }
-
-        // prevent default on return false
-        if (returnValue === false) {
-          event.preventDefault();
-        }
-      } catch (e) {
-        if (!this.handleError(e)) {
-          console.error('unhandled error in event listener');
-          console.error(e.stack);
-
-          throw e;
-        }
-      }
-    }
+    returnValue = this._invokeListeners(event, args, listeners);
   } finally {
     // reset event type after delegation
     if (type !== originalType) {
@@ -17394,6 +20134,54 @@ EventBus.prototype.handleError = function(error) {
   return this.fire('error', { error: error }) === false;
 };
 
+
+EventBus.prototype._invokeListeners = function(event, args, listeners) {
+
+  var idx,
+      listener,
+      returnValue;
+
+  for (idx = 0; !!(listener = listeners[idx]); idx++) {
+
+    // handle stopped propagation
+    if (event.cancelBubble) {
+      break;
+    }
+
+    returnValue = this._invokeListener(event, args, listener);
+  }
+
+  return returnValue;
+};
+
+EventBus.prototype._invokeListener = function(event, args, listener) {
+
+  var returnValue;
+
+  try {
+    // returning false prevents the default action
+    returnValue = event.returnValue = invokeFunction(listener.callback, args);
+
+    // stop propagation on return value
+    if (returnValue !== undefined) {
+      event.stopPropagation();
+    }
+
+    // prevent default on return false
+    if (returnValue === false) {
+      event.preventDefault();
+    }
+  } catch (e) {
+    if (!this.handleError(e)) {
+      console.error('unhandled error in event listener');
+      console.error(e.stack);
+
+      throw e;
+    }
+  }
+
+  return returnValue;
+};
 
 /*
  * Add new listener with a certain priority to the list
@@ -17462,26 +20250,39 @@ Event.prototype.init = function(data) {
   assign(this, data || {});
 };
 
-},{"330":330,"331":331,"333":333,"339":339}],85:[function(_dereq_,module,exports){
+
+/**
+ * Invoke function. Be fast...
+ *
+ * @param {Function} fn
+ * @param {Array<Object>} args
+ *
+ * @return {Any}
+ */
+function invokeFunction(fn, args) {
+  return fn.apply(null, args);
+}
+},{"253":253,"357":357,"358":358,"360":360,"366":366}],101:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218),
-    reduce = _dereq_(222);
+var forEach = _dereq_(244),
+    reduce = _dereq_(248);
 
-var GraphicsUtil = _dereq_(189),
-    domClear = _dereq_(353);
+var GraphicsUtil = _dereq_(213),
+    domClear = _dereq_(380);
 
 /**
  * A factory that creates graphical elements
  *
- * @param {Renderer} renderer
+ * @param {EventBus} eventBus
+ * @param {ElementRegistry} elementRegistry
  */
-function GraphicsFactory(renderer, elementRegistry) {
-  this._renderer = renderer;
+function GraphicsFactory(eventBus, elementRegistry) {
+  this._eventBus = eventBus;
   this._elementRegistry = elementRegistry;
 }
 
-GraphicsFactory.$inject = [ 'renderer', 'elementRegistry' ];
+GraphicsFactory.$inject = [ 'eventBus' , 'elementRegistry' ];
 
 module.exports = GraphicsFactory;
 
@@ -17588,11 +20389,33 @@ GraphicsFactory.prototype.updateContainments = function(elements) {
       gfx.parent().prependTo(childGfx);
     });
   });
+};
 
+GraphicsFactory.prototype.drawShape = function(visual, element) {
+  var eventBus = this._eventBus;
+
+  return eventBus.fire('render.shape', { gfx: visual, element: element });
+};
+
+GraphicsFactory.prototype.getShapePath = function (element) {
+  var eventBus = this._eventBus;
+
+  return eventBus.fire('render.getShapePath', element);
+};
+
+GraphicsFactory.prototype.drawConnection = function(visual, element) {
+  var eventBus = this._eventBus;
+
+  return eventBus.fire('render.connection', { gfx: visual, element: element });
+};
+
+GraphicsFactory.prototype.getConnectionPath = function (waypoints) {
+  var eventBus = this._eventBus;
+
+  return eventBus.fire('render.getConnectionPath', waypoints);
 };
 
 GraphicsFactory.prototype.update = function(type, element, gfx) {
-
   // Do not update root element
   if (!element.parent) {
     return;
@@ -17602,20 +20425,19 @@ GraphicsFactory.prototype.update = function(type, element, gfx) {
 
   // redraw
   if (type === 'shape') {
-    this._renderer.drawShape(visual, element);
+    this.drawShape(visual, element);
 
     // update positioning
     gfx.translate(element.x, element.y);
   } else
   if (type === 'connection') {
-    this._renderer.drawConnection(visual, element);
+    this.drawConnection(visual, element);
   } else {
     throw new Error('unknown type: ' + type);
   }
 
   gfx.attr('display', element.hidden ? 'none' : 'block');
 };
-
 
 GraphicsFactory.prototype.remove = function(element) {
   var gfx = this._elementRegistry.getGraphics(element);
@@ -17624,56 +20446,153 @@ GraphicsFactory.prototype.remove = function(element) {
   gfx.parent().remove();
 };
 
-},{"189":189,"218":218,"222":222,"353":353}],86:[function(_dereq_,module,exports){
+},{"213":213,"244":244,"248":248,"380":380}],102:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(89) ],
+  __depends__: [ _dereq_(106) ],
   __init__: [ 'canvas' ],
-  canvas: [ 'type', _dereq_(81) ],
-  elementRegistry: [ 'type', _dereq_(83) ],
-  elementFactory: [ 'type', _dereq_(82) ],
-  eventBus: [ 'type', _dereq_(84) ],
-  graphicsFactory: [ 'type', _dereq_(85) ]
+  canvas: [ 'type', _dereq_(97) ],
+  elementRegistry: [ 'type', _dereq_(99) ],
+  elementFactory: [ 'type', _dereq_(98) ],
+  eventBus: [ 'type', _dereq_(100) ],
+  graphicsFactory: [ 'type', _dereq_(101) ]
 };
-},{"81":81,"82":82,"83":83,"84":84,"85":85,"89":89}],87:[function(_dereq_,module,exports){
+},{"100":100,"101":101,"106":106,"97":97,"98":98,"99":99}],103:[function(_dereq_,module,exports){
 'use strict';
 
-var Snap = _dereq_(200);
+var DEFAULT_RENDER_PRIORITY = 1000;
 
+/**
+ * The base implementation of shape and connection renderers.
+ *
+ * @param {EventBus} eventBus
+ * @param {Number} [renderPriority=1000]
+ */
+function BaseRenderer(eventBus, renderPriority) {
+  var self = this;
+
+  renderPriority = renderPriority || DEFAULT_RENDER_PRIORITY;
+
+  eventBus.on([ 'render.shape', 'render.connection' ], renderPriority, function(evt, context) {
+    var type = evt.type,
+        element = context.element,
+        visuals = context.gfx;
+
+    if (self.canRender(element)) {
+      if (type === 'render.shape') {
+        return self.drawShape(visuals, element);
+      } else {
+        return self.drawConnection(visuals, element);
+      }
+    }
+  });
+
+  eventBus.on([ 'render.getShapePath', 'render.getConnectionPath'], renderPriority, function(evt, element) {
+    if (self.canRender(element)) {
+      if (evt.type === 'render.getShapePath') {
+        return self.getShapePath(element);
+      } else {
+        return self.getConnectionPath(element);
+      }
+    }
+  });
+}
+
+/**
+ * Should check whether *this* renderer can render
+ * the element/connection.
+ *
+ * @param {element} element
+ *
+ * @returns {Boolean}
+ */
+BaseRenderer.prototype.canRender = function() {};
+
+/**
+ * Provides the shape's snap svg element to be drawn on the `canvas`.
+ *
+ * @param {djs.Graphics} visuals
+ * @param {Shape} shape
+ *
+ * @returns {Snap.svg} [returns a Snap.svg paper element ]
+ */
+BaseRenderer.prototype.drawShape = function() {};
+
+/**
+ * Provides the shape's snap svg element to be drawn on the `canvas`.
+ *
+ * @param {djs.Graphics} visuals
+ * @param {Connection} connection
+ *
+ * @returns {Snap.svg} [returns a Snap.svg paper element ]
+ */
+BaseRenderer.prototype.drawConnection = function() {};
+
+/**
+ * Gets the SVG path of a shape that represents it's visual bounds.
+ *
+ * @param {Shape} shape
+ *
+ * @return {string} svg path
+ */
+BaseRenderer.prototype.getShapePath = function() {};
+
+/**
+ * Gets the SVG path of a connection that represents it's visual bounds.
+ *
+ * @param {Connection} connection
+ *
+ * @return {string} svg path
+ */
+BaseRenderer.prototype.getConnectionPath = function() {};
+
+module.exports = BaseRenderer;
+
+},{}],104:[function(_dereq_,module,exports){
+'use strict';
+
+var inherits = _dereq_(232);
+
+var BaseRenderer = _dereq_(103);
+
+var renderUtil = _dereq_(220);
+
+var componentsToPath = renderUtil.componentsToPath,
+    createLine = renderUtil.createLine;
+
+// apply default renderer with lowest possible priority
+// so that it only kicks in if noone else could render
+var DEFAULT_RENDER_PRIORITY = 1;
 
 /**
  * The default renderer used for shapes and connections.
  *
+ * @param {EventBus} eventBus
  * @param {Styles} styles
  */
-function Renderer(styles) {
+function DefaultRenderer(eventBus, styles) {
+  //
+  BaseRenderer.call(this, eventBus, DEFAULT_RENDER_PRIORITY);
+
   this.CONNECTION_STYLE = styles.style([ 'no-fill' ], { strokeWidth: 5, stroke: 'fuchsia' });
   this.SHAPE_STYLE = styles.style({ fill: 'white', stroke: 'fuchsia', strokeWidth: 2 });
 }
 
-module.exports = Renderer;
-
-Renderer.$inject = ['styles'];
+inherits(DefaultRenderer, BaseRenderer);
 
 
-Renderer.prototype.drawShape = function drawShape(gfxGroup, data) {
-  return gfxGroup.rect(0, 0, data.width || 0, data.height || 0).attr(this.SHAPE_STYLE);
+DefaultRenderer.prototype.canRender = function() {
+  return true;
 };
 
-Renderer.prototype.drawConnection = function drawConnection(gfxGroup, data) {
-  return createLine(data.waypoints, this.CONNECTION_STYLE).appendTo(gfxGroup);
+DefaultRenderer.prototype.drawShape = function drawShape(visuals, element) {
+  return visuals.rect(0, 0, element.width || 0, element.height || 0).attr(this.SHAPE_STYLE);
 };
 
-function componentsToPath(components) {
-  return components.join(',').replace(/,?([A-z]),?/g, '$1');
-}
+DefaultRenderer.prototype.drawConnection = function drawConnection(visuals, connection) {
+  return createLine(connection.waypoints, this.CONNECTION_STYLE).appendTo(visuals);
+};
 
-/**
- * Gets the default SVG path of a shape that represents it's visual bounds.
- *
- * @param {djs.model.Shape} shape
- * @return {string} svg path
- */
-Renderer.prototype.getShapePath = function getShapePath(shape) {
+DefaultRenderer.prototype.getShapePath = function getShapePath(shape) {
 
   var x = shape.x,
       y = shape.y,
@@ -17691,13 +20610,7 @@ Renderer.prototype.getShapePath = function getShapePath(shape) {
   return componentsToPath(shapePath);
 };
 
-/**
- * Gets the default SVG path of a connection that represents it's visual bounds.
- *
- * @param {djs.model.Connection} connection
- * @return {string} svg path
- */
-Renderer.prototype.getConnectionPath = function getConnectionPath(connection) {
+DefaultRenderer.prototype.getConnectionPath = function getConnectionPath(connection) {
   var waypoints = connection.waypoints;
 
   var idx, point, connectionPath = [];
@@ -17715,32 +20628,16 @@ Renderer.prototype.getConnectionPath = function getConnectionPath(connection) {
 };
 
 
-function toSVGPoints(points) {
-  var result = '';
+DefaultRenderer.$inject = [ 'eventBus', 'styles' ];
 
-  for (var i = 0, p; !!(p = points[i]); i++) {
-    result += p.x + ',' + p.y + ' ';
-  }
+module.exports = DefaultRenderer;
 
-  return result;
-}
-
-function createLine(points, attrs) {
-  return Snap.create('polyline', { points: toSVGPoints(points) }).attr(attrs || {});
-}
-
-function updateLine(gfx, points) {
-  return gfx.attr({ points: toSVGPoints(points) });
-}
-
-module.exports.createLine = createLine;
-module.exports.updateLine = updateLine;
-},{"200":200}],88:[function(_dereq_,module,exports){
+},{"103":103,"220":220,"232":232}],105:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(330),
-    assign = _dereq_(339),
-    reduce = _dereq_(222);
+var isArray = _dereq_(357),
+    assign = _dereq_(366),
+    reduce = _dereq_(248);
 
 
 /**
@@ -17760,6 +20657,8 @@ function Styles() {
       pointerEvents: 'none'
     }
   };
+
+  var self = this;
 
   /**
    * Builds a style definition from a className, a list of traits and an object of additional attributes.
@@ -17797,31 +20696,45 @@ function Styles() {
 
     return additionalAttrs ? assign(attrs, additionalAttrs) : attrs;
   };
+
+  this.computeStyle = function(custom, traits, defaultStyles) {
+    if (!isArray(traits)) {
+      defaultStyles = traits;
+      traits = [];
+    }
+
+    return self.style(traits || [], assign(defaultStyles, custom || {}));
+  };
 }
 
 module.exports = Styles;
-},{"222":222,"330":330,"339":339}],89:[function(_dereq_,module,exports){
+
+},{"248":248,"357":357,"366":366}],106:[function(_dereq_,module,exports){
 module.exports = {
-  renderer: [ 'type', _dereq_(87) ],
-  styles: [ 'type', _dereq_(88) ]
+  __init__: [ 'defaultRenderer' ],
+  defaultRenderer: [ 'type', _dereq_(104) ],
+  styles: [ 'type', _dereq_(105) ]
 };
-},{"87":87,"88":88}],90:[function(_dereq_,module,exports){
+
+},{"104":104,"105":105}],107:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218),
-    flatten = _dereq_(208),
-    filter = _dereq_(216),
-    groupBy = _dereq_(219),
-    map = _dereq_(221);
+var forEach = _dereq_(244),
+    flatten = _dereq_(234),
+    filter = _dereq_(242),
+    groupBy = _dereq_(245),
+    map = _dereq_(247);
 
-var saveClear = _dereq_(195).saveClear;
+var saveClear = _dereq_(219).saveClear;
 
-var inherits = _dereq_(207);
+var getNewAttachShapeDelta = _dereq_(206).getNewAttachShapeDelta;
+
+var inherits = _dereq_(232);
 
 var LOW_PRIORITY = 250,
     HIGH_PRIORITY = 1500;
 
-var CommandInterceptor = _dereq_(78);
+var CommandInterceptor = _dereq_(94);
 
 
 function AttachSupport(eventBus, modeling, moveVisuals, rules) {
@@ -17849,28 +20762,39 @@ function AttachSupport(eventBus, modeling, moveVisuals, rules) {
 
     forEach(attachers, function(attacher) {
       moveVisuals.makeDraggable(context, attacher, true);
+
+      if (attacher.label) {
+        moveVisuals.makeDraggable(context, attacher.label, true);
+      }
     });
   });
 
   // move all attachments after the other shapes are done moving
-  this.postExecuted([ 'shapes.move' ], function(event) {
+  this.postExecuted([ 'elements.move' ], function(event) {
 
     var context = event.context,
+        delta = context.delta,
+        newParent = context.newParent,
         closure = context.closure,
         enclosedElements = closure.enclosedElements,
-        attachers = getAttachers(closure.enclosedElements);
+        attachers = getAttachers(enclosedElements);
 
     // ensure we move all attachers with their hosts
     // if they have not been moved already
     forEach(attachers, function(attacher){
       if (!enclosedElements[attacher.id]) {
-        modeling.moveShape(attacher, context.delta, context.newParent);
+        modeling.moveShape(attacher, delta, newParent);
+      }
+
+      // ensure to move attachment labels if host has moved
+      if (attacher.label && !enclosedElements[attacher.label.id]) {
+        modeling.moveShape(attacher.label, delta, newParent);
       }
     });
   });
 
   // perform the attaching after shapes are done moving
-  this.postExecuted([ 'shapes.move' ], function(e) {
+  this.postExecuted([ 'elements.move' ], function(e) {
 
     var context = e.context,
         shapes = context.shapes,
@@ -17896,6 +20820,54 @@ function AttachSupport(eventBus, modeling, moveVisuals, rules) {
     });
   });
 
+  // ensure invalid attachment connections are removed
+  this.postExecuted([ 'elements.move' ], function(e) {
+
+    var shapes = e.context.shapes;
+
+    forEach(shapes, function(shape) {
+
+      forEach(shape.attachers, function(attacher) {
+
+        // remove invalid outgoing connections
+        forEach(attacher.outgoing, function(connection) {
+          var allowed = rules.allowed('connection.reconnectStart', {
+            connection: connection,
+            source: connection.source,
+            target: connection.target
+          });
+
+          if (!allowed) {
+            modeling.removeConnection(connection);
+          }
+        });
+
+        // remove invalid incoming connections
+        forEach(attacher.incoming, function(connection) {
+          var allowed = rules.allowed('connection.reconnectEnd', {
+            connection: connection,
+            source: connection.source,
+            target: connection.target
+          });
+
+          if (!allowed) {
+            modeling.removeConnection(connection);
+          }
+        });
+      });
+    });
+  });
+
+  this.postExecute([ 'shape.create' ], function(e) {
+    var context = e.context,
+        shape = context.shape,
+        host = context.host;
+
+    if (host) {
+      modeling.updateAttachment(shape, host);
+    }
+  });
+
   // update attachments if the host is replaced
   this.postExecute([ 'shape.replace' ], function(e) {
 
@@ -17904,7 +20876,7 @@ function AttachSupport(eventBus, modeling, moveVisuals, rules) {
         newShape = context.newShape;
 
     saveClear(oldShape.attachers, function(attacher) {
-      var allowed = rules.allowed('shapes.move', {
+      var allowed = rules.allowed('elements.move', {
         target: newShape,
         shapes: [attacher]
       });
@@ -17918,6 +20890,25 @@ function AttachSupport(eventBus, modeling, moveVisuals, rules) {
 
   });
 
+  // move shape on host resize
+  this.postExecute([ 'shape.resize' ], function(event) {
+    var context = event.context,
+        shape = context.shape,
+        oldBounds = context.oldBounds,
+        newBounds = context.newBounds,
+        attachers = shape.attachers;
+
+    if (!attachers.length) {
+      return;
+    }
+
+    forEach(attachers, function(attacher) {
+      var delta = getNewAttachShapeDelta(attacher, oldBounds, newBounds);
+
+      modeling.moveShape(attacher, delta, attacher.parent);
+    });
+  });
+
   // remove attachments
   this.preExecute([ 'shape.delete' ], function(event) {
 
@@ -17926,6 +20917,10 @@ function AttachSupport(eventBus, modeling, moveVisuals, rules) {
     saveClear(shape.attachers, function(attacher) {
       modeling.removeShape(attacher);
     });
+
+    if (shape.host) {
+      modeling.updateAttachment(shape, null);
+    }
   });
 }
 
@@ -17977,21 +20972,21 @@ function removeAttached(elements) {
   });
 }
 
-},{"195":195,"207":207,"208":208,"216":216,"218":218,"219":219,"221":221,"78":78}],91:[function(_dereq_,module,exports){
+},{"206":206,"219":219,"232":232,"234":234,"242":242,"244":244,"245":245,"247":247,"94":94}],108:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(139),
-    _dereq_(112)
+    _dereq_(159),
+    _dereq_(132)
   ],
   __init__: [ 'attachSupport'],
-  attachSupport: [ 'type', _dereq_(90) ]
+  attachSupport: [ 'type', _dereq_(107) ]
 };
 
-},{"112":112,"139":139,"90":90}],92:[function(_dereq_,module,exports){
+},{"107":107,"132":132,"159":159}],109:[function(_dereq_,module,exports){
 'use strict';
 
-var Geometry = _dereq_(188),
-    BendpointUtil = _dereq_(94);
+var Geometry = _dereq_(212),
+    BendpointUtil = _dereq_(111);
 
 var MARKER_OK = 'connect-ok',
     MARKER_NOT_OK = 'connect-not-ok',
@@ -18010,12 +21005,8 @@ var round = Math.round;
  */
 function BendpointMove(injector, eventBus, canvas, dragging, graphicsFactory, rules, modeling) {
 
-  var connectionDocking;
-
   // optional connection docking integration
-  try {
-    connectionDocking = injector.get('connectionDocking');
-  } catch (e) {}
+  var connectionDocking = injector.get('connectionDocking', false);
 
 
   // API
@@ -18092,8 +21083,8 @@ function BendpointMove(injector, eventBus, canvas, dragging, graphicsFactory, ru
   });
 
   eventBus.on('bendpoint.move.hover', function(e) {
-    e.context.hover = e.hover;
 
+    e.context.hover = e.hover;
     canvas.addMarker(e.hover, MARKER_CONNECT_HOVER);
   });
 
@@ -18174,12 +21165,11 @@ function BendpointMove(injector, eventBus, canvas, dragging, graphicsFactory, ru
 
     // remove dragger gfx
     context.draggerGfx.remove();
-
     context.newWaypoints = connection.waypoints.slice();
-
     connection.waypoints = context.originalWaypoints;
-
     canvas.removeMarker(connection, MARKER_CONNECT_UPDATING);
+    canvas.removeMarker(context.hover, MARKER_OK);
+    canvas.removeMarker(context.hover, MARKER_NOT_OK);
   });
 
   eventBus.on('bendpoint.move.end', function(e) {
@@ -18195,10 +21185,10 @@ function BendpointMove(injector, eventBus, canvas, dragging, graphicsFactory, ru
     bendpoint.x = round(bendpoint.x);
     bendpoint.y = round(bendpoint.y);
 
-    if (allowed === true && context.type === COMMAND_RECONNECT_START) {
+    if (allowed && context.type === COMMAND_RECONNECT_START) {
       modeling.reconnectStart(context.connection, context.target, bendpoint);
     } else
-    if (allowed === true && context.type === COMMAND_RECONNECT_END) {
+    if (allowed && context.type === COMMAND_RECONNECT_END) {
       modeling.reconnectEnd(context.connection, context.target, bendpoint);
     } else
     if (allowed !== false && context.type === COMMAND_BENDPOINT_UPDATE) {
@@ -18218,14 +21208,17 @@ function BendpointMove(injector, eventBus, canvas, dragging, graphicsFactory, ru
 BendpointMove.$inject = [ 'injector', 'eventBus', 'canvas', 'dragging', 'graphicsFactory', 'rules', 'modeling' ];
 
 module.exports = BendpointMove;
-},{"188":188,"94":94}],93:[function(_dereq_,module,exports){
+
+},{"111":111,"212":212}],110:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(339),
-    pick = _dereq_(345),
-    forEach = _dereq_(218);
+var assign = _dereq_(366),
+    pick = _dereq_(372),
+    forEach = _dereq_(244);
 
-var Snap = _dereq_(200);
+var getMidPoint = _dereq_(212).getMidPoint;
+
+var Snap = _dereq_(229);
 
 var round = Math.round;
 
@@ -18249,39 +21242,141 @@ function BendpointSnapping(eventBus) {
     }
   }
 
-  function getSnapPoints(context) {
+  ////////// connection segment snapping //////////////////////////////////////
+
+  function getConnectionSegmentSnaps(context) {
+
+    var snapPoints = context.snapPoints,
+        connection = context.connection,
+        waypoints = connection.waypoints,
+        segmentStart = context.segmentStart,
+        segmentStartIndex = context.segmentStartIndex,
+        segmentEnd = context.segmentEnd,
+        segmentEndIndex = context.segmentEndIndex,
+        axis = context.axis;
+
+    if (snapPoints) {
+      return snapPoints;
+    }
+
+    var referenceWaypoints = [
+      waypoints[segmentStartIndex - 1],
+      segmentStart,
+      segmentEnd,
+      waypoints[segmentEndIndex + 1]
+    ];
+
+    if (segmentStartIndex < 2) {
+      referenceWaypoints.unshift(mid(connection.source));
+    }
+
+    if (segmentEndIndex > waypoints.length - 3) {
+      referenceWaypoints.unshift(mid(connection.target));
+    }
+
+    context.snapPoints = snapPoints = { horizontal: [] , vertical: [] };
+
+    forEach(referenceWaypoints, function(p) {
+      // we snap on existing bendpoints only,
+      // not placeholders that are inserted during add
+      if (p) {
+        p = p.original || p;
+
+        if (axis === 'y') {
+          snapPoints.horizontal.push(p.y);
+        }
+
+        if (axis === 'x') {
+          snapPoints.vertical.push(p.x);
+        }
+      }
+    });
+
+    return snapPoints;
+  }
+
+  eventBus.on('connectionSegment.move.start', function(event) {
+
+    var context = event.context,
+        segmentStart = context.segmentStart,
+        segmentEnd = context.segmentEnd,
+        mid = getMidPoint(segmentStart, segmentEnd);
+
+    context.snapStart = toPoint(mid);
+  });
+
+  eventBus.on('connectionSegment.move.move', 1500, function(event) {
+
+    var context = event.context,
+        snapPoints = getConnectionSegmentSnaps(context),
+        start = context.snapStart,
+        x = start.x + event.dx,
+        y = start.y + event.dy,
+        sx, sy;
+
+    if (!snapPoints) {
+      return;
+    }
+
+    // snap
+    sx = snapTo(snapPoints.vertical, x);
+    sy = snapTo(snapPoints.horizontal, y);
+
+
+    // correction x/y
+    var cx = (x - sx),
+        cy = (y - sy);
+
+    // update delta
+    assign(event, {
+      dx: event.dx - cx,
+      dy: event.dy - cy,
+      x: event.x - cx,
+      y: event.y - cy
+    });
+  });
+
+
+  ///////// bendpoint snapping /////////////////////////////
+
+  function getBendpointSnaps(context) {
 
     var snapPoints = context.snapPoints,
         waypoints = context.connection.waypoints,
-        bendpointIndex = context.bendpointIndex,
-        referenceWaypoints = [ waypoints[bendpointIndex - 1], waypoints[bendpointIndex + 1] ];
+        bendpointIndex = context.bendpointIndex;
 
-    if (!snapPoints) {
-      context.snapPoints = snapPoints = { horizontal: [] , vertical: [] };
-
-      forEach(referenceWaypoints, function(p) {
-        // we snap on existing bendpoints only,
-        // not placeholders that are inserted during add
-        if (p) {
-          p = p.original || p;
-
-          snapPoints.horizontal.push(p.y);
-          snapPoints.vertical.push(p.x);
-        }
-      });
+    if (snapPoints) {
+      return snapPoints;
     }
+
+    var referenceWaypoints = [ waypoints[bendpointIndex - 1], waypoints[bendpointIndex + 1] ];
+
+    context.snapPoints = snapPoints = { horizontal: [] , vertical: [] };
+
+    forEach(referenceWaypoints, function(p) {
+      // we snap on existing bendpoints only,
+      // not placeholders that are inserted during add
+      if (p) {
+        p = p.original || p;
+
+        snapPoints.horizontal.push(p.y);
+        snapPoints.vertical.push(p.x);
+      }
+    });
 
     return snapPoints;
   }
 
   eventBus.on('bendpoint.move.start', function(event) {
-    event.context.snapStart = toPoint(event);
+    var context = event.context;
+
+    context.snapStart = toPoint(event);
   });
 
   eventBus.on('bendpoint.move.move', 1500, function(event) {
 
     var context = event.context,
-        snapPoints = getSnapPoints(context),
+        snapPoints = getBendpointSnaps(context),
         start = context.snapStart,
         target = context.target,
         targetMid = target && mid(target),
@@ -18316,12 +21411,17 @@ function BendpointSnapping(eventBus) {
 BendpointSnapping.$inject = [ 'eventBus' ];
 
 module.exports = BendpointSnapping;
-},{"200":200,"218":218,"339":339,"345":345}],94:[function(_dereq_,module,exports){
+},{"212":212,"229":229,"244":244,"366":366,"372":372}],111:[function(_dereq_,module,exports){
 'use strict';
 
-var Events = _dereq_(187);
+var Events = _dereq_(211),
+    Geometry = _dereq_(212);
+
+var Snap = _dereq_(229);
 
 var BENDPOINT_CLS = module.exports.BENDPOINT_CLS = 'djs-bendpoint';
+var SEGMENT_DRAGGER_CLS = module.exports.SEGMENT_DRAGGER_CLS = 'djs-segment-dragger';
+
 
 module.exports.toCanvasCoordinates = function(canvas, event) {
 
@@ -18346,33 +21446,98 @@ module.exports.toCanvasCoordinates = function(canvas, event) {
   };
 };
 
-module.exports.addBendpoint = function(parentGfx) {
+module.exports.addBendpoint = function(parentGfx, cls) {
   var groupGfx = parentGfx.group().addClass(BENDPOINT_CLS);
 
   groupGfx.circle(0, 0, 4).addClass('djs-visual');
   groupGfx.circle(0, 0, 10).addClass('djs-hit');
 
+  if (cls) {
+    groupGfx.addClass(cls);
+  }
+
   return groupGfx;
 };
-},{"187":187}],95:[function(_dereq_,module,exports){
+
+function createParallelDragger(parentGfx, position, alignment) {
+  var draggerGfx = parentGfx.group();
+
+  var width = 22,
+      height = 4,
+      padding = 6,
+      hitWidth = width + padding,
+      hitHeight = height + padding;
+
+  draggerGfx.rect(-width / 2, -height / 2, width, height).addClass('djs-visual');
+  draggerGfx.rect(-hitWidth / 2, -hitHeight / 2, hitWidth, hitHeight).addClass('djs-hit');
+
+  var matrix = new Snap.Matrix().rotate(alignment === 'h' ? 90 : 0, 0, 0);
+
+  draggerGfx.transform(matrix);
+
+  return draggerGfx;
+}
+
+
+module.exports.addSegmentDragger = function(parentGfx, segmentStart, segmentEnd) {
+
+  var groupGfx = parentGfx.group(),
+      mid = Geometry.getMidPoint(segmentStart, segmentEnd),
+      alignment = Geometry.pointsAligned(segmentStart, segmentEnd);
+
+  createParallelDragger(groupGfx, mid, alignment);
+
+  groupGfx.addClass(SEGMENT_DRAGGER_CLS);
+  groupGfx.addClass(alignment === 'h' ? 'vertical' : 'horizontal');
+  groupGfx.translate(mid.x, mid.y);
+
+  return groupGfx;
+};
+
+},{"211":211,"212":212,"229":229}],112:[function(_dereq_,module,exports){
 'use strict';
 
-var domEvent = _dereq_(357),
-    BendpointUtil = _dereq_(94);
+var domEvent = _dereq_(384),
+    BendpointUtil = _dereq_(111);
 
-var BENDPOINT_CLS = BendpointUtil.BENDPOINT_CLS;
+var pointsAligned = _dereq_(212).pointsAligned,
+    getMidPoint = _dereq_(212).getMidPoint;
 
-var getApproxIntersection = _dereq_(191).getApproxIntersection;
+var BENDPOINT_CLS = BendpointUtil.BENDPOINT_CLS,
+    SEGMENT_DRAGGER_CLS = BendpointUtil.SEGMENT_DRAGGER_CLS;
+
+var getApproxIntersection = _dereq_(215).getApproxIntersection;
 
 
 /**
  * A service that adds editable bendpoints to connections.
  */
-function Bendpoints(injector, eventBus, canvas, interactionEvents, bendpointMove) {
+function Bendpoints(eventBus, canvas, interactionEvents, bendpointMove, connectionSegmentMove) {
 
   function getConnectionIntersection(waypoints, event) {
-    var localPosition = BendpointUtil.toCanvasCoordinates(canvas, event);
-    return getApproxIntersection(waypoints, localPosition);
+    var localPosition = BendpointUtil.toCanvasCoordinates(canvas, event),
+        intersection = getApproxIntersection(waypoints, localPosition);
+
+    return intersection;
+  }
+
+  function isIntersectionMiddle(intersection, waypoints, treshold) {
+    var idx = intersection.index,
+        p = intersection.point,
+        p0, p1, mid, aligned, xDelta, yDelta;
+
+    if (idx <= 0 || intersection.bendpoint) {
+      return false;
+    }
+
+    p0 = waypoints[idx - 1];
+    p1 = waypoints[idx];
+    mid = getMidPoint(p0, p1),
+    aligned = pointsAligned(p0, p1);
+    xDelta = Math.abs(p.x - mid.x);
+    yDelta = Math.abs(p.y - mid.y);
+
+    return aligned && xDelta <= treshold && yDelta <= treshold;
   }
 
   function activateBendpointMove(event, connection) {
@@ -18383,7 +21548,11 @@ function Bendpoints(injector, eventBus, canvas, interactionEvents, bendpointMove
       return;
     }
 
-    bendpointMove.start(event, connection, intersection.index, !intersection.bendpoint);
+    if (isIntersectionMiddle(intersection, waypoints, 10)) {
+      connectionSegmentMove.start(event, connection, intersection.index);
+    } else {
+      bendpointMove.start(event, connection, intersection.index, !intersection.bendpoint);
+    }
   }
 
   function getBendpointsContainer(element, create) {
@@ -18408,7 +21577,25 @@ function Bendpoints(injector, eventBus, canvas, interactionEvents, bendpointMove
     });
 
     // add floating bendpoint
-    BendpointUtil.addBendpoint(gfx).addClass('floating');
+    BendpointUtil.addBendpoint(gfx, 'floating');
+  }
+
+  function createSegmentDraggers(gfx, connection) {
+
+    var waypoints = connection.waypoints;
+
+    var segmentStart,
+        segmentEnd;
+
+    for (var i = 1; i < waypoints.length; i++) {
+
+      segmentStart = waypoints[i - 1];
+      segmentEnd = waypoints[i];
+
+      if (pointsAligned(segmentStart, segmentEnd)) {
+        BendpointUtil.addSegmentDragger(gfx, segmentStart, segmentEnd);
+      }
+    }
   }
 
   function clearBendpoints(gfx) {
@@ -18417,33 +21604,45 @@ function Bendpoints(injector, eventBus, canvas, interactionEvents, bendpointMove
     });
   }
 
-  function addBendpoints(connection) {
+  function clearSegmentDraggers(gfx) {
+    gfx.selectAll('.' + SEGMENT_DRAGGER_CLS).forEach(function(s) {
+      s.remove();
+    });
+  }
+
+  function addHandles(connection) {
+
     var gfx = getBendpointsContainer(connection);
 
     if (!gfx) {
       gfx = getBendpointsContainer(connection, true);
+
       createBendpoints(gfx, connection);
+      createSegmentDraggers(gfx, connection);
     }
 
     return gfx;
   }
 
-  function updateBendpoints(connection) {
+  function updateHandles(connection) {
 
     var gfx = getBendpointsContainer(connection);
 
     if (gfx) {
+      clearSegmentDraggers(gfx);
       clearBendpoints(gfx);
+      createSegmentDraggers(gfx, connection);
       createBendpoints(gfx, connection);
     }
   }
 
   eventBus.on('connection.changed', function(event) {
-    updateBendpoints(event.element);
+    updateHandles(event.element);
   });
 
   eventBus.on('connection.remove', function(event) {
     var gfx = getBendpointsContainer(event.element);
+
     if (gfx) {
       gfx.remove();
     }
@@ -18458,7 +21657,7 @@ function Bendpoints(injector, eventBus, canvas, interactionEvents, bendpointMove
       return;
     }
 
-    bendpointsGfx = addBendpoints(element);
+    bendpointsGfx = addHandles(element);
     bendpointsGfx[event.add ? 'addClass' : 'removeClass'](event.marker);
   });
 
@@ -18505,7 +21704,7 @@ function Bendpoints(injector, eventBus, canvas, interactionEvents, bendpointMove
         primary = newSelection[0];
 
     if (primary && primary.waypoints) {
-      addBendpoints(primary);
+      addHandles(primary);
     }
   });
 
@@ -18513,8 +21712,7 @@ function Bendpoints(injector, eventBus, canvas, interactionEvents, bendpointMove
     var element = event.element;
 
     if (element.waypoints) {
-      addBendpoints(element);
-
+      addHandles(element);
       interactionEvents.registerEvent(event.gfx.node, 'mousemove', 'element.mousemove');
     }
   });
@@ -18524,18 +21722,350 @@ function Bendpoints(injector, eventBus, canvas, interactionEvents, bendpointMove
   });
 }
 
-Bendpoints.$inject = [ 'injector', 'eventBus', 'canvas', 'interactionEvents', 'bendpointMove' ];
+Bendpoints.$inject = [
+  'eventBus', 'canvas', 'interactionEvents',
+  'bendpointMove', 'connectionSegmentMove'
+];
 
 module.exports = Bendpoints;
-},{"191":191,"357":357,"94":94}],96:[function(_dereq_,module,exports){
+
+},{"111":111,"212":212,"215":215,"384":384}],113:[function(_dereq_,module,exports){
+'use strict';
+
+var Geometry = _dereq_(212),
+    BendpointUtil = _dereq_(111),
+    LayoutUtil = _dereq_(197);
+
+var MARKER_CONNECT_HOVER = 'connect-hover',
+    MARKER_CONNECT_UPDATING = 'djs-updating';
+
+function axisAdd(point, axis, delta) {
+  return axisSet(point, axis, point[axis] + delta);
+}
+
+function axisSet(point, axis, value) {
+  return {
+    x: (axis === 'x' ? value : point.x),
+    y: (axis === 'y' ? value : point.y)
+  };
+}
+
+function axisFenced(position, segmentStart, segmentEnd, axis) {
+
+  var maxValue = Math.max(segmentStart[axis], segmentEnd[axis]),
+      minValue = Math.min(segmentStart[axis], segmentEnd[axis]);
+
+  var padding = 25;
+
+  var fencedValue = Math.min(Math.max(minValue + padding, position[axis]), maxValue - padding);
+
+  return axisSet(segmentStart, axis, fencedValue);
+}
+
+function flipAxis(axis) {
+  return axis === 'x' ? 'y' : 'x';
+}
+
+/**
+ * Get the docking point on the given element.
+ *
+ * Compute a reasonable docking, if non exists.
+ *
+ * @param  {Point} point
+ * @param  {djs.model.Shape} referenceElement
+ * @param  {String} moveAxis (x|y)
+ *
+ * @return {Point}
+ */
+function getDocking(point, referenceElement, moveAxis) {
+
+  var referenceMid,
+      inverseAxis;
+
+  if (point.original) {
+    return point.original;
+  } else {
+    referenceMid = LayoutUtil.getMid(referenceElement);
+    inverseAxis = flipAxis(moveAxis);
+
+    return axisSet(point, inverseAxis, referenceMid[inverseAxis]);
+  }
+}
+
+/**
+ * A component that implements moving of bendpoints
+ */
+function ConnectionSegmentMove(injector, eventBus, canvas, dragging, graphicsFactory, rules, modeling) {
+
+  // optional connection docking integration
+  var connectionDocking = injector.get('connectionDocking', false);
+
+
+  // API
+
+  this.start = function(event, connection, idx) {
+
+    var context,
+        gfx = canvas.getGraphics(connection),
+        segmentStartIndex = idx - 1,
+        segmentEndIndex = idx,
+        waypoints = connection.waypoints,
+        segmentStart = waypoints[segmentStartIndex],
+        segmentEnd = waypoints[segmentEndIndex],
+        direction,
+        axis;
+
+    direction = Geometry.pointsAligned(segmentStart, segmentEnd);
+
+    // do not move diagonal connection
+    if (!direction) {
+      return;
+    }
+
+    // the axis where we are going to move things
+    axis = direction === 'v' ? 'y' : 'x';
+
+    if (segmentStartIndex === 0) {
+      segmentStart = getDocking(segmentStart, connection.source, axis);
+    }
+
+    if (segmentEndIndex === waypoints.length - 1) {
+      segmentEnd = getDocking(segmentEnd, connection.target, axis);
+    }
+
+    context = {
+      connection: connection,
+      segmentStartIndex: segmentStartIndex,
+      segmentEndIndex: segmentEndIndex,
+      segmentStart: segmentStart,
+      segmentEnd: segmentEnd,
+      axis: axis
+    };
+
+    dragging.activate(event, 'connectionSegment.move', {
+      cursor: axis === 'x' ? 'resize-ew' : 'resize-ns',
+      data: {
+        connection: connection,
+        connectionGfx: gfx,
+        context: context
+      }
+    });
+  };
+
+
+  // DRAGGING IMPLEMENTATION
+
+  function redrawConnection(data) {
+    graphicsFactory.update('connection', data.connection, data.connectionGfx);
+  }
+
+  function updateDragger(context, segmentOffset, event) {
+
+    var newWaypoints = context.newWaypoints,
+        segmentStartIndex = context.segmentStartIndex + segmentOffset,
+        segmentStart = newWaypoints[segmentStartIndex],
+        segmentEndIndex = context.segmentEndIndex + segmentOffset,
+        segmentEnd = newWaypoints[segmentEndIndex],
+        axis = flipAxis(context.axis);
+
+    // make sure the dragger does not move
+    // outside the connection
+    var draggerPosition = axisFenced(event, segmentStart, segmentEnd, axis);
+
+    // update dragger
+    context.draggerGfx.translate(draggerPosition.x, draggerPosition.y);
+  }
+
+  function filterRedundantWaypoints(waypoints) {
+    return waypoints.filter(function(r, idx) {
+      return !Geometry.pointsOnLine(waypoints[idx - 1], waypoints[idx + 1], r);
+    });
+  }
+
+  eventBus.on('connectionSegment.move.start', function(e) {
+
+    var context = e.context,
+        connection = e.connection,
+        layer = canvas.getLayer('overlays');
+
+    context.originalWaypoints = connection.waypoints.slice();
+
+    // add dragger gfx
+    context.draggerGfx = BendpointUtil.addSegmentDragger(layer, context.segmentStart, context.segmentEnd);
+    context.draggerGfx.addClass('djs-dragging');
+
+    canvas.addMarker(connection, MARKER_CONNECT_UPDATING);
+  });
+
+  eventBus.on('connectionSegment.move.move', function(e) {
+
+    var context = e.context,
+        connection = context.connection,
+        segmentStartIndex = context.segmentStartIndex,
+        segmentEndIndex = context.segmentEndIndex,
+        segmentStart = context.segmentStart,
+        segmentEnd = context.segmentEnd,
+        axis = context.axis;
+
+    var newWaypoints = context.originalWaypoints.slice(),
+        newSegmentStart = axisAdd(segmentStart, axis, e['d' + axis]),
+        newSegmentEnd = axisAdd(segmentEnd, axis, e['d' + axis]);
+
+    // original waypoint count and added / removed
+    // from start waypoint delta. We use the later
+    // to retrieve the updated segmentStartIndex / segmentEndIndex
+    var waypointCount = newWaypoints.length,
+        segmentOffset = 0;
+
+    // move segment start / end by axis delta
+    newWaypoints[segmentStartIndex] = newSegmentStart;
+    newWaypoints[segmentEndIndex] = newSegmentEnd;
+
+    var sourceToSegmentOrientation,
+        targetToSegmentOrientation;
+
+    // handle first segment
+    if (segmentStartIndex < 2) {
+      sourceToSegmentOrientation = LayoutUtil.getOrientation(connection.source, newSegmentStart);
+
+      // first bendpoint, remove first segment if intersecting
+      if (segmentStartIndex === 1) {
+
+        if (sourceToSegmentOrientation === 'intersect') {
+          newWaypoints.shift();
+          newWaypoints[0] = newSegmentStart;
+          segmentOffset--;
+        }
+      }
+
+      // docking point, add segment if not intersecting anymore
+      else {
+        if (sourceToSegmentOrientation !== 'intersect') {
+          newWaypoints.unshift(segmentStart);
+          segmentOffset++;
+        }
+      }
+    }
+
+    // handle last segment
+    if (segmentEndIndex > waypointCount - 3) {
+      targetToSegmentOrientation = LayoutUtil.getOrientation(connection.target, newSegmentEnd);
+
+      // last bendpoint, remove last segment if intersecting
+      if (segmentEndIndex === waypointCount - 2) {
+
+        if (targetToSegmentOrientation === 'intersect') {
+          newWaypoints.pop();
+          newWaypoints[newWaypoints.length - 1] = newSegmentEnd;
+        }
+      }
+
+      // last bendpoint, remove last segment if intersecting
+      else {
+        if (targetToSegmentOrientation !== 'intersect') {
+          newWaypoints.push(segmentEnd);
+        }
+      }
+    }
+
+    // update connection waypoints
+    connection.waypoints = newWaypoints;
+
+    // crop connection, if docking service is provided
+    if (connectionDocking) {
+      connection.waypoints = newWaypoints = connectionDocking.getCroppedWaypoints(connection);
+    }
+
+    // save new waypoints in context
+    context.newWaypoints = newWaypoints;
+
+    // update dragger position
+    updateDragger(context, segmentOffset, e);
+
+    // redraw connection
+    redrawConnection(e);
+  });
+
+  eventBus.on('connectionSegment.move.hover', function(e) {
+
+    e.context.hover = e.hover;
+    canvas.addMarker(e.hover, MARKER_CONNECT_HOVER);
+  });
+
+  eventBus.on([
+    'connectionSegment.move.out',
+    'connectionSegment.move.cleanup'
+  ], function(e) {
+
+    // remove connect marker
+    // if it was added
+    var hover = e.context.hover;
+
+    if (hover) {
+      canvas.removeMarker(hover, MARKER_CONNECT_HOVER);
+    }
+  });
+
+  eventBus.on('connectionSegment.move.cleanup', function(e) {
+
+    var context = e.context,
+        connection = context.connection;
+
+    // remove dragger gfx
+    if (context.draggerGfx) {
+      context.draggerGfx.remove();
+    }
+
+    canvas.removeMarker(connection, MARKER_CONNECT_UPDATING);
+  });
+
+  eventBus.on([
+    'connectionSegment.move.cancel',
+    'connectionSegment.move.end'
+  ], function(e) {
+    var context = e.context,
+        connection = context.connection;
+
+    connection.waypoints = context.originalWaypoints;
+
+    redrawConnection(e);
+  });
+
+  eventBus.on('connectionSegment.move.end', function(e) {
+
+    var context = e.context,
+        waypoints = context.newWaypoints;
+
+    // ensure we have actual pixel values bendpoint
+    // coordinates (important when zoom level was > 1 during move)
+    waypoints.forEach(function(wp) {
+      wp.x = Math.round(wp.x);
+      wp.y = Math.round(wp.y);
+    });
+
+    modeling.updateWaypoints(context.connection, filterRedundantWaypoints(waypoints));
+  });
+}
+
+
+ConnectionSegmentMove.$inject = [
+  'injector', 'eventBus', 'canvas',
+  'dragging', 'graphicsFactory', 'rules',
+  'modeling'
+];
+
+module.exports = ConnectionSegmentMove;
+},{"111":111,"197":197,"212":212}],114:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(106), _dereq_(155) ],
+  __depends__: [ _dereq_(124), _dereq_(178) ],
   __init__: [ 'bendpoints', 'bendpointSnapping' ],
-  bendpoints: [ 'type', _dereq_(95) ],
-  bendpointMove: [ 'type', _dereq_(92) ],
-  bendpointSnapping: [ 'type', _dereq_(93) ]
+  bendpoints: [ 'type', _dereq_(112) ],
+  bendpointMove: [ 'type', _dereq_(109) ],
+  connectionSegmentMove: [ 'type', _dereq_(113) ],
+  bendpointSnapping: [ 'type', _dereq_(110) ]
 };
-},{"106":106,"155":155,"92":92,"93":93,"95":95}],97:[function(_dereq_,module,exports){
+
+},{"109":109,"110":110,"112":112,"113":113,"124":124,"178":178}],115:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -18597,21 +22127,21 @@ ChangeSupport.$inject = [ 'eventBus', 'elementRegistry', 'graphicsFactory' ];
 
 module.exports = ChangeSupport;
 
-},{}],98:[function(_dereq_,module,exports){
+},{}],116:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'changeSupport'],
-  changeSupport: [ 'type', _dereq_(97) ]
+  changeSupport: [ 'type', _dereq_(115) ]
 };
-},{"97":97}],99:[function(_dereq_,module,exports){
+},{"115":115}],117:[function(_dereq_,module,exports){
 'use strict';
 
-var LayoutUtil = _dereq_(174);
+var LayoutUtil = _dereq_(197);
 
 var MARKER_OK = 'connect-ok',
     MARKER_NOT_OK = 'connect-not-ok';
 
 
-function Connect(eventBus, dragging, modeling, rules, canvas, renderer) {
+function Connect(eventBus, dragging, modeling, rules, canvas, graphicsFactory) {
 
   // TODO(nre): separate UI and events
 
@@ -18629,9 +22159,9 @@ function Connect(eventBus, dragging, modeling, rules, canvas, renderer) {
 
   function crop(start, end, source, target) {
 
-    var sourcePath = renderer.getShapePath(source),
-        targetPath = target && renderer.getShapePath(target),
-        connectionPath = renderer.getConnectionPath({ waypoints: [ start, end ] });
+    var sourcePath = graphicsFactory.getShapePath(source),
+        targetPath = target && graphicsFactory.getShapePath(target),
+        connectionPath = graphicsFactory.getConnectionPath({ waypoints: [ start, end ] });
 
     start = LayoutUtil.getElementLineIntersection(sourcePath, connectionPath, true) || start;
     end = (target && LayoutUtil.getElementLineIntersection(targetPath, connectionPath, false)) || end;
@@ -18745,32 +22275,33 @@ function Connect(eventBus, dragging, modeling, rules, canvas, renderer) {
   };
 }
 
-Connect.$inject = [ 'eventBus', 'dragging', 'modeling', 'rules', 'canvas', 'renderer' ];
+Connect.$inject = [ 'eventBus', 'dragging', 'modeling', 'rules', 'canvas', 'graphicsFactory' ];
 
 module.exports = Connect;
-},{"174":174}],100:[function(_dereq_,module,exports){
+
+},{"197":197}],118:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(159),
-    _dereq_(155),
-    _dereq_(106)
+    _dereq_(182),
+    _dereq_(178),
+    _dereq_(124)
   ],
-  connect: [ 'type', _dereq_(99) ]
+  connect: [ 'type', _dereq_(117) ]
 };
 
-},{"106":106,"155":155,"159":159,"99":99}],101:[function(_dereq_,module,exports){
+},{"117":117,"124":124,"178":178,"182":182}],119:[function(_dereq_,module,exports){
 'use strict';
 
-var isFunction = _dereq_(331),
-    forEach = _dereq_(218),
+var isFunction = _dereq_(358),
+    forEach = _dereq_(244),
 
-    domDelegate = _dereq_(355),
-    domClear = _dereq_(353),
-    domEvent = _dereq_(357),
-    domAttr = _dereq_(351),
-    domQuery = _dereq_(359),
-    domClasses = _dereq_(352),
-    domify = _dereq_(356);
+    domDelegate = _dereq_(382),
+    domClear = _dereq_(380),
+    domEvent = _dereq_(384),
+    domAttr = _dereq_(378),
+    domQuery = _dereq_(386),
+    domClasses = _dereq_(379),
+    domify = _dereq_(383);
 
 
 var entrySelector = '.entry';
@@ -18899,12 +22430,13 @@ ContextPad.prototype.trigger = function(action, event, autoActivate) {
  * Open the context pad for the given element
  *
  * @param {djs.model.Base} element
+ * @param {Boolean} force if true, force reopening the context pad
  */
-ContextPad.prototype.open = function(element) {
+ContextPad.prototype.open = function(element, force) {
 
   if (this._current && this._current.open) {
 
-    if (this._current.element === element) {
+    if (force !== true && this._current.element === element) {
       // no change needed
       return;
     }
@@ -19046,23 +22578,24 @@ ContextPad.prototype.isOpen = function() {
 
 module.exports = ContextPad;
 
-},{"218":218,"331":331,"351":351,"352":352,"353":353,"355":355,"356":356,"357":357,"359":359}],102:[function(_dereq_,module,exports){
+},{"244":244,"358":358,"378":378,"379":379,"380":380,"382":382,"383":383,"384":384,"386":386}],120:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(108),
-    _dereq_(143)
+    _dereq_(128),
+    _dereq_(164)
   ],
-  contextPad: [ 'type', _dereq_(101) ]
+  contextPad: [ 'type', _dereq_(119) ]
 };
-},{"101":101,"108":108,"143":143}],103:[function(_dereq_,module,exports){
+},{"119":119,"128":128,"164":164}],121:[function(_dereq_,module,exports){
 'use strict';
 
 var MARKER_OK = 'drop-ok',
     MARKER_NOT_OK = 'drop-not-ok',
-    MARKER_ATTACH = 'attach-ok';
+    MARKER_ATTACH = 'attach-ok',
+    MARKER_NEW_PARENT = 'new-parent';
 
 
-function Create(eventBus, dragging, rules, modeling, canvas, renderer, styles) {
+function Create(eventBus, dragging, rules, modeling, canvas, styles, graphicsFactory) {
 
   // rules
 
@@ -19088,7 +22621,7 @@ function Create(eventBus, dragging, rules, modeling, canvas, renderer, styles) {
   /** set drop marker on an element */
   function setMarker(element, marker) {
 
-    [ MARKER_ATTACH, MARKER_OK, MARKER_NOT_OK ].forEach(function(m) {
+    [ MARKER_ATTACH, MARKER_OK, MARKER_NOT_OK, MARKER_NEW_PARENT ].forEach(function(m) {
 
       if (m === marker) {
         canvas.addMarker(element, m);
@@ -19113,7 +22646,7 @@ function Create(eventBus, dragging, rules, modeling, canvas, renderer, styles) {
     visual = preview.group().addClass('djs-visual');
 
     // hijack renderer to draw preview
-    renderer.drawShape(visual, shape);
+    graphicsFactory.drawShape(visual, shape);
 
     return group;
   }
@@ -19152,7 +22685,7 @@ function Create(eventBus, dragging, rules, modeling, canvas, renderer, styles) {
       if (canExecute === 'attach') {
         setMarker(hover, MARKER_ATTACH);
       } else {
-        setMarker(hover, context.canExecute ? MARKER_OK : MARKER_NOT_OK);
+        setMarker(hover, context.canExecute ? MARKER_NEW_PARENT : MARKER_NOT_OK);
       }
     }
   });
@@ -19224,35 +22757,35 @@ function Create(eventBus, dragging, rules, modeling, canvas, renderer, styles) {
   };
 }
 
-Create.$inject = [ 'eventBus', 'dragging', 'rules', 'modeling', 'canvas', 'renderer', 'styles' ];
+Create.$inject = [ 'eventBus', 'dragging', 'rules', 'modeling', 'canvas', 'styles', 'graphicsFactory' ];
 
 module.exports = Create;
 
-},{}],104:[function(_dereq_,module,exports){
+},{}],122:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(106),
-    _dereq_(159),
-    _dereq_(155)
+    _dereq_(124),
+    _dereq_(182),
+    _dereq_(178)
   ],
-  create: [ 'type', _dereq_(103) ]
+  create: [ 'type', _dereq_(121) ]
 };
 
-},{"103":103,"106":106,"155":155,"159":159}],105:[function(_dereq_,module,exports){
+},{"121":121,"124":124,"178":178,"182":182}],123:[function(_dereq_,module,exports){
 'use strict';
 
 /* global TouchEvent */
 
 var round = Math.round;
 
-var assign = _dereq_(339);
+var assign = _dereq_(366);
 
-var domEvent = _dereq_(357),
-    Event = _dereq_(187),
-    ClickTrap = _dereq_(183),
-    Cursor = _dereq_(185);
+var domEvent = _dereq_(384),
+    Event = _dereq_(211),
+    ClickTrap = _dereq_(207),
+    Cursor = _dereq_(209);
 
-var EventBusEvent = _dereq_(84).Event;
+var EventBusEvent = _dereq_(100).Event;
 
 function suppressEvent(event) {
   if (event instanceof MouseEvent) {
@@ -19687,26 +23220,221 @@ function Dragging(eventBus, canvas, selection) {
 Dragging.$inject = [ 'eventBus', 'canvas', 'selection' ];
 
 module.exports = Dragging;
-},{"183":183,"185":185,"187":187,"339":339,"357":357,"84":84}],106:[function(_dereq_,module,exports){
+},{"100":100,"207":207,"209":209,"211":211,"366":366,"384":384}],124:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(159)
+    _dereq_(182)
   ],
-  dragging: [ 'type', _dereq_(105) ]
+  dragging: [ 'type', _dereq_(123) ]
 };
-},{"105":105,"159":159}],107:[function(_dereq_,module,exports){
+},{"123":123,"182":182}],125:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218),
-    domDelegate = _dereq_(355),
-    Renderer = _dereq_(87),
-    createLine = Renderer.createLine,
-    updateLine = Renderer.updateLine;
+var forEach = _dereq_(244);
+
+var NOT_REGISTERED_ERROR = 'is not a registered action',
+    IS_REGISTERED_ERROR = 'is already registered';
+
+/**
+ * An interface that provides access to modeling actions by decoupling
+ * the one who requests the action to be triggered and the trigger itself.
+ *
+ * It's possible to add new actions by registering them with ´registerAction´ and likewise
+ * unregister existing ones with ´unregisterAction´.
+ *
+ */
+function EditorActions(eventBus, commandStack, modeling, selection, zoomScroll, canvas) {
+
+  this._actions = {
+    undo: function() {
+      commandStack.undo();
+    },
+    redo: function() {
+      commandStack.redo();
+    },
+    stepZoom: function(opts) {
+      zoomScroll.stepZoom(opts.value);
+    },
+    zoom: function(opts) {
+      canvas.zoom(opts.value);
+    },
+    removeSelection: function() {
+      var selectedElements = selection.get();
+
+      if (selectedElements.length) {
+        modeling.removeElements(selectedElements.slice());
+      }
+    },
+    moveCanvas: function(opts) {
+      var dx = 0,
+          dy = 0,
+          invertY = opts.invertY,
+          speed = opts.speed;
+
+      var actualSpeed = speed / Math.min(Math.sqrt(canvas.viewbox().scale), 1);
+
+      switch(opts.direction) {
+        case 'left':    // Left
+          dx = actualSpeed;
+          break;
+        case 'up':    // Up
+          dy = actualSpeed;
+          break;
+        case 'right':    // Right
+          dx = -actualSpeed;
+          break;
+        case 'down':    // Down
+          dy = -actualSpeed;
+          break;
+      }
+
+      if (dy && invertY) {
+        dy = -dy;
+      }
+
+      canvas.scroll({ dx: dx, dy: dy });
+    }
+  };
+}
+
+EditorActions.$inject = [
+  'eventBus',
+  'commandStack',
+  'modeling',
+  'selection',
+  'zoomScroll',
+  'canvas'
+];
+
+module.exports = EditorActions;
 
 
-var isPrimaryButton = _dereq_(193).isPrimaryButton;
+/**
+ * Triggers a registered action
+ *
+ * @param  {String} action
+ * @param  {Object} opts
+ *
+ * @return {Unknown} Returns what the registered listener returns
+ */
+EditorActions.prototype.trigger = function(action, opts) {
+  if (!this._actions[action]) {
+    throw error(action, NOT_REGISTERED_ERROR);
+  }
 
-var Snap = _dereq_(200);
+  return this._actions[action](opts);
+};
+
+
+/**
+ * Registers a collections of actions.
+ * The key of the object will be the name of the action.
+ *
+ * @example
+ * ´´´
+ * var actions = {
+ *   spaceTool: function() {
+ *     spaceTool.activateSelection();
+ *   },
+ *   lassoTool: function() {
+ *     lassoTool.activateSelection();
+ *   }
+ * ];
+ *
+ * editorActions.register(actions);
+ *
+ * editorActions.isRegistered('spaceTool'); // true
+ * ´´´
+ *
+ * @param  {Object} actions
+ */
+EditorActions.prototype.register = function(actions, listener) {
+  if (typeof actions === 'string') {
+    return this._registerAction(actions, listener);
+  }
+
+  forEach(actions, function(listener, action) {
+    this._registerAction(action, listener);
+  }, this);
+};
+
+/**
+ * Registers a listener to an action key
+ *
+ * @param  {String} action
+ * @param  {Function} listener
+ */
+EditorActions.prototype._registerAction = function(action, listener) {
+  if (this.isRegistered(action)) {
+    throw error(action, IS_REGISTERED_ERROR);
+  }
+
+  this._actions[action] = listener;
+};
+
+/**
+ * Unregister an existing action
+ *
+ * @param {String} action
+ */
+EditorActions.prototype.unregister = function(action) {
+  if (!this.isRegistered(action)) {
+    throw error(action, NOT_REGISTERED_ERROR);
+  }
+
+  this._actions[action] = undefined;
+};
+
+/**
+ * Returns the number of actions that are currently registered
+ *
+ * @return {Number}
+ */
+EditorActions.prototype.length = function() {
+  return Object.keys(this._actions).length;
+};
+
+/**
+ * Checks wether the given action is registered
+ *
+ * @param {String} action
+ *
+ * @return {Boolean}
+ */
+EditorActions.prototype.isRegistered = function(action) {
+  return !!this._actions[action];
+};
+
+
+function error(action, message) {
+  return new Error(action + ' ' + message);
+}
+
+},{"244":244}],126:[function(_dereq_,module,exports){
+module.exports = {
+  __depends__: [
+    _dereq_(182),
+    _dereq_(205)
+  ],
+  __init__: [ 'editorActions' ],
+  editorActions: [ 'type', _dereq_(125) ]
+};
+
+},{"125":125,"182":182,"205":205}],127:[function(_dereq_,module,exports){
+'use strict';
+
+var forEach = _dereq_(244),
+    domDelegate = _dereq_(382);
+
+
+var isPrimaryButton = _dereq_(217).isPrimaryButton;
+
+var Snap = _dereq_(229);
+
+var renderUtil = _dereq_(220);
+
+var createLine = renderUtil.createLine,
+    updateLine = renderUtil.updateLine;
 
 /**
  * A plugin that provides interaction events for diagram elements.
@@ -19933,16 +23661,17 @@ module.exports = InteractionEvents;
  * @property {Snap<Element>} gfx
  * @property {Event} originalEvent
  */
-},{"193":193,"200":200,"218":218,"355":355,"87":87}],108:[function(_dereq_,module,exports){
+
+},{"217":217,"220":220,"229":229,"244":244,"382":382}],128:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'interactionEvents' ],
-  interactionEvents: [ 'type', _dereq_(107) ]
+  interactionEvents: [ 'type', _dereq_(127) ]
 };
-},{"107":107}],109:[function(_dereq_,module,exports){
+},{"127":127}],129:[function(_dereq_,module,exports){
 'use strict';
 
-var domEvent = _dereq_(357),
-    domMatches = _dereq_(358);
+var domEvent = _dereq_(384),
+    domMatches = _dereq_(385);
 
 /**
  * A keyboard abstraction that may be activated and
@@ -19962,21 +23691,16 @@ var domEvent = _dereq_(357),
  * A default binding for the keyboard may be specified via the
  * `keyboard.bindTo` configuration option.
  *
+ * @param {Config} config
  * @param {EventBus} eventBus
- * @param {CommandStack} commandStack
- * @param {Modeling} modeling
- * @param {Selection} selection
+ * @param {EditorActions} editorActions
  */
-function Keyboard(config, eventBus, commandStack, modeling, selection, zoomScroll, canvas) {
-
+function Keyboard(config, eventBus, editorActions) {
   var self = this;
 
-  this._commandStack = commandStack;
-  this._modeling = modeling;
-  this._selection = selection;
+  this._config = config || {};
   this._eventBus = eventBus;
-  this._zoomScroll = zoomScroll;
-  this._canvas = canvas;
+  this._editorActions = editorActions;
 
   this._listeners = [];
 
@@ -20027,11 +23751,8 @@ function Keyboard(config, eventBus, commandStack, modeling, selection, zoomScrol
 Keyboard.$inject = [
   'config.keyboard',
   'eventBus',
-  'commandStack',
-  'modeling',
-  'selection',
-  'zoomScroll',
-  'canvas'];
+  'editorActions'
+];
 
 module.exports = Keyboard;
 
@@ -20062,19 +23783,16 @@ Keyboard.prototype.unbind = function() {
   this._node = null;
 };
 
-
 Keyboard.prototype._fire = function(event) {
   this._eventBus.fire('keyboard.' + event, { node: this._node, listeners: this._listeners });
 };
 
 Keyboard.prototype._init = function() {
 
-  var listeners = this._listeners,
-      commandStack = this._commandStack,
-      modeling = this._modeling,
-      selection = this._selection,
-      zoomScroll = this._zoomScroll,
-      canvas = this._canvas;
+  var listeners = this._listeners;
+
+  var editorActions = this._editorActions,
+      config = this._config;
 
   // init default listeners
 
@@ -20083,7 +23801,7 @@ Keyboard.prototype._init = function() {
   function undo(key, modifiers) {
 
     if (isCmd(modifiers) && !isShift(modifiers) && key === 90) {
-      commandStack.undo();
+      editorActions.trigger('undo');
 
       return true;
     }
@@ -20095,7 +23813,7 @@ Keyboard.prototype._init = function() {
   function redo(key, modifiers) {
 
     if (isCmd(modifiers) && (key === 89 || (key === 90 && isShift(modifiers)))) {
-      commandStack.redo();
+      editorActions.trigger('redo');
 
       return true;
     }
@@ -20113,8 +23831,7 @@ Keyboard.prototype._init = function() {
   function zoomIn(key, modifiers) {
 
     if ((key === 107 || key === 187 || key === 171 || key === 61) && isCmd(modifiers)) {
-
-      zoomScroll.stepZoom(1);
+      editorActions.trigger('stepZoom', { value: 1 });
 
       return true;
     }
@@ -20131,8 +23848,7 @@ Keyboard.prototype._init = function() {
   function zoomOut(key, modifiers) {
 
     if ((key === 109 || key === 189 || key === 173)  && isCmd(modifiers)) {
-
-      zoomScroll.stepZoom(-1);
+      editorActions.trigger('stepZoom', { value: -1 });
 
       return true;
     }
@@ -20148,8 +23864,7 @@ Keyboard.prototype._init = function() {
   function zoomDefault(key, modifiers) {
 
     if ((key === 96 || key === 48) && isCmd(modifiers)) {
-
-      canvas.zoom(1);
+      editorActions.trigger('zoom', { value: 1 });
 
       return true;
     }
@@ -20157,15 +23872,47 @@ Keyboard.prototype._init = function() {
 
   // delete selected element
   // DEL
-  function remove(key, modifiers) {
+  function removeSelection(key, modifiers) {
 
     if (key === 46) {
+      editorActions.trigger('removeSelection');
 
-      var selectedElements = selection.get();
+      return true;
+    }
+  }
 
-      if (selectedElements.length) {
-        modeling.removeElements(selectedElements.slice());
+  // move canvas left
+  // left arrow
+  //
+  // 37 = Left
+  // 38 = Up
+  // 39 = Right
+  // 40 = Down
+  function moveCanvas(key, modifiers) {
+
+    if ([37, 38, 39, 40].indexOf(key) >= 0) {
+
+      var opts = {
+        invertY: config.invertY,
+        speed: (config.speed || 50),
+      };
+
+      switch(key) {
+        case 37:    // Left
+          opts.direction = 'left';
+          break;
+        case 38:    // Up
+          opts.direction = 'up';
+          break;
+        case 39:    // Right
+          opts.direction = 'right';
+          break;
+        case 40:    // Down
+          opts.direction = 'down';
+          break;
       }
+
+      editorActions.trigger('moveCanvas', opts);
 
       return true;
     }
@@ -20173,10 +23920,11 @@ Keyboard.prototype._init = function() {
 
   listeners.push(undo);
   listeners.push(redo);
-  listeners.push(remove);
+  listeners.push(removeSelection);
   listeners.push(zoomIn);
   listeners.push(zoomOut);
   listeners.push(zoomDefault);
+  listeners.push(moveCanvas);
 };
 
 
@@ -20207,23 +23955,26 @@ function isShift(modifiers) {
   return modifiers.shiftKey;
 }
 
-},{"357":357,"358":358}],110:[function(_dereq_,module,exports){
+},{"384":384,"385":385}],130:[function(_dereq_,module,exports){
 module.exports = {
+  __depends__: [
+    _dereq_(126)
+  ],
   __init__: [ 'keyboard' ],
-  keyboard: [ 'type', _dereq_(109) ]
+  keyboard: [ 'type', _dereq_(129) ]
 };
 
-},{"109":109}],111:[function(_dereq_,module,exports){
+},{"126":126,"129":129}],131:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218),
-    filter = _dereq_(216),
-    inherits = _dereq_(207);
+var forEach = _dereq_(244),
+    filter = _dereq_(242),
+    inherits = _dereq_(232);
 
 var LOW_PRIORITY = 250,
     HIGH_PRIORITY = 1500;
 
-var CommandInterceptor = _dereq_(78);
+var CommandInterceptor = _dereq_(94);
 
 
 /**
@@ -20272,7 +24023,7 @@ function LabelSupport(eventBus, modeling, moveVisuals) {
   });
 
   // move labels after the other shapes are done moving
-  this.postExecute([ 'shapes.move' ], function(e) {
+  this.postExecuted([ 'elements.move' ], function(e) {
     var context = e.context,
         closure = context.closure,
         enclosedElements = closure.enclosedElements;
@@ -20316,25 +24067,25 @@ function removeLabels(elements) {
   });
 }
 
-},{"207":207,"216":216,"218":218,"78":78}],112:[function(_dereq_,module,exports){
+},{"232":232,"242":242,"244":244,"94":94}],132:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(139)
+    _dereq_(159)
   ],
   __init__: [ 'labelSupport'],
-  labelSupport: [ 'type', _dereq_(111) ]
+  labelSupport: [ 'type', _dereq_(131) ]
 };
 
-},{"111":111,"139":139}],113:[function(_dereq_,module,exports){
+},{"131":131,"159":159}],133:[function(_dereq_,module,exports){
 'use strict';
 
-var values = _dereq_(347);
+var values = _dereq_(374);
 
-var getEnclosedElements = _dereq_(186).getEnclosedElements;
+var getEnclosedElements = _dereq_(210).getEnclosedElements;
 
-var hasPrimaryModifier = _dereq_(193).hasPrimaryModifier;
+var hasSecondaryModifier = _dereq_(217).hasSecondaryModifier;
 
-var Snap = _dereq_(200);
+var Snap = _dereq_(229);
 
 
 function LassoTool(eventBus, canvas, dragging, elementRegistry, selection) {
@@ -20442,7 +24193,7 @@ function LassoTool(eventBus, canvas, dragging, elementRegistry, selection) {
 
   eventBus.on('element.mousedown', 1500, function(event) {
 
-    if (hasPrimaryModifier(event)) {
+    if (hasSecondaryModifier(event)) {
       self.activateLasso(event.originalEvent);
 
       event.stopPropagation();
@@ -20548,20 +24299,21 @@ function toBBox(event) {
   }
   return bbox;
 }
-},{"186":186,"193":193,"200":200,"347":347}],114:[function(_dereq_,module,exports){
+
+},{"210":210,"217":217,"229":229,"374":374}],134:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'lassoTool' ],
-  lassoTool: [ 'type', _dereq_(113) ]
+  lassoTool: [ 'type', _dereq_(133) ]
 };
 
-},{"113":113}],115:[function(_dereq_,module,exports){
+},{"133":133}],135:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218);
+var forEach = _dereq_(244);
 
-var model = _dereq_(176);
+var model = _dereq_(199);
 
 
 /**
@@ -20591,31 +24343,32 @@ module.exports = Modeling;
 
 Modeling.prototype.getHandlers = function() {
   return {
-    'shape.append': _dereq_(116),
-    'shape.create': _dereq_(120),
-    'shape.delete': _dereq_(123),
-    'shape.move': _dereq_(126),
-    'shape.attach': _dereq_(117),
-    'shapes.move': _dereq_(127),
-    'shape.resize': _dereq_(131),
-    'shape.replace': _dereq_(130),
+    'shape.append': _dereq_(136),
+    'shape.create': _dereq_(139),
+    'shape.delete': _dereq_(142),
+    'shape.move': _dereq_(146),
+    'shape.resize': _dereq_(150),
+    'shape.replace': _dereq_(149),
 
-    'spaceTool': _dereq_(132),
+    'spaceTool': _dereq_(151),
 
-    'label.create': _dereq_(119),
+    'label.create': _dereq_(138),
 
-    'connection.create': _dereq_(118),
-    'connection.delete': _dereq_(121),
-    'connection.move': _dereq_(125),
-    'connection.layout': _dereq_(124),
+    'connection.create': _dereq_(137),
+    'connection.delete': _dereq_(140),
+    'connection.move': _dereq_(144),
+    'connection.layout': _dereq_(143),
 
-    'connection.updateWaypoints': _dereq_(134),
+    'connection.updateWaypoints': _dereq_(154),
 
-    'connection.reconnectStart': _dereq_(129),
-    'connection.reconnectEnd': _dereq_(129),
+    'connection.reconnectStart': _dereq_(148),
+    'connection.reconnectEnd': _dereq_(148),
 
-    'elements.delete': _dereq_(122),
-    'element.updateAnchors': _dereq_(133)
+    'elements.move': _dereq_(145),
+    'elements.delete': _dereq_(141),
+
+    'element.updateAttachment': _dereq_(153),
+    'element.updateAnchors': _dereq_(152)
   };
 };
 
@@ -20633,12 +24386,18 @@ Modeling.prototype.registerHandlers = function(commandStack) {
 
 ///// modeling helpers /////////////////////////////////////////
 
+Modeling.prototype.moveShape = function(shape, delta, newParent, newParentIndex, hints) {
 
-Modeling.prototype.moveShape = function(shape, delta, newParent, hints) {
+  if (typeof newParentIndex === 'object') {
+    hints = newParentIndex;
+    newParentIndex = null;
+  }
+
   var context = {
     shape: shape,
     delta:  delta,
     newParent: newParent,
+    newParentIndex: newParentIndex,
     hints: hints || {}
   };
 
@@ -20658,7 +24417,7 @@ Modeling.prototype.updateAttachment = function(shape, newHost) {
     newHost: newHost
   };
 
-  this._commandStack.execute('shape.attach', context);
+  this._commandStack.execute('element.updateAttachment', context);
 };
 
 /**
@@ -20671,7 +24430,7 @@ Modeling.prototype.updateAttachment = function(shape, newHost) {
  * @param {Boolean} [isAttach=false]
  * @param {Object} [hints]
  */
-Modeling.prototype.moveShapes = function(shapes, delta, target, isAttach, hints) {
+Modeling.prototype.moveElements = function(shapes, delta, target, isAttach, hints) {
   if (typeof isAttach === 'object') {
     hints = isAttach;
     isAttach = undefined;
@@ -20697,7 +24456,7 @@ Modeling.prototype.moveShapes = function(shapes, delta, target, isAttach, hints)
     hints: hints || {}
   };
 
-  this._commandStack.execute('shapes.move', context);
+  this._commandStack.execute('elements.move', context);
 };
 
 /**
@@ -20705,21 +24464,27 @@ Modeling.prototype.moveShapes = function(shapes, delta, target, isAttach, hints)
  * @param  {djs.model.Element} element
  * @param  {Point} delta
  */
-Modeling.prototype.updateAnchors = function(element, delta) {
+Modeling.prototype.updateAnchors = function(element, oldBounds) {
   var context = {
     element: element,
-    delta: delta
+    oldBounds: oldBounds
   };
 
   this._commandStack.execute('element.updateAnchors', context);
 };
 
-Modeling.prototype.moveConnection = function(connection, delta, newParent, hints) {
+Modeling.prototype.moveConnection = function(connection, delta, newParent, newParentIndex, hints) {
+
+  if (typeof newParentIndex === 'object') {
+    hints = newParentIndex;
+    newParentIndex = undefined;
+  }
 
   var context = {
     connection: connection,
     delta: delta,
     newParent: newParent,
+    newParentIndex: newParentIndex,
     hints: hints || {}
   };
 
@@ -20728,7 +24493,6 @@ Modeling.prototype.moveConnection = function(connection, delta, newParent, hints
 
 
 Modeling.prototype.layoutConnection = function(connection, hints) {
-
   var context = {
     connection: connection,
     hints: hints || {}
@@ -20738,7 +24502,13 @@ Modeling.prototype.layoutConnection = function(connection, hints) {
 };
 
 
-Modeling.prototype.createConnection = function(source, target, connection, parent) {
+Modeling.prototype.createConnection = function(source, target, targetIndex, connection, parent) {
+
+  if (typeof targetIndex === 'object') {
+    parent = connection;
+    connection = targetIndex;
+    targetIndex = undefined;
+  }
 
   connection = this._create('connection', connection);
 
@@ -20746,6 +24516,7 @@ Modeling.prototype.createConnection = function(source, target, connection, paren
     source: source,
     target: target,
     parent: parent,
+    parentIndex: targetIndex,
     connection: connection
   };
 
@@ -20754,7 +24525,12 @@ Modeling.prototype.createConnection = function(source, target, connection, paren
   return context.connection;
 };
 
-Modeling.prototype.createShape = function(shape, position, target, isAttach) {
+Modeling.prototype.createShape = function(shape, position, target, targetIndex, isAttach) {
+
+  if (typeof targetIndex === 'boolean') {
+    isAttach = targetIndex;
+    targetIndex = undefined;
+  }
 
   shape = this._create('shape', shape);
 
@@ -20762,6 +24538,7 @@ Modeling.prototype.createShape = function(shape, position, target, isAttach) {
     position: position,
     shape: shape,
     parent: target,
+    parentIndex: targetIndex,
     host: shape.host
   };
 
@@ -20783,7 +24560,7 @@ Modeling.prototype.createLabel = function(labelTarget, position, label, parent) 
   var context = {
     labelTarget: labelTarget,
     position: position,
-    parent: parent,
+    parent: parent || labelTarget.parent,
     shape: label
   };
 
@@ -20821,18 +24598,20 @@ Modeling.prototype.removeElements = function(elements) {
 };
 
 
-Modeling.prototype.removeShape = function(shape) {
+Modeling.prototype.removeShape = function(shape, hints) {
   var context = {
-    shape: shape
+    shape: shape,
+    hints: hints || {}
   };
 
   this._commandStack.execute('shape.delete', context);
 };
 
 
-Modeling.prototype.removeConnection = function(connection) {
+Modeling.prototype.removeConnection = function(connection, hints) {
   var context = {
-    connection: connection
+    connection: connection,
+    hints: hints || {}
   };
 
   this._commandStack.execute('connection.delete', context);
@@ -20911,12 +24690,12 @@ Modeling.prototype._create = function(type, attrs) {
   }
 };
 
-},{"116":116,"117":117,"118":118,"119":119,"120":120,"121":121,"122":122,"123":123,"124":124,"125":125,"126":126,"127":127,"129":129,"130":130,"131":131,"132":132,"133":133,"134":134,"176":176,"218":218}],116:[function(_dereq_,module,exports){
+},{"136":136,"137":137,"138":138,"139":139,"140":140,"141":141,"142":142,"143":143,"144":144,"145":145,"146":146,"148":148,"149":149,"150":150,"151":151,"152":152,"153":153,"154":154,"199":199,"244":244}],136:[function(_dereq_,module,exports){
 'use strict';
 
-var any = _dereq_(214);
+var any = _dereq_(240);
 
-var inherits = _dereq_(207);
+var inherits = _dereq_(232);
 
 
 /**
@@ -20931,7 +24710,7 @@ function AppendShapeHandler(modeling) {
   this._modeling = modeling;
 }
 
-inherits(AppendShapeHandler, _dereq_(128));
+inherits(AppendShapeHandler, _dereq_(147));
 
 
 AppendShapeHandler.$inject = [ 'modeling' ];
@@ -20978,162 +24757,7 @@ function existsConnection(source, target) {
     return c.target === target;
   });
 }
-},{"128":128,"207":207,"214":214}],117:[function(_dereq_,module,exports){
-'use strict';
-
-var forEach = _dereq_(218),
-    map = _dereq_(221);
-
-/**
- * A handler that implements reversible attaching/detaching of shapes.
- */
-function AttachShapeHandler(modeling) {
-  this._modeling = modeling;
-}
-
-module.exports = AttachShapeHandler;
-
-AttachShapeHandler.$inject = [ 'modeling' ];
-
-
-AttachShapeHandler.prototype.execute = function(context) {
-  var shape = context.shape,
-      newHost = context.newHost,
-      oldHost = shape.host;
-
-  // (0) detach from old host
-  context.oldHost = oldHost;
-  context.attacherIdx = removeAttacher(oldHost, shape);
-
-  // (1) attach to new host
-  addAttacher(newHost, shape);
-
-  // position attacher and it's label on top of host
-  positionOnTop(context);
-
-  // (2) update host
-  shape.host = newHost;
-
-  return shape;
-};
-
-AttachShapeHandler.prototype.revert = function(context) {
-  var shape = context.shape,
-      newHost = context.newHost,
-      oldHost = context.oldHost,
-      attacherIdx = context.attacherIdx;
-
-  // (2) update host
-  shape.host = oldHost;
-
-  // (1) attach to new host
-  removeAttacher(newHost, shape);
-
-  // (0) detach from old host
-  addAttacher(oldHost, shape, attacherIdx);
-
-  // position attacher and it's label on top of oldHost
-  reposition(context);
-
-  return shape;
-};
-
-
-function insertAfter(coll, a, b) {
-  // b comes after a
-  var aIdx = coll.indexOf(a),
-      bIdx = coll.indexOf(b);
-
-  if ((aIdx === -1 || bIdx === -1) || (bIdx > aIdx)) {
-    return;
-  }
-
-  coll.splice(bIdx, 1);
-
-  aIdx = coll.indexOf(a);
-
-  coll.splice(aIdx, 1, a, b);
-}
-
-function positionOnTop(context) {
-  var shape = context.shape,
-      newHost = context.newHost,
-      oldHost = context.oldHost,
-      parent = shape.parent,
-      children = parent.children,
-      label;
-
-  if (!newHost) {
-    return;
-  }
-
-  var elements = (label = shape.label) ? [ oldHost, shape, label ] : [ oldHost, shape ];
-
-  context.elements = map(elements, function(element) {
-    return {
-      shape: element,
-      idx: children.indexOf(element)
-    };
-  });
-
-  insertAfter(children, newHost, shape);
-
-  if (label) {
-    insertAfter(children, shape, label);
-  }
-}
-
-function reposition(context) {
-  var shape = context.shape,
-      oldHost = context.oldHost,
-      parent = shape.parent,
-      children = parent.children,
-      elements = context.elements;
-
-  if (!oldHost) {
-    return;
-  }
-
-  forEach(elements, function(element) {
-    children.splice(children.indexOf(element.shape), 1);
-
-    children.splice(element.idx, 0, element.shape);
-  });
-}
-
-
-function removeAttacher(host, attacher) {
-  var attachers = host && host.attachers;
-
-  var idx = -1;
-
-  if (attachers) {
-    idx = attachers.indexOf(attacher);
-
-    if (idx !== -1) {
-      attachers.splice(idx, 1);
-    }
-  }
-
-  return idx;
-}
-
-function addAttacher(host, attacher, idx) {
-
-  if (!host) {
-    return;
-  }
-
-  var attachers = host.attachers;
-
-  if (!attachers) {
-    host.attachers = attachers = [];
-  }
-
-  attachers.splice(idx || attachers.length, 0, attacher);
-}
-
-},{"218":218,"221":221}],118:[function(_dereq_,module,exports){
+},{"147":147,"232":232,"240":240}],137:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -21195,12 +24819,12 @@ CreateConnectionHandler.prototype.revert = function(context) {
   connection.source = null;
   connection.target = null;
 };
-},{}],119:[function(_dereq_,module,exports){
+},{}],138:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(207);
+var inherits = _dereq_(232);
 
-var CreateShapeHandler = _dereq_(120);
+var CreateShapeHandler = _dereq_(139);
 
 
 /**
@@ -21237,7 +24861,11 @@ var originalExecute = CreateShapeHandler.prototype.execute;
  */
 CreateLabelHandler.prototype.execute = function(context) {
 
-  this.ensureValidDimensions(context);
+  var label = context.shape;
+
+  ensureValidDimensions(label);
+
+  label.labelTarget = context.labelTarget;
 
   return originalExecute.call(this, context);
 };
@@ -21256,30 +24884,20 @@ CreateLabelHandler.prototype.revert = function(context) {
 
 ////// helpers /////////////////////////////////////////
 
-CreateLabelHandler.prototype.ensureValidDimensions = function(context) {
-
-  var label = context.shape;
-
+function ensureValidDimensions(label) {
   // make sure a label has valid { width, height } dimensions
   [ 'width', 'height' ].forEach(function(prop) {
     if (typeof label[prop] === 'undefined') {
       label[prop] = 0;
     }
   });
-};
-
-CreateLabelHandler.prototype.getParent = function(context) {
-  return context.parent || context.labelTarget && context.labelTarget.parent;
-};
-
-CreateLabelHandler.prototype.addElement = function(shape, parent, context) {
-  shape.labelTarget = context.labelTarget;
-  this._canvas.addShape(shape, parent, true);
-};
-},{"120":120,"207":207}],120:[function(_dereq_,module,exports){
+}
+},{"139":139,"232":232}],139:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(339);
+var assign = _dereq_(366);
+
+var round = Math.round;
 
 
 /**
@@ -21287,13 +24905,11 @@ var assign = _dereq_(339);
  *
  * @param {canvas} Canvas
  */
-function CreateShapeHandler(canvas, modeling) {
+function CreateShapeHandler(canvas) {
   this._canvas = canvas;
-
-  this._modeling = modeling;
 }
 
-CreateShapeHandler.$inject = [ 'canvas', 'modeling' ];
+CreateShapeHandler.$inject = [ 'canvas' ];
 
 module.exports = CreateShapeHandler;
 
@@ -21311,13 +24927,31 @@ module.exports = CreateShapeHandler;
  */
 CreateShapeHandler.prototype.execute = function(context) {
 
-  var parent = this.getParent(context);
+  var shape = context.shape,
+      positionOrBounds = context.position,
+      parent = context.parent,
+      parentIndex = context.parentIndex;
 
-  var shape = context.shape;
+  if (!parent) {
+    throw new Error('parent required');
+  }
 
-  this.setPosition(shape, context);
+  if (!positionOrBounds) {
+    throw new Error('position required');
+  }
 
-  this.addElement(shape, parent, context);
+  // (1) add at event center position _or_ at given bounds
+  if (positionOrBounds.width !== undefined) {
+    assign(shape, positionOrBounds);
+  } else {
+    assign(shape, {
+      x: positionOrBounds.x - round(shape.width / 2),
+      y: positionOrBounds.y - round(shape.height / 2)
+    });
+  }
+
+  // (2) add to canvas
+  this._canvas.addShape(shape, parent, parentIndex);
 
   return shape;
 };
@@ -21327,63 +24961,14 @@ CreateShapeHandler.prototype.execute = function(context) {
  * Undo append by removing the shape
  */
 CreateShapeHandler.prototype.revert = function(context) {
+
+  // (3) remove form canvas
   this._canvas.removeShape(context.shape);
 };
-
-
-CreateShapeHandler.prototype.postExecute = function(context) {
-  var modeling = this._modeling;
-
-  var shape = context.shape,
-      host = context.host;
-
-  if (!host) {
-    return;
-  }
-
-  modeling.updateAttachment(shape, host, true);
-};
-
-
-////// helpers /////////////////////////////////////////
-
-CreateShapeHandler.prototype.getParent = function(context) {
-  var parent = context.parent;
-
-  if (!parent) {
-    throw new Error('parent required');
-  }
-
-  return parent;
-};
-
-CreateShapeHandler.prototype.getPosition = function(context) {
-  if (!context.position) {
-    throw new Error('no position given');
-  }
-
-  return context.position;
-};
-
-CreateShapeHandler.prototype.addElement = function(shape, parent) {
-  this._canvas.addShape(shape, parent);
-};
-
-CreateShapeHandler.prototype.setPosition = function(shape, context) {
-  var position = this.getPosition(context);
-
-  // update to center position
-  // specified in create context
-  assign(shape, {
-    x: position.x - shape.width / 2,
-    y: position.y - shape.height / 2
-  });
-};
-
-},{"339":339}],121:[function(_dereq_,module,exports){
+},{"366":366}],140:[function(_dereq_,module,exports){
 'use strict';
 
-var Collections = _dereq_(184);
+var Collections = _dereq_(208);
 
 
 /**
@@ -21449,11 +25034,11 @@ DeleteConnectionHandler.prototype.revert = function(context) {
   this._canvas.addConnection(connection, parent);
 };
 
-},{"184":184}],122:[function(_dereq_,module,exports){
+},{"208":208}],141:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218),
-    inherits = _dereq_(207);
+var forEach = _dereq_(244),
+    inherits = _dereq_(232);
 
 
 function DeleteElementsHandler(modeling, elementRegistry) {
@@ -21461,7 +25046,7 @@ function DeleteElementsHandler(modeling, elementRegistry) {
   this._elementRegistry = elementRegistry;
 }
 
-inherits(DeleteElementsHandler, _dereq_(128));
+inherits(DeleteElementsHandler, _dereq_(147));
 
 DeleteElementsHandler.$inject = [ 'modeling', 'elementRegistry' ];
 
@@ -21489,14 +25074,12 @@ DeleteElementsHandler.prototype.postExecute = function(context) {
     }
   });
 };
-},{"128":128,"207":207,"218":218}],123:[function(_dereq_,module,exports){
+},{"147":147,"232":232,"244":244}],142:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218);
+var Collections = _dereq_(208);
 
-var Collections = _dereq_(184);
-
-var saveClear = _dereq_(195).saveClear;
+var saveClear = _dereq_(219).saveClear;
 
 
 /**
@@ -21532,24 +25115,24 @@ DeleteShapeHandler.prototype.preExecute = function(context) {
 
   // Remove label
   if (label) {
-    this._modeling.removeShape(label);
+    this._modeling.removeShape(label, { nested: true });
   }
 
   // remove connections
   saveClear(shape.incoming, function(connection) {
     // To make sure that the connection isn't removed twice
     // For example if a container is removed
-    modeling.removeConnection(connection);
+    modeling.removeConnection(connection, { nested: true });
   });
 
   saveClear(shape.outgoing, function(connection) {
-    modeling.removeConnection(connection);
+    modeling.removeConnection(connection, { nested: true });
   });
 
 
   // remove children
   saveClear(shape.children, function(e) {
-    modeling.removeShape(e);
+    modeling.removeShape(e, { nested: true });
   });
 };
 
@@ -21560,17 +25143,10 @@ DeleteShapeHandler.prototype.execute = function(context) {
   var canvas = this._canvas;
 
   var shape = context.shape,
-      parent = shape.parent,
-      host = shape.host;
+      oldParent = shape.parent;
 
-  context.parent = parent;
-  context.parentIndex = Collections.indexOf(parent.children, shape);
-
-  if (host) {
-    context.hostIndex = Collections.indexOf(host.attachers, shape);
-
-    Collections.remove(host && host.attachers, shape);
-  }
+  context.oldParent = oldParent;
+  context.oldParentIndex = Collections.indexOf(oldParent.children, shape);
 
   shape.label = null;
 
@@ -21586,36 +25162,24 @@ DeleteShapeHandler.prototype.revert = function(context) {
   var canvas = this._canvas;
 
   var shape = context.shape,
-      parent = context.parent,
-      parentIndex = context.parentIndex,
-      labelTarget = context.labelTarget,
-      attachers = shape.attachers,
-      host = shape.host;
+      oldParent = context.oldParent,
+      oldParentIndex = context.oldParentIndex,
+      labelTarget = context.labelTarget;
 
-  // restore previous location in old parent
-  Collections.add(parent.children, shape, parentIndex);
-
-  if (host) {
-    Collections.add(host && host.attachers, shape, context.hostIndex);
-  }
+  // restore previous location in old oldParent
+  Collections.add(oldParent.children, shape, oldParentIndex);
 
   if (labelTarget) {
     labelTarget.label = shape;
   }
 
-  canvas.addShape(shape, parent);
-
-  if (attachers) {
-    forEach(attachers, function(attacher) {
-      canvas.addShape(attacher, parent);
-    });
-  }
+  canvas.addShape(shape, oldParent);
 };
 
-},{"184":184,"195":195,"218":218}],124:[function(_dereq_,module,exports){
+},{"208":208,"219":219}],143:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(339);
+var assign = _dereq_(366);
 
 
 /**
@@ -21638,14 +25202,37 @@ LayoutConnectionHandler.prototype.execute = function(context) {
 
   var oldIndex = connectionSiblings.indexOf(connection);
 
+  var oldWaypoints = connection.waypoints;
+
   assign(context, {
-    oldWaypoints: connection.waypoints,
+    oldWaypoints: oldWaypoints,
     oldIndex: oldIndex
   });
 
   sendToFront(connection);
 
   connection.waypoints = this._layouter.layoutConnection(connection, context.hints);
+
+  if (!oldWaypoints.length) {
+    return connection;
+  }
+
+  // Only pass in the the `original` values if they don't exist
+  if (oldWaypoints[0].original && !connection.waypoints[0].original) {
+
+    connection.waypoints[0].original = {
+      x: oldWaypoints[0].original.x,
+      y: oldWaypoints[0].original.y
+    };
+  }
+
+  if (last(oldWaypoints).original && !last(connection.waypoints).original) {
+
+    last(connection.waypoints).original = {
+      x: last(oldWaypoints).original.x,
+      y: last(oldWaypoints).original.y
+    };
+  }
 
   return connection;
 };
@@ -21669,6 +25256,10 @@ LayoutConnectionHandler.prototype.revert = function(context) {
 
   return connection;
 };
+
+function last(coll) {
+  return coll[coll.length - 1];
+}
 
 // connections should have a higher z-order as there source and targets
 function sendToFront(connection) {
@@ -21701,12 +25292,12 @@ function sendToFront(connection) {
   return insertIndex;
 }
 
-},{"339":339}],125:[function(_dereq_,module,exports){
+},{"366":366}],144:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218);
+var forEach = _dereq_(244);
 
-var Collections = _dereq_(184);
+var Collections = _dereq_(208);
 
 
 /**
@@ -21722,17 +25313,25 @@ module.exports = MoveConnectionHandler;
 
 MoveConnectionHandler.prototype.execute = function(context) {
 
-  var updateAnchors = (context.hints.updateAnchors !== false);
+  var connection = context.connection,
+      delta = context.delta;
 
-  var connection  = context.connection,
-      delta       = context.delta;
-
-  var newParent = this.getNewParent(connection, context),
+  var newParent = context.newParent || connection.parent,
+      newParentIndex = context.newParentIndex,
       oldParent = connection.parent;
 
-  // save old position + parent in context
+  // save old parent in context
   context.oldParent = oldParent;
-  context.oldParentIndex = Collections.indexOf(oldParent.children, connection);
+  context.oldParentIndex = Collections.remove(oldParent.children, connection);
+
+  // add to new parent at position
+  Collections.add(newParent.children, connection, newParentIndex);
+
+  // update parent
+  connection.parent = newParent;
+
+
+  var updateAnchors = (context.hints.updateAnchors !== false);
 
   // update waypoint positions
   forEach(connection.waypoints, function(p) {
@@ -21745,26 +25344,28 @@ MoveConnectionHandler.prototype.execute = function(context) {
     }
   });
 
-  // update parent
-  connection.parent = newParent;
-
   return connection;
 };
 
 MoveConnectionHandler.prototype.revert = function(context) {
 
-  var updateAnchors = (context.hints.updateAnchors !== false);
-
   var connection = context.connection,
+      newParent = connection.parent,
       oldParent = context.oldParent,
       oldParentIndex = context.oldParentIndex,
       delta = context.delta;
+
+  // remove from newParent
+  Collections.remove(newParent.children, connection);
 
   // restore previous location in old parent
   Collections.add(oldParent.children, connection, oldParentIndex);
 
   // restore parent
   connection.parent = oldParent;
+
+
+  var updateAnchors = (context.hints.updateAnchors !== false);
 
   // revert to old waypoint positions
   forEach(connection.waypoints, function(p) {
@@ -21779,20 +25380,53 @@ MoveConnectionHandler.prototype.revert = function(context) {
 
   return connection;
 };
-
-
-MoveConnectionHandler.prototype.getNewParent = function(connection, context) {
-  return context.newParent || connection.parent;
-};
-
-},{"184":184,"218":218}],126:[function(_dereq_,module,exports){
+},{"208":208,"244":244}],145:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(339),
-    forEach = _dereq_(218);
+var MoveHelper = _dereq_(155);
 
-var MoveHelper = _dereq_(135),
-    Collections = _dereq_(184);
+
+/**
+ * A handler that implements reversible moving of shapes.
+ */
+function MoveElementsHandler(modeling) {
+  this._helper = new MoveHelper(modeling);
+}
+
+MoveElementsHandler.$inject = [ 'modeling' ];
+
+module.exports = MoveElementsHandler;
+
+MoveElementsHandler.prototype.preExecute = function(context) {
+  context.closure = this._helper.getClosure(context.shapes);
+};
+
+MoveElementsHandler.prototype.postExecute = function(context) {
+
+  var hints = context.hints,
+      primaryShape;
+
+  if (hints && hints.primaryShape) {
+      primaryShape = hints.primaryShape;
+      hints.oldParent = primaryShape.parent;
+  }
+
+  this._helper.moveClosure(context.closure, context.delta, context.newParent, context.newHost, primaryShape);
+};
+
+
+MoveElementsHandler.prototype.execute = function(context) { };
+MoveElementsHandler.prototype.revert = function(context) { };
+
+},{"155":155}],146:[function(_dereq_,module,exports){
+'use strict';
+
+var assign = _dereq_(366),
+    forEach = _dereq_(244),
+    pick = _dereq_(372);
+
+var MoveHelper = _dereq_(155),
+    Collections = _dereq_(208);
 
 /**
  * A handler that implements reversible moving of shapes.
@@ -21812,12 +25446,18 @@ MoveShapeHandler.prototype.execute = function(context) {
 
   var shape = context.shape,
       delta = context.delta,
-      newParent = this.getNewParent(context),
+      newParent = context.newParent || shape.parent,
+      newParentIndex = context.newParentIndex,
       oldParent = shape.parent;
+
+  context.oldBounds = pick(shape, [ 'x', 'y', 'width', 'height']);
 
   // save old parent in context
   context.oldParent = oldParent;
-  context.oldParentIndex = Collections.indexOf(oldParent.children, shape);
+  context.oldParentIndex = Collections.remove(oldParent.children, shape);
+
+  // add to new parent at position
+  Collections.add(newParent.children, shape, newParentIndex);
 
   // update shape parent + position
   assign(shape, {
@@ -21832,12 +25472,12 @@ MoveShapeHandler.prototype.execute = function(context) {
 MoveShapeHandler.prototype.postExecute = function(context) {
 
   var shape = context.shape,
-      delta = context.delta;
+      oldBounds = context.oldBounds;
 
   var modeling = this._modeling;
 
   if (context.hints.updateAnchors !== false) {
-    modeling.updateAnchors(shape, delta);
+    modeling.updateAnchors(shape, oldBounds);
   }
 
   if (context.hints.layout !== false) {
@@ -21887,36 +25527,7 @@ MoveShapeHandler.prototype.getNewParent = function(context) {
   return context.newParent || context.shape.parent;
 };
 
-},{"135":135,"184":184,"218":218,"339":339}],127:[function(_dereq_,module,exports){
-'use strict';
-
-var MoveHelper = _dereq_(135);
-
-
-/**
- * A handler that implements reversible moving of shapes.
- */
-function MoveShapesHandler(modeling) {
-  this._helper = new MoveHelper(modeling);
-}
-
-MoveShapesHandler.$inject = [ 'modeling' ];
-
-module.exports = MoveShapesHandler;
-
-MoveShapesHandler.prototype.preExecute = function(context) {
-  context.closure = this._helper.getClosure(context.shapes);
-};
-
-MoveShapesHandler.prototype.postExecute = function(context) {
-  this._helper.moveClosure(context.closure, context.delta, context.newParent, context.newHost);
-};
-
-
-MoveShapesHandler.prototype.execute = function(context) { };
-MoveShapesHandler.prototype.revert = function(context) { };
-
-},{"135":135}],128:[function(_dereq_,module,exports){
+},{"155":155,"208":208,"244":244,"366":366,"372":372}],147:[function(_dereq_,module,exports){
 'use strict';
 
 function NoopHandler() {}
@@ -21925,10 +25536,10 @@ module.exports = NoopHandler;
 
 NoopHandler.prototype.execute = function() {};
 NoopHandler.prototype.revert = function() {};
-},{}],129:[function(_dereq_,module,exports){
+},{}],148:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(330);
+var isArray = _dereq_(357);
 
 
 /**
@@ -22000,10 +25611,10 @@ ReconnectConnectionHandler.prototype.revert = function(context) {
 
   return connection;
 };
-},{"330":330}],130:[function(_dereq_,module,exports){
+},{"357":357}],149:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218);
+var forEach = _dereq_(244);
 
 
 /**
@@ -22069,7 +25680,7 @@ module.exports = ReplaceShapeHandler;
 
   // (3) adopt all children from the old shape
 
-  modeling.moveShapes(oldShape.children, { x: 0, y: 0 }, newShape);
+  modeling.moveElements(oldShape.children, { x: 0, y: 0 }, newShape);
 
 
   // (4) reconnect connections to the new shape (where allowed)
@@ -22120,11 +25731,11 @@ ReplaceShapeHandler.prototype.execute = function(context) {};
 
 ReplaceShapeHandler.prototype.revert = function(context) {};
 
-},{"218":218}],131:[function(_dereq_,module,exports){
+},{"244":244}],150:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(339),
-    forEach = _dereq_(218);
+var assign = _dereq_(366),
+    forEach = _dereq_(244);
 
 
 /**
@@ -22156,7 +25767,7 @@ ResizeShapeHandler.prototype.execute = function(context) {
   var shape   = context.shape,
       newBounds = context.newBounds;
 
-  if (newBounds.x === undefined || newBounds.y === undefined || 
+  if (newBounds.x === undefined || newBounds.y === undefined ||
       newBounds.width === undefined || newBounds.height === undefined) {
     throw new Error('newBounds must have {x, y, width, height} properties');
   }
@@ -22186,9 +25797,12 @@ ResizeShapeHandler.prototype.execute = function(context) {
 
 ResizeShapeHandler.prototype.postExecute = function(context) {
 
-  var shape = context.shape;
+  var shape = context.shape,
+      oldBounds = context.oldBounds;
 
   var modeling = this._modeling;
+
+  modeling.updateAnchors(shape, oldBounds);
 
   forEach(shape.incoming, function(c) {
     modeling.layoutConnection(c, { endChanged: true });
@@ -22216,12 +25830,12 @@ ResizeShapeHandler.prototype.revert = function(context) {
   return shape;
 };
 
-},{"218":218,"339":339}],132:[function(_dereq_,module,exports){
+},{"244":244,"366":366}],151:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218);
+var forEach = _dereq_(244);
 
-var SpaceUtil = _dereq_(165);
+var SpaceUtil = _dereq_(188);
 
 /**
  * A handler that implements reversible creating and removing of space.
@@ -22229,7 +25843,7 @@ var SpaceUtil = _dereq_(165);
  * It executes in two phases:
  *
  *  (1) resize all affected resizeShapes
- *  (2) move all affected moveShapes
+ *  (2) move all affected moveElements
  */
 function SpaceToolHandler(modeling) {
   this._modeling = modeling;
@@ -22261,18 +25875,18 @@ SpaceToolHandler.prototype.postExecute = function(context) {
       movingShapes = context.movingShapes,
       delta = context.delta;
 
-  modeling.moveShapes(movingShapes, delta);
+  modeling.moveElements(movingShapes, delta);
 };
 
 SpaceToolHandler.prototype.execute = function(context) {};
 SpaceToolHandler.prototype.revert = function(context) {};
 
-},{"165":165,"218":218}],133:[function(_dereq_,module,exports){
+},{"188":188,"244":244}],152:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218),
-    assign = _dereq_(339);
+var forEach = _dereq_(244);
 
+var getNewAttachPoint = _dereq_(206).getNewAttachPoint;
 
 /**
  * Update the anchors of
@@ -22281,64 +25895,142 @@ function UpdateAnchorsHandler() { }
 
 module.exports = UpdateAnchorsHandler;
 
-
-UpdateAnchorsHandler.prototype.execute = function(context) {
-
-  // update connection anchors
-  return this.updateAnchors(context.element, context.delta);
-};
-
-UpdateAnchorsHandler.prototype.revert = function(context) {
-
-  var delta = context.delta,
-      revertedDelta = { x: -1 * delta.x, y: -1 * delta.y };
-
-  // revert update connection anchors
-  return this.updateAnchors(context.element, revertedDelta);
-};
-
 /**
  * Update anchors on the element according to the delta movement.
  *
- * @param {djs.model.Element} element
- * @param {Point} delta
+ * @param {context} context
+ * @param {djs.model.Element} context.element
+ * @param {dc.Bounds} context.oldBounds
  *
  * @return Array<djs.model.Connection>
  */
-UpdateAnchorsHandler.prototype.updateAnchors = function(element, delta) {
+UpdateAnchorsHandler.prototype.execute = function(context) {
 
-  function add(point, delta) {
-    return {
-      x: point.x + delta.x,
-      y: point.y + delta.y
-    };
+  var element = context.element,
+      oldBounds = context.oldBounds;
+
+  // storing all changed connections for revert
+  var changedConnections = context.changedConnections = [];
+
+  // Array containing all the previous original points
+  var oldAnchors = context.oldAnchors = [];
+
+
+  /**
+   * Update anchors for all connections,
+   * taking anchorPosition = (start|end) into account
+   */
+  function updateAnchors(connections, anchorPosition) {
+    forEach(connections, function(c) {
+
+      var waypoints = c.waypoints,
+          pointIndex = anchorPosition === 'end' ? waypoints.length - 1 : 0,
+          point = waypoints[pointIndex];
+
+      oldAnchors.push({ point: point, oldOriginal: point.original });
+
+      // calculate the new original point
+      // based on the old orgininal
+      // fall back to actual point if no old original is set
+      point.original = getNewAttachPoint(point.original || point, oldBounds, element);
+
+      changedConnections.push(c);
+    });
   }
 
-  function updateAnchor(waypoint) {
-    var original = waypoint.original;
+  updateAnchors(element.incoming, 'end');
+  updateAnchors(element.outgoing, 'start');
 
-    waypoint.original = assign(original || {}, add(original || waypoint, delta));
-  }
-
-  var changed = [];
-
-  forEach(element.incoming, function(c) {
-    var waypoints = c.waypoints;
-    updateAnchor(waypoints[waypoints.length - 1]);
-
-    changed.push(c);
-  });
-
-  forEach(element.outgoing, function(c) {
-    var waypoints = c.waypoints;
-    updateAnchor(waypoints[0]);
-
-    changed.push(c);
-  });
-
-  return changed;
+  return changedConnections;
 };
-},{"218":218,"339":339}],134:[function(_dereq_,module,exports){
+
+UpdateAnchorsHandler.prototype.revert = function(context) {
+  var oldAnchors = context.oldAnchors,
+      changedConnections = context.changedConnections;
+
+  forEach(oldAnchors, function(anchor) {
+    // replace point.original with the old version
+    // we stored during execute
+    anchor.point.original = anchor.oldOriginal;
+  });
+
+  return changedConnections;
+};
+},{"206":206,"244":244}],153:[function(_dereq_,module,exports){
+'use strict';
+
+var Collections = _dereq_(208);
+
+/**
+ * A handler that implements reversible attaching/detaching of shapes.
+ */
+function UpdateAttachmentHandler(modeling) {
+  this._modeling = modeling;
+}
+
+module.exports = UpdateAttachmentHandler;
+
+UpdateAttachmentHandler.$inject = [ 'modeling' ];
+
+
+UpdateAttachmentHandler.prototype.execute = function(context) {
+  var shape = context.shape,
+      newHost = context.newHost,
+      oldHost = shape.host;
+
+  // (0) detach from old host
+  context.oldHost = oldHost;
+  context.attacherIdx = removeAttacher(oldHost, shape);
+
+  // (1) attach to new host
+  addAttacher(newHost, shape);
+
+  // (2) update host
+  shape.host = newHost;
+
+  return shape;
+};
+
+UpdateAttachmentHandler.prototype.revert = function(context) {
+  var shape = context.shape,
+      newHost = context.newHost,
+      oldHost = context.oldHost,
+      attacherIdx = context.attacherIdx;
+
+  // (2) update host
+  shape.host = oldHost;
+
+  // (1) attach to new host
+  removeAttacher(newHost, shape);
+
+  // (0) detach from old host
+  addAttacher(oldHost, shape, attacherIdx);
+
+  return shape;
+};
+
+
+function removeAttacher(host, attacher) {
+  // remove attacher from host
+  return Collections.remove(host && host.attachers, attacher);
+}
+
+function addAttacher(host, attacher, idx) {
+
+  if (!host) {
+    return;
+  }
+
+  var attachers = host.attachers;
+
+  if (!attachers) {
+    host.attachers = attachers = [];
+  }
+
+  Collections.add(attachers, attacher, idx);
+}
+
+},{"208":208}],154:[function(_dereq_,module,exports){
 'use strict';
 
 function UpdateWaypointsHandler() { }
@@ -22366,12 +26058,12 @@ UpdateWaypointsHandler.prototype.revert = function(context) {
 
   return connection;
 };
-},{}],135:[function(_dereq_,module,exports){
+},{}],155:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218);
+var forEach = _dereq_(244);
 
-var Elements = _dereq_(186);
+var Elements = _dereq_(210);
 
 
 /**
@@ -22398,7 +26090,11 @@ module.exports = MoveHelper;
  * @return {Array<djs.model.Base>} list of touched elements
  */
 MoveHelper.prototype.moveRecursive = function(elements, delta, newParent) {
-  return this.moveClosure(this.getClosure(elements), delta, newParent);
+  if (!elements) {
+    return [];
+  } else {
+    return this.moveClosure(this.getClosure(elements), delta, newParent);
+  }
 };
 
 /**
@@ -22409,7 +26105,7 @@ MoveHelper.prototype.moveRecursive = function(elements, delta, newParent) {
  * @param {djs.model.Base} [newParent]
  * @param {djs.model.Base} [newHost]
  */
-MoveHelper.prototype.moveClosure = function(closure, delta, newParent, newHost) {
+MoveHelper.prototype.moveClosure = function(closure, delta, newParent, newHost, primaryShape) {
   var modeling = this._modeling;
 
   var allShapes = closure.allShapes,
@@ -22417,11 +26113,17 @@ MoveHelper.prototype.moveClosure = function(closure, delta, newParent, newHost) 
       enclosedConnections = closure.enclosedConnections,
       topLevel = closure.topLevel;
 
+  var keepParent = false;
+
+  if (primaryShape && primaryShape.parent === newParent) {
+    keepParent = true;
+  }
+
   // move all shapes
-  forEach(allShapes, function(s) {
+  forEach(allShapes, function(shape) {
 
     // move the element according to the given delta
-    modeling.moveShape(s, delta, topLevel[s.id] && newParent, {
+    modeling.moveShape(shape, delta, topLevel[shape.id] && !keepParent && newParent, {
       recurse: false,
       layout: false
     });
@@ -22454,30 +26156,30 @@ MoveHelper.prototype.getClosure = function(elements) {
   return Elements.getClosure(elements);
 };
 
-},{"186":186,"218":218}],136:[function(_dereq_,module,exports){
+},{"210":210,"244":244}],156:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(80),
-    _dereq_(98),
-    _dereq_(155)
+    _dereq_(96),
+    _dereq_(116),
+    _dereq_(178)
   ],
   __init__: [ 'modeling' ],
-  modeling: [ 'type', _dereq_(115) ],
-  layouter: [ 'type', _dereq_(172) ]
+  modeling: [ 'type', _dereq_(135) ],
+  layouter: [ 'type', _dereq_(195) ]
 };
 
-},{"115":115,"155":155,"172":172,"80":80,"98":98}],137:[function(_dereq_,module,exports){
+},{"116":116,"135":135,"178":178,"195":195,"96":96}],157:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(339),
-    filter = _dereq_(216),
-    groupBy = _dereq_(219);
+var assign = _dereq_(366),
+    filter = _dereq_(242),
+    groupBy = _dereq_(245);
 
 var LOW_PRIORITY = 500,
     MEDIUM_PRIORITY = 1250,
     HIGH_PRIORITY = 1500;
 
-var getOriginalEvent = _dereq_(187).getOriginal;
+var getOriginalEvent = _dereq_(211).getOriginal;
 
 var round = Math.round;
 
@@ -22503,7 +26205,7 @@ function MoveEvents(eventBus, dragging, modeling, selection, rules) {
 
   function canMove(shapes, delta, position, target) {
 
-    return rules.allowed('shapes.move', {
+    return rules.allowed('elements.move', {
       shapes: shapes,
       delta: delta,
       position: position,
@@ -22609,7 +26311,7 @@ function MoveEvents(eventBus, dragging, modeling, selection, rules) {
     delta.x = round(delta.x);
     delta.y = round(delta.y);
 
-    modeling.moveShapes(context.shapes, delta, context.target, isAttach);
+    modeling.moveElements(context.shapes, delta, context.target, isAttach, { primaryShape: context.shape });
   });
 
 
@@ -22680,22 +26382,26 @@ function removeNested(elements) {
     return true;
   });
 }
-},{"187":187,"216":216,"219":219,"339":339}],138:[function(_dereq_,module,exports){
+
+},{"211":211,"242":242,"245":245,"366":366}],158:[function(_dereq_,module,exports){
 'use strict';
 
-var flatten = _dereq_(208),
-    forEach = _dereq_(218),
-    filter = _dereq_(216),
-    find = _dereq_(217),
-    map = _dereq_(221);
+var flatten = _dereq_(234),
+    forEach = _dereq_(244),
+    filter = _dereq_(242),
+    find = _dereq_(243),
+    size = _dereq_(249),
+    groupBy = _dereq_(245),
+    map = _dereq_(247);
 
-var Elements = _dereq_(186);
+var Elements = _dereq_(210);
 
 var LOW_PRIORITY = 500;
 
 var MARKER_DRAGGING = 'djs-dragging',
     MARKER_OK = 'drop-ok',
     MARKER_NOT_OK = 'drop-not-ok',
+    MARKER_NEW_PARENT = 'new-parent',
     MARKER_ATTACH = 'attach-ok';
 
 
@@ -22734,7 +26440,7 @@ function MoveVisuals(eventBus, elementRegistry, canvas, styles) {
   /** set drop marker on an element */
   function setMarker(element, marker) {
 
-    [ MARKER_ATTACH, MARKER_OK, MARKER_NOT_OK ].forEach(function(m) {
+    [ MARKER_ATTACH, MARKER_OK, MARKER_NOT_OK, MARKER_NEW_PARENT ].forEach(function(m) {
 
       if (m === marker) {
         canvas.addMarker(element, m);
@@ -22772,7 +26478,11 @@ function MoveVisuals(eventBus, elementRegistry, canvas, styles) {
     }));
 
     dragGroup.add(dragger);
+
+    return dragger;
   }
+
+  this.addDragger = addDragger;
 
   function makeDraggable(context, element, addMarker) {
 
@@ -22824,6 +26534,9 @@ function MoveVisuals(eventBus, elementRegistry, canvas, styles) {
     });
 
     context.allDraggedElements = allDraggedElements;
+
+    // determine, if any of the dragged elements have different parents
+    context.differentParents = haveDifferentParents(dragShapes);
   });
 
   // assign a low priority to this handler
@@ -22835,11 +26548,14 @@ function MoveVisuals(eventBus, elementRegistry, canvas, styles) {
     var context = event.context,
         dragGroup = context.dragGroup,
         target = context.target,
+        parent = context.shape.parent,
         canExecute = context.canExecute;
 
     if (target) {
       if (canExecute === 'attach') {
         setMarker(target, MARKER_ATTACH);
+      } else if (context.canExecute && target && target.id !== parent.id) {
+        setMarker(target, MARKER_NEW_PARENT);
       } else {
         setMarker(target, context.canExecute ? MARKER_OK : MARKER_NOT_OK);
       }
@@ -22894,28 +26610,132 @@ function removeEdges(elements) {
   return filteredElements;
 }
 
+function haveDifferentParents(elements) {
+  return size(groupBy(elements, function(e) { return e.parent && e.parent.id; })) !== 1;
+}
+
 MoveVisuals.$inject = [ 'eventBus', 'elementRegistry', 'canvas', 'styles' ];
 
 module.exports = MoveVisuals;
 
-},{"186":186,"208":208,"216":216,"217":217,"218":218,"221":221}],139:[function(_dereq_,module,exports){
+},{"210":210,"234":234,"242":242,"243":243,"244":244,"245":245,"247":247,"249":249}],159:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(108),
-    _dereq_(159),
-    _dereq_(141),
-    _dereq_(155),
-    _dereq_(106)
+    _dereq_(128),
+    _dereq_(182),
+    _dereq_(162),
+    _dereq_(178),
+    _dereq_(124)
   ],
   __init__: [ 'move', 'moveVisuals' ],
-  move: [ 'type', _dereq_(137) ],
-  moveVisuals: [ 'type', _dereq_(138) ]
+  move: [ 'type', _dereq_(157) ],
+  moveVisuals: [ 'type', _dereq_(158) ]
 };
 
-},{"106":106,"108":108,"137":137,"138":138,"141":141,"155":155,"159":159}],140:[function(_dereq_,module,exports){
+},{"124":124,"128":128,"157":157,"158":158,"162":162,"178":178,"182":182}],160:[function(_dereq_,module,exports){
 'use strict';
 
-var getBBox = _dereq_(186).getBBox;
+var inherits = _dereq_(232);
+
+var CommandInterceptor = _dereq_(94);
+
+
+/**
+ * An abstract provider that allows modelers to implement a custom
+ * ordering of diagram elements on the canvas.
+ *
+ * It makes sure that the order is always preserved during element
+ * creation and move operations.
+ *
+ * In order to use this behavior, inherit from it and override
+ * the method {@link OrderingProvider#getOrdering}.
+ *
+ * @example
+ *
+ * ```javascript
+ * function CustomOrderingProvider(eventBus) {
+ *   OrderingProvider.call(this, eventBus);
+ *
+ *   this.getOrdering = function(element, newParent) {
+ *     // always insert elements at the front
+ *     // when moving
+ *     return {
+ *       index: 0,
+ *       parent: newParent
+ *     };
+ *   };
+ * }
+ * ```
+ *
+ * @param {EventBus} eventBus
+ */
+function OrderingProvider(eventBus) {
+
+  CommandInterceptor.call(this, eventBus);
+
+
+  var self = this;
+
+  this.preExecute([ 'shape.create', 'connection.create' ], function(event) {
+
+    var context = event.context,
+        element = context.shape || context.connection,
+        parent = context.parent;
+
+    var ordering = self.getOrdering(element, parent);
+
+    if (ordering) {
+
+      if (ordering.parent !== undefined) {
+        context.parent = ordering.parent;
+      }
+
+      context.parentIndex = ordering.index;
+    }
+  });
+
+  this.preExecute([ 'shape.move', 'connection.move' ], function(event) {
+
+    var context = event.context,
+        element = context.shape || context.connection,
+        parent = context.newParent || element.parent;
+
+    var ordering = self.getOrdering(element, parent);
+
+    if (ordering) {
+
+      if (ordering.parent !== undefined) {
+        context.newParent = ordering.parent;
+      }
+
+      context.newParentIndex = ordering.index;
+    }
+  });
+}
+
+/**
+ * Return a custom ordering of the element, both in terms
+ * of parent element and index in the new parent.
+ *
+ * Implementors of this method must return an object with
+ * `parent` _and_ `index` in it.
+ *
+ * @param {djs.model.Base} element
+ * @param {djs.model.Shape} newParent
+ *
+ * @return {Object} ordering descriptor
+ */
+OrderingProvider.prototype.getOrdering = function(element, newParent) {
+  return null;
+};
+
+inherits(OrderingProvider, CommandInterceptor);
+
+module.exports = OrderingProvider;
+},{"232":232,"94":94}],161:[function(_dereq_,module,exports){
+'use strict';
+
+var getBBox = _dereq_(210).getBBox;
 
 
 /**
@@ -22992,32 +26812,31 @@ Outline.$inject = ['eventBus', 'styles', 'elementRegistry'];
 
 module.exports = Outline;
 
-},{"186":186}],141:[function(_dereq_,module,exports){
+},{"210":210}],162:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'outline' ],
-  outline: [ 'type', _dereq_(140) ]
+  outline: [ 'type', _dereq_(161) ]
 };
-},{"140":140}],142:[function(_dereq_,module,exports){
+},{"161":161}],163:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(330),
-    isString = _dereq_(336),
-    isObject = _dereq_(334),
-    assign = _dereq_(339),
-    forEach = _dereq_(218),
-    filter = _dereq_(216),
-    debounce = _dereq_(228);
+var isArray = _dereq_(357),
+    isString = _dereq_(363),
+    isObject = _dereq_(361),
+    assign = _dereq_(366),
+    forEach = _dereq_(244),
+    filter = _dereq_(242);
 
-var domify = _dereq_(356),
-    domClasses = _dereq_(352),
-    domRemove = _dereq_(360);
+var domify = _dereq_(383),
+    domClasses = _dereq_(379),
+    domRemove = _dereq_(387);
 
-var getBBox = _dereq_(186).getBBox;
+var getBBox = _dereq_(210).getBBox;
 
 // document wide unique overlay ids
-var ids = new (_dereq_(190))('ov');
+var ids = new (_dereq_(214))('ov');
 
 
 function createRoot(parent) {
@@ -23082,7 +26901,7 @@ function setVisible(el, visible) {
  * @param {Canvas} canvas
  * @param {ElementRegistry} elementRegistry
  */
-function Overlays(config, eventBus, canvas, elementRegistry) {
+function Overlays(eventBus, canvas, elementRegistry) {
 
   this._eventBus = eventBus;
   this._canvas = canvas;
@@ -23110,11 +26929,11 @@ function Overlays(config, eventBus, canvas, elementRegistry) {
   // root html element for all overlays
   this._overlayRoot = createRoot(canvas.getContainer());
 
-  this._init(config);
+  this._init();
 }
 
 
-Overlays.$inject = [ 'config.overlays', 'eventBus', 'canvas', 'elementRegistry' ];
+Overlays.$inject = [ 'eventBus', 'canvas', 'elementRegistry' ];
 
 module.exports = Overlays;
 
@@ -23367,6 +27186,7 @@ Overlays.prototype._updateRoot = function(viewbox) {
 
   this._overlayRoot.style.transform = matrix;
   this._overlayRoot.style['-ms-transform'] = matrix;
+  this._overlayRoot.style['-webkit-transform'] = matrix;
 };
 
 
@@ -23439,7 +27259,7 @@ Overlays.prototype._updateOverlayVisibilty = function(viewbox) {
   });
 };
 
-Overlays.prototype._init = function(config) {
+Overlays.prototype._init = function() {
 
   var eventBus = this._eventBus;
 
@@ -23448,19 +27268,18 @@ Overlays.prototype._init = function(config) {
 
   // scroll/zoom integration
 
-  var updateViewbox = function(viewbox) {
+  function updateViewbox(viewbox) {
     self._updateRoot(viewbox);
     self._updateOverlayVisibilty(viewbox);
 
     self.show();
-  };
-
-  if (!config || config.deferUpdate !== false) {
-    updateViewbox = debounce(updateViewbox, 300);
   }
 
-  eventBus.on('canvas.viewbox.changed', function(event) {
+  eventBus.on('canvas.viewbox.changing', function(event) {
     self.hide();
+  });
+
+  eventBus.on('canvas.viewbox.changed', function(event) {
     updateViewbox(event.viewbox);
   });
 
@@ -23505,25 +27324,25 @@ Overlays.prototype._init = function(config) {
   });
 };
 
-},{"186":186,"190":190,"216":216,"218":218,"228":228,"330":330,"334":334,"336":336,"339":339,"352":352,"356":356,"360":360}],143:[function(_dereq_,module,exports){
+},{"210":210,"214":214,"242":242,"244":244,"357":357,"361":361,"363":363,"366":366,"379":379,"383":383,"387":387}],164:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'overlays' ],
-  overlays: [ 'type', _dereq_(142) ]
+  overlays: [ 'type', _dereq_(163) ]
 };
-},{"142":142}],144:[function(_dereq_,module,exports){
+},{"163":163}],165:[function(_dereq_,module,exports){
 'use strict';
 
-var isFunction = _dereq_(331),
-    forEach = _dereq_(218);
+var isFunction = _dereq_(358),
+    forEach = _dereq_(244);
 
-var domify = _dereq_(356),
-    domQuery = _dereq_(359),
-    domAttr = _dereq_(351),
-    domClear = _dereq_(353),
-    domClasses = _dereq_(352),
-    domMatches = _dereq_(358),
-    domDelegate = _dereq_(355),
-    domEvent = _dereq_(357);
+var domify = _dereq_(383),
+    domQuery = _dereq_(386),
+    domAttr = _dereq_(378),
+    domClear = _dereq_(380),
+    domClasses = _dereq_(379),
+    domMatches = _dereq_(385),
+    domDelegate = _dereq_(382),
+    domEvent = _dereq_(384);
 
 
 var toggleSelector = '.djs-palette-toggle',
@@ -23761,24 +27580,24 @@ Palette.HTML_MARKUP =
     '<div class="djs-palette-entries"></div>' +
     '<div class="djs-palette-toggle"></div>' +
   '</div>';
-},{"218":218,"331":331,"351":351,"352":352,"353":353,"355":355,"356":356,"357":357,"358":358,"359":359}],145:[function(_dereq_,module,exports){
+},{"244":244,"358":358,"378":378,"379":379,"380":380,"382":382,"383":383,"384":384,"385":385,"386":386}],166:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'palette' ],
-  palette: [ 'type', _dereq_(144) ]
+  palette: [ 'type', _dereq_(165) ]
 };
 
-},{"144":144}],146:[function(_dereq_,module,exports){
+},{"165":165}],167:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218),
-    assign = _dereq_(339),
-    find = _dereq_(217);
+var forEach = _dereq_(244),
+    assign = _dereq_(366),
+    find = _dereq_(243);
 
-var domDelegate = _dereq_(355),
-    domify = _dereq_(356),
-    domClasses = _dereq_(352),
-    domAttr = _dereq_(351),
-    domRemove = _dereq_(360);
+var domDelegate = _dereq_(382),
+    domify = _dereq_(383),
+    domClasses = _dereq_(379),
+    domAttr = _dereq_(378),
+    domRemove = _dereq_(387);
 
 var DATA_REF = 'data-id';
 
@@ -24076,6 +27895,10 @@ PopupMenu.prototype._createEntry = function(entry) {
       entryClasses.add('disabled');
     }
 
+    if (entry.title) {
+      entryContainer.title = entry.title;
+    }
+
     return entryContainer;
 };
 
@@ -24093,13 +27916,13 @@ PopupMenu.prototype._bindHandlers = function() {
   }
 
   eventBus.once('contextPad.close', close);
-  eventBus.once('canvas.viewbox.changed', close);
+  eventBus.once('canvas.viewbox.changing', close);
   eventBus.once('commandStack.changed', close);
 };
 
 
 /**
- * Unbinds the `close` method to 'contextPad.close' & 'canvas.viewbox.changed'.
+ * Unbinds the `close` method to 'contextPad.close' & 'canvas.viewbox.changing'.
  */
 PopupMenu.prototype._unbindHandlers = function() {
 
@@ -24117,15 +27940,15 @@ PopupMenu.prototype._unbindHandlers = function() {
 
 module.exports = PopupMenu;
 
-},{"217":217,"218":218,"339":339,"351":351,"352":352,"355":355,"356":356,"360":360}],147:[function(_dereq_,module,exports){
+},{"243":243,"244":244,"366":366,"378":378,"379":379,"382":382,"383":383,"387":387}],168:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'popupMenu' ],
-  popupMenu: [ 'type', _dereq_(146) ]
+  popupMenu: [ 'type', _dereq_(167) ]
 };
 
-},{"146":146}],148:[function(_dereq_,module,exports){
+},{"167":167}],169:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -24174,44 +27997,26 @@ Replace.prototype.replaceElement = function(oldElement, newElementData, options)
   return newElement;
 };
 
-},{}],149:[function(_dereq_,module,exports){
+},{}],170:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'replace' ],
-  replace: [ 'type', _dereq_(148) ]
+  replace: [ 'type', _dereq_(169) ]
 };
 
-},{"148":148}],150:[function(_dereq_,module,exports){
+},{"169":169}],171:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218),
-    filter = _dereq_(216),
-    pick = _dereq_(345),
-    assign = _dereq_(339);
+var pick = _dereq_(372),
+    assign = _dereq_(366);
 
-var ResizeUtil = _dereq_(151),
-    domEvent = _dereq_(357),
-    Elements = _dereq_(186);
+var ResizeUtil = _dereq_(173);
 
-var isPrimaryButton = _dereq_(193).isPrimaryButton;
-
-var round = Math.round;
-
-var Snap = _dereq_(200);
-
-var HANDLE_OFFSET = -2,
-    HANDLE_SIZE  = 5,
-    HANDLE_HIT_SIZE = 20;
-
-var MARKER_RESIZING = 'djs-resizing',
-    MARKER_RESIZE_NOT_OK = 'resize-not-ok',
-    CLS_RESIZER   = 'djs-resizer';
-
+var asTRBL = _dereq_(197).asTRBL,
+    roundBounds = _dereq_(197).roundBounds;
 
 var DEFAULT_MIN_WIDTH = 10;
-
-var DEFAULT_CHILD_BOX_PADDING = 20;
 
 
 /**
@@ -24251,147 +28056,30 @@ var DEFAULT_CHILD_BOX_PADDING = 20;
  * });
  * ```
  */
-function Resize(eventBus, elementRegistry, rules, modeling, canvas, selection, dragging) {
+function Resize(eventBus, rules, modeling, dragging) {
 
-  function canResize(context) {
-    var ctx = pick(context, [ 'newBounds', 'shape', 'delta', 'direction' ]);
-    return rules.allowed('shape.resize', ctx);
-  }
+  this._dragging = dragging;
+  this._rules = rules;
 
-
-  // resizing implementation //////////////////////////////////
-
-  /**
-   * A helper that realizes the resize visuals
-   */
-  var visuals = {
-    create: function(context) {
-      var container = canvas.getDefaultLayer(),
-          shape = context.shape,
-          frame;
-
-      frame = context.frame = Snap.create('rect', {
-        class: 'djs-resize-overlay',
-        width:  shape.width + 10,
-        height: shape.height + 10,
-        x: shape.x -5,
-        y: shape.y -5
-      });
-
-      frame.appendTo(container);
-    },
-
-    update: function(context) {
-      var frame = context.frame,
-          bounds = context.newBounds;
-
-      if (bounds.width > 5) {
-        frame.attr({
-          x: bounds.x,
-          width: bounds.width
-        });
-      }
-
-      if (bounds.height > 5) {
-        frame.attr({
-          y: bounds.y,
-          height: bounds.height
-        });
-      }
-
-      frame[context.canExecute ? 'removeClass' : 'addClass'](MARKER_RESIZE_NOT_OK);
-    },
-
-    remove: function(context) {
-      if (context.frame) {
-        context.frame.remove();
-      }
-    }
-  };
-
-  /**
-   * is the given element part of the
-   * resize targets min boundary box
-   *
-   * @param {djs.model.Base} element
-   */
-  function isBBoxChild(element) {
-    // exclude connections
-    if (element.waypoints) {
-      return false;
-    }
-
-    // labels
-    if (element.type === 'label') {
-      return false;
-    }
-
-    return true;
-  }
-
-  function addPadding(bbox, padding) {
-
-    var left, right, top, bottom;
-
-    if (typeof padding === 'object') {
-      left = padding.left || DEFAULT_CHILD_BOX_PADDING;
-      right = padding.right || DEFAULT_CHILD_BOX_PADDING;
-      top = padding.top || DEFAULT_CHILD_BOX_PADDING;
-      bottom = padding.bottom || DEFAULT_CHILD_BOX_PADDING;
-    } else {
-      left = right = top = bottom = padding || DEFAULT_CHILD_BOX_PADDING;
-    }
-
-    return {
-      x: bbox.x - left,
-      y: bbox.y - top,
-      width: bbox.width + left + right,
-      height: bbox.height + top + bottom
-    };
-  }
-
-  function computeChildrenBBox(shape, padding) {
-
-    // grab all the children that are part of the
-    // parents children box
-    var children = filter(shape.children, isBBoxChild);
-
-    if (children.length) {
-      return addPadding(Elements.getBBox(children), padding);
-    }
-  }
-
-  function computeMinResizeBox(context) {
-
-    var shape = context.shape,
-        direction = context.direction,
-        childrenBounds;
-
-    // get children bounds
-    childrenBounds = computeChildrenBBox(shape, context.childrenBoxPadding);
-
-    // get correct minimum bounds from given resize direction
-    // basically ensures that the minBounds is max(childrenBounds, minDimensions)
-    return ResizeUtil.getMinResizeBounds(direction, shape, context.minDimensions || {
-      width: DEFAULT_MIN_WIDTH,
-      height: DEFAULT_MIN_WIDTH
-    }, childrenBounds);
-  }
+  var self = this;
 
   eventBus.on('resize.start', function(event) {
 
     var context = event.context,
-        shape = context.shape,
+        resizeConstraints = context.resizeConstraints,
+        // evaluate minBounds for backwards compatibility
         minBounds = context.minBounds;
 
-    if (minBounds === undefined) {
-      context.minBounds = computeMinResizeBox(context);
+    if (resizeConstraints === undefined) {
+
+      if (minBounds === undefined) {
+        minBounds = self.computeMinResizeBox(context);
+      }
+
+      context.resizeConstraints = {
+        min: asTRBL(minBounds)
+      };
     }
-
-    // add resizable indicator
-    canvas.addMarker(shape, MARKER_RESIZING);
-
-    visuals.create(context);
   });
 
   eventBus.on('resize.move', function(event) {
@@ -24399,8 +28087,9 @@ function Resize(eventBus, elementRegistry, rules, modeling, canvas, selection, d
     var context = event.context,
         shape = context.shape,
         direction = context.direction,
-        minBounds = context.minBounds,
-        delta;
+        resizeConstraints = context.resizeConstraints,
+        delta,
+        newBounds;
 
     delta = {
       x: event.dx,
@@ -24409,203 +28098,288 @@ function Resize(eventBus, elementRegistry, rules, modeling, canvas, selection, d
 
     context.delta = delta;
 
-    context.newBounds = ResizeUtil.resizeBounds(shape, direction, delta);
+    newBounds = ResizeUtil.resizeBounds(shape, direction, delta);
 
-    if (minBounds) {
-      context.newBounds = ResizeUtil.ensureMinBounds(context.newBounds, minBounds);
-    }
+    // ensure constraints during resize
+    context.newBounds = ResizeUtil.ensureConstraints(newBounds, resizeConstraints);
 
     // update + cache executable state
-    context.canExecute = canResize(context);
-
-    // update resize frame visuals
-    visuals.update(context);
+    context.canExecute = self.canResize(context);
   });
 
   eventBus.on('resize.end', function(event) {
     var context = event.context,
-        shape = context.shape;
+        shape = context.shape,
+        canExecute = context.canExecute,
+        newBounds = context.newBounds;
 
-    var newBounds = context.newBounds;
+    if (canExecute) {
+      // ensure we have actual pixel values for new bounds
+      // (important when zoom level was > 1 during move)
+      newBounds = roundBounds(newBounds);
 
-
-    // ensure we have actual pixel values for new bounds
-    // (important when zoom level was > 1 during move)
-    newBounds.x = round(newBounds.x);
-    newBounds.y = round(newBounds.y);
-    newBounds.width = round(newBounds.width);
-    newBounds.height = round(newBounds.height);
-
-    // perform the actual resize
-    if (context.canExecute) {
-      modeling.resizeShape(shape, context.newBounds);
+      // perform the actual resize
+      modeling.resizeShape(shape, newBounds);
     }
   });
+}
 
-  eventBus.on('resize.cleanup', function(event) {
 
-    var context = event.context,
-        shape = context.shape;
+Resize.prototype.canResize = function(context) {
+  var rules = this._rules;
 
-    // remove resizable indicator
-    canvas.removeMarker(shape, MARKER_RESIZING);
+  var ctx = pick(context, [ 'newBounds', 'shape', 'delta', 'direction' ]);
 
-    // remove frame + destroy context
-    visuals.remove(context);
+  return rules.allowed('shape.resize', ctx);
+};
+
+/**
+ * Activate a resize operation
+ *
+ * You may specify additional contextual information and must specify a
+ * resize direction during activation of the resize event.
+ *
+ * @param {MouseEvent} event
+ * @param {djs.model.Shape} shape
+ * @param {Object|String} contextOrDirection
+ */
+Resize.prototype.activate = function(event, shape, contextOrDirection) {
+  var dragging = this._dragging,
+      context,
+      direction;
+
+  if (typeof contextOrDirection === 'string') {
+    contextOrDirection = {
+      direction: contextOrDirection
+    };
+  }
+
+  context = assign({ shape: shape }, contextOrDirection);
+
+  direction = context.direction;
+
+  if (!direction) {
+    throw new Error('must provide a direction (nw|se|ne|sw)');
+  }
+
+  dragging.activate(event, 'resize', {
+    autoActivate: true,
+    cursor: 'resize-' + (/nw|se/.test(direction) ? 'nwse' : 'nesw'),
+    data: {
+      shape: shape,
+      context: context
+    }
   });
+};
+
+Resize.prototype.computeMinResizeBox = function(context) {
+  var shape = context.shape,
+      direction = context.direction,
+      minDimensions,
+      childrenBounds;
+
+  minDimensions = context.minDimensions || {
+    width: DEFAULT_MIN_WIDTH,
+    height: DEFAULT_MIN_WIDTH
+  };
+
+  // get children bounds
+  childrenBounds = ResizeUtil.computeChildrenBBox(shape, context.childrenBoxPadding);
+
+  // get correct minimum bounds from given resize direction
+  // basically ensures that the minBounds is max(childrenBounds, minDimensions)
+  return ResizeUtil.getMinResizeBounds(direction, shape, minDimensions, childrenBounds);
+};
 
 
-  /**
-   * Activate a resize operation
-   *
-   * You may specify additional contextual information and must specify a
-   * resize direction during activation of the resize event.
-   *
-   * @param {MouseEvent} event
-   * @param {djs.model.Shape} shape
-   * @param {Object|String} contextOrDirection
-   */
-  function activate(event, shape, contextOrDirection) {
+Resize.$inject = [ 'eventBus', 'rules', 'modeling', 'dragging' ];
 
-    var context,
-        direction;
+module.exports = Resize;
 
-    if (typeof contextOrDirection === 'string') {
-      contextOrDirection = {
-        direction: contextOrDirection
-      };
-    }
+},{"173":173,"197":197,"366":366,"372":372}],172:[function(_dereq_,module,exports){
+'use strict';
 
-    context = assign({ shape: shape }, contextOrDirection);
+var forEach = _dereq_(244);
 
-    direction = context.direction;
+var Snap = _dereq_(229);
 
-    if (!direction) {
-      throw new Error('must provide a direction (nw|se|ne|sw)');
-    }
+var HANDLE_OFFSET = -2,
+    HANDLE_SIZE  = 5,
+    HANDLE_HIT_SIZE = 20;
 
-    dragging.activate(event, 'resize', {
-      autoActivate: true,
-      cursor: 'resize-' + (/nw|se/.test(direction) ? 'nwse' : 'nesw'),
-      data: {
-        shape: shape,
-        context: context
-      }
-    });
-  }
+var CLS_RESIZER   = 'djs-resizer';
 
-  function makeDraggable(element, gfx, direction) {
+var domEvent = _dereq_(384);
 
-    function listener(event) {
-      // only trigger on left mouse button
-      if (isPrimaryButton(event)) {
-        activate(event, element, direction);
-      }
-    }
+var isPrimaryButton = _dereq_(217).isPrimaryButton;
 
-    domEvent.bind(gfx.node, 'mousedown', listener);
-    domEvent.bind(gfx.node, 'touchstart', listener);
-  }
+var asTRBL = _dereq_(197).asTRBL;
 
-  function __createResizer(gfx, x, y, rotation, direction) {
 
-    var group = gfx.group().addClass(CLS_RESIZER).addClass(CLS_RESIZER + '-' + direction);
+/**
+ * This component is responsible for adding resize handles.
+ *
+ * @param {EventBus} eventBus
+ * @param {Canvas} canvas
+ * @param {Selection} selection
+ * @param {Resize} resize
+ * @param {ResizeVisuals} resizeVisuals
+ */
+function ResizeHandles(eventBus, canvas, selection, resize) {
 
-    var origin = -HANDLE_SIZE + HANDLE_OFFSET;
+  this._resize = resize;
+  this._canvas = canvas;
 
-    // Create four drag indicators on the outline
-    group.rect(origin, origin, HANDLE_SIZE, HANDLE_SIZE).addClass(CLS_RESIZER + '-visual');
-    group.rect(origin, origin, HANDLE_HIT_SIZE, HANDLE_HIT_SIZE).addClass(CLS_RESIZER + '-hit');
-
-    var matrix = new Snap.Matrix().translate(x, y).rotate(rotation, 0, 0);
-    group.transform(matrix);
-
-    return group;
-  }
-
-  function createResizer(element, gfx, direction) {
-
-    var resizer;
-
-    if (direction === 'nw') {
-      resizer = __createResizer(gfx, 0, 0, 0, direction);
-    } else if (direction === 'ne') {
-      resizer = __createResizer(gfx, element.width, 0, 90, direction);
-    } else if (direction === 'se') {
-      resizer = __createResizer(gfx, element.width, element.height, 180, direction);
-    } else {
-      resizer = __createResizer(gfx, 0, element.height, 270, direction);
-    }
-
-    makeDraggable(element, resizer, direction);
-  }
-
-  // resize handles implementation ///////////////////////////////
-
-  function addResize(shape) {
-
-    if (!canResize({ shape: shape })) {
-      return;
-    }
-
-    var gfx = elementRegistry.getGraphics(shape);
-
-    createResizer(shape, gfx, 'nw');
-    createResizer(shape, gfx, 'ne');
-    createResizer(shape, gfx, 'se');
-    createResizer(shape, gfx, 'sw');
-  }
-
-  function removeResize(shape) {
-
-    var gfx = elementRegistry.getGraphics(shape);
-    var resizers = gfx.selectAll('.' + CLS_RESIZER);
-
-    forEach(resizers, function(resizer){
-      resizer.remove();
-    });
-  }
+  var self = this;
 
   eventBus.on('selection.changed', function(e) {
-
     var oldSelection = e.oldSelection,
         newSelection = e.newSelection;
 
     // remove old selection markers
-    forEach(oldSelection, removeResize);
+    forEach(oldSelection, self.removeResizer, self);
 
     // add new selection markers ONLY if single selection
     if (newSelection.length === 1) {
-      forEach(newSelection, addResize);
+      forEach(newSelection, self.addResizer, self);
     }
   });
 
   eventBus.on('shape.changed', function(e) {
     var shape = e.element;
 
-    removeResize(shape);
+    self.removeResizer(shape);
 
     if (selection.isSelected(shape)) {
-      addResize(shape);
+      self.addResizer(shape);
     }
   });
-
-
-  // API
-
-  this.activate = activate;
 }
 
-Resize.$inject = [ 'eventBus', 'elementRegistry', 'rules', 'modeling', 'canvas', 'selection', 'dragging' ];
 
-module.exports = Resize;
+ResizeHandles.prototype.makeDraggable = function(element, gfx, direction) {
+  var resize = this._resize;
 
-},{"151":151,"186":186,"193":193,"200":200,"216":216,"218":218,"339":339,"345":345,"357":357}],151:[function(_dereq_,module,exports){
+  function startResize(event) {
+    // only trigger on left mouse button
+    if (isPrimaryButton(event)) {
+      resize.activate(event, element, direction);
+    }
+  }
+
+  domEvent.bind(gfx.node, 'mousedown', startResize);
+  domEvent.bind(gfx.node, 'touchstart', startResize);
+};
+
+
+ResizeHandles.prototype._createResizer = function(element, x, y, rotation, direction) {
+  var resizersParent = this._getResizersParent();
+
+  var group = resizersParent.group()
+                  .addClass(CLS_RESIZER)
+                  .addClass(CLS_RESIZER + '-' + element.id)
+                  .addClass(CLS_RESIZER + '-' + direction);
+
+  var origin = -HANDLE_SIZE + HANDLE_OFFSET;
+
+  // Create four drag indicators on the outline
+  group.rect(origin, origin, HANDLE_SIZE, HANDLE_SIZE).addClass(CLS_RESIZER + '-visual');
+  group.rect(origin, origin, HANDLE_HIT_SIZE, HANDLE_HIT_SIZE).addClass(CLS_RESIZER + '-hit');
+
+  var matrix = new Snap.Matrix().translate(x, y).rotate(rotation, 0, 0);
+
+  group.transform(matrix);
+
+  return group;
+};
+
+ResizeHandles.prototype.createResizer = function(element, direction) {
+  var resizer;
+
+  var trbl = asTRBL(element);
+
+  if (direction === 'nw') {
+    resizer = this._createResizer(element, trbl.left, trbl.top, 0, direction);
+  } else if (direction === 'ne') {
+    resizer = this._createResizer(element, trbl.right, trbl.top, 90, direction);
+  } else if (direction === 'se') {
+    resizer = this._createResizer(element, trbl.right, trbl.bottom, 180, direction);
+  } else {
+    resizer = this._createResizer(element, trbl.left, trbl.bottom, 270, direction);
+  }
+
+  this.makeDraggable(element, resizer, direction);
+};
+
+// resize handles implementation ///////////////////////////////
+ResizeHandles.prototype.addResizer = function(shape) {
+  var resize = this._resize;
+
+  if (!resize.canResize({ shape: shape })) {
+    return;
+  }
+
+  this.createResizer(shape, 'nw');
+  this.createResizer(shape, 'ne');
+  this.createResizer(shape, 'se');
+  this.createResizer(shape, 'sw');
+};
+
+ResizeHandles.prototype.removeResizer = function(shape) {
+
+  var resizersParent = this._getResizersParent();
+
+  var resizers = resizersParent.selectAll('.' + CLS_RESIZER + '-' + shape.id);
+
+  forEach(resizers, function(resizer){
+    resizer.remove();
+  });
+};
+
+ResizeHandles.prototype._getResizersParent = function() {
+  return this._canvas.getLayer('resizers');
+};
+
+ResizeHandles.$inject = [ 'eventBus', 'canvas', 'selection', 'resize' ];
+
+module.exports = ResizeHandles;
+
+},{"197":197,"217":217,"229":229,"244":244,"384":384}],173:[function(_dereq_,module,exports){
 'use strict';
+
+var filter = _dereq_(242);
 
 var max = Math.max,
     min = Math.min;
 
+var DEFAULT_CHILD_BOX_PADDING = 20;
+
+var getBBox = _dereq_(210).getBBox;
+
+
+var asTRBL = _dereq_(197).asTRBL,
+    asBounds = _dereq_(197).asBounds;
+
+function isNumber(a) {
+  return typeof a === 'number';
+}
+
+/**
+ * Substract a TRBL from another
+ *
+ * @param  {TRBL} trblA
+ * @param  {TRBL} trblB
+ *
+ * @return {TRBL}
+ */
+module.exports.substractTRBL = function(trblA, trblB) {
+  return {
+    top: trblA.top - trblB.top,
+    right: trblA.right - trblB.right,
+    bottom: trblA.bottom - trblB.bottom,
+    left: trblA.left - trblB.left
+  };
+};
 
 /**
  * Resize the given bounds by the specified delta from a given anchor point.
@@ -24660,6 +28434,26 @@ module.exports.resizeBounds = function(bounds, direction, delta) {
   }
 };
 
+
+/**
+ * Resize the given bounds by applying the passed
+ * { top, right, bottom, left } delta.
+ *
+ * @param {Bounds} bounds
+ * @param {TRBL} trblResize
+ *
+ * @return {Bounds}
+ */
+module.exports.resizeTRBL = function(bounds, resize) {
+  return {
+    x: bounds.x + (resize.left || 0),
+    y: bounds.y + (resize.top || 0),
+    width: bounds.width - (resize.left || 0) + (resize.right || 0),
+    height: bounds.height - (resize.top || 0) + (resize.bottom || 0)
+  };
+};
+
+
 module.exports.reattachPoint = function(bounds, newBounds, point) {
 
   var sx = bounds.width / newBounds.width,
@@ -24672,37 +28466,43 @@ module.exports.reattachPoint = function(bounds, newBounds, point) {
 };
 
 
-module.exports.ensureMinBounds = function(currentBounds, minBounds) {
-  var topLeft = {
-    x: Math.min(currentBounds.x, minBounds.x),
-    y: Math.min(currentBounds.y, minBounds.y)
-  };
+function applyConstraints(attr, trbl, resizeConstraints) {
 
-  var bottomRight = {
-    x: Math.max(currentBounds.x + currentBounds.width, minBounds.x + minBounds.width),
-    y: Math.max(currentBounds.y + currentBounds.height, minBounds.y + minBounds.height)
-  };
+  var value = trbl[attr],
+      minValue = resizeConstraints.min && resizeConstraints.min[attr],
+      maxValue = resizeConstraints.max && resizeConstraints.max[attr];
 
-  return {
-    x: topLeft.x,
-    y: topLeft.y,
-    width: bottomRight.x - topLeft.x,
-    height: bottomRight.y - topLeft.y
-  };
+  if (isNumber(minValue)) {
+    value = (/top|left/.test(attr) ? min : max)(value, minValue);
+  }
+
+  if (isNumber(maxValue)) {
+    value = (/top|left/.test(attr) ? max : min)(value, maxValue);
+  }
+
+  return value;
+}
+
+module.exports.ensureConstraints = function(currentBounds, resizeConstraints) {
+
+  if (!resizeConstraints) {
+    return currentBounds;
+  }
+
+  var currentTrbl = asTRBL(currentBounds);
+
+  return asBounds({
+    top: applyConstraints('top', currentTrbl, resizeConstraints),
+    right: applyConstraints('right', currentTrbl, resizeConstraints),
+    bottom: applyConstraints('bottom', currentTrbl, resizeConstraints),
+    left: applyConstraints('left', currentTrbl, resizeConstraints)
+  });
 };
 
-function toTLBR(bounds) {
-  return {
-    top: bounds.y,
-    left: bounds.x,
-    bottom: bounds.y + bounds.height,
-    right: bounds.x + bounds.width
-  };
-}
 
 module.exports.getMinResizeBounds = function(direction, currentBounds, minDimensions, childrenBounds) {
 
-  var currentBox = toTLBR(currentBounds);
+  var currentBox = asTRBL(currentBounds);
 
   var minBox = {
     top: /n/.test(direction) ? currentBox.bottom - minDimensions.height : currentBox.top,
@@ -24711,7 +28511,7 @@ module.exports.getMinResizeBounds = function(direction, currentBounds, minDimens
     right: /e/.test(direction) ? currentBox.left + minDimensions.width : currentBox.right
   };
 
-  var childrenBox = childrenBounds ? toTLBR(childrenBounds) : minBox;
+  var childrenBox = childrenBounds ? asTRBL(childrenBounds) : minBox;
 
   var combinedBox = {
     top: min(minBox.top, childrenBox.top),
@@ -24720,33 +28520,217 @@ module.exports.getMinResizeBounds = function(direction, currentBounds, minDimens
     right: max(minBox.right, childrenBox.right),
   };
 
+  return asBounds(combinedBox);
+};
+
+function asPadding(mayBePadding, defaultValue) {
+  if (typeof mayBePadding !== 'undefined') {
+    return mayBePadding;
+  } else {
+    return DEFAULT_CHILD_BOX_PADDING;
+  }
+}
+
+function addPadding(bbox, padding) {
+  var left, right, top, bottom;
+
+  if (typeof padding === 'object') {
+    left = asPadding(padding.left);
+    right = asPadding(padding.right);
+    top = asPadding(padding.top);
+    bottom = asPadding(padding.bottom);
+  } else {
+    left = right = top = bottom = asPadding(padding);
+  }
+
   return {
-    x: combinedBox.left,
-    y: combinedBox.top,
-    width: combinedBox.right - combinedBox.left,
-    height: combinedBox.bottom - combinedBox.top
+    x: bbox.x - left,
+    y: bbox.y - top,
+    width: bbox.width + left + right,
+    height: bbox.height + top + bottom
   };
-};
+}
+
+module.exports.addPadding = addPadding;
 
 
+/**
+ * Is the given element part of the resize
+ * targets min boundary box?
+ *
+ * This is the default implementation which excludes
+ * connections and labels.
+ *
+ * @param {djs.model.Base} element
+ */
+function isBBoxChild(element) {
 
-},{}],152:[function(_dereq_,module,exports){
-module.exports = {
-  __depends__: [
-    _dereq_(136),
-    _dereq_(155),
-    _dereq_(106)
-  ],
-  __init__: [ 'resize' ],
-  resize: [ 'type', _dereq_(150) ]
-};
+  // exclude connections
+  if (element.waypoints) {
+    return false;
+  }
 
-},{"106":106,"136":136,"150":150,"155":155}],153:[function(_dereq_,module,exports){
+  // exclude labels
+  if (element.type === 'label') {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Return children bounding computed from a shapes children
+ * or a list of prefiltered children.
+ *
+ * @param  {djs.model.Shape|Array<djs.model.Shape>} shapeOrChildren
+ * @param  {Number|Object} padding
+ *
+ * @return {Bounds}
+ */
+function computeChildrenBBox(shapeOrChildren, padding) {
+
+  var elements;
+
+  // compute based on shape
+  if (shapeOrChildren.length === undefined) {
+    // grab all the children that are part of the
+    // parents children box
+    elements = filter(shapeOrChildren.children, isBBoxChild);
+
+  } else {
+    elements = shapeOrChildren;
+  }
+
+  if (elements.length) {
+    return addPadding(getBBox(elements), padding);
+  }
+}
+
+module.exports.computeChildrenBBox = computeChildrenBBox;
+
+},{"197":197,"210":210,"242":242}],174:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(207);
+var Snap = _dereq_(229);
 
-var CommandInterceptor = _dereq_(78);
+var MARKER_RESIZING = 'djs-resizing',
+    MARKER_RESIZE_NOT_OK = 'resize-not-ok';
+
+var LOW_PRIORITY = 500;
+
+
+/**
+ * This component is responsible for creating a visual during resize.
+ *
+ * @param {EventBus} eventBus
+ * @param {Canvas} canvas
+ */
+function ResizeVisuals(eventBus, canvas){
+
+  this._canvas = canvas;
+
+  var self = this;
+
+  eventBus.on('resize.start', LOW_PRIORITY, function(event) {
+    var context = event.context,
+        shape = context.shape;
+
+    // add resizable indicator
+    canvas.addMarker(shape, MARKER_RESIZING);
+
+    self.create(context);
+  });
+
+
+  eventBus.on('resize.move', LOW_PRIORITY, function(event) {
+    var context = event.context;
+
+    // update resize frame visuals
+    self.update(context);
+  });
+
+
+  eventBus.on('resize.cleanup', function(event) {
+    var context = event.context,
+        shape = context.shape;
+
+    // remove resizable indicator
+    canvas.removeMarker(shape, MARKER_RESIZING);
+
+    // remove frame + destroy context
+    self.remove(context);
+  });
+}
+
+/**
+ * A helper that realizes the resize visuals
+ */
+ResizeVisuals.prototype.create = function(context) {
+  var container = this._canvas.getDefaultLayer(),
+      shape = context.shape,
+      frame;
+
+  frame = context.frame = Snap.create('rect', {
+    class: 'djs-resize-overlay',
+    width:  shape.width + 10,
+    height: shape.height + 10,
+    x: shape.x -5,
+    y: shape.y -5
+  });
+
+  frame.appendTo(container);
+};
+
+ResizeVisuals.prototype.update = function(context) {
+  var frame = context.frame,
+      bounds = context.newBounds;
+
+  if (bounds.width > 5) {
+    frame.attr({
+      x: bounds.x,
+      width: bounds.width
+    });
+  }
+
+  if (bounds.height > 5) {
+    frame.attr({
+      y: bounds.y,
+      height: bounds.height
+    });
+  }
+
+  frame[context.canExecute ? 'removeClass' : 'addClass'](MARKER_RESIZE_NOT_OK);
+};
+
+ResizeVisuals.prototype.remove = function(context) {
+  if (context.frame) {
+    context.frame.remove();
+  }
+};
+
+ResizeVisuals.$inject = [ 'eventBus', 'canvas' ];
+
+module.exports = ResizeVisuals;
+
+},{"229":229}],175:[function(_dereq_,module,exports){
+module.exports = {
+  __depends__: [
+    _dereq_(156),
+    _dereq_(178),
+    _dereq_(124)
+  ],
+  __init__: [ 'resize', 'resizeVisuals', 'resizeHandles' ],
+  resize: [ 'type', _dereq_(171) ],
+  resizeVisuals: [ 'type', _dereq_(174) ],
+  resizeHandles: [ 'type', _dereq_(172) ]
+};
+
+},{"124":124,"156":156,"171":171,"172":172,"174":174,"178":178}],176:[function(_dereq_,module,exports){
+'use strict';
+
+var inherits = _dereq_(232);
+
+var CommandInterceptor = _dereq_(94);
 
 /**
  * A basic provider that may be extended to implement modeling rules.
@@ -24816,7 +28800,7 @@ RuleProvider.prototype.addRule = function(actions, priority, fn) {
     }, true);
   });
 };
-},{"207":207,"78":78}],154:[function(_dereq_,module,exports){
+},{"232":232,"94":94}],177:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -24849,18 +28833,18 @@ Rules.prototype.allowed = function(action, context) {
   // map undefined to true, i.e. no rules
   return allowed === undefined ? true : allowed;
 };
-},{}],155:[function(_dereq_,module,exports){
+},{}],178:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(80) ],
+  __depends__: [ _dereq_(96) ],
   __init__: [ 'rules' ],
-  rules: [ 'type', _dereq_(154) ]
+  rules: [ 'type', _dereq_(177) ]
 };
 
-},{"154":154,"80":80}],156:[function(_dereq_,module,exports){
+},{"177":177,"96":96}],179:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(330),
-    forEach = _dereq_(218);
+var isArray = _dereq_(357),
+    forEach = _dereq_(244);
 
 
 /**
@@ -24950,13 +28934,13 @@ Selection.prototype.select = function(elements, add) {
   this._eventBus.fire('selection.changed', { oldSelection: oldSelection, newSelection: selectedElements });
 };
 
-},{"218":218,"330":330}],157:[function(_dereq_,module,exports){
+},{"244":244,"357":357}],180:[function(_dereq_,module,exports){
 'use strict';
 
-var hasPrimaryModifier = _dereq_(193).hasPrimaryModifier;
+var hasPrimaryModifier = _dereq_(217).hasPrimaryModifier;
 
 
-function SelectionBehavior(eventBus, selection, canvas) {
+function SelectionBehavior(eventBus, selection, canvas, elementRegistry) {
 
   eventBus.on('create.end', 500, function(e) {
 
@@ -24979,11 +28963,11 @@ function SelectionBehavior(eventBus, selection, canvas) {
   eventBus.on('shape.move.end', 500, function(e) {
     var previousSelection = e.previousSelection || [];
 
-    var shape = e.context.shape;
+    var shape = elementRegistry.get(e.context.shape.id);
 
     // make sure at least the main moved element is being
     // selected after a move operation
-    if (previousSelection.indexOf(shape) === -1) {
+    if (shape && previousSelection.indexOf(shape) === -1) {
       selection.select(shape);
     }
   });
@@ -25022,14 +29006,13 @@ function SelectionBehavior(eventBus, selection, canvas) {
   });
 }
 
-SelectionBehavior.$inject = [ 'eventBus', 'selection', 'canvas' ];
-
+SelectionBehavior.$inject = [ 'eventBus', 'selection', 'canvas', 'elementRegistry' ];
 module.exports = SelectionBehavior;
 
-},{"193":193}],158:[function(_dereq_,module,exports){
+},{"217":217}],181:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218);
+var forEach = _dereq_(244);
 
 var MARKER_HOVER = 'hover',
     MARKER_SELECTED = 'selected';
@@ -25104,24 +29087,24 @@ SelectionVisuals.$inject = [
 
 module.exports = SelectionVisuals;
 
-},{"218":218}],159:[function(_dereq_,module,exports){
+},{"244":244}],182:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'selectionVisuals', 'selectionBehavior' ],
   __depends__: [
-    _dereq_(108),
-    _dereq_(141)
+    _dereq_(128),
+    _dereq_(162)
   ],
-  selection: [ 'type', _dereq_(156) ],
-  selectionVisuals: [ 'type', _dereq_(158) ],
-  selectionBehavior: [ 'type', _dereq_(157) ]
+  selection: [ 'type', _dereq_(179) ],
+  selectionVisuals: [ 'type', _dereq_(181) ],
+  selectionBehavior: [ 'type', _dereq_(180) ]
 };
 
-},{"108":108,"141":141,"156":156,"157":157,"158":158}],160:[function(_dereq_,module,exports){
+},{"128":128,"162":162,"179":179,"180":180,"181":181}],183:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218);
+var forEach = _dereq_(244);
 
-var snapTo = _dereq_(161).snapTo;
+var snapTo = _dereq_(184).snapTo;
 
 
 /**
@@ -25287,7 +29270,7 @@ SnapPoints.prototype.initDefaults = function(defaultSnaps) {
     });
   });
 };
-},{"161":161,"218":218}],161:[function(_dereq_,module,exports){
+},{"184":184,"244":244}],184:[function(_dereq_,module,exports){
 'use strict';
 
 var abs = Math.abs,
@@ -25416,19 +29399,19 @@ module.exports.setSnapped = function(event, axis, value) {
 
   return previousValue;
 };
-},{}],162:[function(_dereq_,module,exports){
+},{}],185:[function(_dereq_,module,exports){
 'use strict';
 
-var filter = _dereq_(216),
-    forEach = _dereq_(218),
-    debounce = _dereq_(228);
+var filter = _dereq_(242),
+    forEach = _dereq_(244),
+    debounce = _dereq_(254);
 
 
-var mid = _dereq_(161).mid;
+var mid = _dereq_(184).mid;
 
-var SnapContext = _dereq_(160);
+var SnapContext = _dereq_(183);
 
-var SnapUtil = _dereq_(161);
+var SnapUtil = _dereq_(184);
 
 
 var isSnapped = SnapUtil.isSnapped,
@@ -25654,130 +29637,48 @@ Snapping.prototype.getSiblings = function(element, target) {
     return !e.hidden && !e.labelTarget && !e.waypoints && e.host !== element && e !== element;
   });
 };
-},{"160":160,"161":161,"216":216,"218":218,"228":228}],163:[function(_dereq_,module,exports){
+},{"183":183,"184":184,"242":242,"244":244,"254":254}],186:[function(_dereq_,module,exports){
 'use strict';
 
-var SpaceUtil = _dereq_(165);
+var SpaceUtil = _dereq_(188);
 
-var Cursor = _dereq_(185);
+var Cursor = _dereq_(209);
 
-var hasPrimaryModifier = _dereq_(193).hasPrimaryModifier;
+var hasPrimaryModifier = _dereq_(217).hasPrimaryModifier;
 
 var abs = Math.abs,
     round = Math.round;
 
 var HIGH_PRIORITY = 1500;
 
+var AXIS_TO_DIMENSION = { x: 'width', y: 'height' },
+    AXIS_INVERTED = { x: 'y', y: 'x' };
+
+var getAllChildren = _dereq_(210).selfAndAllChildren;
+
+var assign = _dereq_(366);
+
+
 /**
  * A tool that allows users to create and remove space in a diagram.
  *
  * The tool needs to be activated manually via {@link SpaceTool#activate(MouseEvent)}.
  */
-function SpaceTool(eventBus, dragging, elementRegistry, modeling, rules) {
+function SpaceTool(eventBus, dragging, canvas, modeling, rules) {
 
-  function canResize(shape) {
-    var ctx = { shape: shape };
-    return rules.allowed('shape.resize', ctx);
-  }
+  this._canvas = canvas;
+  this._dragging = dragging;
+  this._modeling = modeling;
+  this._rules = rules;
 
-  function activateSelection(event, autoActivate) {
-    dragging.activate(event, 'spaceTool.selection', {
-      cursor: 'crosshair',
-      autoActivate: autoActivate,
-      data: {
-        context: {
-          crosshair: {}
-        }
-      }
-    });
-  }
-
-  function activateMakeSpace(event) {
-    dragging.activate(event, 'spaceTool', {
-      autoActivate: true,
-      cursor: 'crosshair',
-      data: {
-        context: {}
-      }
-    });
-  }
+  var self = this;
 
 
   eventBus.on('spaceTool.selection.end', function(event) {
     setTimeout(function() {
-      activateMakeSpace(event.originalEvent);
+      self.activateMakeSpace(event.originalEvent);
     });
   });
-
-
-  var AXIS_TO_DIMENSION = { x: 'width', y: 'height' },
-      AXIS_INVERTED = { x: 'y', y: 'x' };
-
-
-  function initializeMakeSpace(event, context) {
-
-    var axis = abs(event.dx) > abs(event.dy) ? 'x' : 'y',
-        offset = event['d' + axis],
-        // start point of create space operation
-        spacePos = event[axis] - offset,
-        // list of moving shapes
-        movingShapes = [],
-        // list of resizing shapes
-        resizingShapes = [];
-
-    if (abs(offset) < 5) {
-      return false;
-    }
-
-    // inverts the offset to choose the shapes
-    // on the opposite side of the resizer if
-    // a key modifier is pressed
-    if (hasPrimaryModifier(event)) {
-      offset *= -1;
-    }
-
-    // collect all elements that need to be moved _AND_
-    // resized given on the initial create space position
-    elementRegistry.forEach(function (shape) {
-      var shapeStart = shape[ [ axis ]],
-          shapeEnd = shapeStart + shape[ AXIS_TO_DIMENSION[ axis ]];
-
-      // checking if it's root
-      if (!shape.parent) {
-        return;
-      }
-
-      // checking if it's a shape
-      if (shape.waypoints) {
-        return;
-      }
-
-      // shape after spacePos
-      if (offset > 0 && shapeStart > spacePos) {
-        return movingShapes.push(shape);
-      }
-
-      // shape before spacePos
-      if (offset < 0 && shapeEnd < spacePos) {
-        return movingShapes.push(shape);
-      }
-
-      // shape on top of spacePos, resize only if allowed
-      if (shapeStart < spacePos && shapeEnd > spacePos && canResize(shape)) {
-        return resizingShapes.push(shape);
-      }
-    });
-
-    // store data in context
-    context.axis = axis;
-    context.direction = SpaceUtil.getDirection(axis, offset);
-    context.movingShapes = movingShapes;
-    context.resizingShapes = resizingShapes;
-
-    Cursor.set('resize-' + (axis === 'x' ? 'ew' : 'ns'));
-
-    return true;
-  }
 
 
   eventBus.on('spaceTool.move', HIGH_PRIORITY , function(event) {
@@ -25785,7 +29686,7 @@ function SpaceTool(eventBus, dragging, elementRegistry, modeling, rules) {
     var context = event.context;
 
     if (!context.initialized) {
-      context.initialized = initializeMakeSpace(event, context);
+      context.initialized = self.initializeMakeSpace(event, context);
     }
   });
 
@@ -25806,22 +29707,167 @@ function SpaceTool(eventBus, dragging, elementRegistry, modeling, rules) {
     var delta = { x: round(event.dx), y: round(event.dy) };
     delta[ AXIS_INVERTED[ axis ] ] = 0;
 
-    return modeling.createSpace(movingShapes, resizingShapes, delta, direction);
+    self.makeSpace(movingShapes, resizingShapes, delta, direction);
   });
 
-  // API
-  this.activateSelection = activateSelection;
-  this.activateMakeSpace = activateMakeSpace;
 }
 
-SpaceTool.$inject = ['eventBus', 'dragging', 'elementRegistry', 'modeling', 'rules'];
+SpaceTool.$inject = ['eventBus', 'dragging', 'canvas', 'modeling', 'rules'];
 
 module.exports = SpaceTool;
 
-},{"165":165,"185":185,"193":193}],164:[function(_dereq_,module,exports){
+
+/**
+ * Activate space tool selection
+ *
+ * @param  {MouseEvent} event
+ * @param  {Boolean} autoActivate
+ */
+SpaceTool.prototype.activateSelection = function(event, autoActivate) {
+  this._dragging.activate(event, 'spaceTool.selection', {
+    cursor: 'crosshair',
+    autoActivate: autoActivate,
+    data: {
+      context: {}
+    }
+  });
+};
+
+/**
+ * Activate make space
+ *
+ * @param  {MouseEvent} event
+ */
+SpaceTool.prototype.activateMakeSpace = function(event) {
+  this._dragging.activate(event, 'spaceTool', {
+    autoActivate: true,
+    cursor: 'crosshair',
+    data: {
+      context: {}
+    }
+  });
+};
+
+/**
+ * Actually make space on the diagram
+ *
+ * @param  {Array<djs.model.Shape>} movingShapes
+ * @param  {Array<djs.model.Shape>} resizingShapes
+ * @param  {Point} delta
+ * @param  {String} direction
+ */
+SpaceTool.prototype.makeSpace = function(movingShapes, resizingShapes, delta, direction) {
+  return this._modeling.createSpace(movingShapes, resizingShapes, delta, direction);
+};
+
+/**
+ * Initialize make space and return true if that was successful.
+ *
+ * @param {Event} event
+ * @param {Object} context
+ *
+ * @return {Boolean} true, if successful
+ */
+SpaceTool.prototype.initializeMakeSpace = function(event, context) {
+
+  var axis = abs(event.dx) > abs(event.dy) ? 'x' : 'y',
+      offset = event['d' + axis],
+      // start point of create space operation
+      spacePos = event[axis] - offset;
+
+  if (abs(offset) < 5) {
+    return false;
+  }
+
+  // inverts the offset to choose the shapes
+  // on the opposite side of the resizer if
+  // a key modifier is pressed
+  if (hasPrimaryModifier(event)) {
+    offset *= -1;
+  }
+
+  var rootShape = this._canvas.getRootElement();
+
+  var allShapes = getAllChildren(rootShape, true);
+
+  var adjustments = this.calculateAdjustments(allShapes, axis, offset, spacePos);
+
+  // store data in context
+  assign(context, adjustments, {
+    axis: axis,
+    direction: SpaceUtil.getDirection(axis, offset)
+  });
+
+  Cursor.set('resize-' + (axis === 'x' ? 'ew' : 'ns'));
+
+  return true;
+};
+
+/**
+ * Calculate adjustments needed when making space
+ *
+ * @param  {Array<djs.model.Shape>} elements
+ * @param  {String} axis
+ * @param  {Number} offset
+ * @param  {Number} spacePos
+ *
+ * @return {Object}
+ */
+SpaceTool.prototype.calculateAdjustments = function(elements, axis, offset, spacePos) {
+
+  var movingShapes = [],
+      resizingShapes = [];
+
+  var rules = this._rules;
+
+  // collect all elements that need to be moved _AND_
+  // resized given on the initial create space position
+  elements.forEach(function(shape) {
+
+    var shapeStart = shape[axis],
+        shapeEnd = shapeStart + shape[AXIS_TO_DIMENSION[axis]];
+
+    // checking if it's root
+    if (!shape.parent) {
+      return;
+    }
+
+    // checking if it's a shape
+    if (shape.waypoints) {
+      return;
+    }
+
+    // shape after spacePos
+    if (offset > 0 && shapeStart > spacePos) {
+      return movingShapes.push(shape);
+    }
+
+    // shape before spacePos
+    if (offset < 0 && shapeEnd < spacePos) {
+      return movingShapes.push(shape);
+    }
+
+    // shape on top of spacePos, resize only if allowed
+    if (shapeStart < spacePos &&
+        shapeEnd > spacePos &&
+        rules.allowed('shape.resize', { shape: shape })) {
+
+      return resizingShapes.push(shape);
+    }
+  });
+
+  return {
+    movingShapes: movingShapes,
+    resizingShapes: resizingShapes
+  };
+};
+
+module.exports = SpaceTool;
+
+},{"188":188,"209":209,"210":210,"217":217,"366":366}],187:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218);
+var forEach = _dereq_(244);
 
 
 var MARKER_DRAGGING = 'djs-dragging';
@@ -25961,7 +30007,7 @@ SpaceToolVisuals.$inject = [ 'eventBus', 'elementRegistry', 'canvas', 'styles' ]
 
 module.exports = SpaceToolVisuals;
 
-},{"218":218}],165:[function(_dereq_,module,exports){
+},{"244":244}],188:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -26051,31 +30097,30 @@ module.exports.resizeBounds = function(bounds, direction, delta) {
       throw new Error('unrecognized direction: ' + direction);
   }
 };
-},{}],166:[function(_dereq_,module,exports){
+},{}],189:[function(_dereq_,module,exports){
 module.exports = {
   __init__: ['spaceToolVisuals'],
-  __depends__: [_dereq_(106), _dereq_(136), _dereq_(155) ],
-  spaceTool: ['type', _dereq_(163)],
-  spaceToolVisuals: ['type', _dereq_(164) ]
+  __depends__: [_dereq_(124), _dereq_(156), _dereq_(178) ],
+  spaceTool: ['type', _dereq_(186)],
+  spaceToolVisuals: ['type', _dereq_(187) ]
 };
 
-},{"106":106,"136":136,"155":155,"163":163,"164":164}],167:[function(_dereq_,module,exports){
+},{"124":124,"156":156,"178":178,"186":186,"187":187}],190:[function(_dereq_,module,exports){
 'use strict';
 
-var isString = _dereq_(336),
-    assign = _dereq_(339),
-    forEach = _dereq_(218),
-    debounce = _dereq_(228);
+var isString = _dereq_(363),
+    assign = _dereq_(366),
+    forEach = _dereq_(244);
 
-var domify = _dereq_(356),
-    domAttr = _dereq_(351),
-    domClasses = _dereq_(352),
-    domRemove = _dereq_(360),
-    domDelegate = _dereq_(355);
+var domify = _dereq_(383),
+    domAttr = _dereq_(378),
+    domClasses = _dereq_(379),
+    domRemove = _dereq_(387),
+    domDelegate = _dereq_(382);
 
 
 // document wide unique tooltip ids
-var ids = new (_dereq_(190))('tt');
+var ids = new (_dereq_(214))('tt');
 
 
 function createRoot(parent) {
@@ -26132,11 +30177,10 @@ var tooltipClass = 'djs-tooltip',
  * tooltips.remove(id);
  * ```
  *
- * @param {Object} config
  * @param {EventBus} eventBus
  * @param {Canvas} canvas
  */
-function Tooltips(config, eventBus, canvas) {
+function Tooltips(eventBus, canvas) {
 
   this._eventBus = eventBus;
   this._canvas = canvas;
@@ -26173,11 +30217,11 @@ function Tooltips(config, eventBus, canvas) {
     self.trigger('mouseout', event);
   });
 
-  this._init(config);
+  this._init();
 }
 
 
-Tooltips.$inject = [ 'config.tooltips', 'eventBus', 'canvas' ];
+Tooltips.$inject = [ 'eventBus', 'canvas' ];
 
 module.exports = Tooltips;
 
@@ -26404,36 +30448,34 @@ Tooltips.prototype._updateTooltipVisibilty = function(viewbox) {
   });
 };
 
-Tooltips.prototype._init = function(config) {
+Tooltips.prototype._init = function() {
 
   var self = this;
 
-
   // scroll/zoom integration
 
-  var updateViewbox = function(viewbox) {
+  function updateViewbox(viewbox) {
     self._updateRoot(viewbox);
     self._updateTooltipVisibilty(viewbox);
 
     self.show();
-  };
-
-  if (!config || config.deferUpdate !== false) {
-    updateViewbox = debounce(updateViewbox, 300);
   }
 
-  this._eventBus.on('canvas.viewbox.changed', function(event) {
+  this._eventBus.on('canvas.viewbox.changing', function(event) {
     self.hide();
+  });
+
+  this._eventBus.on('canvas.viewbox.changed', function(event) {
     updateViewbox(event.viewbox);
   });
 };
 
-},{"190":190,"218":218,"228":228,"336":336,"339":339,"351":351,"352":352,"355":355,"356":356,"360":360}],168:[function(_dereq_,module,exports){
+},{"214":214,"244":244,"363":363,"366":366,"378":378,"379":379,"382":382,"383":383,"387":387}],191:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'tooltips' ],
-  tooltips: [ 'type', _dereq_(167) ]
+  tooltips: [ 'type', _dereq_(190) ]
 };
-},{"167":167}],169:[function(_dereq_,module,exports){
+},{"190":190}],192:[function(_dereq_,module,exports){
 'use strict';
 
 function TouchFix(canvas, eventBus) {
@@ -26468,15 +30510,15 @@ TouchFix.prototype.addBBoxMarker = function(paper) {
   paper.rect(10000, 10000, 10, 10).attr(markerStyle);
 };
 
-},{}],170:[function(_dereq_,module,exports){
+},{}],193:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(218),
-    domEvent = _dereq_(357),
-    domClosest = _dereq_(354),
-    Hammer = _dereq_(198),
-    Snap = _dereq_(200),
-    Event = _dereq_(187);
+var forEach = _dereq_(244),
+    domEvent = _dereq_(384),
+    domClosest = _dereq_(381),
+    Hammer = _dereq_(227),
+    Snap = _dereq_(229),
+    Event = _dereq_(211);
 
 var MIN_ZOOM = 0.2,
     MAX_ZOOM = 4;
@@ -26497,11 +30539,7 @@ function log() {
 }
 
 function get(service, injector) {
-  try {
-    return injector.get(service);
-  } catch (e) {
-    return null;
-  }
+  return injector.get(service, false);
 }
 
 function createTouchRecognizer(node) {
@@ -26712,8 +30750,15 @@ function TouchInteractionEvents(injector, canvas, eventBus, elementRegistry, int
     // simulate hover during dragging
     eventBus.on('drag.move', function(event) {
 
-      var position = Event.toPoint(event.originalEvent);
+      var originalEvent = event.originalEvent;
 
+      if (!originalEvent || originalEvent instanceof MouseEvent) {
+        return;
+      }
+
+      var position = Event.toPoint(originalEvent);
+
+      // this gets really expensive ...
       var node = document.elementFromPoint(position.x, position.y),
           gfx = getGfx(node),
           element = gfx && elementRegistry.get(gfx);
@@ -26798,17 +30843,17 @@ TouchInteractionEvents.$inject = [
 ];
 
 module.exports = TouchInteractionEvents;
-},{"187":187,"198":198,"200":200,"218":218,"354":354,"357":357}],171:[function(_dereq_,module,exports){
+},{"211":211,"227":227,"229":229,"244":244,"381":381,"384":384}],194:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(108) ],
+  __depends__: [ _dereq_(128) ],
   __init__: [ 'touchInteractionEvents' ],
-  touchInteractionEvents: [ 'type', _dereq_(170) ],
-  touchFix: [ 'type', _dereq_(169) ]
+  touchInteractionEvents: [ 'type', _dereq_(193) ],
+  touchFix: [ 'type', _dereq_(192) ]
 };
-},{"108":108,"169":169,"170":170}],172:[function(_dereq_,module,exports){
+},{"128":128,"192":192,"193":193}],195:[function(_dereq_,module,exports){
 'use strict';
 
-var getMid = _dereq_(174).getMid;
+var getMid = _dereq_(197).getMid;
 
 
 /**
@@ -26838,12 +30883,12 @@ BaseLayouter.prototype.layoutConnection = function(connection, hints) {
   ];
 };
 
-},{"174":174}],173:[function(_dereq_,module,exports){
+},{"197":197}],196:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(339);
+var assign = _dereq_(366);
 
-var LayoutUtil = _dereq_(174);
+var LayoutUtil = _dereq_(197);
 
 
 function dockingToPoint(docking) {
@@ -26859,12 +30904,12 @@ function dockingToPoint(docking) {
  *
  * @param {djs.core.ElementRegistry} elementRegistry
  */
-function CroppingConnectionDocking(elementRegistry, renderer) {
+function CroppingConnectionDocking(elementRegistry, graphicsFactory) {
   this._elementRegistry = elementRegistry;
-  this._renderer = renderer;
+  this._graphicsFactory = graphicsFactory;
 }
 
-CroppingConnectionDocking.$inject = [ 'elementRegistry', 'renderer' ];
+CroppingConnectionDocking.$inject = [ 'elementRegistry', 'graphicsFactory' ];
 
 module.exports = CroppingConnectionDocking;
 
@@ -26924,50 +30969,37 @@ CroppingConnectionDocking.prototype._getIntersection = function(shape, connectio
 };
 
 CroppingConnectionDocking.prototype._getConnectionPath = function(connection) {
-  return this._renderer.getConnectionPath(connection);
+  return this._graphicsFactory.getConnectionPath(connection);
 };
 
 CroppingConnectionDocking.prototype._getShapePath = function(shape) {
-  return this._renderer.getShapePath(shape);
+  return this._graphicsFactory.getShapePath(shape);
 };
 
 CroppingConnectionDocking.prototype._getGfx = function(element) {
   return this._elementRegistry.getGraphics(element);
 };
-},{"174":174,"339":339}],174:[function(_dereq_,module,exports){
+
+},{"197":197,"366":366}],197:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(330),
-    isObject = _dereq_(334),
-    sortBy = _dereq_(225);
+var isObject = _dereq_(361),
+    sortBy = _dereq_(251),
+    pointDistance = _dereq_(212).pointDistance;
 
-var Snap = _dereq_(200);
+var Snap = _dereq_(229);
 
-var ALIGNED_THRESHOLD = 2;
 
-/**
- * Returns whether two points are in a horizontal or vertical line.
- *
- * @param {Point} a
- * @param {Point} b
- *
- * @return {String|Boolean} returns false if the points are not
- *                          aligned or 'h|v' if they are aligned
- *                          horizontally / vertically.
- */
-function pointsAligned(a, b) {
-  if (Math.abs(a.x - b.x) <= ALIGNED_THRESHOLD) {
-    return 'h';
-  }
-
-  if (Math.abs(a.y - b.y) <= ALIGNED_THRESHOLD) {
-    return 'v';
-  }
-
-  return false;
+function roundBounds(bounds) {
+  return {
+    x: Math.round(bounds.x),
+    y: Math.round(bounds.y),
+    width: Math.round(bounds.width),
+    height: Math.round(bounds.height)
+  };
 }
 
-module.exports.pointsAligned = pointsAligned;
+module.exports.roundBounds = roundBounds;
 
 
 function roundPoint(point) {
@@ -26979,21 +31011,6 @@ function roundPoint(point) {
 }
 
 module.exports.roundPoint = roundPoint;
-
-
-function pointsEqual(a, b) {
-  return a.x === b.x && a.y === b.y;
-}
-
-module.exports.pointsEqual = pointsEqual;
-
-
-
-function pointDistance(a, b) {
-  return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
-}
-
-module.exports.pointDistance = pointDistance;
 
 
 /**
@@ -27013,6 +31030,24 @@ function asTRBL(bounds) {
 }
 
 module.exports.asTRBL = asTRBL;
+
+/**
+ * Convert a { top, left, bottom, right } to an objects bounds.
+ *
+ * @param {Object} trbl
+ *
+ * @return {Bounds}
+ */
+function asBounds(trbl) {
+  return {
+    x: trbl.left,
+    y: trbl.top,
+    width: trbl.right - trbl.left,
+    height: trbl.bottom - trbl.top
+  };
+}
+
+module.exports.asBounds = asBounds;
 
 
 /**
@@ -27079,21 +31114,6 @@ function getOrientation(rect, reference, padding) {
 module.exports.getOrientation = getOrientation;
 
 
-function hasAnyOrientation(rect, reference, pointDistance, locations) {
-
-  if (isArray(pointDistance)) {
-    locations = pointDistance;
-    pointDistance = 0;
-  }
-
-  var orientation = getOrientation(rect, reference, pointDistance);
-
-  return locations.indexOf(orientation) !== -1;
-}
-
-module.exports.hasAnyOrientation = hasAnyOrientation;
-
-
 ////// intersection utils //////////////////////////////
 
 function getElementLineIntersection(elementPath, linePath, cropStart) {
@@ -27140,20 +31160,21 @@ function getIntersections(a, b) {
 }
 
 module.exports.getIntersections = getIntersections;
-},{"200":200,"225":225,"330":330,"334":334}],175:[function(_dereq_,module,exports){
+
+},{"212":212,"229":229,"251":251,"361":361}],198:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(330),
-    find = _dereq_(217),
-    without = _dereq_(212),
-    assign = _dereq_(339);
+var isArray = _dereq_(357),
+    find = _dereq_(243),
+    without = _dereq_(238),
+    assign = _dereq_(366);
 
-var LayoutUtil = _dereq_(174),
-    Geometry = _dereq_(188);
+var LayoutUtil = _dereq_(197),
+    Geometry = _dereq_(212);
 
 var getOrientation = LayoutUtil.getOrientation,
     getMid = LayoutUtil.getMid,
-    pointsAligned = LayoutUtil.pointsAligned;
+    pointsAligned = Geometry.pointsAligned;
 
 var pointInRect = Geometry.pointInRect,
     pointDistance = Geometry.pointDistance;
@@ -27359,13 +31380,13 @@ module.exports.repairConnection = function(source, target, start, end, waypoints
 
   // just layout non-existing or simple connections
   // attempt to render straight lines, if required
-  if (!waypoints || waypoints.length < 3) {
 
-    if (layoutStraight) {
-      // attempt to layout a straight line
-      repairedWaypoints = this.layoutStraight(source, target, start, end, hints);
-    }
-  } else {
+  if (layoutStraight) {
+    // attempt to layout a straight line
+    repairedWaypoints = this.layoutStraight(source, target, start, end, hints);
+  }
+
+  if (!repairedWaypoints) {
     // check if we layout from start or end
     if (hints.endChanged) {
       repairedWaypoints = this._repairConnectionSide(target, source, end, waypoints.slice().reverse());
@@ -27373,9 +31394,9 @@ module.exports.repairConnection = function(source, target, start, end, waypoints
     } else
     if (hints.startChanged) {
       repairedWaypoints = this._repairConnectionSide(source, target, start, waypoints);
-    }
+    } else
     // or whether nothing seems to have changed
-    else {
+    if (waypoints && waypoints.length) {
       repairedWaypoints = waypoints;
     }
   }
@@ -27389,88 +31410,75 @@ module.exports.repairConnection = function(source, target, start, end, waypoints
 };
 
 
-var max = Math.max,
-    min = Math.min;
-
 function inRange(a, start, end) {
   return a >= start && a <= end;
 }
 
+function isInRange(axis, a, b) {
+  var size = {
+    x: 'width',
+    y: 'height'
+  };
+
+  return inRange(a[axis], b[axis], b[axis] + b[size[axis]]);
+}
+
+/**
+ * Layout a straight connection
+ *
+ * @param {Bounds} source
+ * @param {Bounds} target
+ * @param {Point} start
+ * @param {Point} end
+ * @param {Object} [hints]
+ *
+ * @return {Array<Point>} waypoints if straight layout worked
+ */
 module.exports.layoutStraight = function(source, target, start, end, hints) {
+  var axis = {},
+      primaryAxis,
+      secondaryAxis,
+      orientation;
 
-  var startX, endX, x,
-      startY, endY, y;
+  orientation = getOrientation(source, target);
 
-  startX = max(source.x + 10, target.x + 10);
-  endX = min(source.x + source.width - 10, target.x + target.width - 10);
-
-  if (startX < endX) {
-
-    if (source.width === target.width) {
-
-      if (hints.endChanged && inRange(end.x, startX, endX)) {
-        x = end.x;
-      } else
-      if (inRange(start.x, startX, endX)) {
-        x = start.x;
-      }
-    }
-
-    if (x === undefined) {
-      if (source.width < target.width && inRange(start.x, startX, endX)) {
-        x = start.x;
-      } else
-      if (source.width > target.width && inRange(end.x, startX, endX)) {
-        x = end.x;
-      } else {
-        x = (startX + endX) / 2;
-      }
-    }
-  }
-
-  startY = max(source.y + 10, target.y + 10);
-  endY = min(source.y + source.height - 10, target.y + target.height - 10);
-
-  if (startY < endY) {
-
-    if (source.height === target.height) {
-      if (hints.endChanged && inRange(end.y, startY, endY)) {
-        y = end.y;
-      } else
-      if (inRange(start.y, startY, endY)) {
-        y = start.y;
-      }
-    }
-
-    if (y === undefined) {
-      if (source.height <= target.height && inRange(start.y, startY, endY)) {
-        y = start.y;
-      } else
-      if (target.height <= source.height && inRange(end.y, startY, endY)) {
-        y = end.y;
-      } else {
-        y = (startY + endY) / 2;
-      }
-    }
-  }
-
-  // cannot layout straight
-  if (x === undefined && y === undefined) {
+  // We're only interested in layouting a straight connection
+  // if the shapes are horizontally or vertically aligned
+  if (!/^(top|bottom|left|right)$/.test(orientation)) {
     return null;
   }
 
+  if (/top|bottom/.test(orientation)) {
+    primaryAxis = 'x';
+    secondaryAxis = 'y';
+  }
+
+  if (/left|right/.test(orientation)) {
+    primaryAxis = 'y';
+    secondaryAxis = 'x';
+  }
+
+  if (!isInRange(primaryAxis, start, target)) {
+    return null;
+  }
+
+  axis[primaryAxis] = start[primaryAxis];
+
   return [
     {
-      x: x !== undefined ? x : start.x,
-      y: y !== undefined ? y : start.y
+      x: start.x,
+      y: start.y
     },
     {
-      x: x !== undefined ? x : end.x,
-      y: y !== undefined ? y : end.y
+      x: axis.x !== undefined ? axis.x : end.x,
+      y: axis.y !== undefined ? axis.y : end.y,
+      original: {
+        x: axis.x !== undefined ? axis.x : end.x,
+        y: axis.y !== undefined ? axis.y : end.y
+      }
     }
   ];
 };
-
 
 /**
  * Repair a connection from one side that moved.
@@ -27607,13 +31615,14 @@ function getDirections(orientation, defaultLayout) {
       return defaultLayout;
   }
 }
-},{"174":174,"188":188,"212":212,"217":217,"330":330,"339":339}],176:[function(_dereq_,module,exports){
+
+},{"197":197,"212":212,"238":238,"243":243,"357":357,"366":366}],199:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(339),
-    inherits = _dereq_(207);
+var assign = _dereq_(366),
+    inherits = _dereq_(232);
 
-var Refs = _dereq_(369);
+var Refs = _dereq_(396);
 
 var parentRefs = new Refs({ name: 'children', enumerable: true, collection: true }, { name: 'parent' }),
     labelRefs = new Refs({ name: 'label', enumerable: true }, { name: 'labelTarget' }),
@@ -27822,13 +31831,13 @@ module.exports.Root = Root;
 module.exports.Shape = Shape;
 module.exports.Connection = Connection;
 module.exports.Label = Label;
-},{"207":207,"339":339,"369":369}],177:[function(_dereq_,module,exports){
+},{"232":232,"366":366,"396":396}],200:[function(_dereq_,module,exports){
 'use strict';
 
-var Cursor = _dereq_(185),
-    ClickTrap = _dereq_(183),
-    domEvent = _dereq_(357),
-    Event = _dereq_(187);
+var Cursor = _dereq_(209),
+    ClickTrap = _dereq_(207),
+    domEvent = _dereq_(384),
+    Event = _dereq_(211);
 
 function substract(p1, p2) {
   return {
@@ -27924,29 +31933,29 @@ MoveCanvas.$inject = [ 'eventBus', 'canvas' ];
 
 module.exports = MoveCanvas;
 
-},{"183":183,"185":185,"187":187,"357":357}],178:[function(_dereq_,module,exports){
+},{"207":207,"209":209,"211":211,"384":384}],201:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'moveCanvas' ],
-  moveCanvas: [ 'type', _dereq_(177) ]
+  moveCanvas: [ 'type', _dereq_(200) ]
 };
-},{"177":177}],179:[function(_dereq_,module,exports){
+},{"200":200}],202:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(171) ]
+  __depends__: [ _dereq_(194) ]
 };
-},{"171":171}],180:[function(_dereq_,module,exports){
+},{"194":194}],203:[function(_dereq_,module,exports){
 'use strict';
 
-var domEvent = _dereq_(357);
+var domEvent = _dereq_(384);
 
-var hasPrimaryModifier = _dereq_(193).hasPrimaryModifier,
-    hasSecondaryModifier = _dereq_(193).hasSecondaryModifier;
+var hasPrimaryModifier = _dereq_(217).hasPrimaryModifier,
+    hasSecondaryModifier = _dereq_(217).hasSecondaryModifier;
 
-var isMac = _dereq_(194).isMac;
+var isMac = _dereq_(218).isMac;
 
-var getStepRange = _dereq_(181).getStepRange,
-    cap = _dereq_(181).cap;
+var getStepRange = _dereq_(204).getStepRange,
+    cap = _dereq_(204).cap;
 
-var log10 = _dereq_(192).log10;
+var log10 = _dereq_(216).log10;
 
 
 var RANGE = { min: 0.2, max: 4 },
@@ -27982,7 +31991,8 @@ ZoomScroll.prototype.reset = function reset() {
 
 ZoomScroll.prototype.zoom = function zoom(direction, position) {
   var canvas = this._canvas;
-  var currentZoom = canvas.zoom();
+  var currentZoom = canvas.zoom(false);
+
   var factor = Math.pow(1 + Math.abs(direction) , direction > 0 ? 1 : -1);
 
   canvas.zoom(cap(RANGE, currentZoom * factor), position);
@@ -28067,11 +32077,11 @@ ZoomScroll.$inject = [ 'eventBus', 'canvas' ];
 
 module.exports = ZoomScroll;
 
-},{"181":181,"192":192,"193":193,"194":194,"357":357}],181:[function(_dereq_,module,exports){
+},{"204":204,"216":216,"217":217,"218":218,"384":384}],204:[function(_dereq_,module,exports){
 'use strict';
 
 
-var log10 = _dereq_(192).log10;
+var log10 = _dereq_(216).log10;
 
 /**
  * Get the linear range between two zoom steps based on the
@@ -28091,16 +32101,99 @@ module.exports.cap = function(range, scale) {
   return Math.max(range.min, Math.min(range.max, scale));
 };
 
-},{"192":192}],182:[function(_dereq_,module,exports){
+},{"216":216}],205:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'zoomScroll' ],
-  zoomScroll: [ 'type', _dereq_(180) ]
+  zoomScroll: [ 'type', _dereq_(203) ]
 };
-},{"180":180}],183:[function(_dereq_,module,exports){
+},{"203":203}],206:[function(_dereq_,module,exports){
 'use strict';
 
-var domEvent = _dereq_(357),
-    stopEvent = _dereq_(187).stopEvent;
+var roundPoint = _dereq_(197).roundPoint;
+
+
+function center(bounds) {
+  return {
+    x: bounds.x + (bounds.width / 2),
+    y: bounds.y + (bounds.height / 2)
+  };
+}
+
+function delta(a, b) {
+  return {
+    x: a.x - b.x,
+    y: a.y - b.y
+  };
+}
+
+/**
+ * Calculates the absolute point relative to the new element's position
+ *
+ * @param {point} point [absolute]
+ * @param {bounds} oldBounds
+ * @param {bounds} newBounds
+ *
+ * @return {point} point [absolute]
+ */
+function getNewAttachPoint(point, oldBounds, newBounds) {
+  var oldCenter = center(oldBounds),
+      newCenter = center(newBounds),
+      oldDelta = delta(point, oldCenter);
+
+  var newDelta = {
+    x: oldDelta.x * (newBounds.width / oldBounds.width),
+    y: oldDelta.y * (newBounds.height / oldBounds.height)
+  };
+
+  return roundPoint({
+    x: newCenter.x + newDelta.x,
+    y: newCenter.y + newDelta.y
+  });
+}
+
+module.exports.getNewAttachPoint = getNewAttachPoint;
+
+
+/**
+ * Calculates the shape's delta relative to a new position
+ * of a certain element's bounds
+ *
+ * @param {djs.model.Shape} point [absolute]
+ * @param {bounds} oldBounds
+ * @param {bounds} newBounds
+ *
+ * @return {delta} delta
+ */
+function getNewAttachShapeDelta(shape, oldBounds, newBounds) {
+  var shapeCenter = center(shape),
+      oldCenter = center(oldBounds),
+      newCenter = center(newBounds),
+      shapeDelta = delta(shape, shapeCenter),
+      oldCenterDelta = delta(shapeCenter, oldCenter);
+
+  var newCenterDelta = {
+    x: oldCenterDelta.x * (newBounds.width / oldBounds.width),
+    y: oldCenterDelta.y * (newBounds.height / oldBounds.height)
+  };
+
+  var newShapeCenter = {
+    x: newCenter.x + newCenterDelta.x,
+    y: newCenter.y + newCenterDelta.y
+  };
+
+  return roundPoint({
+    x: newShapeCenter.x + shapeDelta.x - shape.x,
+    y: newShapeCenter.y + shapeDelta.y - shape.y
+  });
+}
+
+module.exports.getNewAttachShapeDelta = getNewAttachShapeDelta;
+
+},{"197":197}],207:[function(_dereq_,module,exports){
+'use strict';
+
+var domEvent = _dereq_(384),
+    stopEvent = _dereq_(211).stopEvent;
 
 function trap(event) {
   stopEvent(event);
@@ -28127,7 +32220,7 @@ function install() {
 }
 
 module.exports.install = install;
-},{"187":187,"357":357}],184:[function(_dereq_,module,exports){
+},{"211":211,"384":384}],208:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -28136,22 +32229,21 @@ module.exports.install = install;
  * @param  {Array<Object>} [collection]
  * @param  {Object} [element]
  *
- * @return {Object} the element that got removed or undefined
+ * @return {Number} the previous index of the element
  */
 module.exports.remove = function(collection, element) {
 
   if (!collection || !element) {
-    return;
+    return -1;
   }
 
   var idx = collection.indexOf(element);
-  if (idx === -1) {
-    return;
+
+  if (idx !== -1) {
+    collection.splice(idx, 1);
   }
 
-  collection.splice(idx, 1);
-
-  return element;
+  return idx;
 };
 
 /**
@@ -28168,7 +32260,7 @@ module.exports.add = function(collection, element, idx) {
     return;
   }
 
-  if (isNaN(idx)) {
+  if (typeof idx !== 'number') {
     idx = -1;
   }
 
@@ -28202,7 +32294,7 @@ module.exports.add = function(collection, element, idx) {
 
 
 /**
- * Fail get the index of an element in a collection.
+ * Fail save get the index of an element in a collection.
  *
  * @param {Array<Object>} collection
  * @param {Object} element
@@ -28219,10 +32311,10 @@ module.exports.indexOf = function(collection, element) {
   return collection.indexOf(element);
 };
 
-},{}],185:[function(_dereq_,module,exports){
+},{}],209:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(352);
+var domClasses = _dereq_(379);
 
 var CURSOR_CLS_PATTERN = /^djs-cursor-.*$/;
 
@@ -28240,13 +32332,13 @@ module.exports.set = function(mode) {
 module.exports.unset = function() {
   this.set(null);
 };
-},{"352":352}],186:[function(_dereq_,module,exports){
+},{"379":379}],210:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(330),
-    isNumber = _dereq_(333),
-    groupBy = _dereq_(219),
-    forEach = _dereq_(218);
+var isArray = _dereq_(357),
+    isNumber = _dereq_(360),
+    groupBy = _dereq_(245),
+    forEach = _dereq_(244);
 
 /**
  * Adds an element to a collection and returns true if the
@@ -28266,9 +32358,23 @@ function add(elements, e, unique) {
   return canAdd;
 }
 
+/**
+ * Iterate over each element in a collection, calling the iterator function `fn`
+ * with (element, index, recursionDepth).
+ *
+ * Recurse into all elements that are returned by `fn`.
+ *
+ * @param  {Object|Array<Object>} elements
+ * @param  {Function} fn iterator function called with (element, index, recursionDepth)
+ * @param  {Number} [depth] maximum recursion depth
+ */
 function eachElement(elements, fn, depth) {
 
   depth = depth || 0;
+
+  if (!isArray(elements)) {
+    elements = [ elements ];
+  }
 
   forEach(elements, function(s, i) {
     var filter = fn(s, i, depth);
@@ -28282,7 +32388,7 @@ function eachElement(elements, fn, depth) {
 /**
  * Collects self + child elements up to a given depth from a list of elements.
  *
- * @param  {Array<djs.model.Base>} elements the elements to select the children from
+ * @param  {djs.model.Base|Array<djs.model.Base>} elements the elements to select the children from
  * @param  {Boolean} unique whether to return a unique result set (no duplicates)
  * @param  {Number} maxDepth the depth to search through or -1 for infinite
  *
@@ -28335,8 +32441,8 @@ function selfAndAllChildren(elements, allowDuplicates) {
 }
 
 /**
- * Gets the the closure fo all selected elements,
- * their connections and
+ * Gets the the closure for all selected elements,
+ * their connections and their attachment's connections
  *
  * @param {Array<djs.model.Base>} elements
  * @return {Object} enclosure
@@ -28506,7 +32612,7 @@ module.exports.getEnclosedElements = getEnclosedElements;
 
 module.exports.getClosure = getClosure;
 
-},{"218":218,"219":219,"330":330,"333":333}],187:[function(_dereq_,module,exports){
+},{"244":244,"245":245,"357":357,"360":360}],211:[function(_dereq_,module,exports){
 'use strict';
 
 function __preventDefault(event) {
@@ -28577,7 +32683,7 @@ function toPoint(event) {
 
 module.exports.toPoint = toPoint;
 
-},{}],188:[function(_dereq_,module,exports){
+},{}],212:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -28588,9 +32694,12 @@ module.exports.toPoint = toPoint;
  *
  * @return {Number}  distance
  */
-var pointDistance = module.exports.pointDistance = function(p, q) {
-  return Math.sqrt(Math.pow(q.x - p.x, 2) + Math.pow(q.y - p.y, 2));
-};
+function pointDistance(a, b) {
+  return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
+}
+
+module.exports.pointDistance = pointDistance;
+
 
 /**
  * Returns true if the point r is on the line between p and y
@@ -28614,6 +32723,43 @@ module.exports.pointsOnLine = function(p, q, r) {
   return Math.abs(val / dist) < 5;
 };
 
+
+var ALIGNED_THRESHOLD = 2;
+
+/**
+ * Returns whether two points are in a horizontal or vertical line.
+ *
+ * @param {Point} a
+ * @param {Point} b
+ *
+ * @return {String|Boolean} returns false if the points are not
+ *                          aligned or 'h|v' if they are aligned
+ *                          horizontally / vertically.
+ */
+function pointsAligned(a, b) {
+  if (Math.abs(a.x - b.x) <= ALIGNED_THRESHOLD) {
+    return 'h';
+  }
+
+  if (Math.abs(a.y - b.y) <= ALIGNED_THRESHOLD) {
+    return 'v';
+  }
+
+  return false;
+}
+
+module.exports.pointsAligned = pointsAligned;
+
+
+/**
+ * Returns true if the point p is inside the rectangle rect
+ *
+ * @param  {Point}  p
+ * @param  {Rect}   rect
+ * @param  {Number} tolerance
+ *
+ * @return {Boolean}
+ */
 module.exports.pointInRect = function(p, rect, tolerance) {
   tolerance = tolerance || 0;
 
@@ -28622,7 +32768,23 @@ module.exports.pointInRect = function(p, rect, tolerance) {
          p.x < rect.x + rect.width + tolerance &&
          p.y < rect.y + rect.height + tolerance;
 };
-},{}],189:[function(_dereq_,module,exports){
+
+/**
+ * Returns a point in the middle of points p and q
+ *
+ * @param  {Point}  p
+ * @param  {Point}  q
+ *
+ * @return {Point} middle point
+ */
+module.exports.getMidPoint = function(p, q) {
+  return {
+    x: Math.round(p.x + ((q.x - p.x) / 2.0)),
+    y: Math.round(p.y + ((q.y - p.y) / 2.0))
+  };
+};
+
+},{}],213:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -28668,7 +32830,7 @@ function getBBox(gfx) {
 module.exports.getVisual = getVisual;
 module.exports.getChildren = getChildren;
 module.exports.getBBox = getBBox;
-},{}],190:[function(_dereq_,module,exports){
+},{}],214:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -28701,12 +32863,12 @@ IdGenerator.prototype.next = function() {
   return this._prefix + (++this._counter);
 };
 
-},{}],191:[function(_dereq_,module,exports){
+},{}],215:[function(_dereq_,module,exports){
 'use strict';
 
-var pointDistance = _dereq_(188).pointDistance;
+var pointDistance = _dereq_(212).pointDistance;
 
-var Snap = _dereq_(200);
+var Snap = _dereq_(229);
 
 var round = Math.round,
     max = Math.max;
@@ -28813,7 +32975,7 @@ function getPathIntersection(waypoints, reference) {
 module.exports.getApproxIntersection = function(waypoints, reference) {
   return getBendpointIntersection(waypoints, reference) || getPathIntersection(waypoints, reference);
 };
-},{"188":188,"200":200}],192:[function(_dereq_,module,exports){
+},{"212":212,"229":229}],216:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -28826,12 +32988,12 @@ function log10(x) {
 
 module.exports.log10 = log10;
 
-},{}],193:[function(_dereq_,module,exports){
+},{}],217:[function(_dereq_,module,exports){
 'use strict';
 
-var getOriginalEvent = _dereq_(187).getOriginal;
+var getOriginalEvent = _dereq_(211).getOriginal;
 
-var isMac = _dereq_(194).isMac;
+var isMac = _dereq_(218).isMac;
 
 
 function isPrimaryButton(event) {
@@ -28865,13 +33027,13 @@ module.exports.hasSecondaryModifier = function(event) {
   return isPrimaryButton(event) && originalEvent.shiftKey;
 };
 
-},{"187":187,"194":194}],194:[function(_dereq_,module,exports){
+},{"211":211,"218":218}],218:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports.isMac = function isMac() {
   return (/mac/i).test(navigator.platform);
 };
-},{}],195:[function(_dereq_,module,exports){
+},{}],219:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -28910,17 +33072,47 @@ module.exports.saveClear = function(collection, removeFn) {
   return collection;
 };
 
-},{}],196:[function(_dereq_,module,exports){
+},{}],220:[function(_dereq_,module,exports){
 'use strict';
 
-var isObject = _dereq_(334),
-    assign = _dereq_(339),
-    pick = _dereq_(345),
-    forEach = _dereq_(218),
-    reduce = _dereq_(222),
-    merge = _dereq_(342);
+var Snap = _dereq_(229);
 
-var Snap = _dereq_(200);
+
+module.exports.componentsToPath = function(elements) {
+  return elements.join(',').replace(/,?([A-z]),?/g, '$1');
+};
+
+function toSVGPoints(points) {
+  var result = '';
+
+  for (var i = 0, p; !!(p = points[i]); i++) {
+    result += p.x + ',' + p.y + ' ';
+  }
+
+  return result;
+}
+
+module.exports.toSVGPoints = toSVGPoints;
+
+module.exports.createLine = function(points, attrs) {
+  return Snap.create('polyline', { points: toSVGPoints(points) }).attr(attrs || {});
+};
+
+module.exports.updateLine = function(gfx, points) {
+  return gfx.attr({ points: toSVGPoints(points) });
+};
+
+},{"229":229}],221:[function(_dereq_,module,exports){
+'use strict';
+
+var isObject = _dereq_(361),
+    assign = _dereq_(366),
+    pick = _dereq_(372),
+    forEach = _dereq_(244),
+    reduce = _dereq_(248),
+    merge = _dereq_(369);
+
+var Snap = _dereq_(229);
 
 var DEFAULT_BOX_PADDING = 0;
 
@@ -29162,7 +33354,319 @@ Text.prototype.createText = function(parent, text, options) {
 
 module.exports = Text;
 
-},{"200":200,"218":218,"222":222,"334":334,"339":339,"342":342,"345":345}],197:[function(_dereq_,module,exports){
+},{"229":229,"244":244,"248":248,"361":361,"366":366,"369":369,"372":372}],222:[function(_dereq_,module,exports){
+
+var isArray = function(obj) {
+  return Object.prototype.toString.call(obj) === '[object Array]';
+};
+
+var annotate = function() {
+  var args = Array.prototype.slice.call(arguments);
+  
+  if (args.length === 1 && isArray(args[0])) {
+    args = args[0];
+  }
+
+  var fn = args.pop();
+
+  fn.$inject = args;
+
+  return fn;
+};
+
+
+// Current limitations:
+// - can't put into "function arg" comments
+// function /* (no parenthesis like this) */ (){}
+// function abc( /* xx (no parenthesis like this) */ a, b) {}
+//
+// Just put the comment before function or inside:
+// /* (((this is fine))) */ function(a, b) {}
+// function abc(a) { /* (((this is fine))) */}
+
+var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
+var FN_ARG = /\/\*([^\*]*)\*\//m;
+
+var parse = function(fn) {
+  if (typeof fn !== 'function') {
+    throw new Error('Cannot annotate "' + fn + '". Expected a function!');
+  }
+
+  var match = fn.toString().match(FN_ARGS);
+  return match[1] && match[1].split(',').map(function(arg) {
+    match = arg.match(FN_ARG);
+    return match ? match[1].trim() : arg.trim();
+  }) || [];
+};
+
+
+exports.annotate = annotate;
+exports.parse = parse;
+exports.isArray = isArray;
+
+},{}],223:[function(_dereq_,module,exports){
+module.exports = {
+  annotate: _dereq_(222).annotate,
+  Module: _dereq_(225),
+  Injector: _dereq_(224)
+};
+
+},{"222":222,"224":224,"225":225}],224:[function(_dereq_,module,exports){
+var Module = _dereq_(225);
+var autoAnnotate = _dereq_(222).parse;
+var annotate = _dereq_(222).annotate;
+var isArray = _dereq_(222).isArray;
+
+
+var Injector = function(modules, parent) {
+  parent = parent || {
+    get: function(name, strict) {
+      currentlyResolving.push(name);
+
+      if (strict === false) {
+        return null;
+      } else {
+        throw error('No provider for "' + name + '"!');
+      }
+    }
+  };
+
+  var currentlyResolving = [];
+  var providers = this._providers = Object.create(parent._providers || null);
+  var instances = this._instances = Object.create(null);
+
+  var self = instances.injector = this;
+
+  var error = function(msg) {
+    var stack = currentlyResolving.join(' -> ');
+    currentlyResolving.length = 0;
+    return new Error(stack ? msg + ' (Resolving: ' + stack + ')' : msg);
+  };
+
+  /**
+   * Return a named service.
+   *
+   * @param {String} name
+   * @param {Boolean} [strict=true] if false, resolve missing services to null
+   *
+   * @return {Object}
+   */
+  var get = function(name, strict) {
+    if (!providers[name] && name.indexOf('.') !== -1) {
+      var parts = name.split('.');
+      var pivot = get(parts.shift());
+
+      while(parts.length) {
+        pivot = pivot[parts.shift()];
+      }
+
+      return pivot;
+    }
+
+    if (Object.hasOwnProperty.call(instances, name)) {
+      return instances[name];
+    }
+
+    if (Object.hasOwnProperty.call(providers, name)) {
+      if (currentlyResolving.indexOf(name) !== -1) {
+        currentlyResolving.push(name);
+        throw error('Cannot resolve circular dependency!');
+      }
+
+      currentlyResolving.push(name);
+      instances[name] = providers[name][0](providers[name][1]);
+      currentlyResolving.pop();
+
+      return instances[name];
+    }
+
+    return parent.get(name, strict);
+  };
+
+  var instantiate = function(Type) {
+    var instance = Object.create(Type.prototype);
+    var returned = invoke(Type, instance);
+
+    return typeof returned === 'object' ? returned : instance;
+  };
+
+  var invoke = function(fn, context) {
+    if (typeof fn !== 'function') {
+      if (isArray(fn)) {
+        fn = annotate(fn.slice());
+      } else {
+        throw new Error('Cannot invoke "' + fn + '". Expected a function!');
+      }
+    }
+
+    var inject = fn.$inject && fn.$inject || autoAnnotate(fn);
+    var dependencies = inject.map(function(dep) {
+      return get(dep);
+    });
+
+    // TODO(vojta): optimize without apply
+    return fn.apply(context, dependencies);
+  };
+
+
+  var createPrivateInjectorFactory = function(privateChildInjector) {
+    return annotate(function(key) {
+      return privateChildInjector.get(key);
+    });
+  };
+
+  var createChild = function(modules, forceNewInstances) {
+    if (forceNewInstances && forceNewInstances.length) {
+      var fromParentModule = Object.create(null);
+      var matchedScopes = Object.create(null);
+
+      var privateInjectorsCache = [];
+      var privateChildInjectors = [];
+      var privateChildFactories = [];
+
+      var provider;
+      var cacheIdx;
+      var privateChildInjector;
+      var privateChildInjectorFactory;
+      for (var name in providers) {
+        provider = providers[name];
+
+        if (forceNewInstances.indexOf(name) !== -1) {
+          if (provider[2] === 'private') {
+            cacheIdx = privateInjectorsCache.indexOf(provider[3]);
+            if (cacheIdx === -1) {
+              privateChildInjector = provider[3].createChild([], forceNewInstances);
+              privateChildInjectorFactory = createPrivateInjectorFactory(privateChildInjector);
+              privateInjectorsCache.push(provider[3]);
+              privateChildInjectors.push(privateChildInjector);
+              privateChildFactories.push(privateChildInjectorFactory);
+              fromParentModule[name] = [privateChildInjectorFactory, name, 'private', privateChildInjector];
+            } else {
+              fromParentModule[name] = [privateChildFactories[cacheIdx], name, 'private', privateChildInjectors[cacheIdx]];
+            }
+          } else {
+            fromParentModule[name] = [provider[2], provider[1]];
+          }
+          matchedScopes[name] = true;
+        }
+
+        if ((provider[2] === 'factory' || provider[2] === 'type') && provider[1].$scope) {
+          forceNewInstances.forEach(function(scope) {
+            if (provider[1].$scope.indexOf(scope) !== -1) {
+              fromParentModule[name] = [provider[2], provider[1]];
+              matchedScopes[scope] = true;
+            }
+          });
+        }
+      }
+
+      forceNewInstances.forEach(function(scope) {
+        if (!matchedScopes[scope]) {
+          throw new Error('No provider for "' + scope + '". Cannot use provider from the parent!');
+        }
+      });
+
+      modules.unshift(fromParentModule);
+    }
+
+    return new Injector(modules, self);
+  };
+
+  var factoryMap = {
+    factory: invoke,
+    type: instantiate,
+    value: function(value) {
+      return value;
+    }
+  };
+
+  modules.forEach(function(module) {
+
+    function arrayUnwrap(type, value) {
+      if (type !== 'value' && isArray(value)) {
+        value = annotate(value.slice());
+      }
+
+      return value;
+    }
+
+    // TODO(vojta): handle wrong inputs (modules)
+    if (module instanceof Module) {
+      module.forEach(function(provider) {
+        var name = provider[0];
+        var type = provider[1];
+        var value = provider[2];
+
+        providers[name] = [factoryMap[type], arrayUnwrap(type, value), type];
+      });
+    } else if (typeof module === 'object') {
+      if (module.__exports__) {
+        var clonedModule = Object.keys(module).reduce(function(m, key) {
+          if (key.substring(0, 2) !== '__') {
+            m[key] = module[key];
+          }
+          return m;
+        }, Object.create(null));
+
+        var privateInjector = new Injector((module.__modules__ || []).concat([clonedModule]), self);
+        var getFromPrivateInjector = annotate(function(key) {
+          return privateInjector.get(key);
+        });
+        module.__exports__.forEach(function(key) {
+          providers[key] = [getFromPrivateInjector, key, 'private', privateInjector];
+        });
+      } else {
+        Object.keys(module).forEach(function(name) {
+          if (module[name][2] === 'private') {
+            providers[name] = module[name];
+            return;
+          }
+
+          var type = module[name][0];
+          var value = module[name][1];
+
+          providers[name] = [factoryMap[type], arrayUnwrap(type, value), type];
+        });
+      }
+    }
+  });
+
+  // public API
+  this.get = get;
+  this.invoke = invoke;
+  this.instantiate = instantiate;
+  this.createChild = createChild;
+};
+
+module.exports = Injector;
+
+},{"222":222,"225":225}],225:[function(_dereq_,module,exports){
+var Module = function() {
+  var providers = [];
+
+  this.factory = function(name, factory) {
+    providers.push([name, 'factory', factory]);
+    return this;
+  };
+
+  this.value = function(name, value) {
+    providers.push([name, 'value', value]);
+    return this;
+  };
+
+  this.type = function(name, type) {
+    providers.push([name, 'type', type]);
+    return this;
+  };
+
+  this.forEach = function(iterator) {
+    providers.forEach(iterator);
+  };
+};
+
+module.exports = Module;
+
+},{}],226:[function(_dereq_,module,exports){
 // Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -29567,7 +34071,7 @@ module.exports = Text;
     (typeof module != "undefined" && module.exports) ? (module.exports = eve) : (typeof define === "function" && define.amd ? (define("eve", [], function() { return eve; })) : (glob.eve = eve));
 })(this);
 
-},{}],198:[function(_dereq_,module,exports){
+},{}],227:[function(_dereq_,module,exports){
 /*! Hammer.JS - v2.0.4 - 2014-09-28
  * http://hammerjs.github.io/
  *
@@ -32032,7 +36536,7 @@ if (typeof define == TYPE_FUNCTION && define.amd) {
 
 })(window, document, 'Hammer');
 
-},{}],199:[function(_dereq_,module,exports){
+},{}],228:[function(_dereq_,module,exports){
 // Snap.svg 0.3.0
 // 
 // Copyright (c) 2013 – 2014 Adobe Systems Incorporated. All rights reserved.
@@ -32060,7 +36564,7 @@ if (typeof define == TYPE_FUNCTION && define.amd) {
         });
     } else if (typeof exports !== 'undefined') {
         // Next for Node.js or CommonJS
-        var eve = _dereq_(197);
+        var eve = _dereq_(226);
         module.exports = factory(glob, eve);
     } else {
         // Browser globals (glob is window)
@@ -38685,10 +43189,10 @@ Snap.plugin(function (Snap, Element, Paper, glob) {
 
 return Snap;
 }));
-},{"197":197}],200:[function(_dereq_,module,exports){
+},{"226":226}],229:[function(_dereq_,module,exports){
 'use strict';
 
-var snapsvg = module.exports = _dereq_(199);
+var snapsvg = module.exports = _dereq_(228);
 
 snapsvg.plugin(function(Snap, Element) {
 
@@ -38894,309 +43398,10 @@ snapsvg.plugin(function(Snap, Element, Paper, global) {
     return new Snap(svg);
   };
 });
-},{"199":199}],201:[function(_dereq_,module,exports){
-
-var isArray = function(obj) {
-  return Object.prototype.toString.call(obj) === '[object Array]';
-};
-
-var annotate = function() {
-  var args = Array.prototype.slice.call(arguments);
-  
-  if (args.length === 1 && isArray(args[0])) {
-    args = args[0];
-  }
-
-  var fn = args.pop();
-
-  fn.$inject = args;
-
-  return fn;
-};
-
-
-// Current limitations:
-// - can't put into "function arg" comments
-// function /* (no parenthesis like this) */ (){}
-// function abc( /* xx (no parenthesis like this) */ a, b) {}
-//
-// Just put the comment before function or inside:
-// /* (((this is fine))) */ function(a, b) {}
-// function abc(a) { /* (((this is fine))) */}
-
-var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
-var FN_ARG = /\/\*([^\*]*)\*\//m;
-
-var parse = function(fn) {
-  if (typeof fn !== 'function') {
-    throw new Error('Cannot annotate "' + fn + '". Expected a function!');
-  }
-
-  var match = fn.toString().match(FN_ARGS);
-  return match[1] && match[1].split(',').map(function(arg) {
-    match = arg.match(FN_ARG);
-    return match ? match[1].trim() : arg.trim();
-  }) || [];
-};
-
-
-exports.annotate = annotate;
-exports.parse = parse;
-exports.isArray = isArray;
-
-},{}],202:[function(_dereq_,module,exports){
-module.exports = {
-  annotate: _dereq_(201).annotate,
-  Module: _dereq_(204),
-  Injector: _dereq_(203)
-};
-
-},{"201":201,"203":203,"204":204}],203:[function(_dereq_,module,exports){
-var Module = _dereq_(204);
-var autoAnnotate = _dereq_(201).parse;
-var annotate = _dereq_(201).annotate;
-var isArray = _dereq_(201).isArray;
-
-
-var Injector = function(modules, parent) {
-  parent = parent || {
-    get: function(name) {
-      currentlyResolving.push(name);
-      throw error('No provider for "' + name + '"!');
-    }
-  };
-
-  var currentlyResolving = [];
-  var providers = this._providers = Object.create(parent._providers || null);
-  var instances = this._instances = Object.create(null);
-
-  var self = instances.injector = this;
-
-  var error = function(msg) {
-    var stack = currentlyResolving.join(' -> ');
-    currentlyResolving.length = 0;
-    return new Error(stack ? msg + ' (Resolving: ' + stack + ')' : msg);
-  };
-
-  var get = function(name) {
-    if (!providers[name] && name.indexOf('.') !== -1) {
-      var parts = name.split('.');
-      var pivot = get(parts.shift());
-
-      while(parts.length) {
-        pivot = pivot[parts.shift()];
-      }
-
-      return pivot;
-    }
-
-    if (Object.hasOwnProperty.call(instances, name)) {
-      return instances[name];
-    }
-
-    if (Object.hasOwnProperty.call(providers, name)) {
-      if (currentlyResolving.indexOf(name) !== -1) {
-        currentlyResolving.push(name);
-        throw error('Cannot resolve circular dependency!');
-      }
-
-      currentlyResolving.push(name);
-      instances[name] = providers[name][0](providers[name][1]);
-      currentlyResolving.pop();
-
-      return instances[name];
-    }
-
-    return parent.get(name);
-  };
-
-  var instantiate = function(Type) {
-    var instance = Object.create(Type.prototype);
-    var returned = invoke(Type, instance);
-
-    return typeof returned === 'object' ? returned : instance;
-  };
-
-  var invoke = function(fn, context) {
-    if (typeof fn !== 'function') {
-      if (isArray(fn)) {
-        fn = annotate(fn.slice());
-      } else {
-        throw new Error('Cannot invoke "' + fn + '". Expected a function!');
-      }
-    }
-
-    var inject = fn.$inject && fn.$inject || autoAnnotate(fn);
-    var dependencies = inject.map(function(dep) {
-      return get(dep);
-    });
-
-    // TODO(vojta): optimize without apply
-    return fn.apply(context, dependencies);
-  };
-
-
-  var createPrivateInjectorFactory = function(privateChildInjector) {
-    return annotate(function(key) {
-      return privateChildInjector.get(key);
-    });
-  };
-
-  var createChild = function(modules, forceNewInstances) {
-    if (forceNewInstances && forceNewInstances.length) {
-      var fromParentModule = Object.create(null);
-      var matchedScopes = Object.create(null);
-
-      var privateInjectorsCache = [];
-      var privateChildInjectors = [];
-      var privateChildFactories = [];
-
-      var provider;
-      var cacheIdx;
-      var privateChildInjector;
-      var privateChildInjectorFactory;
-      for (var name in providers) {
-        provider = providers[name];
-
-        if (forceNewInstances.indexOf(name) !== -1) {
-          if (provider[2] === 'private') {
-            cacheIdx = privateInjectorsCache.indexOf(provider[3]);
-            if (cacheIdx === -1) {
-              privateChildInjector = provider[3].createChild([], forceNewInstances);
-              privateChildInjectorFactory = createPrivateInjectorFactory(privateChildInjector);
-              privateInjectorsCache.push(provider[3]);
-              privateChildInjectors.push(privateChildInjector);
-              privateChildFactories.push(privateChildInjectorFactory);
-              fromParentModule[name] = [privateChildInjectorFactory, name, 'private', privateChildInjector];
-            } else {
-              fromParentModule[name] = [privateChildFactories[cacheIdx], name, 'private', privateChildInjectors[cacheIdx]];
-            }
-          } else {
-            fromParentModule[name] = [provider[2], provider[1]];
-          }
-          matchedScopes[name] = true;
-        }
-
-        if ((provider[2] === 'factory' || provider[2] === 'type') && provider[1].$scope) {
-          forceNewInstances.forEach(function(scope) {
-            if (provider[1].$scope.indexOf(scope) !== -1) {
-              fromParentModule[name] = [provider[2], provider[1]];
-              matchedScopes[scope] = true;
-            }
-          });
-        }
-      }
-
-      forceNewInstances.forEach(function(scope) {
-        if (!matchedScopes[scope]) {
-          throw new Error('No provider for "' + scope + '". Cannot use provider from the parent!');
-        }
-      });
-
-      modules.unshift(fromParentModule);
-    }
-
-    return new Injector(modules, self);
-  };
-
-  var factoryMap = {
-    factory: invoke,
-    type: instantiate,
-    value: function(value) {
-      return value;
-    }
-  };
-
-  modules.forEach(function(module) {
-
-    function arrayUnwrap(type, value) {
-      if (type !== 'value' && isArray(value)) {
-        value = annotate(value.slice());
-      }
-
-      return value;
-    }
-
-    // TODO(vojta): handle wrong inputs (modules)
-    if (module instanceof Module) {
-      module.forEach(function(provider) {
-        var name = provider[0];
-        var type = provider[1];
-        var value = provider[2];
-
-        providers[name] = [factoryMap[type], arrayUnwrap(type, value), type];
-      });
-    } else if (typeof module === 'object') {
-      if (module.__exports__) {
-        var clonedModule = Object.keys(module).reduce(function(m, key) {
-          if (key.substring(0, 2) !== '__') {
-            m[key] = module[key];
-          }
-          return m;
-        }, Object.create(null));
-
-        var privateInjector = new Injector((module.__modules__ || []).concat([clonedModule]), self);
-        var getFromPrivateInjector = annotate(function(key) {
-          return privateInjector.get(key);
-        });
-        module.__exports__.forEach(function(key) {
-          providers[key] = [getFromPrivateInjector, key, 'private', privateInjector];
-        });
-      } else {
-        Object.keys(module).forEach(function(name) {
-          if (module[name][2] === 'private') {
-            providers[name] = module[name];
-            return;
-          }
-
-          var type = module[name][0];
-          var value = module[name][1];
-
-          providers[name] = [factoryMap[type], arrayUnwrap(type, value), type];
-        });
-      }
-    }
-  });
-
-  // public API
-  this.get = get;
-  this.invoke = invoke;
-  this.instantiate = instantiate;
-  this.createChild = createChild;
-};
-
-module.exports = Injector;
-
-},{"201":201,"204":204}],204:[function(_dereq_,module,exports){
-var Module = function() {
-  var providers = [];
-
-  this.factory = function(name, factory) {
-    providers.push([name, 'factory', factory]);
-    return this;
-  };
-
-  this.value = function(name, value) {
-    providers.push([name, 'value', value]);
-    return this;
-  };
-
-  this.type = function(name, type) {
-    providers.push([name, 'type', type]);
-    return this;
-  };
-
-  this.forEach = function(iterator) {
-    providers.forEach(iterator);
-  };
-};
-
-module.exports = Module;
-
-},{}],205:[function(_dereq_,module,exports){
+},{"228":228}],230:[function(_dereq_,module,exports){
 'use strict';
 
-var hat = _dereq_(206);
+var hat = _dereq_(231);
 
 
 /**
@@ -39264,7 +43469,17 @@ Ids.prototype.claim = function(id, element) {
 Ids.prototype.assigned = function(id) {
   return this._seed.get(id) || false;
 };
-},{"206":206}],206:[function(_dereq_,module,exports){
+
+/**
+ * Unclaim an id.
+ *
+ * @param  {String} id the id to unclaim
+ */
+Ids.prototype.unclaim = function(id) {
+  delete this._seed.hats[id];
+};
+
+},{"231":231}],231:[function(_dereq_,module,exports){
 var hat = module.exports = function (bits, base) {
     if (!base) base = 16;
     if (bits === undefined) bits = 128;
@@ -39328,7 +43543,7 @@ hat.rack = function (bits, base, expandBy) {
     return fn;
 };
 
-},{}],207:[function(_dereq_,module,exports){
+},{}],232:[function(_dereq_,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -39353,9 +43568,64 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],208:[function(_dereq_,module,exports){
-var baseFlatten = _dereq_(255),
-    isIterateeCall = _dereq_(310);
+},{}],233:[function(_dereq_,module,exports){
+var createFindIndex = _dereq_(320);
+
+/**
+ * This method is like `_.find` except that it returns the index of the first
+ * element `predicate` returns truthy for instead of the element itself.
+ *
+ * If a property name is provided for `predicate` the created `_.property`
+ * style callback returns the property value of the given element.
+ *
+ * If a value is also provided for `thisArg` the created `_.matchesProperty`
+ * style callback returns `true` for elements that have a matching property
+ * value, else `false`.
+ *
+ * If an object is provided for `predicate` the created `_.matches` style
+ * callback returns `true` for elements that have the properties of the given
+ * object, else `false`.
+ *
+ * @static
+ * @memberOf _
+ * @category Array
+ * @param {Array} array The array to search.
+ * @param {Function|Object|string} [predicate=_.identity] The function invoked
+ *  per iteration.
+ * @param {*} [thisArg] The `this` binding of `predicate`.
+ * @returns {number} Returns the index of the found element, else `-1`.
+ * @example
+ *
+ * var users = [
+ *   { 'user': 'barney',  'active': false },
+ *   { 'user': 'fred',    'active': false },
+ *   { 'user': 'pebbles', 'active': true }
+ * ];
+ *
+ * _.findIndex(users, function(chr) {
+ *   return chr.user == 'barney';
+ * });
+ * // => 0
+ *
+ * // using the `_.matches` callback shorthand
+ * _.findIndex(users, { 'user': 'fred', 'active': false });
+ * // => 1
+ *
+ * // using the `_.matchesProperty` callback shorthand
+ * _.findIndex(users, 'active', false);
+ * // => 0
+ *
+ * // using the `_.property` callback shorthand
+ * _.findIndex(users, 'active');
+ * // => 2
+ */
+var findIndex = createFindIndex();
+
+module.exports = findIndex;
+
+},{"320":320}],234:[function(_dereq_,module,exports){
+var baseFlatten = _dereq_(281),
+    isIterateeCall = _dereq_(337);
 
 /**
  * Flattens a nested array. If `isDeep` is `true` the array is recursively
@@ -39387,7 +43657,7 @@ function flatten(array, isDeep, guard) {
 
 module.exports = flatten;
 
-},{"255":255,"310":310}],209:[function(_dereq_,module,exports){
+},{"281":281,"337":337}],235:[function(_dereq_,module,exports){
 /**
  * Gets the last element of `array`.
  *
@@ -39408,11 +43678,11 @@ function last(array) {
 
 module.exports = last;
 
-},{}],210:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(244),
-    baseUniq = _dereq_(278),
-    isIterateeCall = _dereq_(310),
-    sortedUniq = _dereq_(325);
+},{}],236:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(270),
+    baseUniq = _dereq_(304),
+    isIterateeCall = _dereq_(337),
+    sortedUniq = _dereq_(352);
 
 /**
  * Creates a duplicate-free version of an array, using
@@ -39481,13 +43751,13 @@ function uniq(array, isSorted, iteratee, thisArg) {
 
 module.exports = uniq;
 
-},{"244":244,"278":278,"310":310,"325":325}],211:[function(_dereq_,module,exports){
-module.exports = _dereq_(210);
+},{"270":270,"304":304,"337":337,"352":352}],237:[function(_dereq_,module,exports){
+module.exports = _dereq_(236);
 
-},{"210":210}],212:[function(_dereq_,module,exports){
-var baseDifference = _dereq_(249),
-    isArrayLike = _dereq_(308),
-    restParam = _dereq_(230);
+},{"236":236}],238:[function(_dereq_,module,exports){
+var baseDifference = _dereq_(275),
+    isArrayLike = _dereq_(335),
+    restParam = _dereq_(256);
 
 /**
  * Creates an array excluding all provided values using
@@ -39513,13 +43783,13 @@ var without = restParam(function(array, values) {
 
 module.exports = without;
 
-},{"230":230,"249":249,"308":308}],213:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(231),
-    LodashWrapper = _dereq_(232),
-    baseLodash = _dereq_(264),
-    isArray = _dereq_(330),
-    isObjectLike = _dereq_(314),
-    wrapperClone = _dereq_(328);
+},{"256":256,"275":275,"335":335}],239:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(257),
+    LodashWrapper = _dereq_(258),
+    baseLodash = _dereq_(290),
+    isArray = _dereq_(357),
+    isObjectLike = _dereq_(341),
+    wrapperClone = _dereq_(355);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -39640,15 +43910,15 @@ lodash.prototype = baseLodash.prototype;
 
 module.exports = lodash;
 
-},{"231":231,"232":232,"264":264,"314":314,"328":328,"330":330}],214:[function(_dereq_,module,exports){
-module.exports = _dereq_(224);
+},{"257":257,"258":258,"290":290,"341":341,"355":355,"357":357}],240:[function(_dereq_,module,exports){
+module.exports = _dereq_(250);
 
-},{"224":224}],215:[function(_dereq_,module,exports){
-var arrayEvery = _dereq_(236),
-    baseCallback = _dereq_(244),
-    baseEvery = _dereq_(251),
-    isArray = _dereq_(330),
-    isIterateeCall = _dereq_(310);
+},{"250":250}],241:[function(_dereq_,module,exports){
+var arrayEvery = _dereq_(262),
+    baseCallback = _dereq_(270),
+    baseEvery = _dereq_(277),
+    isArray = _dereq_(357),
+    isIterateeCall = _dereq_(337);
 
 /**
  * Checks if `predicate` returns truthy for **all** elements of `collection`.
@@ -39711,11 +43981,11 @@ function every(collection, predicate, thisArg) {
 
 module.exports = every;
 
-},{"236":236,"244":244,"251":251,"310":310,"330":330}],216:[function(_dereq_,module,exports){
-var arrayFilter = _dereq_(237),
-    baseCallback = _dereq_(244),
-    baseFilter = _dereq_(252),
-    isArray = _dereq_(330);
+},{"262":262,"270":270,"277":277,"337":337,"357":357}],242:[function(_dereq_,module,exports){
+var arrayFilter = _dereq_(263),
+    baseCallback = _dereq_(270),
+    baseFilter = _dereq_(278),
+    isArray = _dereq_(357);
 
 /**
  * Iterates over elements of `collection`, returning an array of all elements
@@ -39774,9 +44044,9 @@ function filter(collection, predicate, thisArg) {
 
 module.exports = filter;
 
-},{"237":237,"244":244,"252":252,"330":330}],217:[function(_dereq_,module,exports){
-var baseEach = _dereq_(250),
-    createFind = _dereq_(293);
+},{"263":263,"270":270,"278":278,"357":357}],243:[function(_dereq_,module,exports){
+var baseEach = _dereq_(276),
+    createFind = _dereq_(319);
 
 /**
  * Iterates over elements of `collection`, returning the first element
@@ -39832,10 +44102,10 @@ var find = createFind(baseEach);
 
 module.exports = find;
 
-},{"250":250,"293":293}],218:[function(_dereq_,module,exports){
-var arrayEach = _dereq_(235),
-    baseEach = _dereq_(250),
-    createForEach = _dereq_(294);
+},{"276":276,"319":319}],244:[function(_dereq_,module,exports){
+var arrayEach = _dereq_(261),
+    baseEach = _dereq_(276),
+    createForEach = _dereq_(321);
 
 /**
  * Iterates over elements of `collection` invoking `iteratee` for each element.
@@ -39871,8 +44141,8 @@ var forEach = createForEach(arrayEach, baseEach);
 
 module.exports = forEach;
 
-},{"235":235,"250":250,"294":294}],219:[function(_dereq_,module,exports){
-var createAggregator = _dereq_(286);
+},{"261":261,"276":276,"321":321}],245:[function(_dereq_,module,exports){
+var createAggregator = _dereq_(312);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -39932,14 +44202,14 @@ var groupBy = createAggregator(function(result, value, key) {
 
 module.exports = groupBy;
 
-},{"286":286}],220:[function(_dereq_,module,exports){
-var baseIndexOf = _dereq_(260),
-    getLength = _dereq_(304),
-    isArray = _dereq_(330),
-    isIterateeCall = _dereq_(310),
-    isLength = _dereq_(313),
-    isString = _dereq_(336),
-    values = _dereq_(347);
+},{"312":312}],246:[function(_dereq_,module,exports){
+var baseIndexOf = _dereq_(286),
+    getLength = _dereq_(331),
+    isArray = _dereq_(357),
+    isIterateeCall = _dereq_(337),
+    isLength = _dereq_(340),
+    isString = _dereq_(363),
+    values = _dereq_(374);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMax = Math.max;
@@ -39991,11 +44261,11 @@ function includes(collection, target, fromIndex, guard) {
 
 module.exports = includes;
 
-},{"260":260,"304":304,"310":310,"313":313,"330":330,"336":336,"347":347}],221:[function(_dereq_,module,exports){
-var arrayMap = _dereq_(238),
-    baseCallback = _dereq_(244),
-    baseMap = _dereq_(265),
-    isArray = _dereq_(330);
+},{"286":286,"331":331,"337":337,"340":340,"357":357,"363":363,"374":374}],247:[function(_dereq_,module,exports){
+var arrayMap = _dereq_(264),
+    baseCallback = _dereq_(270),
+    baseMap = _dereq_(291),
+    isArray = _dereq_(357);
 
 /**
  * Creates an array of values by running each element in `collection` through
@@ -40061,10 +44331,10 @@ function map(collection, iteratee, thisArg) {
 
 module.exports = map;
 
-},{"238":238,"244":244,"265":265,"330":330}],222:[function(_dereq_,module,exports){
-var arrayReduce = _dereq_(240),
-    baseEach = _dereq_(250),
-    createReduce = _dereq_(297);
+},{"264":264,"270":270,"291":291,"357":357}],248:[function(_dereq_,module,exports){
+var arrayReduce = _dereq_(266),
+    baseEach = _dereq_(276),
+    createReduce = _dereq_(324);
 
 /**
  * Reduces `collection` to a value which is the accumulated result of running
@@ -40107,10 +44377,10 @@ var reduce = createReduce(arrayReduce, baseEach);
 
 module.exports = reduce;
 
-},{"240":240,"250":250,"297":297}],223:[function(_dereq_,module,exports){
-var getLength = _dereq_(304),
-    isLength = _dereq_(313),
-    keys = _dereq_(340);
+},{"266":266,"276":276,"324":324}],249:[function(_dereq_,module,exports){
+var getLength = _dereq_(331),
+    isLength = _dereq_(340),
+    keys = _dereq_(367);
 
 /**
  * Gets the size of `collection` by returning its length for array-like
@@ -40139,12 +44409,12 @@ function size(collection) {
 
 module.exports = size;
 
-},{"304":304,"313":313,"340":340}],224:[function(_dereq_,module,exports){
-var arraySome = _dereq_(241),
-    baseCallback = _dereq_(244),
-    baseSome = _dereq_(275),
-    isArray = _dereq_(330),
-    isIterateeCall = _dereq_(310);
+},{"331":331,"340":340,"367":367}],250:[function(_dereq_,module,exports){
+var arraySome = _dereq_(267),
+    baseCallback = _dereq_(270),
+    baseSome = _dereq_(301),
+    isArray = _dereq_(357),
+    isIterateeCall = _dereq_(337);
 
 /**
  * Checks if `predicate` returns truthy for **any** element of `collection`.
@@ -40208,12 +44478,12 @@ function some(collection, predicate, thisArg) {
 
 module.exports = some;
 
-},{"241":241,"244":244,"275":275,"310":310,"330":330}],225:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(244),
-    baseMap = _dereq_(265),
-    baseSortBy = _dereq_(276),
-    compareAscending = _dereq_(283),
-    isIterateeCall = _dereq_(310);
+},{"267":267,"270":270,"301":301,"337":337,"357":357}],251:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(270),
+    baseMap = _dereq_(291),
+    baseSortBy = _dereq_(302),
+    compareAscending = _dereq_(309),
+    isIterateeCall = _dereq_(337);
 
 /**
  * Creates an array of elements, sorted in ascending order by the results of
@@ -40281,8 +44551,8 @@ function sortBy(collection, iteratee, thisArg) {
 
 module.exports = sortBy;
 
-},{"244":244,"265":265,"276":276,"283":283,"310":310}],226:[function(_dereq_,module,exports){
-var getNative = _dereq_(306);
+},{"270":270,"291":291,"302":302,"309":309,"337":337}],252:[function(_dereq_,module,exports){
+var getNative = _dereq_(333);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeNow = getNative(Date, 'now');
@@ -40307,10 +44577,10 @@ var now = nativeNow || function() {
 
 module.exports = now;
 
-},{"306":306}],227:[function(_dereq_,module,exports){
-var createWrapper = _dereq_(298),
-    replaceHolders = _dereq_(322),
-    restParam = _dereq_(230);
+},{"333":333}],253:[function(_dereq_,module,exports){
+var createWrapper = _dereq_(325),
+    replaceHolders = _dereq_(349),
+    restParam = _dereq_(256);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -40365,9 +44635,9 @@ bind.placeholder = {};
 
 module.exports = bind;
 
-},{"230":230,"298":298,"322":322}],228:[function(_dereq_,module,exports){
-var isObject = _dereq_(334),
-    now = _dereq_(226);
+},{"256":256,"325":325,"349":349}],254:[function(_dereq_,module,exports){
+var isObject = _dereq_(361),
+    now = _dereq_(252);
 
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
@@ -40548,9 +44818,9 @@ function debounce(func, wait, options) {
 
 module.exports = debounce;
 
-},{"226":226,"334":334}],229:[function(_dereq_,module,exports){
-var baseDelay = _dereq_(248),
-    restParam = _dereq_(230);
+},{"252":252,"361":361}],255:[function(_dereq_,module,exports){
+var baseDelay = _dereq_(274),
+    restParam = _dereq_(256);
 
 /**
  * Defers invoking the `func` until the current call stack has cleared. Any
@@ -40575,7 +44845,7 @@ var defer = restParam(function(func, args) {
 
 module.exports = defer;
 
-},{"230":230,"248":248}],230:[function(_dereq_,module,exports){
+},{"256":256,"274":274}],256:[function(_dereq_,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -40635,9 +44905,9 @@ function restParam(func, start) {
 
 module.exports = restParam;
 
-},{}],231:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(247),
-    baseLodash = _dereq_(264);
+},{}],257:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(273),
+    baseLodash = _dereq_(290);
 
 /** Used as references for `-Infinity` and `Infinity`. */
 var POSITIVE_INFINITY = Number.POSITIVE_INFINITY;
@@ -40663,9 +44933,9 @@ LazyWrapper.prototype.constructor = LazyWrapper;
 
 module.exports = LazyWrapper;
 
-},{"247":247,"264":264}],232:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(247),
-    baseLodash = _dereq_(264);
+},{"273":273,"290":290}],258:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(273),
+    baseLodash = _dereq_(290);
 
 /**
  * The base constructor for creating `lodash` wrapper objects.
@@ -40686,10 +44956,10 @@ LodashWrapper.prototype.constructor = LodashWrapper;
 
 module.exports = LodashWrapper;
 
-},{"247":247,"264":264}],233:[function(_dereq_,module,exports){
+},{"273":273,"290":290}],259:[function(_dereq_,module,exports){
 (function (global){
-var cachePush = _dereq_(282),
-    getNative = _dereq_(306);
+var cachePush = _dereq_(308),
+    getNative = _dereq_(333);
 
 /** Native method references. */
 var Set = getNative(global, 'Set');
@@ -40720,7 +44990,7 @@ module.exports = SetCache;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 //# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy9sb2Rhc2gvaW50ZXJuYWwvU2V0Q2FjaGUuanMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IjtBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSIsImZpbGUiOiJnZW5lcmF0ZWQuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlc0NvbnRlbnQiOlsidmFyIGNhY2hlUHVzaCA9IHJlcXVpcmUoJy4vY2FjaGVQdXNoJyksXG4gICAgZ2V0TmF0aXZlID0gcmVxdWlyZSgnLi9nZXROYXRpdmUnKTtcblxuLyoqIE5hdGl2ZSBtZXRob2QgcmVmZXJlbmNlcy4gKi9cbnZhciBTZXQgPSBnZXROYXRpdmUoZ2xvYmFsLCAnU2V0Jyk7XG5cbi8qIE5hdGl2ZSBtZXRob2QgcmVmZXJlbmNlcyBmb3IgdGhvc2Ugd2l0aCB0aGUgc2FtZSBuYW1lIGFzIG90aGVyIGBsb2Rhc2hgIG1ldGhvZHMuICovXG52YXIgbmF0aXZlQ3JlYXRlID0gZ2V0TmF0aXZlKE9iamVjdCwgJ2NyZWF0ZScpO1xuXG4vKipcbiAqXG4gKiBDcmVhdGVzIGEgY2FjaGUgb2JqZWN0IHRvIHN0b3JlIHVuaXF1ZSB2YWx1ZXMuXG4gKlxuICogQHByaXZhdGVcbiAqIEBwYXJhbSB7QXJyYXl9IFt2YWx1ZXNdIFRoZSB2YWx1ZXMgdG8gY2FjaGUuXG4gKi9cbmZ1bmN0aW9uIFNldENhY2hlKHZhbHVlcykge1xuICB2YXIgbGVuZ3RoID0gdmFsdWVzID8gdmFsdWVzLmxlbmd0aCA6IDA7XG5cbiAgdGhpcy5kYXRhID0geyAnaGFzaCc6IG5hdGl2ZUNyZWF0ZShudWxsKSwgJ3NldCc6IG5ldyBTZXQgfTtcbiAgd2hpbGUgKGxlbmd0aC0tKSB7XG4gICAgdGhpcy5wdXNoKHZhbHVlc1tsZW5ndGhdKTtcbiAgfVxufVxuXG4vLyBBZGQgZnVuY3Rpb25zIHRvIHRoZSBgU2V0YCBjYWNoZS5cblNldENhY2hlLnByb3RvdHlwZS5wdXNoID0gY2FjaGVQdXNoO1xuXG5tb2R1bGUuZXhwb3J0cyA9IFNldENhY2hlO1xuIl19
-},{"282":282,"306":306}],234:[function(_dereq_,module,exports){
+},{"308":308,"333":333}],260:[function(_dereq_,module,exports){
 /**
  * Copies the values of `source` to `array`.
  *
@@ -40742,7 +45012,7 @@ function arrayCopy(source, array) {
 
 module.exports = arrayCopy;
 
-},{}],235:[function(_dereq_,module,exports){
+},{}],261:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.forEach` for arrays without support for callback
  * shorthands and `this` binding.
@@ -40766,7 +45036,7 @@ function arrayEach(array, iteratee) {
 
 module.exports = arrayEach;
 
-},{}],236:[function(_dereq_,module,exports){
+},{}],262:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.every` for arrays without support for callback
  * shorthands and `this` binding.
@@ -40791,7 +45061,7 @@ function arrayEvery(array, predicate) {
 
 module.exports = arrayEvery;
 
-},{}],237:[function(_dereq_,module,exports){
+},{}],263:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.filter` for arrays without support for callback
  * shorthands and `this` binding.
@@ -40818,7 +45088,7 @@ function arrayFilter(array, predicate) {
 
 module.exports = arrayFilter;
 
-},{}],238:[function(_dereq_,module,exports){
+},{}],264:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.map` for arrays without support for callback
  * shorthands and `this` binding.
@@ -40841,7 +45111,7 @@ function arrayMap(array, iteratee) {
 
 module.exports = arrayMap;
 
-},{}],239:[function(_dereq_,module,exports){
+},{}],265:[function(_dereq_,module,exports){
 /**
  * Appends the elements of `values` to `array`.
  *
@@ -40863,7 +45133,7 @@ function arrayPush(array, values) {
 
 module.exports = arrayPush;
 
-},{}],240:[function(_dereq_,module,exports){
+},{}],266:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.reduce` for arrays without support for callback
  * shorthands and `this` binding.
@@ -40891,7 +45161,7 @@ function arrayReduce(array, iteratee, accumulator, initFromArray) {
 
 module.exports = arrayReduce;
 
-},{}],241:[function(_dereq_,module,exports){
+},{}],267:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.some` for arrays without support for callback
  * shorthands and `this` binding.
@@ -40916,8 +45186,8 @@ function arraySome(array, predicate) {
 
 module.exports = arraySome;
 
-},{}],242:[function(_dereq_,module,exports){
-var keys = _dereq_(340);
+},{}],268:[function(_dereq_,module,exports){
+var keys = _dereq_(367);
 
 /**
  * A specialized version of `_.assign` for customizing assigned values without
@@ -40950,9 +45220,9 @@ function assignWith(object, source, customizer) {
 
 module.exports = assignWith;
 
-},{"340":340}],243:[function(_dereq_,module,exports){
-var baseCopy = _dereq_(246),
-    keys = _dereq_(340);
+},{"367":367}],269:[function(_dereq_,module,exports){
+var baseCopy = _dereq_(272),
+    keys = _dereq_(367);
 
 /**
  * The base implementation of `_.assign` without support for argument juggling,
@@ -40971,12 +45241,12 @@ function baseAssign(object, source) {
 
 module.exports = baseAssign;
 
-},{"246":246,"340":340}],244:[function(_dereq_,module,exports){
-var baseMatches = _dereq_(266),
-    baseMatchesProperty = _dereq_(267),
-    bindCallback = _dereq_(280),
-    identity = _dereq_(348),
-    property = _dereq_(350);
+},{"272":272,"367":367}],270:[function(_dereq_,module,exports){
+var baseMatches = _dereq_(292),
+    baseMatchesProperty = _dereq_(293),
+    bindCallback = _dereq_(306),
+    identity = _dereq_(375),
+    property = _dereq_(377);
 
 /**
  * The base implementation of `_.callback` which supports specifying the
@@ -41008,7 +45278,7 @@ function baseCallback(func, thisArg, argCount) {
 
 module.exports = baseCallback;
 
-},{"266":266,"267":267,"280":280,"348":348,"350":350}],245:[function(_dereq_,module,exports){
+},{"292":292,"293":293,"306":306,"375":375,"377":377}],271:[function(_dereq_,module,exports){
 /**
  * The base implementation of `compareAscending` which compares values and
  * sorts them in ascending order without guaranteeing a stable sort.
@@ -41044,7 +45314,7 @@ function baseCompareAscending(value, other) {
 
 module.exports = baseCompareAscending;
 
-},{}],246:[function(_dereq_,module,exports){
+},{}],272:[function(_dereq_,module,exports){
 /**
  * Copies properties of `source` to `object`.
  *
@@ -41069,8 +45339,8 @@ function baseCopy(source, props, object) {
 
 module.exports = baseCopy;
 
-},{}],247:[function(_dereq_,module,exports){
-var isObject = _dereq_(334);
+},{}],273:[function(_dereq_,module,exports){
+var isObject = _dereq_(361);
 
 /**
  * The base implementation of `_.create` without support for assigning
@@ -41094,7 +45364,7 @@ var baseCreate = (function() {
 
 module.exports = baseCreate;
 
-},{"334":334}],248:[function(_dereq_,module,exports){
+},{"361":361}],274:[function(_dereq_,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -41117,10 +45387,10 @@ function baseDelay(func, wait, args) {
 
 module.exports = baseDelay;
 
-},{}],249:[function(_dereq_,module,exports){
-var baseIndexOf = _dereq_(260),
-    cacheIndexOf = _dereq_(281),
-    createCache = _dereq_(291);
+},{}],275:[function(_dereq_,module,exports){
+var baseIndexOf = _dereq_(286),
+    cacheIndexOf = _dereq_(307),
+    createCache = _dereq_(317);
 
 /** Used as the size to enable large array optimizations. */
 var LARGE_ARRAY_SIZE = 200;
@@ -41174,9 +45444,9 @@ function baseDifference(array, values) {
 
 module.exports = baseDifference;
 
-},{"260":260,"281":281,"291":291}],250:[function(_dereq_,module,exports){
-var baseForOwn = _dereq_(258),
-    createBaseEach = _dereq_(288);
+},{"286":286,"307":307,"317":317}],276:[function(_dereq_,module,exports){
+var baseForOwn = _dereq_(284),
+    createBaseEach = _dereq_(314);
 
 /**
  * The base implementation of `_.forEach` without support for callback
@@ -41191,8 +45461,8 @@ var baseEach = createBaseEach(baseForOwn);
 
 module.exports = baseEach;
 
-},{"258":258,"288":288}],251:[function(_dereq_,module,exports){
-var baseEach = _dereq_(250);
+},{"284":284,"314":314}],277:[function(_dereq_,module,exports){
+var baseEach = _dereq_(276);
 
 /**
  * The base implementation of `_.every` without support for callback
@@ -41215,8 +45485,8 @@ function baseEvery(collection, predicate) {
 
 module.exports = baseEvery;
 
-},{"250":250}],252:[function(_dereq_,module,exports){
-var baseEach = _dereq_(250);
+},{"276":276}],278:[function(_dereq_,module,exports){
+var baseEach = _dereq_(276);
 
 /**
  * The base implementation of `_.filter` without support for callback
@@ -41239,7 +45509,7 @@ function baseFilter(collection, predicate) {
 
 module.exports = baseFilter;
 
-},{"250":250}],253:[function(_dereq_,module,exports){
+},{"276":276}],279:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.find`, `_.findLast`, `_.findKey`, and `_.findLastKey`,
  * without support for callback shorthands and `this` binding, which iterates
@@ -41266,7 +45536,7 @@ function baseFind(collection, predicate, eachFunc, retKey) {
 
 module.exports = baseFind;
 
-},{}],254:[function(_dereq_,module,exports){
+},{}],280:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.findIndex` and `_.findLastIndex` without
  * support for callback shorthands and `this` binding.
@@ -41291,12 +45561,12 @@ function baseFindIndex(array, predicate, fromRight) {
 
 module.exports = baseFindIndex;
 
-},{}],255:[function(_dereq_,module,exports){
-var arrayPush = _dereq_(239),
-    isArguments = _dereq_(329),
-    isArray = _dereq_(330),
-    isArrayLike = _dereq_(308),
-    isObjectLike = _dereq_(314);
+},{}],281:[function(_dereq_,module,exports){
+var arrayPush = _dereq_(265),
+    isArguments = _dereq_(356),
+    isArray = _dereq_(357),
+    isArrayLike = _dereq_(335),
+    isObjectLike = _dereq_(341);
 
 /**
  * The base implementation of `_.flatten` with added support for restricting
@@ -41334,8 +45604,8 @@ function baseFlatten(array, isDeep, isStrict, result) {
 
 module.exports = baseFlatten;
 
-},{"239":239,"308":308,"314":314,"329":329,"330":330}],256:[function(_dereq_,module,exports){
-var createBaseFor = _dereq_(289);
+},{"265":265,"335":335,"341":341,"356":356,"357":357}],282:[function(_dereq_,module,exports){
+var createBaseFor = _dereq_(315);
 
 /**
  * The base implementation of `baseForIn` and `baseForOwn` which iterates
@@ -41353,9 +45623,9 @@ var baseFor = createBaseFor();
 
 module.exports = baseFor;
 
-},{"289":289}],257:[function(_dereq_,module,exports){
-var baseFor = _dereq_(256),
-    keysIn = _dereq_(341);
+},{"315":315}],283:[function(_dereq_,module,exports){
+var baseFor = _dereq_(282),
+    keysIn = _dereq_(368);
 
 /**
  * The base implementation of `_.forIn` without support for callback
@@ -41372,9 +45642,9 @@ function baseForIn(object, iteratee) {
 
 module.exports = baseForIn;
 
-},{"256":256,"341":341}],258:[function(_dereq_,module,exports){
-var baseFor = _dereq_(256),
-    keys = _dereq_(340);
+},{"282":282,"368":368}],284:[function(_dereq_,module,exports){
+var baseFor = _dereq_(282),
+    keys = _dereq_(367);
 
 /**
  * The base implementation of `_.forOwn` without support for callback
@@ -41391,8 +45661,8 @@ function baseForOwn(object, iteratee) {
 
 module.exports = baseForOwn;
 
-},{"256":256,"340":340}],259:[function(_dereq_,module,exports){
-var toObject = _dereq_(326);
+},{"282":282,"367":367}],285:[function(_dereq_,module,exports){
+var toObject = _dereq_(353);
 
 /**
  * The base implementation of `get` without support for string paths
@@ -41422,8 +45692,8 @@ function baseGet(object, path, pathKey) {
 
 module.exports = baseGet;
 
-},{"326":326}],260:[function(_dereq_,module,exports){
-var indexOfNaN = _dereq_(307);
+},{"353":353}],286:[function(_dereq_,module,exports){
+var indexOfNaN = _dereq_(334);
 
 /**
  * The base implementation of `_.indexOf` without support for binary searches.
@@ -41451,10 +45721,10 @@ function baseIndexOf(array, value, fromIndex) {
 
 module.exports = baseIndexOf;
 
-},{"307":307}],261:[function(_dereq_,module,exports){
-var baseIsEqualDeep = _dereq_(262),
-    isObject = _dereq_(334),
-    isObjectLike = _dereq_(314);
+},{"334":334}],287:[function(_dereq_,module,exports){
+var baseIsEqualDeep = _dereq_(288),
+    isObject = _dereq_(361),
+    isObjectLike = _dereq_(341);
 
 /**
  * The base implementation of `_.isEqual` without support for `this` binding
@@ -41481,12 +45751,12 @@ function baseIsEqual(value, other, customizer, isLoose, stackA, stackB) {
 
 module.exports = baseIsEqual;
 
-},{"262":262,"314":314,"334":334}],262:[function(_dereq_,module,exports){
-var equalArrays = _dereq_(299),
-    equalByTag = _dereq_(300),
-    equalObjects = _dereq_(301),
-    isArray = _dereq_(330),
-    isTypedArray = _dereq_(337);
+},{"288":288,"341":341,"361":361}],288:[function(_dereq_,module,exports){
+var equalArrays = _dereq_(326),
+    equalByTag = _dereq_(327),
+    equalObjects = _dereq_(328),
+    isArray = _dereq_(357),
+    isTypedArray = _dereq_(364);
 
 /** `Object#toString` result references. */
 var argsTag = '[object Arguments]',
@@ -41585,9 +45855,9 @@ function baseIsEqualDeep(object, other, equalFunc, customizer, isLoose, stackA, 
 
 module.exports = baseIsEqualDeep;
 
-},{"299":299,"300":300,"301":301,"330":330,"337":337}],263:[function(_dereq_,module,exports){
-var baseIsEqual = _dereq_(261),
-    toObject = _dereq_(326);
+},{"326":326,"327":327,"328":328,"357":357,"364":364}],289:[function(_dereq_,module,exports){
+var baseIsEqual = _dereq_(287),
+    toObject = _dereq_(353);
 
 /**
  * The base implementation of `_.isMatch` without support for callback
@@ -41639,7 +45909,7 @@ function baseIsMatch(object, matchData, customizer) {
 
 module.exports = baseIsMatch;
 
-},{"261":261,"326":326}],264:[function(_dereq_,module,exports){
+},{"287":287,"353":353}],290:[function(_dereq_,module,exports){
 /**
  * The function whose prototype all chaining wrappers inherit from.
  *
@@ -41651,9 +45921,9 @@ function baseLodash() {
 
 module.exports = baseLodash;
 
-},{}],265:[function(_dereq_,module,exports){
-var baseEach = _dereq_(250),
-    isArrayLike = _dereq_(308);
+},{}],291:[function(_dereq_,module,exports){
+var baseEach = _dereq_(276),
+    isArrayLike = _dereq_(335);
 
 /**
  * The base implementation of `_.map` without support for callback shorthands
@@ -41676,10 +45946,10 @@ function baseMap(collection, iteratee) {
 
 module.exports = baseMap;
 
-},{"250":250,"308":308}],266:[function(_dereq_,module,exports){
-var baseIsMatch = _dereq_(263),
-    getMatchData = _dereq_(305),
-    toObject = _dereq_(326);
+},{"276":276,"335":335}],292:[function(_dereq_,module,exports){
+var baseIsMatch = _dereq_(289),
+    getMatchData = _dereq_(332),
+    toObject = _dereq_(353);
 
 /**
  * The base implementation of `_.matches` which does not clone `source`.
@@ -41708,16 +45978,16 @@ function baseMatches(source) {
 
 module.exports = baseMatches;
 
-},{"263":263,"305":305,"326":326}],267:[function(_dereq_,module,exports){
-var baseGet = _dereq_(259),
-    baseIsEqual = _dereq_(261),
-    baseSlice = _dereq_(274),
-    isArray = _dereq_(330),
-    isKey = _dereq_(311),
-    isStrictComparable = _dereq_(315),
-    last = _dereq_(209),
-    toObject = _dereq_(326),
-    toPath = _dereq_(327);
+},{"289":289,"332":332,"353":353}],293:[function(_dereq_,module,exports){
+var baseGet = _dereq_(285),
+    baseIsEqual = _dereq_(287),
+    baseSlice = _dereq_(300),
+    isArray = _dereq_(357),
+    isKey = _dereq_(338),
+    isStrictComparable = _dereq_(342),
+    last = _dereq_(235),
+    toObject = _dereq_(353),
+    toPath = _dereq_(354);
 
 /**
  * The base implementation of `_.matchesProperty` which does not clone `srcValue`.
@@ -41755,15 +46025,15 @@ function baseMatchesProperty(path, srcValue) {
 
 module.exports = baseMatchesProperty;
 
-},{"209":209,"259":259,"261":261,"274":274,"311":311,"315":315,"326":326,"327":327,"330":330}],268:[function(_dereq_,module,exports){
-var arrayEach = _dereq_(235),
-    baseMergeDeep = _dereq_(269),
-    isArray = _dereq_(330),
-    isArrayLike = _dereq_(308),
-    isObject = _dereq_(334),
-    isObjectLike = _dereq_(314),
-    isTypedArray = _dereq_(337),
-    keys = _dereq_(340);
+},{"235":235,"285":285,"287":287,"300":300,"338":338,"342":342,"353":353,"354":354,"357":357}],294:[function(_dereq_,module,exports){
+var arrayEach = _dereq_(261),
+    baseMergeDeep = _dereq_(295),
+    isArray = _dereq_(357),
+    isArrayLike = _dereq_(335),
+    isObject = _dereq_(361),
+    isObjectLike = _dereq_(341),
+    isTypedArray = _dereq_(364),
+    keys = _dereq_(367);
 
 /**
  * The base implementation of `_.merge` without support for argument juggling,
@@ -41813,14 +46083,14 @@ function baseMerge(object, source, customizer, stackA, stackB) {
 
 module.exports = baseMerge;
 
-},{"235":235,"269":269,"308":308,"314":314,"330":330,"334":334,"337":337,"340":340}],269:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(234),
-    isArguments = _dereq_(329),
-    isArray = _dereq_(330),
-    isArrayLike = _dereq_(308),
-    isPlainObject = _dereq_(335),
-    isTypedArray = _dereq_(337),
-    toPlainObject = _dereq_(338);
+},{"261":261,"295":295,"335":335,"341":341,"357":357,"361":361,"364":364,"367":367}],295:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(260),
+    isArguments = _dereq_(356),
+    isArray = _dereq_(357),
+    isArrayLike = _dereq_(335),
+    isPlainObject = _dereq_(362),
+    isTypedArray = _dereq_(364),
+    toPlainObject = _dereq_(365);
 
 /**
  * A specialized version of `baseMerge` for arrays and objects which performs
@@ -41882,7 +46152,7 @@ function baseMergeDeep(object, source, key, mergeFunc, customizer, stackA, stack
 
 module.exports = baseMergeDeep;
 
-},{"234":234,"308":308,"329":329,"330":330,"335":335,"337":337,"338":338}],270:[function(_dereq_,module,exports){
+},{"260":260,"335":335,"356":356,"357":357,"362":362,"364":364,"365":365}],296:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.property` without support for deep paths.
  *
@@ -41898,9 +46168,9 @@ function baseProperty(key) {
 
 module.exports = baseProperty;
 
-},{}],271:[function(_dereq_,module,exports){
-var baseGet = _dereq_(259),
-    toPath = _dereq_(327);
+},{}],297:[function(_dereq_,module,exports){
+var baseGet = _dereq_(285),
+    toPath = _dereq_(354);
 
 /**
  * A specialized version of `baseProperty` which supports deep paths.
@@ -41919,7 +46189,7 @@ function basePropertyDeep(path) {
 
 module.exports = basePropertyDeep;
 
-},{"259":259,"327":327}],272:[function(_dereq_,module,exports){
+},{"285":285,"354":354}],298:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.reduce` and `_.reduceRight` without support
  * for callback shorthands and `this` binding, which iterates over `collection`
@@ -41945,9 +46215,9 @@ function baseReduce(collection, iteratee, accumulator, initFromCollection, eachF
 
 module.exports = baseReduce;
 
-},{}],273:[function(_dereq_,module,exports){
-var identity = _dereq_(348),
-    metaMap = _dereq_(317);
+},{}],299:[function(_dereq_,module,exports){
+var identity = _dereq_(375),
+    metaMap = _dereq_(344);
 
 /**
  * The base implementation of `setData` without support for hot loop detection.
@@ -41964,7 +46234,7 @@ var baseSetData = !metaMap ? identity : function(func, data) {
 
 module.exports = baseSetData;
 
-},{"317":317,"348":348}],274:[function(_dereq_,module,exports){
+},{"344":344,"375":375}],300:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.slice` without an iteratee call guard.
  *
@@ -41998,8 +46268,8 @@ function baseSlice(array, start, end) {
 
 module.exports = baseSlice;
 
-},{}],275:[function(_dereq_,module,exports){
-var baseEach = _dereq_(250);
+},{}],301:[function(_dereq_,module,exports){
+var baseEach = _dereq_(276);
 
 /**
  * The base implementation of `_.some` without support for callback shorthands
@@ -42023,7 +46293,7 @@ function baseSome(collection, predicate) {
 
 module.exports = baseSome;
 
-},{"250":250}],276:[function(_dereq_,module,exports){
+},{"276":276}],302:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.sortBy` which uses `comparer` to define
  * the sort order of `array` and replaces criteria objects with their
@@ -42046,7 +46316,7 @@ function baseSortBy(array, comparer) {
 
 module.exports = baseSortBy;
 
-},{}],277:[function(_dereq_,module,exports){
+},{}],303:[function(_dereq_,module,exports){
 /**
  * Converts `value` to a string if it's not one. An empty string is returned
  * for `null` or `undefined` values.
@@ -42061,10 +46331,10 @@ function baseToString(value) {
 
 module.exports = baseToString;
 
-},{}],278:[function(_dereq_,module,exports){
-var baseIndexOf = _dereq_(260),
-    cacheIndexOf = _dereq_(281),
-    createCache = _dereq_(291);
+},{}],304:[function(_dereq_,module,exports){
+var baseIndexOf = _dereq_(286),
+    cacheIndexOf = _dereq_(307),
+    createCache = _dereq_(317);
 
 /** Used as the size to enable large array optimizations. */
 var LARGE_ARRAY_SIZE = 200;
@@ -42123,7 +46393,7 @@ function baseUniq(array, iteratee) {
 
 module.exports = baseUniq;
 
-},{"260":260,"281":281,"291":291}],279:[function(_dereq_,module,exports){
+},{"286":286,"307":307,"317":317}],305:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.values` and `_.valuesIn` which creates an
  * array of `object` property values corresponding to the property names
@@ -42147,8 +46417,8 @@ function baseValues(object, props) {
 
 module.exports = baseValues;
 
-},{}],280:[function(_dereq_,module,exports){
-var identity = _dereq_(348);
+},{}],306:[function(_dereq_,module,exports){
+var identity = _dereq_(375);
 
 /**
  * A specialized version of `baseCallback` which only supports `this` binding
@@ -42188,8 +46458,8 @@ function bindCallback(func, thisArg, argCount) {
 
 module.exports = bindCallback;
 
-},{"348":348}],281:[function(_dereq_,module,exports){
-var isObject = _dereq_(334);
+},{"375":375}],307:[function(_dereq_,module,exports){
+var isObject = _dereq_(361);
 
 /**
  * Checks if `value` is in `cache` mimicking the return signature of
@@ -42209,8 +46479,8 @@ function cacheIndexOf(cache, value) {
 
 module.exports = cacheIndexOf;
 
-},{"334":334}],282:[function(_dereq_,module,exports){
-var isObject = _dereq_(334);
+},{"361":361}],308:[function(_dereq_,module,exports){
+var isObject = _dereq_(361);
 
 /**
  * Adds `value` to the cache.
@@ -42231,8 +46501,8 @@ function cachePush(value) {
 
 module.exports = cachePush;
 
-},{"334":334}],283:[function(_dereq_,module,exports){
-var baseCompareAscending = _dereq_(245);
+},{"361":361}],309:[function(_dereq_,module,exports){
+var baseCompareAscending = _dereq_(271);
 
 /**
  * Used by `_.sortBy` to compare transformed elements of a collection and stable
@@ -42249,7 +46519,7 @@ function compareAscending(object, other) {
 
 module.exports = compareAscending;
 
-},{"245":245}],284:[function(_dereq_,module,exports){
+},{"271":271}],310:[function(_dereq_,module,exports){
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMax = Math.max;
 
@@ -42285,7 +46555,7 @@ function composeArgs(args, partials, holders) {
 
 module.exports = composeArgs;
 
-},{}],285:[function(_dereq_,module,exports){
+},{}],311:[function(_dereq_,module,exports){
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMax = Math.max;
 
@@ -42323,10 +46593,10 @@ function composeArgsRight(args, partials, holders) {
 
 module.exports = composeArgsRight;
 
-},{}],286:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(244),
-    baseEach = _dereq_(250),
-    isArray = _dereq_(330);
+},{}],312:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(270),
+    baseEach = _dereq_(276),
+    isArray = _dereq_(357);
 
 /**
  * Creates a `_.countBy`, `_.groupBy`, `_.indexBy`, or `_.partition` function.
@@ -42360,10 +46630,10 @@ function createAggregator(setter, initializer) {
 
 module.exports = createAggregator;
 
-},{"244":244,"250":250,"330":330}],287:[function(_dereq_,module,exports){
-var bindCallback = _dereq_(280),
-    isIterateeCall = _dereq_(310),
-    restParam = _dereq_(230);
+},{"270":270,"276":276,"357":357}],313:[function(_dereq_,module,exports){
+var bindCallback = _dereq_(306),
+    isIterateeCall = _dereq_(337),
+    restParam = _dereq_(256);
 
 /**
  * Creates a `_.assign`, `_.defaults`, or `_.merge` function.
@@ -42403,10 +46673,10 @@ function createAssigner(assigner) {
 
 module.exports = createAssigner;
 
-},{"230":230,"280":280,"310":310}],288:[function(_dereq_,module,exports){
-var getLength = _dereq_(304),
-    isLength = _dereq_(313),
-    toObject = _dereq_(326);
+},{"256":256,"306":306,"337":337}],314:[function(_dereq_,module,exports){
+var getLength = _dereq_(331),
+    isLength = _dereq_(340),
+    toObject = _dereq_(353);
 
 /**
  * Creates a `baseEach` or `baseEachRight` function.
@@ -42436,8 +46706,8 @@ function createBaseEach(eachFunc, fromRight) {
 
 module.exports = createBaseEach;
 
-},{"304":304,"313":313,"326":326}],289:[function(_dereq_,module,exports){
-var toObject = _dereq_(326);
+},{"331":331,"340":340,"353":353}],315:[function(_dereq_,module,exports){
+var toObject = _dereq_(353);
 
 /**
  * Creates a base function for `_.forIn` or `_.forInRight`.
@@ -42465,9 +46735,9 @@ function createBaseFor(fromRight) {
 
 module.exports = createBaseFor;
 
-},{"326":326}],290:[function(_dereq_,module,exports){
+},{"353":353}],316:[function(_dereq_,module,exports){
 (function (global){
-var createCtorWrapper = _dereq_(292);
+var createCtorWrapper = _dereq_(318);
 
 /**
  * Creates a function that wraps `func` and invokes it with the `this`
@@ -42492,10 +46762,10 @@ module.exports = createBindWrapper;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 //# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy9sb2Rhc2gvaW50ZXJuYWwvY3JlYXRlQmluZFdyYXBwZXIuanMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IjtBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EiLCJmaWxlIjoiZ2VuZXJhdGVkLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXNDb250ZW50IjpbInZhciBjcmVhdGVDdG9yV3JhcHBlciA9IHJlcXVpcmUoJy4vY3JlYXRlQ3RvcldyYXBwZXInKTtcblxuLyoqXG4gKiBDcmVhdGVzIGEgZnVuY3Rpb24gdGhhdCB3cmFwcyBgZnVuY2AgYW5kIGludm9rZXMgaXQgd2l0aCB0aGUgYHRoaXNgXG4gKiBiaW5kaW5nIG9mIGB0aGlzQXJnYC5cbiAqXG4gKiBAcHJpdmF0ZVxuICogQHBhcmFtIHtGdW5jdGlvbn0gZnVuYyBUaGUgZnVuY3Rpb24gdG8gYmluZC5cbiAqIEBwYXJhbSB7Kn0gW3RoaXNBcmddIFRoZSBgdGhpc2AgYmluZGluZyBvZiBgZnVuY2AuXG4gKiBAcmV0dXJucyB7RnVuY3Rpb259IFJldHVybnMgdGhlIG5ldyBib3VuZCBmdW5jdGlvbi5cbiAqL1xuZnVuY3Rpb24gY3JlYXRlQmluZFdyYXBwZXIoZnVuYywgdGhpc0FyZykge1xuICB2YXIgQ3RvciA9IGNyZWF0ZUN0b3JXcmFwcGVyKGZ1bmMpO1xuXG4gIGZ1bmN0aW9uIHdyYXBwZXIoKSB7XG4gICAgdmFyIGZuID0gKHRoaXMgJiYgdGhpcyAhPT0gZ2xvYmFsICYmIHRoaXMgaW5zdGFuY2VvZiB3cmFwcGVyKSA/IEN0b3IgOiBmdW5jO1xuICAgIHJldHVybiBmbi5hcHBseSh0aGlzQXJnLCBhcmd1bWVudHMpO1xuICB9XG4gIHJldHVybiB3cmFwcGVyO1xufVxuXG5tb2R1bGUuZXhwb3J0cyA9IGNyZWF0ZUJpbmRXcmFwcGVyO1xuIl19
-},{"292":292}],291:[function(_dereq_,module,exports){
+},{"318":318}],317:[function(_dereq_,module,exports){
 (function (global){
-var SetCache = _dereq_(233),
-    getNative = _dereq_(306);
+var SetCache = _dereq_(259),
+    getNative = _dereq_(333);
 
 /** Native method references. */
 var Set = getNative(global, 'Set');
@@ -42518,9 +46788,9 @@ module.exports = createCache;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 //# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy9sb2Rhc2gvaW50ZXJuYWwvY3JlYXRlQ2FjaGUuanMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IjtBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBIiwiZmlsZSI6ImdlbmVyYXRlZC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzQ29udGVudCI6WyJ2YXIgU2V0Q2FjaGUgPSByZXF1aXJlKCcuL1NldENhY2hlJyksXG4gICAgZ2V0TmF0aXZlID0gcmVxdWlyZSgnLi9nZXROYXRpdmUnKTtcblxuLyoqIE5hdGl2ZSBtZXRob2QgcmVmZXJlbmNlcy4gKi9cbnZhciBTZXQgPSBnZXROYXRpdmUoZ2xvYmFsLCAnU2V0Jyk7XG5cbi8qIE5hdGl2ZSBtZXRob2QgcmVmZXJlbmNlcyBmb3IgdGhvc2Ugd2l0aCB0aGUgc2FtZSBuYW1lIGFzIG90aGVyIGBsb2Rhc2hgIG1ldGhvZHMuICovXG52YXIgbmF0aXZlQ3JlYXRlID0gZ2V0TmF0aXZlKE9iamVjdCwgJ2NyZWF0ZScpO1xuXG4vKipcbiAqIENyZWF0ZXMgYSBgU2V0YCBjYWNoZSBvYmplY3QgdG8gb3B0aW1pemUgbGluZWFyIHNlYXJjaGVzIG9mIGxhcmdlIGFycmF5cy5cbiAqXG4gKiBAcHJpdmF0ZVxuICogQHBhcmFtIHtBcnJheX0gW3ZhbHVlc10gVGhlIHZhbHVlcyB0byBjYWNoZS5cbiAqIEByZXR1cm5zIHtudWxsfE9iamVjdH0gUmV0dXJucyB0aGUgbmV3IGNhY2hlIG9iamVjdCBpZiBgU2V0YCBpcyBzdXBwb3J0ZWQsIGVsc2UgYG51bGxgLlxuICovXG5mdW5jdGlvbiBjcmVhdGVDYWNoZSh2YWx1ZXMpIHtcbiAgcmV0dXJuIChuYXRpdmVDcmVhdGUgJiYgU2V0KSA/IG5ldyBTZXRDYWNoZSh2YWx1ZXMpIDogbnVsbDtcbn1cblxubW9kdWxlLmV4cG9ydHMgPSBjcmVhdGVDYWNoZTtcbiJdfQ==
-},{"233":233,"306":306}],292:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(247),
-    isObject = _dereq_(334);
+},{"259":259,"333":333}],318:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(273),
+    isObject = _dereq_(361);
 
 /**
  * Creates a function that produces an instance of `Ctor` regardless of
@@ -42557,11 +46827,11 @@ function createCtorWrapper(Ctor) {
 
 module.exports = createCtorWrapper;
 
-},{"247":247,"334":334}],293:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(244),
-    baseFind = _dereq_(253),
-    baseFindIndex = _dereq_(254),
-    isArray = _dereq_(330);
+},{"273":273,"361":361}],319:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(270),
+    baseFind = _dereq_(279),
+    baseFindIndex = _dereq_(280),
+    isArray = _dereq_(357);
 
 /**
  * Creates a `_.find` or `_.findLast` function.
@@ -42584,9 +46854,32 @@ function createFind(eachFunc, fromRight) {
 
 module.exports = createFind;
 
-},{"244":244,"253":253,"254":254,"330":330}],294:[function(_dereq_,module,exports){
-var bindCallback = _dereq_(280),
-    isArray = _dereq_(330);
+},{"270":270,"279":279,"280":280,"357":357}],320:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(270),
+    baseFindIndex = _dereq_(280);
+
+/**
+ * Creates a `_.findIndex` or `_.findLastIndex` function.
+ *
+ * @private
+ * @param {boolean} [fromRight] Specify iterating from right to left.
+ * @returns {Function} Returns the new find function.
+ */
+function createFindIndex(fromRight) {
+  return function(array, predicate, thisArg) {
+    if (!(array && array.length)) {
+      return -1;
+    }
+    predicate = baseCallback(predicate, thisArg, 3);
+    return baseFindIndex(array, predicate, fromRight);
+  };
+}
+
+module.exports = createFindIndex;
+
+},{"270":270,"280":280}],321:[function(_dereq_,module,exports){
+var bindCallback = _dereq_(306),
+    isArray = _dereq_(357);
 
 /**
  * Creates a function for `_.forEach` or `_.forEachRight`.
@@ -42606,16 +46899,16 @@ function createForEach(arrayFunc, eachFunc) {
 
 module.exports = createForEach;
 
-},{"280":280,"330":330}],295:[function(_dereq_,module,exports){
+},{"306":306,"357":357}],322:[function(_dereq_,module,exports){
 (function (global){
-var arrayCopy = _dereq_(234),
-    composeArgs = _dereq_(284),
-    composeArgsRight = _dereq_(285),
-    createCtorWrapper = _dereq_(292),
-    isLaziable = _dereq_(312),
-    reorder = _dereq_(321),
-    replaceHolders = _dereq_(322),
-    setData = _dereq_(323);
+var arrayCopy = _dereq_(260),
+    composeArgs = _dereq_(310),
+    composeArgsRight = _dereq_(311),
+    createCtorWrapper = _dereq_(318),
+    isLaziable = _dereq_(339),
+    reorder = _dereq_(348),
+    replaceHolders = _dereq_(349),
+    setData = _dereq_(350);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -42722,9 +47015,9 @@ module.exports = createHybridWrapper;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 //# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy9sb2Rhc2gvaW50ZXJuYWwvY3JlYXRlSHlicmlkV3JhcHBlci5qcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiO0FBQUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EiLCJmaWxlIjoiZ2VuZXJhdGVkLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXNDb250ZW50IjpbInZhciBhcnJheUNvcHkgPSByZXF1aXJlKCcuL2FycmF5Q29weScpLFxuICAgIGNvbXBvc2VBcmdzID0gcmVxdWlyZSgnLi9jb21wb3NlQXJncycpLFxuICAgIGNvbXBvc2VBcmdzUmlnaHQgPSByZXF1aXJlKCcuL2NvbXBvc2VBcmdzUmlnaHQnKSxcbiAgICBjcmVhdGVDdG9yV3JhcHBlciA9IHJlcXVpcmUoJy4vY3JlYXRlQ3RvcldyYXBwZXInKSxcbiAgICBpc0xhemlhYmxlID0gcmVxdWlyZSgnLi9pc0xhemlhYmxlJyksXG4gICAgcmVvcmRlciA9IHJlcXVpcmUoJy4vcmVvcmRlcicpLFxuICAgIHJlcGxhY2VIb2xkZXJzID0gcmVxdWlyZSgnLi9yZXBsYWNlSG9sZGVycycpLFxuICAgIHNldERhdGEgPSByZXF1aXJlKCcuL3NldERhdGEnKTtcblxuLyoqIFVzZWQgdG8gY29tcG9zZSBiaXRtYXNrcyBmb3Igd3JhcHBlciBtZXRhZGF0YS4gKi9cbnZhciBCSU5EX0ZMQUcgPSAxLFxuICAgIEJJTkRfS0VZX0ZMQUcgPSAyLFxuICAgIENVUlJZX0JPVU5EX0ZMQUcgPSA0LFxuICAgIENVUlJZX0ZMQUcgPSA4LFxuICAgIENVUlJZX1JJR0hUX0ZMQUcgPSAxNixcbiAgICBQQVJUSUFMX0ZMQUcgPSAzMixcbiAgICBQQVJUSUFMX1JJR0hUX0ZMQUcgPSA2NCxcbiAgICBBUllfRkxBRyA9IDEyODtcblxuLyogTmF0aXZlIG1ldGhvZCByZWZlcmVuY2VzIGZvciB0aG9zZSB3aXRoIHRoZSBzYW1lIG5hbWUgYXMgb3RoZXIgYGxvZGFzaGAgbWV0aG9kcy4gKi9cbnZhciBuYXRpdmVNYXggPSBNYXRoLm1heDtcblxuLyoqXG4gKiBDcmVhdGVzIGEgZnVuY3Rpb24gdGhhdCB3cmFwcyBgZnVuY2AgYW5kIGludm9rZXMgaXQgd2l0aCBvcHRpb25hbCBgdGhpc2BcbiAqIGJpbmRpbmcgb2YsIHBhcnRpYWwgYXBwbGljYXRpb24sIGFuZCBjdXJyeWluZy5cbiAqXG4gKiBAcHJpdmF0ZVxuICogQHBhcmFtIHtGdW5jdGlvbnxzdHJpbmd9IGZ1bmMgVGhlIGZ1bmN0aW9uIG9yIG1ldGhvZCBuYW1lIHRvIHJlZmVyZW5jZS5cbiAqIEBwYXJhbSB7bnVtYmVyfSBiaXRtYXNrIFRoZSBiaXRtYXNrIG9mIGZsYWdzLiBTZWUgYGNyZWF0ZVdyYXBwZXJgIGZvciBtb3JlIGRldGFpbHMuXG4gKiBAcGFyYW0geyp9IFt0aGlzQXJnXSBUaGUgYHRoaXNgIGJpbmRpbmcgb2YgYGZ1bmNgLlxuICogQHBhcmFtIHtBcnJheX0gW3BhcnRpYWxzXSBUaGUgYXJndW1lbnRzIHRvIHByZXBlbmQgdG8gdGhvc2UgcHJvdmlkZWQgdG8gdGhlIG5ldyBmdW5jdGlvbi5cbiAqIEBwYXJhbSB7QXJyYXl9IFtob2xkZXJzXSBUaGUgYHBhcnRpYWxzYCBwbGFjZWhvbGRlciBpbmRleGVzLlxuICogQHBhcmFtIHtBcnJheX0gW3BhcnRpYWxzUmlnaHRdIFRoZSBhcmd1bWVudHMgdG8gYXBwZW5kIHRvIHRob3NlIHByb3ZpZGVkIHRvIHRoZSBuZXcgZnVuY3Rpb24uXG4gKiBAcGFyYW0ge0FycmF5fSBbaG9sZGVyc1JpZ2h0XSBUaGUgYHBhcnRpYWxzUmlnaHRgIHBsYWNlaG9sZGVyIGluZGV4ZXMuXG4gKiBAcGFyYW0ge0FycmF5fSBbYXJnUG9zXSBUaGUgYXJndW1lbnQgcG9zaXRpb25zIG9mIHRoZSBuZXcgZnVuY3Rpb24uXG4gKiBAcGFyYW0ge251bWJlcn0gW2FyeV0gVGhlIGFyaXR5IGNhcCBvZiBgZnVuY2AuXG4gKiBAcGFyYW0ge251bWJlcn0gW2FyaXR5XSBUaGUgYXJpdHkgb2YgYGZ1bmNgLlxuICogQHJldHVybnMge0Z1bmN0aW9ufSBSZXR1cm5zIHRoZSBuZXcgd3JhcHBlZCBmdW5jdGlvbi5cbiAqL1xuZnVuY3Rpb24gY3JlYXRlSHlicmlkV3JhcHBlcihmdW5jLCBiaXRtYXNrLCB0aGlzQXJnLCBwYXJ0aWFscywgaG9sZGVycywgcGFydGlhbHNSaWdodCwgaG9sZGVyc1JpZ2h0LCBhcmdQb3MsIGFyeSwgYXJpdHkpIHtcbiAgdmFyIGlzQXJ5ID0gYml0bWFzayAmIEFSWV9GTEFHLFxuICAgICAgaXNCaW5kID0gYml0bWFzayAmIEJJTkRfRkxBRyxcbiAgICAgIGlzQmluZEtleSA9IGJpdG1hc2sgJiBCSU5EX0tFWV9GTEFHLFxuICAgICAgaXNDdXJyeSA9IGJpdG1hc2sgJiBDVVJSWV9GTEFHLFxuICAgICAgaXNDdXJyeUJvdW5kID0gYml0bWFzayAmIENVUlJZX0JPVU5EX0ZMQUcsXG4gICAgICBpc0N1cnJ5UmlnaHQgPSBiaXRtYXNrICYgQ1VSUllfUklHSFRfRkxBRyxcbiAgICAgIEN0b3IgPSBpc0JpbmRLZXkgPyB1bmRlZmluZWQgOiBjcmVhdGVDdG9yV3JhcHBlcihmdW5jKTtcblxuICBmdW5jdGlvbiB3cmFwcGVyKCkge1xuICAgIC8vIEF2b2lkIGBhcmd1bWVudHNgIG9iamVjdCB1c2UgZGlzcXVhbGlmeWluZyBvcHRpbWl6YXRpb25zIGJ5XG4gICAgLy8gY29udmVydGluZyBpdCB0byBhbiBhcnJheSBiZWZvcmUgcHJvdmlkaW5nIGl0IHRvIG90aGVyIGZ1bmN0aW9ucy5cbiAgICB2YXIgbGVuZ3RoID0gYXJndW1lbnRzLmxlbmd0aCxcbiAgICAgICAgaW5kZXggPSBsZW5ndGgsXG4gICAgICAgIGFyZ3MgPSBBcnJheShsZW5ndGgpO1xuXG4gICAgd2hpbGUgKGluZGV4LS0pIHtcbiAgICAgIGFyZ3NbaW5kZXhdID0gYXJndW1lbnRzW2luZGV4XTtcbiAgICB9XG4gICAgaWYgKHBhcnRpYWxzKSB7XG4gICAgICBhcmdzID0gY29tcG9zZUFyZ3MoYXJncywgcGFydGlhbHMsIGhvbGRlcnMpO1xuICAgIH1cbiAgICBpZiAocGFydGlhbHNSaWdodCkge1xuICAgICAgYXJncyA9IGNvbXBvc2VBcmdzUmlnaHQoYXJncywgcGFydGlhbHNSaWdodCwgaG9sZGVyc1JpZ2h0KTtcbiAgICB9XG4gICAgaWYgKGlzQ3VycnkgfHwgaXNDdXJyeVJpZ2h0KSB7XG4gICAgICB2YXIgcGxhY2Vob2xkZXIgPSB3cmFwcGVyLnBsYWNlaG9sZGVyLFxuICAgICAgICAgIGFyZ3NIb2xkZXJzID0gcmVwbGFjZUhvbGRlcnMoYXJncywgcGxhY2Vob2xkZXIpO1xuXG4gICAgICBsZW5ndGggLT0gYXJnc0hvbGRlcnMubGVuZ3RoO1xuICAgICAgaWYgKGxlbmd0aCA8IGFyaXR5KSB7XG4gICAgICAgIHZhciBuZXdBcmdQb3MgPSBhcmdQb3MgPyBhcnJheUNvcHkoYXJnUG9zKSA6IHVuZGVmaW5lZCxcbiAgICAgICAgICAgIG5ld0FyaXR5ID0gbmF0aXZlTWF4KGFyaXR5IC0gbGVuZ3RoLCAwKSxcbiAgICAgICAgICAgIG5ld3NIb2xkZXJzID0gaXNDdXJyeSA/IGFyZ3NIb2xkZXJzIDogdW5kZWZpbmVkLFxuICAgICAgICAgICAgbmV3SG9sZGVyc1JpZ2h0ID0gaXNDdXJyeSA/IHVuZGVmaW5lZCA6IGFyZ3NIb2xkZXJzLFxuICAgICAgICAgICAgbmV3UGFydGlhbHMgPSBpc0N1cnJ5ID8gYXJncyA6IHVuZGVmaW5lZCxcbiAgICAgICAgICAgIG5ld1BhcnRpYWxzUmlnaHQgPSBpc0N1cnJ5ID8gdW5kZWZpbmVkIDogYXJncztcblxuICAgICAgICBiaXRtYXNrIHw9IChpc0N1cnJ5ID8gUEFSVElBTF9GTEFHIDogUEFSVElBTF9SSUdIVF9GTEFHKTtcbiAgICAgICAgYml0bWFzayAmPSB+KGlzQ3VycnkgPyBQQVJUSUFMX1JJR0hUX0ZMQUcgOiBQQVJUSUFMX0ZMQUcpO1xuXG4gICAgICAgIGlmICghaXNDdXJyeUJvdW5kKSB7XG4gICAgICAgICAgYml0bWFzayAmPSB+KEJJTkRfRkxBRyB8IEJJTkRfS0VZX0ZMQUcpO1xuICAgICAgICB9XG4gICAgICAgIHZhciBuZXdEYXRhID0gW2Z1bmMsIGJpdG1hc2ssIHRoaXNBcmcsIG5ld1BhcnRpYWxzLCBuZXdzSG9sZGVycywgbmV3UGFydGlhbHNSaWdodCwgbmV3SG9sZGVyc1JpZ2h0LCBuZXdBcmdQb3MsIGFyeSwgbmV3QXJpdHldLFxuICAgICAgICAgICAgcmVzdWx0ID0gY3JlYXRlSHlicmlkV3JhcHBlci5hcHBseSh1bmRlZmluZWQsIG5ld0RhdGEpO1xuXG4gICAgICAgIGlmIChpc0xhemlhYmxlKGZ1bmMpKSB7XG4gICAgICAgICAgc2V0RGF0YShyZXN1bHQsIG5ld0RhdGEpO1xuICAgICAgICB9XG4gICAgICAgIHJlc3VsdC5wbGFjZWhvbGRlciA9IHBsYWNlaG9sZGVyO1xuICAgICAgICByZXR1cm4gcmVzdWx0O1xuICAgICAgfVxuICAgIH1cbiAgICB2YXIgdGhpc0JpbmRpbmcgPSBpc0JpbmQgPyB0aGlzQXJnIDogdGhpcyxcbiAgICAgICAgZm4gPSBpc0JpbmRLZXkgPyB0aGlzQmluZGluZ1tmdW5jXSA6IGZ1bmM7XG5cbiAgICBpZiAoYXJnUG9zKSB7XG4gICAgICBhcmdzID0gcmVvcmRlcihhcmdzLCBhcmdQb3MpO1xuICAgIH1cbiAgICBpZiAoaXNBcnkgJiYgYXJ5IDwgYXJncy5sZW5ndGgpIHtcbiAgICAgIGFyZ3MubGVuZ3RoID0gYXJ5O1xuICAgIH1cbiAgICBpZiAodGhpcyAmJiB0aGlzICE9PSBnbG9iYWwgJiYgdGhpcyBpbnN0YW5jZW9mIHdyYXBwZXIpIHtcbiAgICAgIGZuID0gQ3RvciB8fCBjcmVhdGVDdG9yV3JhcHBlcihmdW5jKTtcbiAgICB9XG4gICAgcmV0dXJuIGZuLmFwcGx5KHRoaXNCaW5kaW5nLCBhcmdzKTtcbiAgfVxuICByZXR1cm4gd3JhcHBlcjtcbn1cblxubW9kdWxlLmV4cG9ydHMgPSBjcmVhdGVIeWJyaWRXcmFwcGVyO1xuIl19
-},{"234":234,"284":284,"285":285,"292":292,"312":312,"321":321,"322":322,"323":323}],296:[function(_dereq_,module,exports){
+},{"260":260,"310":310,"311":311,"318":318,"339":339,"348":348,"349":349,"350":350}],323:[function(_dereq_,module,exports){
 (function (global){
-var createCtorWrapper = _dereq_(292);
+var createCtorWrapper = _dereq_(318);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1;
@@ -42770,10 +47063,10 @@ module.exports = createPartialWrapper;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 //# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy9sb2Rhc2gvaW50ZXJuYWwvY3JlYXRlUGFydGlhbFdyYXBwZXIuanMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IjtBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EiLCJmaWxlIjoiZ2VuZXJhdGVkLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXNDb250ZW50IjpbInZhciBjcmVhdGVDdG9yV3JhcHBlciA9IHJlcXVpcmUoJy4vY3JlYXRlQ3RvcldyYXBwZXInKTtcblxuLyoqIFVzZWQgdG8gY29tcG9zZSBiaXRtYXNrcyBmb3Igd3JhcHBlciBtZXRhZGF0YS4gKi9cbnZhciBCSU5EX0ZMQUcgPSAxO1xuXG4vKipcbiAqIENyZWF0ZXMgYSBmdW5jdGlvbiB0aGF0IHdyYXBzIGBmdW5jYCBhbmQgaW52b2tlcyBpdCB3aXRoIHRoZSBvcHRpb25hbCBgdGhpc2BcbiAqIGJpbmRpbmcgb2YgYHRoaXNBcmdgIGFuZCB0aGUgYHBhcnRpYWxzYCBwcmVwZW5kZWQgdG8gdGhvc2UgcHJvdmlkZWQgdG9cbiAqIHRoZSB3cmFwcGVyLlxuICpcbiAqIEBwcml2YXRlXG4gKiBAcGFyYW0ge0Z1bmN0aW9ufSBmdW5jIFRoZSBmdW5jdGlvbiB0byBwYXJ0aWFsbHkgYXBwbHkgYXJndW1lbnRzIHRvLlxuICogQHBhcmFtIHtudW1iZXJ9IGJpdG1hc2sgVGhlIGJpdG1hc2sgb2YgZmxhZ3MuIFNlZSBgY3JlYXRlV3JhcHBlcmAgZm9yIG1vcmUgZGV0YWlscy5cbiAqIEBwYXJhbSB7Kn0gdGhpc0FyZyBUaGUgYHRoaXNgIGJpbmRpbmcgb2YgYGZ1bmNgLlxuICogQHBhcmFtIHtBcnJheX0gcGFydGlhbHMgVGhlIGFyZ3VtZW50cyB0byBwcmVwZW5kIHRvIHRob3NlIHByb3ZpZGVkIHRvIHRoZSBuZXcgZnVuY3Rpb24uXG4gKiBAcmV0dXJucyB7RnVuY3Rpb259IFJldHVybnMgdGhlIG5ldyBib3VuZCBmdW5jdGlvbi5cbiAqL1xuZnVuY3Rpb24gY3JlYXRlUGFydGlhbFdyYXBwZXIoZnVuYywgYml0bWFzaywgdGhpc0FyZywgcGFydGlhbHMpIHtcbiAgdmFyIGlzQmluZCA9IGJpdG1hc2sgJiBCSU5EX0ZMQUcsXG4gICAgICBDdG9yID0gY3JlYXRlQ3RvcldyYXBwZXIoZnVuYyk7XG5cbiAgZnVuY3Rpb24gd3JhcHBlcigpIHtcbiAgICAvLyBBdm9pZCBgYXJndW1lbnRzYCBvYmplY3QgdXNlIGRpc3F1YWxpZnlpbmcgb3B0aW1pemF0aW9ucyBieVxuICAgIC8vIGNvbnZlcnRpbmcgaXQgdG8gYW4gYXJyYXkgYmVmb3JlIHByb3ZpZGluZyBpdCBgZnVuY2AuXG4gICAgdmFyIGFyZ3NJbmRleCA9IC0xLFxuICAgICAgICBhcmdzTGVuZ3RoID0gYXJndW1lbnRzLmxlbmd0aCxcbiAgICAgICAgbGVmdEluZGV4ID0gLTEsXG4gICAgICAgIGxlZnRMZW5ndGggPSBwYXJ0aWFscy5sZW5ndGgsXG4gICAgICAgIGFyZ3MgPSBBcnJheShsZWZ0TGVuZ3RoICsgYXJnc0xlbmd0aCk7XG5cbiAgICB3aGlsZSAoKytsZWZ0SW5kZXggPCBsZWZ0TGVuZ3RoKSB7XG4gICAgICBhcmdzW2xlZnRJbmRleF0gPSBwYXJ0aWFsc1tsZWZ0SW5kZXhdO1xuICAgIH1cbiAgICB3aGlsZSAoYXJnc0xlbmd0aC0tKSB7XG4gICAgICBhcmdzW2xlZnRJbmRleCsrXSA9IGFyZ3VtZW50c1srK2FyZ3NJbmRleF07XG4gICAgfVxuICAgIHZhciBmbiA9ICh0aGlzICYmIHRoaXMgIT09IGdsb2JhbCAmJiB0aGlzIGluc3RhbmNlb2Ygd3JhcHBlcikgPyBDdG9yIDogZnVuYztcbiAgICByZXR1cm4gZm4uYXBwbHkoaXNCaW5kID8gdGhpc0FyZyA6IHRoaXMsIGFyZ3MpO1xuICB9XG4gIHJldHVybiB3cmFwcGVyO1xufVxuXG5tb2R1bGUuZXhwb3J0cyA9IGNyZWF0ZVBhcnRpYWxXcmFwcGVyO1xuIl19
-},{"292":292}],297:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(244),
-    baseReduce = _dereq_(272),
-    isArray = _dereq_(330);
+},{"318":318}],324:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(270),
+    baseReduce = _dereq_(298),
+    isArray = _dereq_(357);
 
 /**
  * Creates a function for `_.reduce` or `_.reduceRight`.
@@ -42794,14 +47087,14 @@ function createReduce(arrayFunc, eachFunc) {
 
 module.exports = createReduce;
 
-},{"244":244,"272":272,"330":330}],298:[function(_dereq_,module,exports){
-var baseSetData = _dereq_(273),
-    createBindWrapper = _dereq_(290),
-    createHybridWrapper = _dereq_(295),
-    createPartialWrapper = _dereq_(296),
-    getData = _dereq_(302),
-    mergeData = _dereq_(316),
-    setData = _dereq_(323);
+},{"270":270,"298":298,"357":357}],325:[function(_dereq_,module,exports){
+var baseSetData = _dereq_(299),
+    createBindWrapper = _dereq_(316),
+    createHybridWrapper = _dereq_(322),
+    createPartialWrapper = _dereq_(323),
+    getData = _dereq_(329),
+    mergeData = _dereq_(343),
+    setData = _dereq_(350);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -42882,8 +47175,8 @@ function createWrapper(func, bitmask, thisArg, partials, holders, argPos, ary, a
 
 module.exports = createWrapper;
 
-},{"273":273,"290":290,"295":295,"296":296,"302":302,"316":316,"323":323}],299:[function(_dereq_,module,exports){
-var arraySome = _dereq_(241);
+},{"299":299,"316":316,"322":322,"323":323,"329":329,"343":343,"350":350}],326:[function(_dereq_,module,exports){
+var arraySome = _dereq_(267);
 
 /**
  * A specialized version of `baseIsEqualDeep` for arrays with support for
@@ -42935,7 +47228,7 @@ function equalArrays(array, other, equalFunc, customizer, isLoose, stackA, stack
 
 module.exports = equalArrays;
 
-},{"241":241}],300:[function(_dereq_,module,exports){
+},{"267":267}],327:[function(_dereq_,module,exports){
 /** `Object#toString` result references. */
 var boolTag = '[object Boolean]',
     dateTag = '[object Date]',
@@ -42985,8 +47278,8 @@ function equalByTag(object, other, tag) {
 
 module.exports = equalByTag;
 
-},{}],301:[function(_dereq_,module,exports){
-var keys = _dereq_(340);
+},{}],328:[function(_dereq_,module,exports){
+var keys = _dereq_(367);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -43054,9 +47347,9 @@ function equalObjects(object, other, equalFunc, customizer, isLoose, stackA, sta
 
 module.exports = equalObjects;
 
-},{"340":340}],302:[function(_dereq_,module,exports){
-var metaMap = _dereq_(317),
-    noop = _dereq_(349);
+},{"367":367}],329:[function(_dereq_,module,exports){
+var metaMap = _dereq_(344),
+    noop = _dereq_(376);
 
 /**
  * Gets metadata for `func`.
@@ -43071,8 +47364,8 @@ var getData = !metaMap ? noop : function(func) {
 
 module.exports = getData;
 
-},{"317":317,"349":349}],303:[function(_dereq_,module,exports){
-var realNames = _dereq_(320);
+},{"344":344,"376":376}],330:[function(_dereq_,module,exports){
+var realNames = _dereq_(347);
 
 /**
  * Gets the name of `func`.
@@ -43098,8 +47391,8 @@ function getFuncName(func) {
 
 module.exports = getFuncName;
 
-},{"320":320}],304:[function(_dereq_,module,exports){
-var baseProperty = _dereq_(270);
+},{"347":347}],331:[function(_dereq_,module,exports){
+var baseProperty = _dereq_(296);
 
 /**
  * Gets the "length" property value of `object`.
@@ -43115,9 +47408,9 @@ var getLength = baseProperty('length');
 
 module.exports = getLength;
 
-},{"270":270}],305:[function(_dereq_,module,exports){
-var isStrictComparable = _dereq_(315),
-    pairs = _dereq_(344);
+},{"296":296}],332:[function(_dereq_,module,exports){
+var isStrictComparable = _dereq_(342),
+    pairs = _dereq_(371);
 
 /**
  * Gets the propery names, values, and compare flags of `object`.
@@ -43138,8 +47431,8 @@ function getMatchData(object) {
 
 module.exports = getMatchData;
 
-},{"315":315,"344":344}],306:[function(_dereq_,module,exports){
-var isNative = _dereq_(332);
+},{"342":342,"371":371}],333:[function(_dereq_,module,exports){
+var isNative = _dereq_(359);
 
 /**
  * Gets the native function at `key` of `object`.
@@ -43156,7 +47449,7 @@ function getNative(object, key) {
 
 module.exports = getNative;
 
-},{"332":332}],307:[function(_dereq_,module,exports){
+},{"359":359}],334:[function(_dereq_,module,exports){
 /**
  * Gets the index at which the first occurrence of `NaN` is found in `array`.
  *
@@ -43181,9 +47474,9 @@ function indexOfNaN(array, fromIndex, fromRight) {
 
 module.exports = indexOfNaN;
 
-},{}],308:[function(_dereq_,module,exports){
-var getLength = _dereq_(304),
-    isLength = _dereq_(313);
+},{}],335:[function(_dereq_,module,exports){
+var getLength = _dereq_(331),
+    isLength = _dereq_(340);
 
 /**
  * Checks if `value` is array-like.
@@ -43198,7 +47491,7 @@ function isArrayLike(value) {
 
 module.exports = isArrayLike;
 
-},{"304":304,"313":313}],309:[function(_dereq_,module,exports){
+},{"331":331,"340":340}],336:[function(_dereq_,module,exports){
 /** Used to detect unsigned integer values. */
 var reIsUint = /^\d+$/;
 
@@ -43224,10 +47517,10 @@ function isIndex(value, length) {
 
 module.exports = isIndex;
 
-},{}],310:[function(_dereq_,module,exports){
-var isArrayLike = _dereq_(308),
-    isIndex = _dereq_(309),
-    isObject = _dereq_(334);
+},{}],337:[function(_dereq_,module,exports){
+var isArrayLike = _dereq_(335),
+    isIndex = _dereq_(336),
+    isObject = _dereq_(361);
 
 /**
  * Checks if the provided arguments are from an iteratee call.
@@ -43254,9 +47547,9 @@ function isIterateeCall(value, index, object) {
 
 module.exports = isIterateeCall;
 
-},{"308":308,"309":309,"334":334}],311:[function(_dereq_,module,exports){
-var isArray = _dereq_(330),
-    toObject = _dereq_(326);
+},{"335":335,"336":336,"361":361}],338:[function(_dereq_,module,exports){
+var isArray = _dereq_(357),
+    toObject = _dereq_(353);
 
 /** Used to match property names within property paths. */
 var reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\n\\]|\\.)*?\1)\]/,
@@ -43284,11 +47577,11 @@ function isKey(value, object) {
 
 module.exports = isKey;
 
-},{"326":326,"330":330}],312:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(231),
-    getData = _dereq_(302),
-    getFuncName = _dereq_(303),
-    lodash = _dereq_(213);
+},{"353":353,"357":357}],339:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(257),
+    getData = _dereq_(329),
+    getFuncName = _dereq_(330),
+    lodash = _dereq_(239);
 
 /**
  * Checks if `func` has a lazy counterpart.
@@ -43313,7 +47606,7 @@ function isLaziable(func) {
 
 module.exports = isLaziable;
 
-},{"213":213,"231":231,"302":302,"303":303}],313:[function(_dereq_,module,exports){
+},{"239":239,"257":257,"329":329,"330":330}],340:[function(_dereq_,module,exports){
 /**
  * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
  * of an array-like value.
@@ -43335,7 +47628,7 @@ function isLength(value) {
 
 module.exports = isLength;
 
-},{}],314:[function(_dereq_,module,exports){
+},{}],341:[function(_dereq_,module,exports){
 /**
  * Checks if `value` is object-like.
  *
@@ -43349,8 +47642,8 @@ function isObjectLike(value) {
 
 module.exports = isObjectLike;
 
-},{}],315:[function(_dereq_,module,exports){
-var isObject = _dereq_(334);
+},{}],342:[function(_dereq_,module,exports){
+var isObject = _dereq_(361);
 
 /**
  * Checks if `value` is suitable for strict equality comparisons, i.e. `===`.
@@ -43366,11 +47659,11 @@ function isStrictComparable(value) {
 
 module.exports = isStrictComparable;
 
-},{"334":334}],316:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(234),
-    composeArgs = _dereq_(284),
-    composeArgsRight = _dereq_(285),
-    replaceHolders = _dereq_(322);
+},{"361":361}],343:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(260),
+    composeArgs = _dereq_(310),
+    composeArgsRight = _dereq_(311),
+    replaceHolders = _dereq_(349);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -43457,9 +47750,9 @@ function mergeData(data, source) {
 
 module.exports = mergeData;
 
-},{"234":234,"284":284,"285":285,"322":322}],317:[function(_dereq_,module,exports){
+},{"260":260,"310":310,"311":311,"349":349}],344:[function(_dereq_,module,exports){
 (function (global){
-var getNative = _dereq_(306);
+var getNative = _dereq_(333);
 
 /** Native method references. */
 var WeakMap = getNative(global, 'WeakMap');
@@ -43471,8 +47764,8 @@ module.exports = metaMap;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 //# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIm5vZGVfbW9kdWxlcy9sb2Rhc2gvaW50ZXJuYWwvbWV0YU1hcC5qcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiO0FBQUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EiLCJmaWxlIjoiZ2VuZXJhdGVkLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXNDb250ZW50IjpbInZhciBnZXROYXRpdmUgPSByZXF1aXJlKCcuL2dldE5hdGl2ZScpO1xuXG4vKiogTmF0aXZlIG1ldGhvZCByZWZlcmVuY2VzLiAqL1xudmFyIFdlYWtNYXAgPSBnZXROYXRpdmUoZ2xvYmFsLCAnV2Vha01hcCcpO1xuXG4vKiogVXNlZCB0byBzdG9yZSBmdW5jdGlvbiBtZXRhZGF0YS4gKi9cbnZhciBtZXRhTWFwID0gV2Vha01hcCAmJiBuZXcgV2Vha01hcDtcblxubW9kdWxlLmV4cG9ydHMgPSBtZXRhTWFwO1xuIl19
-},{"306":306}],318:[function(_dereq_,module,exports){
-var toObject = _dereq_(326);
+},{"333":333}],345:[function(_dereq_,module,exports){
+var toObject = _dereq_(353);
 
 /**
  * A specialized version of `_.pick` which picks `object` properties specified
@@ -43501,8 +47794,8 @@ function pickByArray(object, props) {
 
 module.exports = pickByArray;
 
-},{"326":326}],319:[function(_dereq_,module,exports){
-var baseForIn = _dereq_(257);
+},{"353":353}],346:[function(_dereq_,module,exports){
+var baseForIn = _dereq_(283);
 
 /**
  * A specialized version of `_.pick` which picks `object` properties `predicate`
@@ -43525,15 +47818,15 @@ function pickByCallback(object, predicate) {
 
 module.exports = pickByCallback;
 
-},{"257":257}],320:[function(_dereq_,module,exports){
+},{"283":283}],347:[function(_dereq_,module,exports){
 /** Used to lookup unminified function names. */
 var realNames = {};
 
 module.exports = realNames;
 
-},{}],321:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(234),
-    isIndex = _dereq_(309);
+},{}],348:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(260),
+    isIndex = _dereq_(336);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMin = Math.min;
@@ -43562,7 +47855,7 @@ function reorder(array, indexes) {
 
 module.exports = reorder;
 
-},{"234":234,"309":309}],322:[function(_dereq_,module,exports){
+},{"260":260,"336":336}],349:[function(_dereq_,module,exports){
 /** Used as the internal argument placeholder. */
 var PLACEHOLDER = '__lodash_placeholder__';
 
@@ -43592,9 +47885,9 @@ function replaceHolders(array, placeholder) {
 
 module.exports = replaceHolders;
 
-},{}],323:[function(_dereq_,module,exports){
-var baseSetData = _dereq_(273),
-    now = _dereq_(226);
+},{}],350:[function(_dereq_,module,exports){
+var baseSetData = _dereq_(299),
+    now = _dereq_(252);
 
 /** Used to detect when a function becomes hot. */
 var HOT_COUNT = 150,
@@ -43635,12 +47928,12 @@ var setData = (function() {
 
 module.exports = setData;
 
-},{"226":226,"273":273}],324:[function(_dereq_,module,exports){
-var isArguments = _dereq_(329),
-    isArray = _dereq_(330),
-    isIndex = _dereq_(309),
-    isLength = _dereq_(313),
-    keysIn = _dereq_(341);
+},{"252":252,"299":299}],351:[function(_dereq_,module,exports){
+var isArguments = _dereq_(356),
+    isArray = _dereq_(357),
+    isIndex = _dereq_(336),
+    isLength = _dereq_(340),
+    keysIn = _dereq_(368);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -43678,7 +47971,7 @@ function shimKeys(object) {
 
 module.exports = shimKeys;
 
-},{"309":309,"313":313,"329":329,"330":330,"341":341}],325:[function(_dereq_,module,exports){
+},{"336":336,"340":340,"356":356,"357":357,"368":368}],352:[function(_dereq_,module,exports){
 /**
  * An implementation of `_.uniq` optimized for sorted arrays without support
  * for callback shorthands and `this` binding.
@@ -43709,8 +48002,8 @@ function sortedUniq(array, iteratee) {
 
 module.exports = sortedUniq;
 
-},{}],326:[function(_dereq_,module,exports){
-var isObject = _dereq_(334);
+},{}],353:[function(_dereq_,module,exports){
+var isObject = _dereq_(361);
 
 /**
  * Converts `value` to an object if it's not one.
@@ -43725,9 +48018,9 @@ function toObject(value) {
 
 module.exports = toObject;
 
-},{"334":334}],327:[function(_dereq_,module,exports){
-var baseToString = _dereq_(277),
-    isArray = _dereq_(330);
+},{"361":361}],354:[function(_dereq_,module,exports){
+var baseToString = _dereq_(303),
+    isArray = _dereq_(357);
 
 /** Used to match property names within property paths. */
 var rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\n\\]|\\.)*?)\2)\]/g;
@@ -43755,10 +48048,10 @@ function toPath(value) {
 
 module.exports = toPath;
 
-},{"277":277,"330":330}],328:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(231),
-    LodashWrapper = _dereq_(232),
-    arrayCopy = _dereq_(234);
+},{"303":303,"357":357}],355:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(257),
+    LodashWrapper = _dereq_(258),
+    arrayCopy = _dereq_(260);
 
 /**
  * Creates a clone of `wrapper`.
@@ -43775,9 +48068,9 @@ function wrapperClone(wrapper) {
 
 module.exports = wrapperClone;
 
-},{"231":231,"232":232,"234":234}],329:[function(_dereq_,module,exports){
-var isArrayLike = _dereq_(308),
-    isObjectLike = _dereq_(314);
+},{"257":257,"258":258,"260":260}],356:[function(_dereq_,module,exports){
+var isArrayLike = _dereq_(335),
+    isObjectLike = _dereq_(341);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -43811,10 +48104,10 @@ function isArguments(value) {
 
 module.exports = isArguments;
 
-},{"308":308,"314":314}],330:[function(_dereq_,module,exports){
-var getNative = _dereq_(306),
-    isLength = _dereq_(313),
-    isObjectLike = _dereq_(314);
+},{"335":335,"341":341}],357:[function(_dereq_,module,exports){
+var getNative = _dereq_(333),
+    isLength = _dereq_(340),
+    isObjectLike = _dereq_(341);
 
 /** `Object#toString` result references. */
 var arrayTag = '[object Array]';
@@ -43853,8 +48146,8 @@ var isArray = nativeIsArray || function(value) {
 
 module.exports = isArray;
 
-},{"306":306,"313":313,"314":314}],331:[function(_dereq_,module,exports){
-var isObject = _dereq_(334);
+},{"333":333,"340":340,"341":341}],358:[function(_dereq_,module,exports){
+var isObject = _dereq_(361);
 
 /** `Object#toString` result references. */
 var funcTag = '[object Function]';
@@ -43893,9 +48186,9 @@ function isFunction(value) {
 
 module.exports = isFunction;
 
-},{"334":334}],332:[function(_dereq_,module,exports){
-var isFunction = _dereq_(331),
-    isObjectLike = _dereq_(314);
+},{"361":361}],359:[function(_dereq_,module,exports){
+var isFunction = _dereq_(358),
+    isObjectLike = _dereq_(341);
 
 /** Used to detect host constructors (Safari > 5). */
 var reIsHostCtor = /^\[object .+?Constructor\]$/;
@@ -43943,8 +48236,8 @@ function isNative(value) {
 
 module.exports = isNative;
 
-},{"314":314,"331":331}],333:[function(_dereq_,module,exports){
-var isObjectLike = _dereq_(314);
+},{"341":341,"358":358}],360:[function(_dereq_,module,exports){
+var isObjectLike = _dereq_(341);
 
 /** `Object#toString` result references. */
 var numberTag = '[object Number]';
@@ -43986,7 +48279,7 @@ function isNumber(value) {
 
 module.exports = isNumber;
 
-},{"314":314}],334:[function(_dereq_,module,exports){
+},{"341":341}],361:[function(_dereq_,module,exports){
 /**
  * Checks if `value` is the [language type](https://es5.github.io/#x8) of `Object`.
  * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
@@ -44016,10 +48309,10 @@ function isObject(value) {
 
 module.exports = isObject;
 
-},{}],335:[function(_dereq_,module,exports){
-var baseForIn = _dereq_(257),
-    isArguments = _dereq_(329),
-    isObjectLike = _dereq_(314);
+},{}],362:[function(_dereq_,module,exports){
+var baseForIn = _dereq_(283),
+    isArguments = _dereq_(356),
+    isObjectLike = _dereq_(341);
 
 /** `Object#toString` result references. */
 var objectTag = '[object Object]';
@@ -44089,8 +48382,8 @@ function isPlainObject(value) {
 
 module.exports = isPlainObject;
 
-},{"257":257,"314":314,"329":329}],336:[function(_dereq_,module,exports){
-var isObjectLike = _dereq_(314);
+},{"283":283,"341":341,"356":356}],363:[function(_dereq_,module,exports){
+var isObjectLike = _dereq_(341);
 
 /** `Object#toString` result references. */
 var stringTag = '[object String]';
@@ -44126,9 +48419,9 @@ function isString(value) {
 
 module.exports = isString;
 
-},{"314":314}],337:[function(_dereq_,module,exports){
-var isLength = _dereq_(313),
-    isObjectLike = _dereq_(314);
+},{"341":341}],364:[function(_dereq_,module,exports){
+var isLength = _dereq_(340),
+    isObjectLike = _dereq_(341);
 
 /** `Object#toString` result references. */
 var argsTag = '[object Arguments]',
@@ -44202,9 +48495,9 @@ function isTypedArray(value) {
 
 module.exports = isTypedArray;
 
-},{"313":313,"314":314}],338:[function(_dereq_,module,exports){
-var baseCopy = _dereq_(246),
-    keysIn = _dereq_(341);
+},{"340":340,"341":341}],365:[function(_dereq_,module,exports){
+var baseCopy = _dereq_(272),
+    keysIn = _dereq_(368);
 
 /**
  * Converts `value` to a plain object flattening inherited enumerable
@@ -44235,10 +48528,10 @@ function toPlainObject(value) {
 
 module.exports = toPlainObject;
 
-},{"246":246,"341":341}],339:[function(_dereq_,module,exports){
-var assignWith = _dereq_(242),
-    baseAssign = _dereq_(243),
-    createAssigner = _dereq_(287);
+},{"272":272,"368":368}],366:[function(_dereq_,module,exports){
+var assignWith = _dereq_(268),
+    baseAssign = _dereq_(269),
+    createAssigner = _dereq_(313);
 
 /**
  * Assigns own enumerable properties of source object(s) to the destination
@@ -44280,11 +48573,11 @@ var assign = createAssigner(function(object, source, customizer) {
 
 module.exports = assign;
 
-},{"242":242,"243":243,"287":287}],340:[function(_dereq_,module,exports){
-var getNative = _dereq_(306),
-    isArrayLike = _dereq_(308),
-    isObject = _dereq_(334),
-    shimKeys = _dereq_(324);
+},{"268":268,"269":269,"313":313}],367:[function(_dereq_,module,exports){
+var getNative = _dereq_(333),
+    isArrayLike = _dereq_(335),
+    isObject = _dereq_(361),
+    shimKeys = _dereq_(351);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeKeys = getNative(Object, 'keys');
@@ -44327,12 +48620,12 @@ var keys = !nativeKeys ? shimKeys : function(object) {
 
 module.exports = keys;
 
-},{"306":306,"308":308,"324":324,"334":334}],341:[function(_dereq_,module,exports){
-var isArguments = _dereq_(329),
-    isArray = _dereq_(330),
-    isIndex = _dereq_(309),
-    isLength = _dereq_(313),
-    isObject = _dereq_(334);
+},{"333":333,"335":335,"351":351,"361":361}],368:[function(_dereq_,module,exports){
+var isArguments = _dereq_(356),
+    isArray = _dereq_(357),
+    isIndex = _dereq_(336),
+    isLength = _dereq_(340),
+    isObject = _dereq_(361);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -44393,9 +48686,9 @@ function keysIn(object) {
 
 module.exports = keysIn;
 
-},{"309":309,"313":313,"329":329,"330":330,"334":334}],342:[function(_dereq_,module,exports){
-var baseMerge = _dereq_(268),
-    createAssigner = _dereq_(287);
+},{"336":336,"340":340,"356":356,"357":357,"361":361}],369:[function(_dereq_,module,exports){
+var baseMerge = _dereq_(294),
+    createAssigner = _dereq_(313);
 
 /**
  * Recursively merges own enumerable properties of the source object(s), that
@@ -44449,15 +48742,15 @@ var merge = createAssigner(baseMerge);
 
 module.exports = merge;
 
-},{"268":268,"287":287}],343:[function(_dereq_,module,exports){
-var arrayMap = _dereq_(238),
-    baseDifference = _dereq_(249),
-    baseFlatten = _dereq_(255),
-    bindCallback = _dereq_(280),
-    keysIn = _dereq_(341),
-    pickByArray = _dereq_(318),
-    pickByCallback = _dereq_(319),
-    restParam = _dereq_(230);
+},{"294":294,"313":313}],370:[function(_dereq_,module,exports){
+var arrayMap = _dereq_(264),
+    baseDifference = _dereq_(275),
+    baseFlatten = _dereq_(281),
+    bindCallback = _dereq_(306),
+    keysIn = _dereq_(368),
+    pickByArray = _dereq_(345),
+    pickByCallback = _dereq_(346),
+    restParam = _dereq_(256);
 
 /**
  * The opposite of `_.pick`; this method creates an object composed of the
@@ -44498,9 +48791,9 @@ var omit = restParam(function(object, props) {
 
 module.exports = omit;
 
-},{"230":230,"238":238,"249":249,"255":255,"280":280,"318":318,"319":319,"341":341}],344:[function(_dereq_,module,exports){
-var keys = _dereq_(340),
-    toObject = _dereq_(326);
+},{"256":256,"264":264,"275":275,"281":281,"306":306,"345":345,"346":346,"368":368}],371:[function(_dereq_,module,exports){
+var keys = _dereq_(367),
+    toObject = _dereq_(353);
 
 /**
  * Creates a two dimensional array of the key-value pairs for `object`,
@@ -44533,12 +48826,12 @@ function pairs(object) {
 
 module.exports = pairs;
 
-},{"326":326,"340":340}],345:[function(_dereq_,module,exports){
-var baseFlatten = _dereq_(255),
-    bindCallback = _dereq_(280),
-    pickByArray = _dereq_(318),
-    pickByCallback = _dereq_(319),
-    restParam = _dereq_(230);
+},{"353":353,"367":367}],372:[function(_dereq_,module,exports){
+var baseFlatten = _dereq_(281),
+    bindCallback = _dereq_(306),
+    pickByArray = _dereq_(345),
+    pickByCallback = _dereq_(346),
+    restParam = _dereq_(256);
 
 /**
  * Creates an object composed of the picked `object` properties. Property
@@ -44577,15 +48870,15 @@ var pick = restParam(function(object, props) {
 
 module.exports = pick;
 
-},{"230":230,"255":255,"280":280,"318":318,"319":319}],346:[function(_dereq_,module,exports){
-var arrayEach = _dereq_(235),
-    baseCallback = _dereq_(244),
-    baseCreate = _dereq_(247),
-    baseForOwn = _dereq_(258),
-    isArray = _dereq_(330),
-    isFunction = _dereq_(331),
-    isObject = _dereq_(334),
-    isTypedArray = _dereq_(337);
+},{"256":256,"281":281,"306":306,"345":345,"346":346}],373:[function(_dereq_,module,exports){
+var arrayEach = _dereq_(261),
+    baseCallback = _dereq_(270),
+    baseCreate = _dereq_(273),
+    baseForOwn = _dereq_(284),
+    isArray = _dereq_(357),
+    isFunction = _dereq_(358),
+    isObject = _dereq_(361),
+    isTypedArray = _dereq_(364);
 
 /**
  * An alternative to `_.reduce`; this method transforms `object` to a new
@@ -44640,9 +48933,9 @@ function transform(object, iteratee, accumulator, thisArg) {
 
 module.exports = transform;
 
-},{"235":235,"244":244,"247":247,"258":258,"330":330,"331":331,"334":334,"337":337}],347:[function(_dereq_,module,exports){
-var baseValues = _dereq_(279),
-    keys = _dereq_(340);
+},{"261":261,"270":270,"273":273,"284":284,"357":357,"358":358,"361":361,"364":364}],374:[function(_dereq_,module,exports){
+var baseValues = _dereq_(305),
+    keys = _dereq_(367);
 
 /**
  * Creates an array of the own enumerable property values of `object`.
@@ -44675,7 +48968,7 @@ function values(object) {
 
 module.exports = values;
 
-},{"279":279,"340":340}],348:[function(_dereq_,module,exports){
+},{"305":305,"367":367}],375:[function(_dereq_,module,exports){
 /**
  * This method returns the first argument provided to it.
  *
@@ -44697,7 +48990,7 @@ function identity(value) {
 
 module.exports = identity;
 
-},{}],349:[function(_dereq_,module,exports){
+},{}],376:[function(_dereq_,module,exports){
 /**
  * A no-operation function that returns `undefined` regardless of the
  * arguments it receives.
@@ -44718,10 +49011,10 @@ function noop() {
 
 module.exports = noop;
 
-},{}],350:[function(_dereq_,module,exports){
-var baseProperty = _dereq_(270),
-    basePropertyDeep = _dereq_(271),
-    isKey = _dereq_(311);
+},{}],377:[function(_dereq_,module,exports){
+var baseProperty = _dereq_(296),
+    basePropertyDeep = _dereq_(297),
+    isKey = _dereq_(338);
 
 /**
  * Creates a function that returns the property value at `path` on a
@@ -44751,7 +49044,7 @@ function property(path) {
 
 module.exports = property;
 
-},{"270":270,"271":271,"311":311}],351:[function(_dereq_,module,exports){
+},{"296":296,"297":297,"338":338}],378:[function(_dereq_,module,exports){
 /**
  * Set attribute `name` to `val`, or get attr `name`.
  *
@@ -44777,9 +49070,9 @@ module.exports = function(el, name, val) {
 
   return el;
 };
-},{}],352:[function(_dereq_,module,exports){
-module.exports = _dereq_(361);
-},{"361":361}],353:[function(_dereq_,module,exports){
+},{}],379:[function(_dereq_,module,exports){
+module.exports = _dereq_(388);
+},{"388":388}],380:[function(_dereq_,module,exports){
 module.exports = function(el) {
 
   var c;
@@ -44791,28 +49084,28 @@ module.exports = function(el) {
 
   return el;
 };
-},{}],354:[function(_dereq_,module,exports){
-module.exports = _dereq_(363);
-},{"363":363}],355:[function(_dereq_,module,exports){
-module.exports = _dereq_(364);
-},{"364":364}],356:[function(_dereq_,module,exports){
-module.exports = _dereq_(368);
-},{"368":368}],357:[function(_dereq_,module,exports){
-module.exports = _dereq_(365);
-},{"365":365}],358:[function(_dereq_,module,exports){
-module.exports = _dereq_(366);
-},{"366":366}],359:[function(_dereq_,module,exports){
-module.exports = _dereq_(367);
-},{"367":367}],360:[function(_dereq_,module,exports){
+},{}],381:[function(_dereq_,module,exports){
+module.exports = _dereq_(390);
+},{"390":390}],382:[function(_dereq_,module,exports){
+module.exports = _dereq_(391);
+},{"391":391}],383:[function(_dereq_,module,exports){
+module.exports = _dereq_(395);
+},{"395":395}],384:[function(_dereq_,module,exports){
+module.exports = _dereq_(392);
+},{"392":392}],385:[function(_dereq_,module,exports){
+module.exports = _dereq_(393);
+},{"393":393}],386:[function(_dereq_,module,exports){
+module.exports = _dereq_(394);
+},{"394":394}],387:[function(_dereq_,module,exports){
 module.exports = function(el) {
   el.parentNode && el.parentNode.removeChild(el);
 };
-},{}],361:[function(_dereq_,module,exports){
+},{}],388:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
-var index = _dereq_(362);
+var index = _dereq_(389);
 
 /**
  * Whitespace regexp.
@@ -44996,7 +49289,7 @@ ClassList.prototype.contains = function(name){
     : !! ~index(this.array(), name);
 };
 
-},{"362":362}],362:[function(_dereq_,module,exports){
+},{"389":389}],389:[function(_dereq_,module,exports){
 module.exports = function(arr, obj){
   if (arr.indexOf) return arr.indexOf(obj);
   for (var i = 0; i < arr.length; ++i) {
@@ -45004,8 +49297,8 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],363:[function(_dereq_,module,exports){
-var matches = _dereq_(366)
+},{}],390:[function(_dereq_,module,exports){
+var matches = _dereq_(393)
 
 module.exports = function (element, selector, checkYoSelf, root) {
   element = checkYoSelf ? {parentNode: element} : element
@@ -45025,13 +49318,13 @@ module.exports = function (element, selector, checkYoSelf, root) {
   }
 }
 
-},{"366":366}],364:[function(_dereq_,module,exports){
+},{"393":393}],391:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
-var closest = _dereq_(363)
-  , event = _dereq_(365);
+var closest = _dereq_(390)
+  , event = _dereq_(392);
 
 /**
  * Delegate event `type` to `selector`
@@ -45069,7 +49362,7 @@ exports.unbind = function(el, type, fn, capture){
   event.unbind(el, type, fn, capture);
 };
 
-},{"363":363,"365":365}],365:[function(_dereq_,module,exports){
+},{"390":390,"392":392}],392:[function(_dereq_,module,exports){
 var bind = window.addEventListener ? 'addEventListener' : 'attachEvent',
     unbind = window.removeEventListener ? 'removeEventListener' : 'detachEvent',
     prefix = bind !== 'addEventListener' ? 'on' : '';
@@ -45105,12 +49398,12 @@ exports.unbind = function(el, type, fn, capture){
   el[unbind](prefix + type, fn, capture || false);
   return fn;
 };
-},{}],366:[function(_dereq_,module,exports){
+},{}],393:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
-var query = _dereq_(367);
+var query = _dereq_(394);
 
 /**
  * Element prototype.
@@ -45153,7 +49446,7 @@ function match(el, selector) {
   return false;
 }
 
-},{"367":367}],367:[function(_dereq_,module,exports){
+},{"394":394}],394:[function(_dereq_,module,exports){
 function one(selector, el) {
   return el.querySelector(selector);
 }
@@ -45176,7 +49469,7 @@ exports.engine = function(obj){
   return exports;
 };
 
-},{}],368:[function(_dereq_,module,exports){
+},{}],395:[function(_dereq_,module,exports){
 
 /**
  * Expose `parse`.
@@ -45188,13 +49481,17 @@ module.exports = parse;
  * Tests for browser support.
  */
 
-var div = document.createElement('div');
-// Setup
-div.innerHTML = '  <link/><table></table><a href="/a">a</a><input type="checkbox"/>';
-// Make sure that link elements get serialized correctly by innerHTML
-// This requires a wrapper element in IE
-var innerHTMLBug = !div.getElementsByTagName('link').length;
-div = undefined;
+var innerHTMLBug = false;
+var bugTestDiv;
+if (typeof document !== 'undefined') {
+  bugTestDiv = document.createElement('div');
+  // Setup
+  bugTestDiv.innerHTML = '  <link/><table></table><a href="/a">a</a><input type="checkbox"/>';
+  // Make sure that link elements get serialized correctly by innerHTML
+  // This requires a wrapper element in IE
+  innerHTMLBug = !bugTestDiv.getElementsByTagName('link').length;
+  bugTestDiv = undefined;
+}
 
 /**
  * Wrap map from jquery.
@@ -45286,22 +49583,19 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],369:[function(_dereq_,module,exports){
-module.exports = _dereq_(371);
+},{}],396:[function(_dereq_,module,exports){
+module.exports = _dereq_(398);
 
-module.exports.Collection = _dereq_(370);
-},{"370":370,"371":371}],370:[function(_dereq_,module,exports){
+module.exports.Collection = _dereq_(397);
+},{"397":397,"398":398}],397:[function(_dereq_,module,exports){
 'use strict';
 
 /**
  * An empty collection stub. Use {@link RefsCollection.extend} to extend a
  * collection with ref semantics.
  *
- * @classdesc A change and inverse-reference aware collection with set semantics.
- *
  * @class RefsCollection
  */
-function RefsCollection() { }
 
 /**
  * Extends a collection with {@link Refs} aware methods
@@ -45327,17 +49621,19 @@ function extend(collection, refs, property, target) {
    *
    * @param {Object} element the element to remove
    */
-  collection.remove = function(element) {
-    var idx = this.indexOf(element);
-    if (idx !== -1) {
-      this.splice(idx, 1);
+  Object.defineProperty(collection, 'remove', {
+    value: function(element) {
+      var idx = this.indexOf(element);
+      if (idx !== -1) {
+        this.splice(idx, 1);
 
-      // unset inverse
-      refs.unset(element, inverseProperty, target);
+        // unset inverse
+        refs.unset(element, inverseProperty, target);
+      }
+
+      return element;
     }
-
-    return element;
-  };
+  });
 
   /**
    * Returns true if the collection contains the given element
@@ -45346,9 +49642,11 @@ function extend(collection, refs, property, target) {
    *
    * @param {Object} element the element to check for
    */
-  collection.contains = function(element) {
-    return this.indexOf(element) !== -1;
-  };
+  Object.defineProperty(collection, 'contains', {
+    value: function(element) {
+      return this.indexOf(element) !== -1;
+    }
+  });
 
   /**
    * Adds an element to the array, unless it exists already (set semantics).
@@ -45357,30 +49655,43 @@ function extend(collection, refs, property, target) {
    *
    * @param {Object} element the element to add
    */
-  collection.add = function(element) {
+  Object.defineProperty(collection, 'add', {
+    value: function(element) {
 
-    if (!this.contains(element)) {
-      this.push(element);
+      if (!this.contains(element)) {
+        this.push(element);
 
-      // set inverse
-      refs.set(element, inverseProperty, target);
+        // set inverse
+        refs.set(element, inverseProperty, target);
+      }
     }
-  };
+  });
+
+  // a simple marker, identifying this element
+  // as being a refs collection
+  Object.defineProperty(collection, '__refs_collection', {
+    value: true
+  });
 
   return collection;
 }
 
 
+function isExtended(collection) {
+  return collection.__refs_collection === true;
+}
+
 module.exports.extend = extend;
-},{}],371:[function(_dereq_,module,exports){
+
+module.exports.isExtended = isExtended;
+},{}],398:[function(_dereq_,module,exports){
 'use strict';
 
-var Collection = _dereq_(370);
+var Collection = _dereq_(397);
 
 function hasOwnProperty(e, property) {
   return Object.prototype.hasOwnProperty.call(e, property.name || property);
 }
-
 
 function defineCollectionProperty(ref, property, target) {
   Object.defineProperty(target, property.name, {
@@ -45511,6 +49822,17 @@ Refs.prototype.bind = function(target, property) {
   }
 };
 
+Refs.prototype.ensureRefsCollection = function(target, property) {
+
+  var collection = target[property.name];
+
+  if (!Collection.isExtended(collection)) {
+    defineCollectionProperty(this, property, target);
+  }
+
+  return collection;
+};
+
 Refs.prototype.ensureBound = function(target, property) {
   if (!hasOwnProperty(target, property)) {
     this.bind(target, property);
@@ -45523,7 +49845,7 @@ Refs.prototype.unset = function(target, property, value) {
     this.ensureBound(target, property);
 
     if (property.collection) {
-      target[property.name].remove(value);
+      this.ensureRefsCollection(target, property).remove(value);
     } else {
       target[property.name] = undefined;
     }
@@ -45536,7 +49858,7 @@ Refs.prototype.set = function(target, property, value) {
     this.ensureBound(target, property);
 
     if (property.collection) {
-      target[property.name].add(value);
+      this.ensureRefsCollection(target, property).add(value);
     } else {
       target[property.name] = value;
     }
@@ -45554,6 +49876,6 @@ module.exports = Refs;
  * @property {boolean} [collection=false]
  * @property {boolean} [enumerable=false]
  */
-},{"370":370}]},{},[1])(1)
+},{"397":397}]},{},[1])(1)
 });
 //# sourceMappingURL=bpmn-modeler.js.map

@@ -33,8 +33,16 @@
   fill: #f9dee5 /* light-red */ !important;
 }
 
+.djs-shape.new-parent .djs-visual > :nth-child(1) {
+  fill: #F7F9FF !important;
+}
+
 svg.drop-not-ok {
   background: #f9dee5 /* light-red */ !important;
+}
+
+svg.new-parent {
+  background: #F7F9FF /* light-blue */ !important;
 }
 
 .djs-connection.connect-ok .djs-visual > :nth-child(1),
@@ -242,6 +250,7 @@ svg.drop-not-ok {
   width: 46px;
   height: 46px;
   line-height: 46px;
+  cursor: default;
 }
 
 .djs-palette .separator {
@@ -264,6 +273,10 @@ svg.drop-not-ok {
   font-size: 30px;
 
   text-align: center;
+}
+
+.djs-palette .entry img {
+  max-width: 100%;
 }
 
 .djs-palette.open .djs-palette-toggle {
@@ -411,6 +424,7 @@ svg.drop-not-ok {
   touch-action: none;
 }
 
+.djs-segment-dragger,
 .djs-bendpoint {
   display: none;
 }
@@ -418,6 +432,14 @@ svg.drop-not-ok {
 /**
  * bendpoints
  */
+.djs-segment-dragger .djs-visual {
+  pointer-events: none;
+  fill: rgba(255, 255, 121, 0.4);
+  stroke-width: 1px;
+  stroke-opacity: 0.0;
+  stroke: black;
+}
+
 .djs-bendpoint .djs-visual {
   pointer-events: none;
   fill: rgba(255, 255, 121, 0.8);
@@ -426,6 +448,9 @@ svg.drop-not-ok {
   stroke: black;
 }
 
+.djs-segment-dragger:hover,
+.djs-bendpoints.hover .djs-segment-dragger,
+.djs-bendpoints.selected .djs-segment-dragger,
 .djs-bendpoint:hover,
 .djs-bendpoints.hover .djs-bendpoint,
 .djs-bendpoints.selected .djs-bendpoint {
@@ -436,18 +461,29 @@ svg.drop-not-ok {
   display: none;
 }
 
+.djs-segment-dragger:hover .djs-visual,
 .djs-bendpoint:hover .djs-visual,
 .djs-bendpoint.floating .djs-visual {
   fill: yellow;
+  stroke-opacity: 0.5;
 }
 
 .djs-bendpoint.floating .djs-hit {
   pointer-events: none;
 }
 
+.djs-segment-dragger .djs-hit,
 .djs-bendpoint .djs-hit {
   pointer-events: all;
   fill: none;
+}
+
+.djs-segment-dragger.horizontal .djs-hit {
+  cursor: ns-resize;
+}
+
+.djs-segment-dragger.vertical .djs-hit {
+  cursor: ew-resize;
 }
 
 .djs-updating,
@@ -465,13 +501,16 @@ svg.drop-not-ok {
   display: none !important;
 }
 
+.djs-segment-dragger.djs-dragging,
 .djs-bendpoint.djs-dragging {
   display: block;
   opacity: 1.0;
 }
 
+.djs-segment-dragger.djs-dragging .djs-visual,
 .djs-bendpoint.djs-dragging .djs-visual {
   fill: yellow;
+  stroke-opacity: 0.5;
 }
 
 
