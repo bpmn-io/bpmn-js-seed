@@ -1,5 +1,5 @@
 /*!
- * bpmn-js - bpmn-modeler v0.12.0
+ * bpmn-js - bpmn-modeler v0.12.1
 
  * Copyright 2014, 2015 camunda Services GmbH and other contributors
  *
@@ -8,7 +8,7 @@
  *
  * Source Code: https://github.com/bpmn-io/bpmn-js
  *
- * Date: 2015-10-23
+ * Date: 2015-11-19
  */
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.BpmnJS=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
@@ -2899,7 +2899,7 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
     assign(actions, {
       'lane-insert-above': {
         group: 'lane-insert-above',
-        className: 'icon-lane-insert-above',
+        className: 'bpmn-icon-lane-insert-above',
         title: 'Add Lane above',
         action: {
           click: function(event, element) {
@@ -2915,7 +2915,7 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
         assign(actions, {
           'lane-divide-two': {
             group: 'lane-divide',
-            className: 'icon-lane-divide-two',
+            className: 'bpmn-icon-lane-divide-two',
             title: 'Divide into two Lanes',
             action: {
               click: splitLaneHandler(2)
@@ -2928,7 +2928,7 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
         assign(actions, {
           'lane-divide-three': {
             group: 'lane-divide',
-            className: 'icon-lane-divide-three',
+            className: 'bpmn-icon-lane-divide-three',
             title: 'Divide into three Lanes',
             action: {
               click: splitLaneHandler(3)
@@ -2941,7 +2941,7 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
     assign(actions, {
       'lane-insert-below': {
         group: 'lane-insert-below',
-        className: 'icon-lane-insert-below',
+        className: 'bpmn-icon-lane-insert-below',
         title: 'Add Lane below',
         action: {
           click: function(event, element) {
@@ -2961,29 +2961,29 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
         !isEventSubProcess(businessObject)) {
 
       assign(actions, {
-        'append.end-event': appendAction('bpmn:EndEvent', 'icon-end-event-none'),
-        'append.gateway': appendAction('bpmn:ExclusiveGateway', 'icon-gateway-xor'),
-        'append.append-task': appendAction('bpmn:Task', 'icon-task'),
+        'append.end-event': appendAction('bpmn:EndEvent', 'bpmn-icon-end-event-none'),
+        'append.gateway': appendAction('bpmn:ExclusiveGateway', 'bpmn-icon-gateway-xor'),
+        'append.append-task': appendAction('bpmn:Task', 'bpmn-icon-task'),
         'append.intermediate-event': appendAction('bpmn:IntermediateThrowEvent',
-                                                  'icon-intermediate-event-none')
+                                                  'bpmn-icon-intermediate-event-none')
       });
     }
 
     if (is(businessObject, 'bpmn:EventBasedGateway')) {
 
       assign(actions, {
-        'append.receive-task': appendAction('bpmn:ReceiveTask', 'icon-receive-task'),
+        'append.receive-task': appendAction('bpmn:ReceiveTask', 'bpmn-icon-receive-task'),
         'append.message-intermediate-event': appendAction('bpmn:IntermediateCatchEvent',
-                                                  'icon-intermediate-event-catch-message',
+                                                  'bpmn-icon-intermediate-event-catch-message',
                                                   { _eventDefinitionType: 'bpmn:MessageEventDefinition'}),
         'append.timer-intermediate-event': appendAction('bpmn:IntermediateCatchEvent',
-                                                  'icon-intermediate-event-catch-timer',
+                                                  'bpmn-icon-intermediate-event-catch-timer',
                                                   { _eventDefinitionType: 'bpmn:TimerEventDefinition'}),
         'append.condtion-intermediate-event': appendAction('bpmn:IntermediateCatchEvent',
-                                                  'icon-intermediate-event-catch-condition',
+                                                  'bpmn-icon-intermediate-event-catch-condition',
                                                   { _eventDefinitionType: 'bpmn:ConditionalEventDefinition'}),
         'append.signal-intermediate-event': appendAction('bpmn:IntermediateCatchEvent',
-                                                  'icon-intermediate-event-catch-signal',
+                                                  'bpmn-icon-intermediate-event-catch-signal',
                                                   { _eventDefinitionType: 'bpmn:SignalEventDefinition'})
       });
     }
@@ -2996,7 +2996,7 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
     assign(actions, {
       'replace': {
         group: 'edit',
-        className: 'icon-screw-wrench',
+        className: 'bpmn-icon-screw-wrench',
         title: 'Change type',
         action: {
           click: function(event, element) {
@@ -3010,11 +3010,11 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
   if (isAny(businessObject, [ 'bpmn:FlowNode', 'bpmn:InteractionNode' ])) {
 
     assign(actions, {
-      'append.text-annotation': appendAction('bpmn:TextAnnotation', 'icon-text-annotation'),
+      'append.text-annotation': appendAction('bpmn:TextAnnotation', 'bpmn-icon-text-annotation'),
 
       'connect': {
         group: 'connect',
-        className: 'icon-connection-multi',
+        className: 'bpmn-icon-connection-multi',
         title: 'Connect using Sequence/MessageFlow',
         action: {
           click: startConnect,
@@ -3028,7 +3028,7 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
     assign(actions, {
       'connect': {
         group: 'connect',
-        className: 'icon-connection-multi',
+        className: 'bpmn-icon-connection-multi',
         title: 'Connect using DataInputAssociation',
         action: {
           click: startConnect,
@@ -3042,7 +3042,7 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
   assign(actions, {
     'delete': {
       group: 'edit',
-      className: 'icon-trash',
+      className: 'bpmn-icon-trash',
       title: 'Remove',
       action: {
         click: removeElement,
@@ -6771,7 +6771,7 @@ PaletteProvider.prototype.getPaletteEntries = function(element) {
   assign(actions, {
     'lasso-tool': {
       group: 'tools',
-      className: 'icon-lasso-tool',
+      className: 'bpmn-icon-lasso-tool',
       title: 'Activate the lasso tool',
       action: {
         click: function(event) {
@@ -6781,7 +6781,7 @@ PaletteProvider.prototype.getPaletteEntries = function(element) {
     },
     'space-tool': {
       group: 'tools',
-      className: 'icon-space-tool',
+      className: 'bpmn-icon-space-tool',
       title: 'Activate the create/remove space tool',
       action: {
         click: function(event) {
@@ -6794,30 +6794,30 @@ PaletteProvider.prototype.getPaletteEntries = function(element) {
       separator: true
     },
     'create.start-event': createAction(
-      'bpmn:StartEvent', 'event', 'icon-start-event-none'
+      'bpmn:StartEvent', 'event', 'bpmn-icon-start-event-none'
     ),
     'create.intermediate-event': createAction(
-      'bpmn:IntermediateThrowEvent', 'event', 'icon-intermediate-event-none'
+      'bpmn:IntermediateThrowEvent', 'event', 'bpmn-icon-intermediate-event-none'
     ),
     'create.end-event': createAction(
-      'bpmn:EndEvent', 'event', 'icon-end-event-none'
+      'bpmn:EndEvent', 'event', 'bpmn-icon-end-event-none'
     ),
     'create.exclusive-gateway': createAction(
-      'bpmn:ExclusiveGateway', 'gateway', 'icon-gateway-xor'
+      'bpmn:ExclusiveGateway', 'gateway', 'bpmn-icon-gateway-xor'
     ),
     'create.task': createAction(
-      'bpmn:Task', 'activity', 'icon-task'
+      'bpmn:Task', 'activity', 'bpmn-icon-task'
     ),
     'create.data-object': createAction(
-      'bpmn:DataObjectReference', 'data-object', 'icon-data-object'
+      'bpmn:DataObjectReference', 'data-object', 'bpmn-icon-data-object'
     ),
     'create.subprocess-expanded': createAction(
-      'bpmn:SubProcess', 'activity', 'icon-subprocess-expanded', 'Create expanded SubProcess',
+      'bpmn:SubProcess', 'activity', 'bpmn-icon-subprocess-expanded', 'Create expanded SubProcess',
       { isExpanded: true }
     ),
     'create.participant-expanded': {
       group: 'collaboration',
-      className: 'icon-participant',
+      className: 'bpmn-icon-participant',
       title: 'Create Pool/Participant',
       action: {
         dragstart: createParticipant,
@@ -7038,6 +7038,7 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
       var eventDefinitions = businessObject.get('eventDefinitions'),
           eventDefinition = moddle.create(target.eventDefinition);
 
+      eventDefinition.$parent = businessObject;
       eventDefinitions.push(eventDefinition);
     }
 
@@ -7125,7 +7126,7 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
     var loopEntries = [
       {
         id: 'toggle-parallel-mi',
-        className: 'icon-parallel-mi-marker',
+        className: 'bpmn-icon-parallel-mi-marker',
         title: 'Parallel Multi Instance',
         active: isParallel,
         action: toggleLoopEntry,
@@ -7136,7 +7137,7 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
       },
       {
         id: 'toggle-sequential-mi',
-        className: 'icon-sequential-mi-marker',
+        className: 'bpmn-icon-sequential-mi-marker',
         title: 'Sequential Multi Instance',
         active: isSequential,
         action: toggleLoopEntry,
@@ -7147,7 +7148,7 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
       },
       {
         id: 'toggle-loop',
-        className: 'icon-loop-marker',
+        className: 'bpmn-icon-loop-marker',
         title: 'Loop',
         active: isLoop,
         action: toggleLoopEntry,
@@ -7167,7 +7168,7 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
 
     var adHocEntry = {
       id: 'toggle-adhoc',
-      className: 'icon-ad-hoc-marker',
+      className: 'bpmn-icon-ad-hoc-marker',
       title: 'Ad-hoc',
       active: isAdHoc,
       action: function(event, entry) {
@@ -7258,8 +7259,8 @@ function BpmnReplace(bpmnFactory, moddle, popupMenu, replace, selection, modelin
         switch (entry.actionName) {
           case 'replace-with-default-flow':
             if (businessObject.sourceRef.default !== businessObject &&
-                is(businessObject.sourceRef, 'bpmn:ExclusiveGateway') ||
-                is(businessObject.sourceRef, 'bpmn:InclusiveGateway')) {
+                (is(businessObject.sourceRef, 'bpmn:ExclusiveGateway') ||
+                is(businessObject.sourceRef, 'bpmn:InclusiveGateway'))) {
 
               menuEntries.push(addMenuEntry(entry, function() {
                 modeling.updateProperties(element.source, { default: businessObject });
@@ -7418,7 +7419,7 @@ module.exports.START_EVENT = [
   {
     label: 'Start Event',
     actionName: 'replace-with-none-start',
-    className: 'icon-start-event-none',
+    className: 'bpmn-icon-start-event-none',
     target: {
       type: 'bpmn:StartEvent'
     }
@@ -7426,7 +7427,7 @@ module.exports.START_EVENT = [
   {
     label: 'Intermediate Throw Event',
     actionName: 'replace-with-none-intermediate-throwing',
-    className: 'icon-intermediate-event-none',
+    className: 'bpmn-icon-intermediate-event-none',
     target: {
       type: 'bpmn:IntermediateThrowEvent'
     }
@@ -7434,7 +7435,7 @@ module.exports.START_EVENT = [
   {
     label: 'End Event',
     actionName: 'replace-with-none-end',
-    className: 'icon-end-event-none',
+    className: 'bpmn-icon-end-event-none',
     target: {
       type: 'bpmn:EndEvent'
     }
@@ -7442,7 +7443,7 @@ module.exports.START_EVENT = [
   {
     label: 'Message Start Event',
     actionName: 'replace-with-message-start',
-    className: 'icon-start-event-message',
+    className: 'bpmn-icon-start-event-message',
     target: {
       type: 'bpmn:StartEvent',
       eventDefinition: 'bpmn:MessageEventDefinition'
@@ -7451,7 +7452,7 @@ module.exports.START_EVENT = [
   {
     label: 'Timer Start Event',
     actionName: 'replace-with-timer-start',
-    className: 'icon-start-event-timer',
+    className: 'bpmn-icon-start-event-timer',
     target: {
       type: 'bpmn:StartEvent',
       eventDefinition: 'bpmn:TimerEventDefinition'
@@ -7460,7 +7461,7 @@ module.exports.START_EVENT = [
   {
     label: 'Conditional Start Event',
     actionName: 'replace-with-conditional-start',
-    className: 'icon-start-event-condition',
+    className: 'bpmn-icon-start-event-condition',
     target: {
       type: 'bpmn:StartEvent',
       eventDefinition: 'bpmn:ConditionalEventDefinition'
@@ -7469,7 +7470,7 @@ module.exports.START_EVENT = [
   {
     label: 'Signal Start Event',
     actionName: 'replace-with-signal-start',
-    className: 'icon-start-event-signal',
+    className: 'bpmn-icon-start-event-signal',
     target: {
       type: 'bpmn:StartEvent',
       eventDefinition: 'bpmn:SignalEventDefinition'
@@ -7481,7 +7482,7 @@ module.exports.INTERMEDIATE_EVENT = [
   {
     label: 'Start Event',
     actionName: 'replace-with-none-start',
-    className: 'icon-start-event-none',
+    className: 'bpmn-icon-start-event-none',
     target: {
       type: 'bpmn:StartEvent'
     }
@@ -7489,7 +7490,7 @@ module.exports.INTERMEDIATE_EVENT = [
   {
     label: 'Intermediate Throw Event',
     actionName: 'replace-with-none-intermediate-throw',
-    className: 'icon-intermediate-event-none',
+    className: 'bpmn-icon-intermediate-event-none',
     target: {
       type: 'bpmn:IntermediateThrowEvent'
     }
@@ -7497,7 +7498,7 @@ module.exports.INTERMEDIATE_EVENT = [
   {
     label: 'End Event',
     actionName: 'replace-with-none-end',
-    className: 'icon-end-event-none',
+    className: 'bpmn-icon-end-event-none',
     target: {
       type: 'bpmn:EndEvent'
     }
@@ -7505,7 +7506,7 @@ module.exports.INTERMEDIATE_EVENT = [
   {
     label: 'Message Intermediate Catch Event',
     actionName: 'replace-with-message-intermediate-catch',
-    className: 'icon-intermediate-event-catch-message',
+    className: 'bpmn-icon-intermediate-event-catch-message',
     target: {
       type: 'bpmn:IntermediateCatchEvent',
       eventDefinition: 'bpmn:MessageEventDefinition'
@@ -7514,7 +7515,7 @@ module.exports.INTERMEDIATE_EVENT = [
   {
     label: 'Message Intermediate Throw Event',
     actionName: 'replace-with-message-intermediate-throw',
-    className: 'icon-intermediate-event-throw-message',
+    className: 'bpmn-icon-intermediate-event-throw-message',
     target: {
       type: 'bpmn:IntermediateThrowEvent',
       eventDefinition: 'bpmn:MessageEventDefinition'
@@ -7523,25 +7524,25 @@ module.exports.INTERMEDIATE_EVENT = [
   {
     label: 'Timer Intermediate Catch Event',
     actionName: 'replace-with-timer-intermediate-catch',
-    className: 'icon-intermediate-event-catch-timer',
+    className: 'bpmn-icon-intermediate-event-catch-timer',
     target: {
       type: 'bpmn:IntermediateCatchEvent',
       eventDefinition: 'bpmn:TimerEventDefinition'
     }
   },
   {
-    label: 'Escalation Intermediate Catch Event',
-    actionName: 'replace-with-escalation-intermediate-catch',
-    className: 'icon-intermediate-event-catch-escalation',
+    label: 'Escalation Intermediate Throw Event',
+    actionName: 'replace-with-escalation-intermediate-throw',
+    className: 'bpmn-icon-intermediate-event-throw-escalation',
     target: {
-      type: 'bpmn:IntermediateCatchEvent',
+      type: 'bpmn:IntermediateThrowEvent',
       eventDefinition: 'bpmn:EscalationEventDefinition'
     }
   },
   {
     label: 'Conditional Intermediate Catch Event',
     actionName: 'replace-with-conditional-intermediate-catch',
-    className: 'icon-intermediate-event-catch-condition',
+    className: 'bpmn-icon-intermediate-event-catch-condition',
     target: {
       type: 'bpmn:IntermediateCatchEvent',
       eventDefinition: 'bpmn:ConditionalEventDefinition'
@@ -7550,7 +7551,7 @@ module.exports.INTERMEDIATE_EVENT = [
   {
     label: 'Link Intermediate Catch Event',
     actionName: 'replace-with-link-intermediate-catch',
-    className: 'icon-intermediate-event-catch-link',
+    className: 'bpmn-icon-intermediate-event-catch-link',
     target: {
       type: 'bpmn:IntermediateCatchEvent',
       eventDefinition: 'bpmn:LinkEventDefinition'
@@ -7559,7 +7560,7 @@ module.exports.INTERMEDIATE_EVENT = [
   {
     label: 'Link Intermediate Throw Event',
     actionName: 'replace-with-link-intermediate-throw',
-    className: 'icon-intermediate-event-throw-link',
+    className: 'bpmn-icon-intermediate-event-throw-link',
     target: {
       type: 'bpmn:IntermediateThrowEvent',
       eventDefinition: 'bpmn:LinkEventDefinition'
@@ -7568,7 +7569,7 @@ module.exports.INTERMEDIATE_EVENT = [
   {
     label: 'Compensation Intermediate Throw Event',
     actionName: 'replace-with-compensation-intermediate-throw',
-    className: 'icon-intermediate-event-throw-compensation',
+    className: 'bpmn-icon-intermediate-event-throw-compensation',
     target: {
       type: 'bpmn:IntermediateThrowEvent',
       eventDefinition: 'bpmn:CompensateEventDefinition'
@@ -7577,7 +7578,7 @@ module.exports.INTERMEDIATE_EVENT = [
   {
     label: 'Signal Intermediate Catch Event',
     actionName: 'replace-with-signal-intermediate-catch',
-    className: 'icon-intermediate-event-catch-signal',
+    className: 'bpmn-icon-intermediate-event-catch-signal',
     target: {
       type: 'bpmn:IntermediateCatchEvent',
       eventDefinition: 'bpmn:SignalEventDefinition'
@@ -7586,7 +7587,7 @@ module.exports.INTERMEDIATE_EVENT = [
   {
     label: 'Signal Intermediate Throw Event',
     actionName: 'replace-with-signal-intermediate-throw',
-    className: 'icon-intermediate-event-throw-signal',
+    className: 'bpmn-icon-intermediate-event-throw-signal',
     target: {
       type: 'bpmn:IntermediateThrowEvent',
       eventDefinition: 'bpmn:SignalEventDefinition'
@@ -7598,7 +7599,7 @@ module.exports.END_EVENT = [
   {
     label: 'Start Event',
     actionName: 'replace-with-none-start',
-    className: 'icon-start-event-none',
+    className: 'bpmn-icon-start-event-none',
     target: {
       type: 'bpmn:StartEvent'
     }
@@ -7606,7 +7607,7 @@ module.exports.END_EVENT = [
   {
     label: 'Intermediate Throw Event',
     actionName: 'replace-with-none-intermediate-throw',
-    className: 'icon-intermediate-event-none',
+    className: 'bpmn-icon-intermediate-event-none',
     target: {
       type: 'bpmn:IntermediateThrowEvent'
     }
@@ -7614,7 +7615,7 @@ module.exports.END_EVENT = [
   {
     label: 'End Event',
     actionName: 'replace-with-none-end',
-    className: 'icon-end-event-none',
+    className: 'bpmn-icon-end-event-none',
     target: {
       type: 'bpmn:EndEvent'
     }
@@ -7622,7 +7623,7 @@ module.exports.END_EVENT = [
   {
     label: 'Message End Event',
     actionName: 'replace-with-message-end',
-    className: 'icon-end-event-message',
+    className: 'bpmn-icon-end-event-message',
     target: {
       type: 'bpmn:EndEvent',
       eventDefinition: 'bpmn:MessageEventDefinition'
@@ -7631,7 +7632,7 @@ module.exports.END_EVENT = [
   {
     label: 'Escalation End Event',
     actionName: 'replace-with-escalation-end',
-    className: 'icon-end-event-escalation',
+    className: 'bpmn-icon-end-event-escalation',
     target: {
       type: 'bpmn:EndEvent',
       eventDefinition: 'bpmn:EscalationEventDefinition'
@@ -7640,7 +7641,7 @@ module.exports.END_EVENT = [
   {
     label: 'Error End Event',
     actionName: 'replace-with-error-end',
-    className: 'icon-end-event-error',
+    className: 'bpmn-icon-end-event-error',
     target: {
       type: 'bpmn:EndEvent',
       eventDefinition: 'bpmn:ErrorEventDefinition'
@@ -7649,7 +7650,7 @@ module.exports.END_EVENT = [
   {
     label: 'Cancel End Event',
     actionName: 'replace-with-cancel-end',
-    className: 'icon-end-event-cancel',
+    className: 'bpmn-icon-end-event-cancel',
     target: {
       type: 'bpmn:EndEvent',
       eventDefinition: 'bpmn:CancelEventDefinition'
@@ -7658,7 +7659,7 @@ module.exports.END_EVENT = [
   {
     label: 'Compensation End Event',
     actionName: 'replace-with-compensation-end',
-    className: 'icon-end-event-compensation',
+    className: 'bpmn-icon-end-event-compensation',
     target: {
       type: 'bpmn:EndEvent',
       eventDefinition: 'bpmn:CompensateEventDefinition'
@@ -7667,7 +7668,7 @@ module.exports.END_EVENT = [
   {
     label: 'Signal End Event',
     actionName: 'replace-with-signal-end',
-    className: 'icon-end-event-signal',
+    className: 'bpmn-icon-end-event-signal',
     target: {
       type: 'bpmn:EndEvent',
       eventDefinition: 'bpmn:SignalEventDefinition'
@@ -7676,7 +7677,7 @@ module.exports.END_EVENT = [
   {
     label: 'Terminate End Event',
     actionName: 'replace-with-terminate-end',
-    className: 'icon-end-event-terminate',
+    className: 'bpmn-icon-end-event-terminate',
     target: {
       type: 'bpmn:EndEvent',
       eventDefinition: 'bpmn:TerminateEventDefinition'
@@ -7688,7 +7689,7 @@ module.exports.GATEWAY = [
   {
     label: 'Exclusive Gateway',
     actionName: 'replace-with-exclusive-gateway',
-    className: 'icon-gateway-xor',
+    className: 'bpmn-icon-gateway-xor',
     target: {
       type: 'bpmn:ExclusiveGateway'
     }
@@ -7696,7 +7697,7 @@ module.exports.GATEWAY = [
   {
     label: 'Parallel Gateway',
     actionName: 'replace-with-parallel-gateway',
-    className: 'icon-gateway-parallel',
+    className: 'bpmn-icon-gateway-parallel',
     target: {
       type: 'bpmn:ParallelGateway'
     }
@@ -7704,7 +7705,7 @@ module.exports.GATEWAY = [
   {
     label: 'Inclusive Gateway',
     actionName: 'replace-with-inclusive-gateway',
-    className: 'icon-gateway-or',
+    className: 'bpmn-icon-gateway-or',
     target: {
       type: 'bpmn:InclusiveGateway'
     }
@@ -7712,7 +7713,7 @@ module.exports.GATEWAY = [
   {
     label: 'Complex Gateway',
     actionName: 'replace-with-complex-gateway',
-    className: 'icon-gateway-complex',
+    className: 'bpmn-icon-gateway-complex',
     target: {
       type: 'bpmn:ComplexGateway'
     }
@@ -7720,7 +7721,7 @@ module.exports.GATEWAY = [
   {
     label: 'Event based Gateway',
     actionName: 'replace-with-event-based-gateway',
-    className: 'icon-gateway-eventbased',
+    className: 'bpmn-icon-gateway-eventbased',
     target: {
       type: 'bpmn:EventBasedGateway',
       instantiate: false,
@@ -7731,7 +7732,7 @@ module.exports.GATEWAY = [
   // {
   //   label: 'Event based instantiating Gateway',
   //   actionName: 'replace-with-exclusive-event-based-gateway',
-  //   className: 'icon-exclusive-event-based',
+  //   className: 'bpmn-icon-exclusive-event-based',
   //   target: {
   //     type: 'bpmn:EventBasedGateway'
   //   },
@@ -7742,7 +7743,7 @@ module.exports.GATEWAY = [
   // {
   //   label: 'Parallel Event based instantiating Gateway',
   //   actionName: 'replace-with-parallel-event-based-instantiate-gateway',
-  //   className: 'icon-parallel-event-based-instantiate-gateway',
+  //   className: 'bpmn-icon-parallel-event-based-instantiate-gateway',
   //   target: {
   //     type: 'bpmn:EventBasedGateway'
   //   },
@@ -7756,7 +7757,7 @@ module.exports.SUBPROCESS_EXPANDED = [
   {
     label: 'Transaction',
     actionName: 'replace-with-transaction',
-    className: 'icon-transaction',
+    className: 'bpmn-icon-transaction',
     target: {
       type: 'bpmn:Transaction',
       isExpanded: true
@@ -7765,7 +7766,7 @@ module.exports.SUBPROCESS_EXPANDED = [
   {
     label: 'Event Sub Process',
     actionName: 'replace-with-event-subprocess',
-    className: 'icon-event-subprocess-expanded',
+    className: 'bpmn-icon-event-subprocess-expanded',
     target: {
       type: 'bpmn:SubProcess',
       triggeredByEvent: true,
@@ -7778,7 +7779,7 @@ module.exports.TRANSACTION = [
   {
     label: 'Sub Process',
     actionName: 'replace-with-subprocess',
-    className: 'icon-subprocess-expanded',
+    className: 'bpmn-icon-subprocess-expanded',
     target: {
       type: 'bpmn:SubProcess',
       isExpanded: true
@@ -7787,7 +7788,7 @@ module.exports.TRANSACTION = [
   {
     label: 'Event Sub Process',
     actionName: 'replace-with-event-subprocess',
-    className: 'icon-event-subprocess-expanded',
+    className: 'bpmn-icon-event-subprocess-expanded',
     target: {
       type: 'bpmn:SubProcess',
       triggeredByEvent: true,
@@ -7800,7 +7801,7 @@ module.exports.EVENT_SUB_PROCESS = [
   {
     label: 'Sub Process',
     actionName: 'replace-with-subprocess',
-    className: 'icon-subprocess-expanded',
+    className: 'bpmn-icon-subprocess-expanded',
     target: {
       type: 'bpmn:SubProcess',
       isExpanded: true
@@ -7809,7 +7810,7 @@ module.exports.EVENT_SUB_PROCESS = [
   {
     label: 'Transaction',
     actionName: 'replace-with-transaction',
-    className: 'icon-transaction',
+    className: 'bpmn-icon-transaction',
     target: {
       type: 'bpmn:Transaction',
       isExpanded: true
@@ -7821,7 +7822,7 @@ module.exports.TASK = [
   {
     label: 'Task',
     actionName: 'replace-with-task',
-    className: 'icon-task',
+    className: 'bpmn-icon-task',
     target: {
       type: 'bpmn:Task'
     }
@@ -7829,7 +7830,7 @@ module.exports.TASK = [
   {
     label: 'Send Task',
     actionName: 'replace-with-send-task',
-    className: 'icon-send',
+    className: 'bpmn-icon-send',
     target: {
       type: 'bpmn:SendTask'
     }
@@ -7837,7 +7838,7 @@ module.exports.TASK = [
   {
     label: 'Receive Task',
     actionName: 'replace-with-receive-task',
-    className: 'icon-receive',
+    className: 'bpmn-icon-receive',
     target: {
       type: 'bpmn:ReceiveTask'
     }
@@ -7845,7 +7846,7 @@ module.exports.TASK = [
   {
     label: 'User Task',
     actionName: 'replace-with-user-task',
-    className: 'icon-user',
+    className: 'bpmn-icon-user',
     target: {
       type: 'bpmn:UserTask'
     }
@@ -7853,7 +7854,7 @@ module.exports.TASK = [
   {
     label: 'Manual Task',
     actionName: 'replace-with-manual-task',
-    className: 'icon-manual',
+    className: 'bpmn-icon-manual',
     target: {
       type: 'bpmn:ManualTask'
     }
@@ -7861,7 +7862,7 @@ module.exports.TASK = [
   {
     label: 'Business Rule Task',
     actionName: 'replace-with-rule-task',
-    className: 'icon-business-rule',
+    className: 'bpmn-icon-business-rule',
     target: {
       type: 'bpmn:BusinessRuleTask'
     }
@@ -7869,7 +7870,7 @@ module.exports.TASK = [
   {
     label: 'Service Task',
     actionName: 'replace-with-service-task',
-    className: 'icon-service',
+    className: 'bpmn-icon-service',
     target: {
       type: 'bpmn:ServiceTask'
     }
@@ -7877,7 +7878,7 @@ module.exports.TASK = [
   {
     label: 'Script Task',
     actionName: 'replace-with-script-task',
-    className: 'icon-script',
+    className: 'bpmn-icon-script',
     target: {
       type: 'bpmn:ScriptTask'
     }
@@ -7885,7 +7886,7 @@ module.exports.TASK = [
   {
     label: 'Call Activity',
     actionName: 'replace-with-call-activity',
-    className: 'icon-call-activity',
+    className: 'bpmn-icon-call-activity',
     target: {
       type: 'bpmn:CallActivity'
     }
@@ -7893,7 +7894,7 @@ module.exports.TASK = [
   {
     label: 'Sub Process (collapsed)',
     actionName: 'replace-with-collapsed-subprocess',
-    className: 'icon-subprocess-collapsed',
+    className: 'bpmn-icon-subprocess-collapsed',
     target: {
       type: 'bpmn:SubProcess',
       isExpanded: false
@@ -7905,7 +7906,7 @@ module.exports.BOUNDARY_EVENT = [
   {
     label: 'Message Boundary Event',
     actionName: 'replace-with-message-boundary',
-    className: 'icon-intermediate-event-catch-message',
+    className: 'bpmn-icon-intermediate-event-catch-message',
     target: {
       type: 'bpmn:BoundaryEvent',
       eventDefinition: 'bpmn:MessageEventDefinition'
@@ -7914,7 +7915,7 @@ module.exports.BOUNDARY_EVENT = [
   {
     label: 'Timer Boundary Event',
     actionName: 'replace-with-timer-boundary',
-    className: 'icon-intermediate-event-catch-timer',
+    className: 'bpmn-icon-intermediate-event-catch-timer',
     target: {
       type: 'bpmn:BoundaryEvent',
       eventDefinition: 'bpmn:TimerEventDefinition'
@@ -7923,7 +7924,7 @@ module.exports.BOUNDARY_EVENT = [
   {
     label: 'Escalation Boundary Event',
     actionName: 'replace-with-escalation-boundary',
-    className: 'icon-intermediate-event-catch-escalation',
+    className: 'bpmn-icon-intermediate-event-catch-escalation',
     target: {
       type: 'bpmn:BoundaryEvent',
       eventDefinition: 'bpmn:EscalationEventDefinition'
@@ -7932,7 +7933,7 @@ module.exports.BOUNDARY_EVENT = [
   {
     label: 'Conditional Boundary Event',
     actionName: 'replace-with-conditional-boundary',
-    className: 'icon-intermediate-event-catch-condition',
+    className: 'bpmn-icon-intermediate-event-catch-condition',
     target: {
       type: 'bpmn:BoundaryEvent',
       eventDefinition: 'bpmn:ConditionalEventDefinition'
@@ -7941,7 +7942,7 @@ module.exports.BOUNDARY_EVENT = [
   {
     label: 'Error Boundary Event',
     actionName: 'replace-with-error-boundary',
-    className: 'icon-intermediate-event-catch-error',
+    className: 'bpmn-icon-intermediate-event-catch-error',
     target: {
       type: 'bpmn:BoundaryEvent',
       eventDefinition: 'bpmn:ErrorEventDefinition'
@@ -7950,7 +7951,7 @@ module.exports.BOUNDARY_EVENT = [
   {
     label: 'Cancel Boundary Event',
     actionName: 'replace-with-cancel-boundary',
-    className: 'icon-intermediate-event-catch-cancel',
+    className: 'bpmn-icon-intermediate-event-catch-cancel',
     target: {
       type: 'bpmn:BoundaryEvent',
       eventDefinition: 'bpmn:CancelEventDefinition'
@@ -7959,7 +7960,7 @@ module.exports.BOUNDARY_EVENT = [
   {
     label: 'Signal Boundary Event',
     actionName: 'replace-with-signal-boundary',
-    className: 'icon-intermediate-event-catch-signal',
+    className: 'bpmn-icon-intermediate-event-catch-signal',
     target: {
       type: 'bpmn:BoundaryEvent',
       eventDefinition: 'bpmn:SignalEventDefinition'
@@ -7968,7 +7969,7 @@ module.exports.BOUNDARY_EVENT = [
   {
     label: 'Message Boundary Event (non-interrupting)',
     actionName: 'replace-with-non-interrupting-message-boundary',
-    className: 'icon-intermediate-event-catch-non-interrupting-message',
+    className: 'bpmn-icon-intermediate-event-catch-non-interrupting-message',
     target: {
       type: 'bpmn:BoundaryEvent',
       eventDefinition: 'bpmn:MessageEventDefinition',
@@ -7978,7 +7979,7 @@ module.exports.BOUNDARY_EVENT = [
   {
     label: 'Timer Boundary Event (non-interrupting)',
     actionName: 'replace-with-non-interrupting-timer-boundary',
-    className: 'icon-intermediate-event-catch-non-interrupting-timer',
+    className: 'bpmn-icon-intermediate-event-catch-non-interrupting-timer',
     target: {
       type: 'bpmn:BoundaryEvent',
       eventDefinition: 'bpmn:TimerEventDefinition',
@@ -7988,7 +7989,7 @@ module.exports.BOUNDARY_EVENT = [
   {
     label: 'Escalation Boundary Event (non-interrupting)',
     actionName: 'replace-with-non-interrupting-escalation-boundary',
-    className: 'icon-intermediate-event-catch-non-interrupting-escalation',
+    className: 'bpmn-icon-intermediate-event-catch-non-interrupting-escalation',
     target: {
       type: 'bpmn:BoundaryEvent',
       eventDefinition: 'bpmn:EscalationEventDefinition',
@@ -7998,7 +7999,7 @@ module.exports.BOUNDARY_EVENT = [
   {
     label: 'Conditional Boundary Event (non-interrupting)',
     actionName: 'replace-with-non-interrupting-conditional-boundary',
-    className: 'icon-intermediate-event-catch-non-interrupting-condition',
+    className: 'bpmn-icon-intermediate-event-catch-non-interrupting-condition',
     target: {
       type: 'bpmn:BoundaryEvent',
       eventDefinition: 'bpmn:ConditionalEventDefinition',
@@ -8008,7 +8009,7 @@ module.exports.BOUNDARY_EVENT = [
   {
     label: 'Signal Boundary Event (non-interrupting)',
     actionName: 'replace-with-non-interrupting-signal-boundary',
-    className: 'icon-intermediate-event-catch-non-interrupting-signal',
+    className: 'bpmn-icon-intermediate-event-catch-non-interrupting-signal',
     target: {
       type: 'bpmn:BoundaryEvent',
       eventDefinition: 'bpmn:SignalEventDefinition',
@@ -8021,7 +8022,7 @@ module.exports.EVENT_SUB_PROCESS_START_EVENT = [
   {
     label: 'Message Start Event',
     actionName: 'replace-with-message-start',
-    className: 'icon-start-event-message',
+    className: 'bpmn-icon-start-event-message',
     target: {
       type: 'bpmn:StartEvent',
       eventDefinition: 'bpmn:MessageEventDefinition'
@@ -8030,7 +8031,7 @@ module.exports.EVENT_SUB_PROCESS_START_EVENT = [
   {
     label: 'Timer Start Event',
     actionName: 'replace-with-timer-start',
-    className: 'icon-start-event-timer',
+    className: 'bpmn-icon-start-event-timer',
     target: {
       type: 'bpmn:StartEvent',
       eventDefinition: 'bpmn:TimerEventDefinition'
@@ -8039,7 +8040,7 @@ module.exports.EVENT_SUB_PROCESS_START_EVENT = [
   {
     label: 'Conditional Start Event',
     actionName: 'replace-with-conditional-start',
-    className: 'icon-start-event-condition',
+    className: 'bpmn-icon-start-event-condition',
     target: {
       type: 'bpmn:StartEvent',
       eventDefinition: 'bpmn:ConditionalEventDefinition'
@@ -8048,7 +8049,7 @@ module.exports.EVENT_SUB_PROCESS_START_EVENT = [
   {
     label: 'Signal Start Event',
     actionName: 'replace-with-signal-start',
-    className: 'icon-start-event-signal',
+    className: 'bpmn-icon-start-event-signal',
     target: {
       type: 'bpmn:StartEvent',
       eventDefinition: 'bpmn:SignalEventDefinition'
@@ -8057,7 +8058,7 @@ module.exports.EVENT_SUB_PROCESS_START_EVENT = [
   {
     label: 'Error Start Event',
     actionName: 'replace-with-error-start',
-    className: 'icon-start-event-error',
+    className: 'bpmn-icon-start-event-error',
     target: {
       type: 'bpmn:StartEvent',
       eventDefinition: 'bpmn:ErrorEventDefinition'
@@ -8066,7 +8067,7 @@ module.exports.EVENT_SUB_PROCESS_START_EVENT = [
   {
     label: 'Escalation Start Event',
     actionName: 'replace-with-escalation-start',
-    className: 'icon-start-event-escalation',
+    className: 'bpmn-icon-start-event-escalation',
     target: {
       type: 'bpmn:StartEvent',
       eventDefinition: 'bpmn:EscalationEventDefinition'
@@ -8075,7 +8076,7 @@ module.exports.EVENT_SUB_PROCESS_START_EVENT = [
   {
     label: 'Compensation Start Event',
     actionName: 'replace-with-compensation-start',
-    className: 'icon-start-event-compensation',
+    className: 'bpmn-icon-start-event-compensation',
     target: {
       type: 'bpmn:StartEvent',
       eventDefinition: 'bpmn:CompensateEventDefinition'
@@ -8084,7 +8085,7 @@ module.exports.EVENT_SUB_PROCESS_START_EVENT = [
   {
     label: 'Message Start Event (non-interrupting)',
     actionName: 'replace-with-non-interrupting-message-start',
-    className: 'icon-start-event-non-interrupting-message',
+    className: 'bpmn-icon-start-event-non-interrupting-message',
     target: {
       type: 'bpmn:StartEvent',
       eventDefinition: 'bpmn:MessageEventDefinition',
@@ -8094,7 +8095,7 @@ module.exports.EVENT_SUB_PROCESS_START_EVENT = [
   {
     label: 'Timer Start Event (non-interrupting)',
     actionName: 'replace-with-non-interrupting-timer-start',
-    className: 'icon-start-event-non-interrupting-timer',
+    className: 'bpmn-icon-start-event-non-interrupting-timer',
     target: {
       type: 'bpmn:StartEvent',
       eventDefinition: 'bpmn:TimerEventDefinition',
@@ -8104,7 +8105,7 @@ module.exports.EVENT_SUB_PROCESS_START_EVENT = [
   {
     label: 'Conditional Start Event (non-interrupting)',
     actionName: 'replace-with-non-interrupting-conditional-start',
-    className: 'icon-start-event-non-interrupting-condition',
+    className: 'bpmn-icon-start-event-non-interrupting-condition',
     target: {
       type: 'bpmn:StartEvent',
       eventDefinition: 'bpmn:ConditionalEventDefinition',
@@ -8114,7 +8115,7 @@ module.exports.EVENT_SUB_PROCESS_START_EVENT = [
   {
     label: 'Signal Start Event (non-interrupting)',
     actionName: 'replace-with-non-interrupting-signal-start',
-    className: 'icon-start-event-non-interrupting-signal',
+    className: 'bpmn-icon-start-event-non-interrupting-signal',
     target: {
       type: 'bpmn:StartEvent',
       eventDefinition: 'bpmn:SignalEventDefinition',
@@ -8124,7 +8125,7 @@ module.exports.EVENT_SUB_PROCESS_START_EVENT = [
   {
     label: 'Escalation Start Event (non-interrupting)',
     actionName: 'replace-with-non-interrupting-escalation-start',
-    className: 'icon-start-event-non-interrupting-escalation',
+    className: 'bpmn-icon-start-event-non-interrupting-escalation',
     target: {
       type: 'bpmn:StartEvent',
       eventDefinition: 'bpmn:EscalationEventDefinition',
@@ -8137,17 +8138,17 @@ module.exports.SEQUENCE_FLOW = [
   {
     label: 'Sequence Flow',
     actionName: 'replace-with-sequence-flow',
-    className: 'icon-connection',
+    className: 'bpmn-icon-connection',
   },
   {
     label: 'Default Flow',
     actionName: 'replace-with-default-flow',
-    className: 'icon-default-flow',
+    className: 'bpmn-icon-default-flow',
   },
   {
     label: 'Conditional Flow',
     actionName: 'replace-with-conditional-flow',
-    className: 'icon-conditional-flow',
+    className: 'bpmn-icon-conditional-flow',
   }
 ];
 
@@ -11296,7 +11297,7 @@ BodySerializer.prototype.serializeValue = BodySerializer.prototype.serializeTo =
 BodySerializer.prototype.build = function(prop, value) {
   this.value = value;
 
-  if (prop.type === 'String' && ESCAPE_CHARS.test(value)) {
+  if (prop.type === 'String' && value.search(ESCAPE_CHARS) !== -1) {
     this.escape = true;
   }
 
@@ -14748,14 +14749,9 @@ module.exports={
       ],
       "properties": [
         {
-          "name": "inputSet",
-          "type": "InputSet"
-        },
-        {
-          "name": "eventDefinitionRefs",
-          "type": "EventDefinition",
-          "isMany": true,
-          "isReference": true
+          "name": "dataInputs",
+          "type": "DataInput",
+          "isMany": true
         },
         {
           "name": "dataInputAssociations",
@@ -14763,14 +14759,19 @@ module.exports={
           "isMany": true
         },
         {
-          "name": "dataInputs",
-          "type": "DataInput",
-          "isMany": true
+          "name": "inputSet",
+          "type": "InputSet"
         },
         {
           "name": "eventDefinitions",
           "type": "EventDefinition",
           "isMany": true
+        },
+        {
+          "name": "eventDefinitionRefs",
+          "type": "EventDefinition",
+          "isMany": true,
+          "isReference": true
         }
       ]
     },
@@ -14788,14 +14789,9 @@ module.exports={
           "default": false
         },
         {
-          "name": "outputSet",
-          "type": "OutputSet"
-        },
-        {
-          "name": "eventDefinitionRefs",
-          "type": "EventDefinition",
-          "isMany": true,
-          "isReference": true
+          "name": "dataOutputs",
+          "type": "DataOutput",
+          "isMany": true
         },
         {
           "name": "dataOutputAssociations",
@@ -14803,14 +14799,19 @@ module.exports={
           "isMany": true
         },
         {
-          "name": "dataOutputs",
-          "type": "DataOutput",
-          "isMany": true
+          "name": "outputSet",
+          "type": "OutputSet"
         },
         {
           "name": "eventDefinitions",
           "type": "EventDefinition",
           "isMany": true
+        },
+        {
+          "name": "eventDefinitionRefs",
+          "type": "EventDefinition",
+          "isMany": true,
+          "isReference": true
         }
       ]
     },
@@ -15090,10 +15091,6 @@ module.exports={
       ],
       "properties": [
         {
-          "name": "transformation",
-          "type": "FormalExpression"
-        },
-        {
           "name": "assignment",
           "type": "Assignment",
           "isMany": true
@@ -15108,6 +15105,13 @@ module.exports={
           "name": "targetRef",
           "type": "ItemAwareElement",
           "isReference": true
+        },
+        {
+          "name": "transformation",
+          "type": "FormalExpression",
+          "xml": {
+            "serialize": "property"
+          }
         }
       ]
     },
@@ -16139,15 +16143,28 @@ module.exports={
           "type": "Boolean"
         },
         {
-          "name": "choreographyRef",
-          "type": "Choreography",
-          "isMany": true,
-          "isReference": true
+          "name": "participants",
+          "type": "Participant",
+          "isMany": true
+        },
+        {
+          "name": "messageFlows",
+          "type": "MessageFlow",
+          "isMany": true
         },
         {
           "name": "artifacts",
           "type": "Artifact",
           "isMany": true
+        },
+        {
+          "name": "conversations",
+          "type": "ConversationNode",
+          "isMany": true
+        },
+        {
+          "name": "conversationAssociations",
+          "type": "ConversationAssociation"
         },
         {
           "name": "participantAssociations",
@@ -16160,28 +16177,15 @@ module.exports={
           "isMany": true
         },
         {
-          "name": "conversationAssociations",
-          "type": "ConversationAssociation"
-        },
-        {
-          "name": "participants",
-          "type": "Participant",
-          "isMany": true
-        },
-        {
-          "name": "messageFlows",
-          "type": "MessageFlow",
-          "isMany": true
-        },
-        {
           "name": "correlationKeys",
           "type": "CorrelationKey",
           "isMany": true
         },
         {
-          "name": "conversations",
-          "type": "ConversationNode",
-          "isMany": true
+          "name": "choreographyRef",
+          "type": "Choreography",
+          "isMany": true,
+          "isReference": true
         },
         {
           "name": "conversationLinks",
@@ -27239,23 +27243,30 @@ Overlays.prototype._addOverlay = function(overlay) {
   this._overlays[id] = overlay;
 
   this._updateOverlay(overlay);
+  this._updateOverlayVisibilty(overlay, this._canvas.viewbox());
 };
 
-Overlays.prototype._updateOverlayVisibilty = function(viewbox) {
+Overlays.prototype._updateOverlayVisibilty = function (overlay, viewbox) {
+  var show = overlay.show,
+      htmlContainer = overlay.htmlContainer,
+      visible = true;
+
+  if (show) {
+    if (show.minZoom > viewbox.scale ||
+        show.maxZoom < viewbox.scale) {
+      visible = false;
+    }
+
+    setVisible(htmlContainer, visible);
+  }
+};
+
+Overlays.prototype._updateOverlaysVisibilty = function(viewbox) {
+
+  var self = this;
 
   forEach(this._overlays, function(overlay) {
-    var show = overlay.show,
-        htmlContainer = overlay.htmlContainer,
-        visible = true;
-
-    if (show) {
-      if (show.minZoom > viewbox.scale ||
-          show.maxZoom < viewbox.scale) {
-        visible = false;
-      }
-
-      setVisible(htmlContainer, visible);
-    }
+    self._updateOverlayVisibilty(overlay, viewbox);
   });
 };
 
@@ -27270,7 +27281,7 @@ Overlays.prototype._init = function() {
 
   function updateViewbox(viewbox) {
     self._updateRoot(viewbox);
-    self._updateOverlayVisibilty(viewbox);
+    self._updateOverlaysVisibilty(viewbox);
 
     self.show();
   }

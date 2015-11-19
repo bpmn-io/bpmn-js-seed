@@ -1,5 +1,5 @@
 /*!
- * bpmn-js - bpmn-navigated-viewer v0.12.0
+ * bpmn-js - bpmn-navigated-viewer v0.12.1
 
  * Copyright 2014, 2015 camunda Services GmbH and other contributors
  *
@@ -8,7 +8,7 @@
  *
  * Source Code: https://github.com/bpmn-io/bpmn-js
  *
- * Date: 2015-10-23
+ * Date: 2015-11-19
  */
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.BpmnJS=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
@@ -4309,7 +4309,7 @@ BodySerializer.prototype.serializeValue = BodySerializer.prototype.serializeTo =
 BodySerializer.prototype.build = function(prop, value) {
   this.value = value;
 
-  if (prop.type === 'String' && ESCAPE_CHARS.test(value)) {
+  if (prop.type === 'String' && value.search(ESCAPE_CHARS) !== -1) {
     this.escape = true;
   }
 
@@ -7761,14 +7761,9 @@ module.exports={
       ],
       "properties": [
         {
-          "name": "inputSet",
-          "type": "InputSet"
-        },
-        {
-          "name": "eventDefinitionRefs",
-          "type": "EventDefinition",
-          "isMany": true,
-          "isReference": true
+          "name": "dataInputs",
+          "type": "DataInput",
+          "isMany": true
         },
         {
           "name": "dataInputAssociations",
@@ -7776,14 +7771,19 @@ module.exports={
           "isMany": true
         },
         {
-          "name": "dataInputs",
-          "type": "DataInput",
-          "isMany": true
+          "name": "inputSet",
+          "type": "InputSet"
         },
         {
           "name": "eventDefinitions",
           "type": "EventDefinition",
           "isMany": true
+        },
+        {
+          "name": "eventDefinitionRefs",
+          "type": "EventDefinition",
+          "isMany": true,
+          "isReference": true
         }
       ]
     },
@@ -7801,14 +7801,9 @@ module.exports={
           "default": false
         },
         {
-          "name": "outputSet",
-          "type": "OutputSet"
-        },
-        {
-          "name": "eventDefinitionRefs",
-          "type": "EventDefinition",
-          "isMany": true,
-          "isReference": true
+          "name": "dataOutputs",
+          "type": "DataOutput",
+          "isMany": true
         },
         {
           "name": "dataOutputAssociations",
@@ -7816,14 +7811,19 @@ module.exports={
           "isMany": true
         },
         {
-          "name": "dataOutputs",
-          "type": "DataOutput",
-          "isMany": true
+          "name": "outputSet",
+          "type": "OutputSet"
         },
         {
           "name": "eventDefinitions",
           "type": "EventDefinition",
           "isMany": true
+        },
+        {
+          "name": "eventDefinitionRefs",
+          "type": "EventDefinition",
+          "isMany": true,
+          "isReference": true
         }
       ]
     },
@@ -8103,10 +8103,6 @@ module.exports={
       ],
       "properties": [
         {
-          "name": "transformation",
-          "type": "FormalExpression"
-        },
-        {
           "name": "assignment",
           "type": "Assignment",
           "isMany": true
@@ -8121,6 +8117,13 @@ module.exports={
           "name": "targetRef",
           "type": "ItemAwareElement",
           "isReference": true
+        },
+        {
+          "name": "transformation",
+          "type": "FormalExpression",
+          "xml": {
+            "serialize": "property"
+          }
         }
       ]
     },
@@ -9152,15 +9155,28 @@ module.exports={
           "type": "Boolean"
         },
         {
-          "name": "choreographyRef",
-          "type": "Choreography",
-          "isMany": true,
-          "isReference": true
+          "name": "participants",
+          "type": "Participant",
+          "isMany": true
+        },
+        {
+          "name": "messageFlows",
+          "type": "MessageFlow",
+          "isMany": true
         },
         {
           "name": "artifacts",
           "type": "Artifact",
           "isMany": true
+        },
+        {
+          "name": "conversations",
+          "type": "ConversationNode",
+          "isMany": true
+        },
+        {
+          "name": "conversationAssociations",
+          "type": "ConversationAssociation"
         },
         {
           "name": "participantAssociations",
@@ -9173,28 +9189,15 @@ module.exports={
           "isMany": true
         },
         {
-          "name": "conversationAssociations",
-          "type": "ConversationAssociation"
-        },
-        {
-          "name": "participants",
-          "type": "Participant",
-          "isMany": true
-        },
-        {
-          "name": "messageFlows",
-          "type": "MessageFlow",
-          "isMany": true
-        },
-        {
           "name": "correlationKeys",
           "type": "CorrelationKey",
           "isMany": true
         },
         {
-          "name": "conversations",
-          "type": "ConversationNode",
-          "isMany": true
+          "name": "choreographyRef",
+          "type": "Choreography",
+          "isMany": true,
+          "isReference": true
         },
         {
           "name": "conversationLinks",
@@ -13622,23 +13625,30 @@ Overlays.prototype._addOverlay = function(overlay) {
   this._overlays[id] = overlay;
 
   this._updateOverlay(overlay);
+  this._updateOverlayVisibilty(overlay, this._canvas.viewbox());
 };
 
-Overlays.prototype._updateOverlayVisibilty = function(viewbox) {
+Overlays.prototype._updateOverlayVisibilty = function (overlay, viewbox) {
+  var show = overlay.show,
+      htmlContainer = overlay.htmlContainer,
+      visible = true;
+
+  if (show) {
+    if (show.minZoom > viewbox.scale ||
+        show.maxZoom < viewbox.scale) {
+      visible = false;
+    }
+
+    setVisible(htmlContainer, visible);
+  }
+};
+
+Overlays.prototype._updateOverlaysVisibilty = function(viewbox) {
+
+  var self = this;
 
   forEach(this._overlays, function(overlay) {
-    var show = overlay.show,
-        htmlContainer = overlay.htmlContainer,
-        visible = true;
-
-    if (show) {
-      if (show.minZoom > viewbox.scale ||
-          show.maxZoom < viewbox.scale) {
-        visible = false;
-      }
-
-      setVisible(htmlContainer, visible);
-    }
+    self._updateOverlayVisibilty(overlay, viewbox);
   });
 };
 
@@ -13653,7 +13663,7 @@ Overlays.prototype._init = function() {
 
   function updateViewbox(viewbox) {
     self._updateRoot(viewbox);
-    self._updateOverlayVisibilty(viewbox);
+    self._updateOverlaysVisibilty(viewbox);
 
     self.show();
   }
