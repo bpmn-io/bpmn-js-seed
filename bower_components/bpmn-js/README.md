@@ -1,15 +1,11 @@
-# bpmn-js Bower Package
+# bpmn-js (pre-packaged version)
 
-This is a packaged version of [bpmn-js](https://github.com/bpmn-io/bpmn-js) for usage via [bower](http://bower.io).
+This is a packaged version of [bpmn-js](https://github.com/bpmn-io/bpmn-js) for standalone usage or via [bower](http://bower.io).
 
 
 ## Usage
 
-Install the dependency via
-
-```
-bower install bpmn-js
-```
+Fetch the dependency via `bower install bpmn-js` or download individual files from the [dist folder](https://github.com/bpmn-io/bower-bpmn-js/tree/master/dist).
 
 Include the file into your project
 
