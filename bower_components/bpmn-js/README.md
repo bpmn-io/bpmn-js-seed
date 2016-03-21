@@ -5,18 +5,22 @@ This is a packaged version of [bpmn-js](https://github.com/bpmn-io/bpmn-js) for 
 
 ## Usage
 
-Fetch the dependency via `bower install bpmn-js` or download individual files from the [dist folder](https://github.com/bpmn-io/bower-bpmn-js/tree/master/dist).
+Download individual files from the [dist folder](https://github.com/bpmn-io/bower-bpmn-js/tree/master/dist) or
+fetch them with dependencies via `bower install bpmn-js`.
 
-Include the file into your project
+Include the file(s) into your project
 
 ```html
-<!-- dependencies ... -->
-
-<!-- bpmn-js -->
+<!-- bpmn-js viewer -->
 <script src="bower_components/bpmn-js/dist/bpmn-viewer.js"></script>
 
+<!-- or -->
+
+<!-- bpmn-js modeler -->
+<script src="bower_components/bpmn-js/dist/bpmn-modeler.js"></script>
+
 <script>
-  // require is part of bundle file
+  // bundle exposes the viewer / modeler via the BpmnJS variable
   var BpmnViewer = window.BpmnJS;
 
   var xml; // ADD BPMN 2.0 XML HERE
