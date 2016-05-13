@@ -1,5 +1,5 @@
 /*!
- * bpmn-js - bpmn-navigated-viewer v0.14.0
+ * bpmn-js - bpmn-navigated-viewer v0.15.0
 
  * Copyright 2014, 2015 camunda Services GmbH and other contributors
  *
@@ -8,7 +8,7 @@
  *
  * Source Code: https://github.com/bpmn-io/bpmn-js
  *
- * Date: 2016-03-21
+ * Date: 2016-05-13
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.BpmnJS = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
@@ -53,9 +53,9 @@ var assign = _dereq_(206),
     isString = _dereq_(203),
     isNumber = _dereq_(200);
 
-var domify = _dereq_(220),
-    domQuery = _dereq_(222),
-    domRemove = _dereq_(223);
+var domify = _dereq_(222),
+    domQuery = _dereq_(224),
+    domRemove = _dereq_(225);
 
 var Diagram = _dereq_(37),
     BpmnModdle = _dereq_(16);
@@ -481,7 +481,7 @@ Viewer.prototype._moddleExtensions = {};
 /* <project-logo> */
 
 var PoweredBy = _dereq_(15),
-    domEvent = _dereq_(221);
+    domEvent = _dereq_(223);
 
 /**
  * Adds the project logo to the diagram container as
@@ -515,7 +515,7 @@ function addProjectLogo(container) {
 }
 
 /* </project-logo> */
-},{"15":15,"16":16,"200":200,"203":203,"206":206,"210":210,"220":220,"221":221,"222":222,"223":223,"3":3,"37":37,"54":54,"58":58,"59":59,"86":86,"9":9}],3:[function(_dereq_,module,exports){
+},{"15":15,"16":16,"200":200,"203":203,"206":206,"210":210,"222":222,"223":223,"224":224,"225":225,"3":3,"37":37,"54":54,"58":58,"59":59,"86":86,"9":9}],3:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
     _dereq_(6),
@@ -2756,6 +2756,11 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
       waypoints: collectWaypoints(semantic.di.waypoint)
     }));
 
+    if (is(semantic, 'bpmn:DataInputAssociation') || is(semantic, 'bpmn:DataOutputAssociation')) {
+      // implicit root element
+      parentElement = null;
+    }
+
     this._canvas.addConnection(element, parentElement);
   } else {
     throw new Error(translate('unknown di {di} for element {semantic}', {
@@ -2892,7 +2897,7 @@ var filter = _dereq_(90),
     find = _dereq_(91),
     forEach = _dereq_(92);
 
-var Refs = _dereq_(232);
+var Refs = _dereq_(234);
 
 var elementToString = _dereq_(10).elementToString;
 
@@ -3332,7 +3337,7 @@ function BpmnTreeWalker(handler, translate) {
 }
 
 module.exports = BpmnTreeWalker;
-},{"10":10,"232":232,"90":90,"91":91,"92":92}],9:[function(_dereq_,module,exports){
+},{"10":10,"234":234,"90":90,"91":91,"92":92}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var BpmnTreeWalker = _dereq_(8);
@@ -3463,6 +3468,8 @@ var DEFAULT_LABEL_SIZE = module.exports.DEFAULT_LABEL_SIZE = {
   height: 20
 };
 
+var FLOW_LABEL_INDENT = module.exports.FLOW_LABEL_INDENT = 15;
+
 
 /**
  * Returns true if the given semantic has an external label
@@ -3479,6 +3486,39 @@ module.exports.hasExternalLabel = function(semantic) {
          is(semantic, 'bpmn:MessageFlow');
 };
 
+/**
+ * Get the position for sequence flow labels
+ *
+ * @param  {Array<Point>} waypoints
+ * @return {Point} the label position
+ */
+function getFlowLabelPosition(waypoints) {
+
+  // get the waypoints mid
+  var mid = waypoints.length / 2 - 1;
+
+  var first = waypoints[Math.floor(mid)];
+  var second = waypoints[Math.ceil(mid + 0.01)];
+
+  // get position
+  var position = getWaypointsMid(waypoints);
+
+  // calculate angle
+  var angle = Math.atan( (second.y - first.y) / (second.x - first.x) );
+
+  var x = position.x,
+      y = position.y;
+
+  if ( Math.abs(angle) < Math.PI / 2 ) {
+    y -= FLOW_LABEL_INDENT;
+  } else {
+    x += FLOW_LABEL_INDENT;
+  }
+
+  return { x: x, y: y };
+}
+
+module.exports.getFlowLabelPosition = getFlowLabelPosition;
 
 /**
  * Get the middle of a number of waypoints
@@ -3505,7 +3545,7 @@ module.exports.getWaypointsMid = getWaypointsMid;
 function getExternalLabelMid(element) {
 
   if (element.waypoints) {
-    return getWaypointsMid(element.waypoints);
+    return getFlowLabelPosition(element.waypoints);
   } else {
     return {
       x: element.x + element.width / 2,
@@ -3599,9 +3639,9 @@ module.exports.getBusinessObject = getBusinessObject;
 
 'use strict';
 
-var domify = _dereq_(220);
+var domify = _dereq_(222);
 
-var domDelegate = _dereq_(219);
+var domDelegate = _dereq_(221);
 
 /* jshint -W101 */
 
@@ -3674,7 +3714,7 @@ function open() {
 }
 
 module.exports.open = open;
-},{"219":219,"220":220}],16:[function(_dereq_,module,exports){
+},{"221":221,"222":222}],16:[function(_dereq_,module,exports){
 module.exports = _dereq_(18);
 },{"18":18}],17:[function(_dereq_,module,exports){
 'use strict';
@@ -11493,6 +11533,10 @@ Canvas.prototype._init = function(config) {
       viewport: viewport
     });
 
+    // fire this in order for certain components to check
+    // if they need to be adjusted due the canvas size
+    this.resized();
+
   }, this);
 
   eventBus.on('diagram.destroy', 500, this._destroy, this);
@@ -11962,12 +12006,31 @@ Canvas.prototype.getGraphics = function(element, secondary) {
 };
 
 
-Canvas.prototype._viewboxChanging = function() {
+/**
+ * Perform a viewbox update via a given change function.
+ *
+ * @param {Function} changeFn
+ */
+Canvas.prototype._changeViewbox = function(changeFn) {
+
+  // notify others of the upcoming viewbox change
   this._eventBus.fire('canvas.viewbox.changing');
+
+  // perform actual change
+  changeFn.apply(this);
+
+  // reset the cached viewbox so that
+  // a new get operation on viewbox or zoom
+  // triggers a viewbox re-computation
+  this._cachedViewbox = null;
+
+  // notify others of the change; this step
+  // may or may not be debounced
+  this._viewboxChanged();
 };
 
 Canvas.prototype._viewboxChanged = function() {
-  this._eventBus.fire('canvas.viewbox.changed', { viewbox: this.viewbox(false) });
+  this._eventBus.fire('canvas.viewbox.changed', { viewbox: this.viewbox() });
 };
 
 
@@ -12046,14 +12109,13 @@ Canvas.prototype.viewbox = function(box) {
 
     return box;
   } else {
-    this._viewboxChanging();
 
-    scale = Math.min(outerBox.width / box.width, outerBox.height / box.height);
+    this._changeViewbox(function() {
+      scale = Math.min(outerBox.width / box.width, outerBox.height / box.height);
 
-    matrix = new Snap.Matrix().scale(scale).translate(-box.x, -box.y);
-    viewport.transform(matrix);
-
-    this._viewboxChanged();
+      matrix = new Snap.Matrix().scale(scale).translate(-box.x, -box.y);
+      viewport.transform(matrix);
+    });
   }
 
   return box;
@@ -12074,15 +12136,13 @@ Canvas.prototype.scroll = function(delta) {
   var matrix = node.getCTM();
 
   if (delta) {
-    this._viewboxChanging();
+    this._changeViewbox(function() {
+      delta = assign({ dx: 0, dy: 0 }, delta || {});
 
-    delta = assign({ dx: 0, dy: 0 }, delta || {});
+      matrix = this._svg.node.createSVGMatrix().translate(delta.dx, delta.dy).multiply(matrix);
 
-    matrix = this._svg.node.createSVGMatrix().translate(delta.dx, delta.dy).multiply(matrix);
-
-    setCTM(node, matrix);
-
-    this._viewboxChanged();
+      setCTM(node, matrix);
+    });
   }
 
   return { x: matrix.e, y: matrix.f };
@@ -12115,20 +12175,19 @@ Canvas.prototype.zoom = function(newScale, center) {
   var outer,
       matrix;
 
-  this._viewboxChanging();
+  this._changeViewbox(function() {
 
-  if (typeof center !== 'object') {
-    outer = this.viewbox().outer;
+    if (typeof center !== 'object') {
+      outer = this.viewbox().outer;
 
-    center = {
-      x: outer.width / 2,
-      y: outer.height / 2
-    };
-  }
+      center = {
+        x: outer.width / 2,
+        y: outer.height / 2
+      };
+    }
 
-  matrix = this._setZoom(newScale, center);
-
-  this._viewboxChanged();
+    matrix = this._setZoom(newScale, center);
+  });
 
   return round(matrix.a, 1000);
 };
@@ -12284,6 +12343,19 @@ Canvas.prototype.getAbsoluteBBox = function(element) {
     height: height
   };
 };
+
+/**
+ * Fires an event in order other modules can react to the
+ * canvas resizing
+ */
+Canvas.prototype.resized = function() {
+
+  // force recomputation of view box
+  delete this._cachedViewbox;
+
+  this._eventBus.fire('canvas.resized');
+};
+
 },{"100":100,"200":200,"206":206,"68":68,"70":70,"85":85,"89":89,"92":92}],40:[function(_dereq_,module,exports){
 'use strict';
 
@@ -12998,7 +13070,7 @@ var forEach = _dereq_(92),
     reduce = _dereq_(96);
 
 var GraphicsUtil = _dereq_(72),
-    domClear = _dereq_(218);
+    domClear = _dereq_(219);
 
 /**
  * A factory that creates graphical elements
@@ -13175,7 +13247,7 @@ GraphicsFactory.prototype.remove = function(element) {
   gfx.parent().remove();
 };
 
-},{"218":218,"72":72,"92":92,"96":96}],44:[function(_dereq_,module,exports){
+},{"219":219,"72":72,"92":92,"96":96}],44:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [ _dereq_(48) ],
   __init__: [ 'canvas' ],
@@ -13449,7 +13521,7 @@ module.exports = {
 'use strict';
 
 var forEach = _dereq_(92),
-    domDelegate = _dereq_(219);
+    domDelegate = _dereq_(221);
 
 
 var isPrimaryButton = _dereq_(75).isPrimaryButton;
@@ -13734,7 +13806,7 @@ module.exports = InteractionEvents;
  * @property {Event} originalEvent
  */
 
-},{"219":219,"75":75,"77":77,"85":85,"92":92}],50:[function(_dereq_,module,exports){
+},{"221":221,"75":75,"77":77,"85":85,"92":92}],50:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'interactionEvents' ],
   interactionEvents: [ 'type', _dereq_(49) ]
@@ -13751,38 +13823,20 @@ var getBBox = _dereq_(70).getBBox;
  * A plugin that adds an outline to shapes and connections that may be activated and styled
  * via CSS classes.
  *
- * @param {EventBus} events the event bus
+ * @param {EventBus} eventBus
+ * @param {Styles} styles
+ * @param {ElementRegistry} elementRegistry
  */
 function Outline(eventBus, styles, elementRegistry) {
 
-  var OUTLINE_OFFSET = 6;
+  this.offset = 6;
 
   var OUTLINE_STYLE = styles.cls('djs-outline', [ 'no-fill' ]);
 
+  var self = this;
+
   function createOutline(gfx, bounds) {
     return gfx.rect(10, 10, 0, 0).attr(OUTLINE_STYLE);
-  }
-
-  function updateShapeOutline(outline, bounds) {
-
-    outline.attr({
-      x: -OUTLINE_OFFSET,
-      y: -OUTLINE_OFFSET,
-      width: bounds.width + OUTLINE_OFFSET * 2,
-      height: bounds.height + OUTLINE_OFFSET * 2
-    });
-  }
-
-  function updateConnectionOutline(outline, connection) {
-
-    var bbox = getBBox(connection);
-
-    outline.attr({
-      x: bbox.x - OUTLINE_OFFSET,
-      y: bbox.y - OUTLINE_OFFSET,
-      width: bbox.width + OUTLINE_OFFSET * 2,
-      height: bbox.height + OUTLINE_OFFSET * 2
-    });
   }
 
   eventBus.on([ 'shape.added', 'shape.changed' ], function(event) {
@@ -13795,7 +13849,7 @@ function Outline(eventBus, styles, elementRegistry) {
       outline = createOutline(gfx, element);
     }
 
-    updateShapeOutline(outline, element);
+    self.updateShapeOutline(outline, element);
   });
 
   eventBus.on([ 'connection.added', 'connection.changed' ], function(event) {
@@ -13808,11 +13862,49 @@ function Outline(eventBus, styles, elementRegistry) {
       outline = createOutline(gfx, element);
     }
 
-    updateConnectionOutline(outline, element);
+    self.updateConnectionOutline(outline, element);
+  });
+}
+
+
+/**
+ * Updates the outline of a shape respecting the dimension of the
+ * element and an outline offset.
+ *
+ * @param  {SVGElement} outline
+ * @param  {djs.model.Base} element
+ */
+Outline.prototype.updateShapeOutline = function(outline, element) {
+
+  outline.attr({
+    x: -this.offset,
+    y: -this.offset,
+    width: element.width + this.offset * 2,
+    height: element.height + this.offset * 2
   });
 
+};
 
-}
+
+/**
+ * Updates the outline of a connection respecting the bounding box of
+ * the connection and an outline offset.
+ *
+ * @param  {SVGElement} outline
+ * @param  {djs.model.Base} element
+ */
+Outline.prototype.updateConnectionOutline = function(outline, connection) {
+
+  var bbox = getBBox(connection);
+
+  outline.attr({
+    x: bbox.x - this.offset,
+    y: bbox.y - this.offset,
+    width: bbox.width + this.offset * 2,
+    height: bbox.height + this.offset * 2
+  });
+
+};
 
 
 Outline.$inject = ['eventBus', 'styles', 'elementRegistry'];
@@ -13834,11 +13926,13 @@ var isArray = _dereq_(197),
     isObject = _dereq_(201),
     assign = _dereq_(206),
     forEach = _dereq_(92),
+    find = _dereq_(91),
     filter = _dereq_(90);
 
-var domify = _dereq_(220),
-    domClasses = _dereq_(217),
-    domRemove = _dereq_(223);
+var domify = _dereq_(222),
+    domClasses = _dereq_(218),
+    domAttr = _dereq_(217),
+    domRemove = _dereq_(225);
 
 var getBBox = _dereq_(70).getBBox;
 
@@ -13931,7 +14025,7 @@ function Overlays(eventBus, canvas, elementRegistry) {
   /**
    * Mapping elementId -> overlay container
    */
-  this._overlayContainers = {};
+  this._overlayContainers = [];
 
   // root html element for all overlays
   this._overlayRoot = createRoot(canvas.getContainer());
@@ -13975,6 +14069,10 @@ Overlays.prototype.get = function(search) {
 
   if (isString(search)) {
     search = { id: search };
+  }
+
+  if (isString(search.element)) {
+    search.element = this._elementRegistry.get(search.element);
   }
 
   if (search.element) {
@@ -14122,6 +14220,8 @@ Overlays.prototype._updateOverlayContainer = function(container) {
   }
 
   setPosition(html, x, y);
+
+  domAttr(container.html, 'data-container-id', element.id);
 };
 
 
@@ -14167,9 +14267,8 @@ Overlays.prototype._updateOverlay = function(overlay) {
   setPosition(htmlContainer, left || 0, top || 0);
 };
 
-
 Overlays.prototype._createOverlayContainer = function(element) {
-  var html = domify('<div class="djs-overlays djs-overlays-' + element.id + '" style="position: absolute" />');
+  var html = domify('<div class="djs-overlays" style="position: absolute" />');
 
   this._overlayRoot.appendChild(html);
 
@@ -14180,6 +14279,8 @@ Overlays.prototype._createOverlayContainer = function(element) {
   };
 
   this._updateOverlayContainer(container);
+
+  this._overlayContainers.push(container);
 
   return container;
 };
@@ -14198,15 +14299,20 @@ Overlays.prototype._updateRoot = function(viewbox) {
 
 
 Overlays.prototype._getOverlayContainer = function(element, raw) {
-  var id = (element && element.id) || element;
+  var container = find(this._overlayContainers, function(c) {
+    return c.element === element;
+  });
 
-  var container = this._overlayContainers[id];
+
   if (!container && !raw) {
-    container = this._overlayContainers[id] = this._createOverlayContainer(element);
+    return this._createOverlayContainer(element);
   }
 
   return container;
 };
+
+
+
 
 
 Overlays.prototype._addOverlay = function(overlay) {
@@ -14273,6 +14379,7 @@ Overlays.prototype._updateOverlaysVisibilty = function(viewbox) {
   });
 };
 
+
 Overlays.prototype._init = function() {
 
   var eventBus = this._eventBus;
@@ -14301,11 +14408,20 @@ Overlays.prototype._init = function() {
   // remove integration
 
   eventBus.on([ 'shape.remove', 'connection.remove' ], function(e) {
-    var overlays = self.get({ element: e.element });
+    var element = e.element;
+    var overlays = self.get({ element: element });
 
     forEach(overlays, function(o) {
       self.remove(o.id);
     });
+
+    var container = self._getOverlayContainer(element);
+
+    if (container) {
+      domRemove(container.html);
+      var i = self._overlayContainers.indexOf();
+      self._overlayContainers.splice(i, 1);
+    }
   });
 
 
@@ -14338,7 +14454,7 @@ Overlays.prototype._init = function() {
   });
 };
 
-},{"197":197,"201":201,"203":203,"206":206,"217":217,"220":220,"223":223,"70":70,"73":73,"90":90,"92":92}],54:[function(_dereq_,module,exports){
+},{"197":197,"201":201,"203":203,"206":206,"217":217,"218":218,"222":222,"225":225,"70":70,"73":73,"90":90,"91":91,"92":92}],54:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'overlays' ],
   overlays: [ 'type', _dereq_(53) ]
@@ -14646,7 +14762,7 @@ module.exports = function translate(template, replacements) {
 var assign = _dereq_(206),
     inherits = _dereq_(86);
 
-var Refs = _dereq_(232);
+var Refs = _dereq_(234);
 
 var parentRefs = new Refs({ name: 'children', enumerable: true, collection: true }, { name: 'parent' }),
     labelRefs = new Refs({ name: 'label', enumerable: true }, { name: 'labelTarget' }),
@@ -14856,15 +14972,15 @@ module.exports.Shape = Shape;
 module.exports.Connection = Connection;
 module.exports.Label = Label;
 
-},{"206":206,"232":232,"86":86}],62:[function(_dereq_,module,exports){
+},{"206":206,"234":234,"86":86}],62:[function(_dereq_,module,exports){
 'use strict';
 
 var Cursor = _dereq_(69),
     ClickTrap = _dereq_(67),
     substract = _dereq_(74).substract,
-    domEvent = _dereq_(221),
-    Event = _dereq_(71);
-
+    domEvent = _dereq_(223),
+    domClosest = _dereq_(220),
+    EventUtil = _dereq_(71);
 
 
 function length(point) {
@@ -14884,7 +15000,7 @@ function MoveCanvas(eventBus, canvas) {
   function handleMove(event) {
 
     var start = context.start,
-        position = Event.toPoint(event),
+        position = EventUtil.toPoint(event),
         delta = substract(position, start);
 
     if (!context.dragging && length(delta) > THRESHOLD) {
@@ -14925,10 +15041,15 @@ function MoveCanvas(eventBus, canvas) {
     Cursor.unset();
 
     // prevent select
-    Event.stopEvent(event);
+    EventUtil.stopEvent(event);
   }
 
   function handleStart(event) {
+    // event is already handled by '.djs-draggable'
+    if (domClosest(event.target, '.djs-draggable')) {
+      return;
+    }
+
 
     // reject non-left left mouse button or modifier key
     if (event.button || event.ctrlKey || event.shiftKey || event.altKey) {
@@ -14936,14 +15057,14 @@ function MoveCanvas(eventBus, canvas) {
     }
 
     context = {
-      start: Event.toPoint(event)
+      start: EventUtil.toPoint(event)
     };
 
     domEvent.bind(document, 'mousemove', handleMove);
     domEvent.bind(document, 'mouseup', handleEnd);
 
     // prevent select
-    Event.stopEvent(event);
+    EventUtil.stopEvent(event);
   }
 
   domEvent.bind(container, 'mousedown', handleStart);
@@ -14954,7 +15075,7 @@ MoveCanvas.$inject = [ 'eventBus', 'canvas' ];
 
 module.exports = MoveCanvas;
 
-},{"221":221,"67":67,"69":69,"71":71,"74":74}],63:[function(_dereq_,module,exports){
+},{"220":220,"223":223,"67":67,"69":69,"71":71,"74":74}],63:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'moveCanvas' ],
   moveCanvas: [ 'type', _dereq_(62) ]
@@ -14962,7 +15083,8 @@ module.exports = {
 },{"62":62}],64:[function(_dereq_,module,exports){
 'use strict';
 
-var domEvent = _dereq_(221);
+var domEvent = _dereq_(223),
+    domClosest = _dereq_(220);
 
 var hasPrimaryModifier = _dereq_(75).hasPrimaryModifier,
     hasSecondaryModifier = _dereq_(75).hasSecondaryModifier;
@@ -15038,6 +15160,10 @@ ZoomScroll.prototype.zoom = function zoom(direction, position) {
 
 
 ZoomScroll.prototype._handleWheel = function handleWheel(event) {
+  // event is already handled by '.djs-scrollable'
+  if (domClosest(event.target, '.djs-scrollable', true)) {
+    return;
+  }
 
   var element = this._container;
 
@@ -15130,7 +15256,7 @@ ZoomScroll.prototype.toggle = function toggle(newEnabled) {
 
     // add or remove wheel listener based on
     // changed enabled state
-    domEvent[newEnabled ? 'bind' : 'unbind'](element, 'wheel', handleWheel, true);
+    domEvent[newEnabled ? 'bind' : 'unbind'](element, 'wheel', handleWheel, false);
   }
 
   this._enabled = newEnabled;
@@ -15142,7 +15268,8 @@ ZoomScroll.prototype.toggle = function toggle(newEnabled) {
 ZoomScroll.prototype._init = function(newEnabled) {
   this.toggle(newEnabled);
 };
-},{"221":221,"65":65,"74":74,"75":75,"76":76,"99":99}],65:[function(_dereq_,module,exports){
+
+},{"220":220,"223":223,"65":65,"74":74,"75":75,"76":76,"99":99}],65:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -15174,7 +15301,7 @@ module.exports = {
 },{"64":64}],67:[function(_dereq_,module,exports){
 'use strict';
 
-var domEvent = _dereq_(221),
+var domEvent = _dereq_(223),
     stopEvent = _dereq_(71).stopEvent;
 
 function trap(event) {
@@ -15202,7 +15329,7 @@ function install() {
 }
 
 module.exports.install = install;
-},{"221":221,"71":71}],68:[function(_dereq_,module,exports){
+},{"223":223,"71":71}],68:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -15296,7 +15423,7 @@ module.exports.indexOf = function(collection, element) {
 },{}],69:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(217);
+var domClasses = _dereq_(218);
 
 var CURSOR_CLS_PATTERN = /^djs-cursor-.*$/;
 
@@ -15321,7 +15448,7 @@ module.exports.has = function(mode) {
   return classes.has('djs-cursor-' + mode);
 };
 
-},{"217":217}],70:[function(_dereq_,module,exports){
+},{"218":218}],70:[function(_dereq_,module,exports){
 'use strict';
 
 var isArray = _dereq_(197),
@@ -15592,7 +15719,7 @@ function getEnclosedElements(elements, bbox) {
 }
 
 
-
+module.exports.add = add;
 module.exports.eachElement = eachElement;
 module.exports.selfAndDirectChildren = selfAndDirectChildren;
 module.exports.selfAndAllChildren = selfAndAllChildren;
@@ -15815,7 +15942,7 @@ module.exports.hasPrimaryModifier = function(event) {
 
   // Use alt as primary modifier key for mac OS
   if (isMac()) {
-    return originalEvent.altKey;
+    return originalEvent.metaKey;
   } else {
     return originalEvent.ctrlKey;
   }
@@ -28639,8 +28766,34 @@ function property(path) {
 module.exports = property;
 
 },{"141":141,"142":142,"179":179}],217:[function(_dereq_,module,exports){
-module.exports = _dereq_(224);
-},{"224":224}],218:[function(_dereq_,module,exports){
+/**
+ * Set attribute `name` to `val`, or get attr `name`.
+ *
+ * @param {Element} el
+ * @param {String} name
+ * @param {String} [val]
+ * @api public
+ */
+
+module.exports = function(el, name, val) {
+  // get
+  if (arguments.length == 2) {
+    return el.getAttribute(name);
+  }
+
+  // remove
+  if (val === null) {
+    return el.removeAttribute(name);
+  }
+
+  // set
+  el.setAttribute(name, val);
+
+  return el;
+};
+},{}],218:[function(_dereq_,module,exports){
+module.exports = _dereq_(226);
+},{"226":226}],219:[function(_dereq_,module,exports){
 module.exports = function(el) {
 
   var c;
@@ -28652,24 +28805,30 @@ module.exports = function(el) {
 
   return el;
 };
-},{}],219:[function(_dereq_,module,exports){
-module.exports = _dereq_(227);
-},{"227":227}],220:[function(_dereq_,module,exports){
-module.exports = _dereq_(231);
-},{"231":231}],221:[function(_dereq_,module,exports){
+},{}],220:[function(_dereq_,module,exports){
 module.exports = _dereq_(228);
-},{"228":228}],222:[function(_dereq_,module,exports){
+},{"228":228}],221:[function(_dereq_,module,exports){
+module.exports = _dereq_(229);
+},{"229":229}],222:[function(_dereq_,module,exports){
+module.exports = _dereq_(233);
+},{"233":233}],223:[function(_dereq_,module,exports){
 module.exports = _dereq_(230);
-},{"230":230}],223:[function(_dereq_,module,exports){
+},{"230":230}],224:[function(_dereq_,module,exports){
+module.exports = _dereq_(232);
+},{"232":232}],225:[function(_dereq_,module,exports){
 module.exports = function(el) {
   el.parentNode && el.parentNode.removeChild(el);
 };
-},{}],224:[function(_dereq_,module,exports){
+},{}],226:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
-var index = _dereq_(225);
+try {
+  var index = _dereq_(227);
+} catch (err) {
+  var index = _dereq_(227);
+}
 
 /**
  * Whitespace regexp.
@@ -28853,7 +29012,7 @@ ClassList.prototype.contains = function(name){
     : !! ~index(this.array(), name);
 };
 
-},{"225":225}],225:[function(_dereq_,module,exports){
+},{"227":227}],227:[function(_dereq_,module,exports){
 module.exports = function(arr, obj){
   if (arr.indexOf) return arr.indexOf(obj);
   for (var i = 0; i < arr.length; ++i) {
@@ -28861,8 +29020,8 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],226:[function(_dereq_,module,exports){
-var matches = _dereq_(229)
+},{}],228:[function(_dereq_,module,exports){
+var matches = _dereq_(231)
 
 module.exports = function (element, selector, checkYoSelf, root) {
   element = checkYoSelf ? {parentNode: element} : element
@@ -28882,13 +29041,22 @@ module.exports = function (element, selector, checkYoSelf, root) {
   }
 }
 
-},{"229":229}],227:[function(_dereq_,module,exports){
+},{"231":231}],229:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
-var closest = _dereq_(226)
-  , event = _dereq_(228);
+try {
+  var closest = _dereq_(228);
+} catch(err) {
+  var closest = _dereq_(228);
+}
+
+try {
+  var event = _dereq_(230);
+} catch(err) {
+  var event = _dereq_(230);
+}
 
 /**
  * Delegate event `type` to `selector`
@@ -28926,7 +29094,7 @@ exports.unbind = function(el, type, fn, capture){
   event.unbind(el, type, fn, capture);
 };
 
-},{"226":226,"228":228}],228:[function(_dereq_,module,exports){
+},{"228":228,"230":230}],230:[function(_dereq_,module,exports){
 var bind = window.addEventListener ? 'addEventListener' : 'attachEvent',
     unbind = window.removeEventListener ? 'removeEventListener' : 'detachEvent',
     prefix = bind !== 'addEventListener' ? 'on' : '';
@@ -28962,12 +29130,16 @@ exports.unbind = function(el, type, fn, capture){
   el[unbind](prefix + type, fn, capture || false);
   return fn;
 };
-},{}],229:[function(_dereq_,module,exports){
+},{}],231:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
-var query = _dereq_(230);
+try {
+  var query = _dereq_(232);
+} catch (err) {
+  var query = _dereq_(232);
+}
 
 /**
  * Element prototype.
@@ -29010,7 +29182,7 @@ function match(el, selector) {
   return false;
 }
 
-},{"230":230}],230:[function(_dereq_,module,exports){
+},{"232":232}],232:[function(_dereq_,module,exports){
 function one(selector, el) {
   return el.querySelector(selector);
 }
@@ -29033,7 +29205,7 @@ exports.engine = function(obj){
   return exports;
 };
 
-},{}],231:[function(_dereq_,module,exports){
+},{}],233:[function(_dereq_,module,exports){
 
 /**
  * Expose `parse`.
@@ -29147,11 +29319,11 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],232:[function(_dereq_,module,exports){
-module.exports = _dereq_(234);
+},{}],234:[function(_dereq_,module,exports){
+module.exports = _dereq_(236);
 
-module.exports.Collection = _dereq_(233);
-},{"233":233,"234":234}],233:[function(_dereq_,module,exports){
+module.exports.Collection = _dereq_(235);
+},{"235":235,"236":236}],235:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -29248,10 +29420,10 @@ function isExtended(collection) {
 module.exports.extend = extend;
 
 module.exports.isExtended = isExtended;
-},{}],234:[function(_dereq_,module,exports){
+},{}],236:[function(_dereq_,module,exports){
 'use strict';
 
-var Collection = _dereq_(233);
+var Collection = _dereq_(235);
 
 function hasOwnProperty(e, property) {
   return Object.prototype.hasOwnProperty.call(e, property.name || property);
@@ -29440,6 +29612,6 @@ module.exports = Refs;
  * @property {boolean} [collection=false]
  * @property {boolean} [enumerable=false]
  */
-},{"233":233}]},{},[1])(1)
+},{"235":235}]},{},[1])(1)
 });
 //# sourceMappingURL=bpmn-navigated-viewer.js.map

@@ -1,5 +1,5 @@
 /*!
- * bpmn-js - bpmn-viewer v0.14.0
+ * bpmn-js - bpmn-viewer v0.15.0
 
  * Copyright 2014, 2015 camunda Services GmbH and other contributors
  *
@@ -8,7 +8,7 @@
  *
  * Source Code: https://github.com/bpmn-io/bpmn-js
  *
- * Date: 2016-03-21
+ * Date: 2016-05-13
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.BpmnJS = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 /**
@@ -24,9 +24,9 @@ var assign = _dereq_(197),
     isString = _dereq_(194),
     isNumber = _dereq_(191);
 
-var domify = _dereq_(211),
-    domQuery = _dereq_(213),
-    domRemove = _dereq_(214);
+var domify = _dereq_(212),
+    domQuery = _dereq_(214),
+    domRemove = _dereq_(215);
 
 var Diagram = _dereq_(36),
     BpmnModdle = _dereq_(15);
@@ -452,7 +452,7 @@ Viewer.prototype._moddleExtensions = {};
 /* <project-logo> */
 
 var PoweredBy = _dereq_(14),
-    domEvent = _dereq_(212);
+    domEvent = _dereq_(213);
 
 /**
  * Adds the project logo to the diagram container as
@@ -486,7 +486,7 @@ function addProjectLogo(container) {
 }
 
 /* </project-logo> */
-},{"14":14,"15":15,"191":191,"194":194,"197":197,"2":2,"201":201,"211":211,"212":212,"213":213,"214":214,"36":36,"53":53,"57":57,"58":58,"77":77,"8":8}],2:[function(_dereq_,module,exports){
+},{"14":14,"15":15,"191":191,"194":194,"197":197,"2":2,"201":201,"212":212,"213":213,"214":214,"215":215,"36":36,"53":53,"57":57,"58":58,"77":77,"8":8}],2:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
     _dereq_(5),
@@ -2727,6 +2727,11 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
       waypoints: collectWaypoints(semantic.di.waypoint)
     }));
 
+    if (is(semantic, 'bpmn:DataInputAssociation') || is(semantic, 'bpmn:DataOutputAssociation')) {
+      // implicit root element
+      parentElement = null;
+    }
+
     this._canvas.addConnection(element, parentElement);
   } else {
     throw new Error(translate('unknown di {di} for element {semantic}', {
@@ -2863,7 +2868,7 @@ var filter = _dereq_(81),
     find = _dereq_(82),
     forEach = _dereq_(83);
 
-var Refs = _dereq_(223);
+var Refs = _dereq_(224);
 
 var elementToString = _dereq_(9).elementToString;
 
@@ -3303,7 +3308,7 @@ function BpmnTreeWalker(handler, translate) {
 }
 
 module.exports = BpmnTreeWalker;
-},{"223":223,"81":81,"82":82,"83":83,"9":9}],8:[function(_dereq_,module,exports){
+},{"224":224,"81":81,"82":82,"83":83,"9":9}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var BpmnTreeWalker = _dereq_(7);
@@ -3434,6 +3439,8 @@ var DEFAULT_LABEL_SIZE = module.exports.DEFAULT_LABEL_SIZE = {
   height: 20
 };
 
+var FLOW_LABEL_INDENT = module.exports.FLOW_LABEL_INDENT = 15;
+
 
 /**
  * Returns true if the given semantic has an external label
@@ -3450,6 +3457,39 @@ module.exports.hasExternalLabel = function(semantic) {
          is(semantic, 'bpmn:MessageFlow');
 };
 
+/**
+ * Get the position for sequence flow labels
+ *
+ * @param  {Array<Point>} waypoints
+ * @return {Point} the label position
+ */
+function getFlowLabelPosition(waypoints) {
+
+  // get the waypoints mid
+  var mid = waypoints.length / 2 - 1;
+
+  var first = waypoints[Math.floor(mid)];
+  var second = waypoints[Math.ceil(mid + 0.01)];
+
+  // get position
+  var position = getWaypointsMid(waypoints);
+
+  // calculate angle
+  var angle = Math.atan( (second.y - first.y) / (second.x - first.x) );
+
+  var x = position.x,
+      y = position.y;
+
+  if ( Math.abs(angle) < Math.PI / 2 ) {
+    y -= FLOW_LABEL_INDENT;
+  } else {
+    x += FLOW_LABEL_INDENT;
+  }
+
+  return { x: x, y: y };
+}
+
+module.exports.getFlowLabelPosition = getFlowLabelPosition;
 
 /**
  * Get the middle of a number of waypoints
@@ -3476,7 +3516,7 @@ module.exports.getWaypointsMid = getWaypointsMid;
 function getExternalLabelMid(element) {
 
   if (element.waypoints) {
-    return getWaypointsMid(element.waypoints);
+    return getFlowLabelPosition(element.waypoints);
   } else {
     return {
       x: element.x + element.width / 2,
@@ -3570,9 +3610,9 @@ module.exports.getBusinessObject = getBusinessObject;
 
 'use strict';
 
-var domify = _dereq_(211);
+var domify = _dereq_(212);
 
-var domDelegate = _dereq_(210);
+var domDelegate = _dereq_(211);
 
 /* jshint -W101 */
 
@@ -3645,7 +3685,7 @@ function open() {
 }
 
 module.exports.open = open;
-},{"210":210,"211":211}],15:[function(_dereq_,module,exports){
+},{"211":211,"212":212}],15:[function(_dereq_,module,exports){
 module.exports = _dereq_(17);
 },{"17":17}],16:[function(_dereq_,module,exports){
 'use strict';
@@ -11464,6 +11504,10 @@ Canvas.prototype._init = function(config) {
       viewport: viewport
     });
 
+    // fire this in order for certain components to check
+    // if they need to be adjusted due the canvas size
+    this.resized();
+
   }, this);
 
   eventBus.on('diagram.destroy', 500, this._destroy, this);
@@ -11933,12 +11977,31 @@ Canvas.prototype.getGraphics = function(element, secondary) {
 };
 
 
-Canvas.prototype._viewboxChanging = function() {
+/**
+ * Perform a viewbox update via a given change function.
+ *
+ * @param {Function} changeFn
+ */
+Canvas.prototype._changeViewbox = function(changeFn) {
+
+  // notify others of the upcoming viewbox change
   this._eventBus.fire('canvas.viewbox.changing');
+
+  // perform actual change
+  changeFn.apply(this);
+
+  // reset the cached viewbox so that
+  // a new get operation on viewbox or zoom
+  // triggers a viewbox re-computation
+  this._cachedViewbox = null;
+
+  // notify others of the change; this step
+  // may or may not be debounced
+  this._viewboxChanged();
 };
 
 Canvas.prototype._viewboxChanged = function() {
-  this._eventBus.fire('canvas.viewbox.changed', { viewbox: this.viewbox(false) });
+  this._eventBus.fire('canvas.viewbox.changed', { viewbox: this.viewbox() });
 };
 
 
@@ -12017,14 +12080,13 @@ Canvas.prototype.viewbox = function(box) {
 
     return box;
   } else {
-    this._viewboxChanging();
 
-    scale = Math.min(outerBox.width / box.width, outerBox.height / box.height);
+    this._changeViewbox(function() {
+      scale = Math.min(outerBox.width / box.width, outerBox.height / box.height);
 
-    matrix = new Snap.Matrix().scale(scale).translate(-box.x, -box.y);
-    viewport.transform(matrix);
-
-    this._viewboxChanged();
+      matrix = new Snap.Matrix().scale(scale).translate(-box.x, -box.y);
+      viewport.transform(matrix);
+    });
   }
 
   return box;
@@ -12045,15 +12107,13 @@ Canvas.prototype.scroll = function(delta) {
   var matrix = node.getCTM();
 
   if (delta) {
-    this._viewboxChanging();
+    this._changeViewbox(function() {
+      delta = assign({ dx: 0, dy: 0 }, delta || {});
 
-    delta = assign({ dx: 0, dy: 0 }, delta || {});
+      matrix = this._svg.node.createSVGMatrix().translate(delta.dx, delta.dy).multiply(matrix);
 
-    matrix = this._svg.node.createSVGMatrix().translate(delta.dx, delta.dy).multiply(matrix);
-
-    setCTM(node, matrix);
-
-    this._viewboxChanged();
+      setCTM(node, matrix);
+    });
   }
 
   return { x: matrix.e, y: matrix.f };
@@ -12086,20 +12146,19 @@ Canvas.prototype.zoom = function(newScale, center) {
   var outer,
       matrix;
 
-  this._viewboxChanging();
+  this._changeViewbox(function() {
 
-  if (typeof center !== 'object') {
-    outer = this.viewbox().outer;
+    if (typeof center !== 'object') {
+      outer = this.viewbox().outer;
 
-    center = {
-      x: outer.width / 2,
-      y: outer.height / 2
-    };
-  }
+      center = {
+        x: outer.width / 2,
+        y: outer.height / 2
+      };
+    }
 
-  matrix = this._setZoom(newScale, center);
-
-  this._viewboxChanged();
+    matrix = this._setZoom(newScale, center);
+  });
 
   return round(matrix.a, 1000);
 };
@@ -12255,6 +12314,19 @@ Canvas.prototype.getAbsoluteBBox = function(element) {
     height: height
   };
 };
+
+/**
+ * Fires an event in order other modules can react to the
+ * canvas resizing
+ */
+Canvas.prototype.resized = function() {
+
+  // force recomputation of view box
+  delete this._cachedViewbox;
+
+  this._eventBus.fire('canvas.resized');
+};
+
 },{"191":191,"197":197,"61":61,"62":62,"76":76,"80":80,"83":83,"91":91}],39:[function(_dereq_,module,exports){
 'use strict';
 
@@ -12969,7 +13041,7 @@ var forEach = _dereq_(83),
     reduce = _dereq_(87);
 
 var GraphicsUtil = _dereq_(64),
-    domClear = _dereq_(209);
+    domClear = _dereq_(210);
 
 /**
  * A factory that creates graphical elements
@@ -13146,7 +13218,7 @@ GraphicsFactory.prototype.remove = function(element) {
   gfx.parent().remove();
 };
 
-},{"209":209,"64":64,"83":83,"87":87}],43:[function(_dereq_,module,exports){
+},{"210":210,"64":64,"83":83,"87":87}],43:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [ _dereq_(47) ],
   __init__: [ 'canvas' ],
@@ -13420,7 +13492,7 @@ module.exports = {
 'use strict';
 
 var forEach = _dereq_(83),
-    domDelegate = _dereq_(210);
+    domDelegate = _dereq_(211);
 
 
 var isPrimaryButton = _dereq_(66).isPrimaryButton;
@@ -13705,7 +13777,7 @@ module.exports = InteractionEvents;
  * @property {Event} originalEvent
  */
 
-},{"210":210,"66":66,"68":68,"76":76,"83":83}],49:[function(_dereq_,module,exports){
+},{"211":211,"66":66,"68":68,"76":76,"83":83}],49:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'interactionEvents' ],
   interactionEvents: [ 'type', _dereq_(48) ]
@@ -13722,38 +13794,20 @@ var getBBox = _dereq_(62).getBBox;
  * A plugin that adds an outline to shapes and connections that may be activated and styled
  * via CSS classes.
  *
- * @param {EventBus} events the event bus
+ * @param {EventBus} eventBus
+ * @param {Styles} styles
+ * @param {ElementRegistry} elementRegistry
  */
 function Outline(eventBus, styles, elementRegistry) {
 
-  var OUTLINE_OFFSET = 6;
+  this.offset = 6;
 
   var OUTLINE_STYLE = styles.cls('djs-outline', [ 'no-fill' ]);
 
+  var self = this;
+
   function createOutline(gfx, bounds) {
     return gfx.rect(10, 10, 0, 0).attr(OUTLINE_STYLE);
-  }
-
-  function updateShapeOutline(outline, bounds) {
-
-    outline.attr({
-      x: -OUTLINE_OFFSET,
-      y: -OUTLINE_OFFSET,
-      width: bounds.width + OUTLINE_OFFSET * 2,
-      height: bounds.height + OUTLINE_OFFSET * 2
-    });
-  }
-
-  function updateConnectionOutline(outline, connection) {
-
-    var bbox = getBBox(connection);
-
-    outline.attr({
-      x: bbox.x - OUTLINE_OFFSET,
-      y: bbox.y - OUTLINE_OFFSET,
-      width: bbox.width + OUTLINE_OFFSET * 2,
-      height: bbox.height + OUTLINE_OFFSET * 2
-    });
   }
 
   eventBus.on([ 'shape.added', 'shape.changed' ], function(event) {
@@ -13766,7 +13820,7 @@ function Outline(eventBus, styles, elementRegistry) {
       outline = createOutline(gfx, element);
     }
 
-    updateShapeOutline(outline, element);
+    self.updateShapeOutline(outline, element);
   });
 
   eventBus.on([ 'connection.added', 'connection.changed' ], function(event) {
@@ -13779,11 +13833,49 @@ function Outline(eventBus, styles, elementRegistry) {
       outline = createOutline(gfx, element);
     }
 
-    updateConnectionOutline(outline, element);
+    self.updateConnectionOutline(outline, element);
+  });
+}
+
+
+/**
+ * Updates the outline of a shape respecting the dimension of the
+ * element and an outline offset.
+ *
+ * @param  {SVGElement} outline
+ * @param  {djs.model.Base} element
+ */
+Outline.prototype.updateShapeOutline = function(outline, element) {
+
+  outline.attr({
+    x: -this.offset,
+    y: -this.offset,
+    width: element.width + this.offset * 2,
+    height: element.height + this.offset * 2
   });
 
+};
 
-}
+
+/**
+ * Updates the outline of a connection respecting the bounding box of
+ * the connection and an outline offset.
+ *
+ * @param  {SVGElement} outline
+ * @param  {djs.model.Base} element
+ */
+Outline.prototype.updateConnectionOutline = function(outline, connection) {
+
+  var bbox = getBBox(connection);
+
+  outline.attr({
+    x: bbox.x - this.offset,
+    y: bbox.y - this.offset,
+    width: bbox.width + this.offset * 2,
+    height: bbox.height + this.offset * 2
+  });
+
+};
 
 
 Outline.$inject = ['eventBus', 'styles', 'elementRegistry'];
@@ -13805,11 +13897,13 @@ var isArray = _dereq_(188),
     isObject = _dereq_(192),
     assign = _dereq_(197),
     forEach = _dereq_(83),
+    find = _dereq_(82),
     filter = _dereq_(81);
 
-var domify = _dereq_(211),
-    domClasses = _dereq_(208),
-    domRemove = _dereq_(214);
+var domify = _dereq_(212),
+    domClasses = _dereq_(209),
+    domAttr = _dereq_(208),
+    domRemove = _dereq_(215);
 
 var getBBox = _dereq_(62).getBBox;
 
@@ -13902,7 +13996,7 @@ function Overlays(eventBus, canvas, elementRegistry) {
   /**
    * Mapping elementId -> overlay container
    */
-  this._overlayContainers = {};
+  this._overlayContainers = [];
 
   // root html element for all overlays
   this._overlayRoot = createRoot(canvas.getContainer());
@@ -13946,6 +14040,10 @@ Overlays.prototype.get = function(search) {
 
   if (isString(search)) {
     search = { id: search };
+  }
+
+  if (isString(search.element)) {
+    search.element = this._elementRegistry.get(search.element);
   }
 
   if (search.element) {
@@ -14093,6 +14191,8 @@ Overlays.prototype._updateOverlayContainer = function(container) {
   }
 
   setPosition(html, x, y);
+
+  domAttr(container.html, 'data-container-id', element.id);
 };
 
 
@@ -14138,9 +14238,8 @@ Overlays.prototype._updateOverlay = function(overlay) {
   setPosition(htmlContainer, left || 0, top || 0);
 };
 
-
 Overlays.prototype._createOverlayContainer = function(element) {
-  var html = domify('<div class="djs-overlays djs-overlays-' + element.id + '" style="position: absolute" />');
+  var html = domify('<div class="djs-overlays" style="position: absolute" />');
 
   this._overlayRoot.appendChild(html);
 
@@ -14151,6 +14250,8 @@ Overlays.prototype._createOverlayContainer = function(element) {
   };
 
   this._updateOverlayContainer(container);
+
+  this._overlayContainers.push(container);
 
   return container;
 };
@@ -14169,15 +14270,20 @@ Overlays.prototype._updateRoot = function(viewbox) {
 
 
 Overlays.prototype._getOverlayContainer = function(element, raw) {
-  var id = (element && element.id) || element;
+  var container = find(this._overlayContainers, function(c) {
+    return c.element === element;
+  });
 
-  var container = this._overlayContainers[id];
+
   if (!container && !raw) {
-    container = this._overlayContainers[id] = this._createOverlayContainer(element);
+    return this._createOverlayContainer(element);
   }
 
   return container;
 };
+
+
+
 
 
 Overlays.prototype._addOverlay = function(overlay) {
@@ -14244,6 +14350,7 @@ Overlays.prototype._updateOverlaysVisibilty = function(viewbox) {
   });
 };
 
+
 Overlays.prototype._init = function() {
 
   var eventBus = this._eventBus;
@@ -14272,11 +14379,20 @@ Overlays.prototype._init = function() {
   // remove integration
 
   eventBus.on([ 'shape.remove', 'connection.remove' ], function(e) {
-    var overlays = self.get({ element: e.element });
+    var element = e.element;
+    var overlays = self.get({ element: element });
 
     forEach(overlays, function(o) {
       self.remove(o.id);
     });
+
+    var container = self._getOverlayContainer(element);
+
+    if (container) {
+      domRemove(container.html);
+      var i = self._overlayContainers.indexOf();
+      self._overlayContainers.splice(i, 1);
+    }
   });
 
 
@@ -14309,7 +14425,7 @@ Overlays.prototype._init = function() {
   });
 };
 
-},{"188":188,"192":192,"194":194,"197":197,"208":208,"211":211,"214":214,"62":62,"65":65,"81":81,"83":83}],53:[function(_dereq_,module,exports){
+},{"188":188,"192":192,"194":194,"197":197,"208":208,"209":209,"212":212,"215":215,"62":62,"65":65,"81":81,"82":82,"83":83}],53:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'overlays' ],
   overlays: [ 'type', _dereq_(52) ]
@@ -14617,7 +14733,7 @@ module.exports = function translate(template, replacements) {
 var assign = _dereq_(197),
     inherits = _dereq_(77);
 
-var Refs = _dereq_(223);
+var Refs = _dereq_(224);
 
 var parentRefs = new Refs({ name: 'children', enumerable: true, collection: true }, { name: 'parent' }),
     labelRefs = new Refs({ name: 'label', enumerable: true }, { name: 'labelTarget' }),
@@ -14827,7 +14943,7 @@ module.exports.Shape = Shape;
 module.exports.Connection = Connection;
 module.exports.Label = Label;
 
-},{"197":197,"223":223,"77":77}],61:[function(_dereq_,module,exports){
+},{"197":197,"224":224,"77":77}],61:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -15189,7 +15305,7 @@ function getEnclosedElements(elements, bbox) {
 }
 
 
-
+module.exports.add = add;
 module.exports.eachElement = eachElement;
 module.exports.selfAndDirectChildren = selfAndDirectChildren;
 module.exports.selfAndAllChildren = selfAndAllChildren;
@@ -15389,7 +15505,7 @@ module.exports.hasPrimaryModifier = function(event) {
 
   // Use alt as primary modifier key for mac OS
   if (isMac()) {
-    return originalEvent.altKey;
+    return originalEvent.metaKey;
   } else {
     return originalEvent.ctrlKey;
   }
@@ -28213,8 +28329,34 @@ function property(path) {
 module.exports = property;
 
 },{"132":132,"133":133,"170":170}],208:[function(_dereq_,module,exports){
-module.exports = _dereq_(215);
-},{"215":215}],209:[function(_dereq_,module,exports){
+/**
+ * Set attribute `name` to `val`, or get attr `name`.
+ *
+ * @param {Element} el
+ * @param {String} name
+ * @param {String} [val]
+ * @api public
+ */
+
+module.exports = function(el, name, val) {
+  // get
+  if (arguments.length == 2) {
+    return el.getAttribute(name);
+  }
+
+  // remove
+  if (val === null) {
+    return el.removeAttribute(name);
+  }
+
+  // set
+  el.setAttribute(name, val);
+
+  return el;
+};
+},{}],209:[function(_dereq_,module,exports){
+module.exports = _dereq_(216);
+},{"216":216}],210:[function(_dereq_,module,exports){
 module.exports = function(el) {
 
   var c;
@@ -28226,24 +28368,28 @@ module.exports = function(el) {
 
   return el;
 };
-},{}],210:[function(_dereq_,module,exports){
-module.exports = _dereq_(218);
-},{"218":218}],211:[function(_dereq_,module,exports){
-module.exports = _dereq_(222);
-},{"222":222}],212:[function(_dereq_,module,exports){
+},{}],211:[function(_dereq_,module,exports){
 module.exports = _dereq_(219);
-},{"219":219}],213:[function(_dereq_,module,exports){
-module.exports = _dereq_(221);
-},{"221":221}],214:[function(_dereq_,module,exports){
+},{"219":219}],212:[function(_dereq_,module,exports){
+module.exports = _dereq_(223);
+},{"223":223}],213:[function(_dereq_,module,exports){
+module.exports = _dereq_(220);
+},{"220":220}],214:[function(_dereq_,module,exports){
+module.exports = _dereq_(222);
+},{"222":222}],215:[function(_dereq_,module,exports){
 module.exports = function(el) {
   el.parentNode && el.parentNode.removeChild(el);
 };
-},{}],215:[function(_dereq_,module,exports){
+},{}],216:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
-var index = _dereq_(216);
+try {
+  var index = _dereq_(217);
+} catch (err) {
+  var index = _dereq_(217);
+}
 
 /**
  * Whitespace regexp.
@@ -28427,7 +28573,7 @@ ClassList.prototype.contains = function(name){
     : !! ~index(this.array(), name);
 };
 
-},{"216":216}],216:[function(_dereq_,module,exports){
+},{"217":217}],217:[function(_dereq_,module,exports){
 module.exports = function(arr, obj){
   if (arr.indexOf) return arr.indexOf(obj);
   for (var i = 0; i < arr.length; ++i) {
@@ -28435,8 +28581,8 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],217:[function(_dereq_,module,exports){
-var matches = _dereq_(220)
+},{}],218:[function(_dereq_,module,exports){
+var matches = _dereq_(221)
 
 module.exports = function (element, selector, checkYoSelf, root) {
   element = checkYoSelf ? {parentNode: element} : element
@@ -28456,13 +28602,22 @@ module.exports = function (element, selector, checkYoSelf, root) {
   }
 }
 
-},{"220":220}],218:[function(_dereq_,module,exports){
+},{"221":221}],219:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
-var closest = _dereq_(217)
-  , event = _dereq_(219);
+try {
+  var closest = _dereq_(218);
+} catch(err) {
+  var closest = _dereq_(218);
+}
+
+try {
+  var event = _dereq_(220);
+} catch(err) {
+  var event = _dereq_(220);
+}
 
 /**
  * Delegate event `type` to `selector`
@@ -28500,7 +28655,7 @@ exports.unbind = function(el, type, fn, capture){
   event.unbind(el, type, fn, capture);
 };
 
-},{"217":217,"219":219}],219:[function(_dereq_,module,exports){
+},{"218":218,"220":220}],220:[function(_dereq_,module,exports){
 var bind = window.addEventListener ? 'addEventListener' : 'attachEvent',
     unbind = window.removeEventListener ? 'removeEventListener' : 'detachEvent',
     prefix = bind !== 'addEventListener' ? 'on' : '';
@@ -28536,12 +28691,16 @@ exports.unbind = function(el, type, fn, capture){
   el[unbind](prefix + type, fn, capture || false);
   return fn;
 };
-},{}],220:[function(_dereq_,module,exports){
+},{}],221:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
-var query = _dereq_(221);
+try {
+  var query = _dereq_(222);
+} catch (err) {
+  var query = _dereq_(222);
+}
 
 /**
  * Element prototype.
@@ -28584,7 +28743,7 @@ function match(el, selector) {
   return false;
 }
 
-},{"221":221}],221:[function(_dereq_,module,exports){
+},{"222":222}],222:[function(_dereq_,module,exports){
 function one(selector, el) {
   return el.querySelector(selector);
 }
@@ -28607,7 +28766,7 @@ exports.engine = function(obj){
   return exports;
 };
 
-},{}],222:[function(_dereq_,module,exports){
+},{}],223:[function(_dereq_,module,exports){
 
 /**
  * Expose `parse`.
@@ -28721,11 +28880,11 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],223:[function(_dereq_,module,exports){
-module.exports = _dereq_(225);
+},{}],224:[function(_dereq_,module,exports){
+module.exports = _dereq_(226);
 
-module.exports.Collection = _dereq_(224);
-},{"224":224,"225":225}],224:[function(_dereq_,module,exports){
+module.exports.Collection = _dereq_(225);
+},{"225":225,"226":226}],225:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -28822,10 +28981,10 @@ function isExtended(collection) {
 module.exports.extend = extend;
 
 module.exports.isExtended = isExtended;
-},{}],225:[function(_dereq_,module,exports){
+},{}],226:[function(_dereq_,module,exports){
 'use strict';
 
-var Collection = _dereq_(224);
+var Collection = _dereq_(225);
 
 function hasOwnProperty(e, property) {
   return Object.prototype.hasOwnProperty.call(e, property.name || property);
@@ -29014,6 +29173,6 @@ module.exports = Refs;
  * @property {boolean} [collection=false]
  * @property {boolean} [enumerable=false]
  */
-},{"224":224}]},{},[1])(1)
+},{"225":225}]},{},[1])(1)
 });
 //# sourceMappingURL=bpmn-viewer.js.map

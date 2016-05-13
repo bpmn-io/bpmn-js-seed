@@ -245,24 +245,20 @@ svg.new-parent {
   position: absolute;
   left: 20px;
   top: 20px;
-}
 
-.djs-palette:not(.open) {
-  overflow: hidden;
-}
-
-.djs-palette .entry,
-.djs-palette .djs-palette-toggle {
   width: 46px;
-  height: 46px;
-  line-height: 46px;
-  cursor: default;
+}
+
+.djs-palette.two-column.open {
+  width: 94px;
 }
 
 .djs-palette .separator {
   margin: 3px 5px 5px 5px;
   border: none;
   border-top: solid 1px #DDD;
+
+  clear: both;
 };
 
 .djs-palette .entry:before {
@@ -281,12 +277,22 @@ svg.new-parent {
   text-align: center;
 }
 
+.djs-palette .entry {
+  float: left;
+}
+
 .djs-palette .entry img {
   max-width: 100%;
 }
 
 .djs-palette.open .djs-palette-toggle {
   height: 10px;
+}
+
+.djs-palette .djs-palette-entries:after {
+  content: '';
+  display: table;
+  clear: both;
 }
 
 .djs-palette:not(.open) .djs-palette-entries {
@@ -303,6 +309,22 @@ svg.new-parent {
 
 .highlighted-entry {
   color: rgb(255, 116, 0) !important;
+}
+
+.djs-palette:not(.open) {
+  overflow: hidden;
+}
+
+.djs-palette .entry,
+.djs-palette .djs-palette-toggle {
+  width: 46px;
+  height: 46px;
+  line-height: 46px;
+  cursor: default;
+}
+
+.djs-palette.open .djs-palette-toggle {
+  width: 100%;
 }
 
 /**
@@ -558,4 +580,95 @@ svg.new-parent {
 
 .djs-tooltip-error:hover {
   opacity: 1;
+}
+
+
+/**
+ * search pad
+ */
+.djs-search-container {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+
+  width: 25%;
+  min-width: 300px;
+  max-width: 400px;
+  z-index: 10;
+
+  font-size: 1.05em;
+  opacity: 0.9;
+  background: #FAFAFA;
+  border: solid 1px #CCC;
+  border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.djs-search-container:not(.open) {
+  display: none;
+}
+
+.djs-search-input input {
+  font-size: 1.05em;
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+}
+
+.djs-search-input input:focus{
+  outline: none;
+  border-color: #52B415;
+  box-shadow: 0 0 1px 2px rgba(82, 180, 21, 0.2);
+}
+
+.djs-search-results {
+  position: relative;
+  overflow-y: auto;
+  max-height: 200px;
+}
+
+.djs-search-results:hover {
+  /*background: #fffdd7;*/
+  cursor: pointer;
+}
+
+.djs-search-result {
+  width: 100%;
+  padding: 6px 10px;
+  background: white;
+  border-bottom: solid 1px #AAA;
+  border-radius: 1px;
+}
+
+.djs-search-highlight {
+  color: black;
+}
+
+.djs-search-result-primary {
+  margin: 0 0 10px;
+}
+
+.djs-search-result-secondary {
+  font-family: monospace;
+  margin: 0;
+}
+
+.djs-search-result:hover {
+  background: #fdffd6;
+}
+
+.djs-search-result-selected {
+  background: #fffcb0;
+}
+
+.djs-search-result-selected:hover {
+  background: #f7f388;
+}
+
+.djs-search-overlay {
+  background: yellow;
+  opacity: 0.3;
 }
