@@ -1,5 +1,5 @@
 /*!
- * bpmn-js - bpmn-viewer v0.15.0
+ * bpmn-js - bpmn-viewer v0.17.0
 
  * Copyright 2014, 2015 camunda Services GmbH and other contributors
  *
@@ -8,7 +8,7 @@
  *
  * Source Code: https://github.com/bpmn-io/bpmn-js
  *
- * Date: 2016-05-13
+ * Date: 2016-09-06
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.BpmnJS = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 /**
@@ -801,9 +801,16 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
     return renderLabel(p, semantic.name, { box: element, align: align, padding: 5 });
   }
 
-  function renderExternalLabel(p, element, align) {
+  function renderExternalLabel(p, element) {
     var semantic = getSemantic(element);
-    return renderLabel(p, semantic.name, { box: element, align: align, style: { fontSize: '11px' } });
+    var box = {
+      width: 90,
+      height: 30,
+      x: element.width / 2 + element.x,
+      y: element.height / 2 + element.y
+    };
+
+    return renderLabel(p, semantic.name, { box: box, style: { fontSize: '11px' } });
   }
 
   function renderLaneLabel(p, text, element) {
@@ -895,7 +902,7 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
         strokeLinecap: 'square'
       });
 
-      for(var i = 0;i < 12;i++) {
+      for (var i = 0;i < 12;i++) {
 
         var linePathData = pathMap.getScaledPath('EVENT_TIMER_LINE', {
           xScaleFactor: 0.75,
@@ -928,7 +935,7 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
         containerHeight: event.height,
         position: {
           mx: 0.5,
-          my: 0.555
+          my: 0.2
         }
       });
 
@@ -1442,7 +1449,7 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
         }
       });
 
-      if (!!(getDi(element).isMarkerVisible)) {
+      if ((getDi(element).isMarkerVisible)) {
         drawPath(p, pathData, {
           strokeWidth: 1,
           fill: 'black'
@@ -1757,7 +1764,27 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
       });
     },
     'label': function(p, element) {
-      return renderExternalLabel(p, element, '');
+      // Update external label size and bounds during rendering when
+      // we have the actual rendered bounds anyway.
+
+      var textElement = renderExternalLabel(p, element);
+
+      var textBBox = textElement.getBBox();
+
+      // update element.x so that the layouted text is still
+      // center alligned (newX = oldMidX - newWidth / 2)
+      element.x = Math.round(element.x + element.width / 2) - Math.round((textBBox.width / 2));
+
+      // take element width, height from actual bounds
+      element.width = Math.ceil(textBBox.width);
+      element.height = Math.ceil(textBBox.height);
+
+      // compensate bounding box x
+      textElement.attr({
+        transform: 'translate(' + (-1 * textBBox.x) + ',0)'
+      });
+
+      return textElement;
     },
     'bpmn:TextAnnotation': function(p, element) {
       var style = {
@@ -2206,12 +2233,11 @@ function PathMap() {
       widthElements: [10, 20]
     },
     'EVENT_ESCALATION': {
-      d: 'm {mx},{my} c -{e.x1},{e.y0} -{e.x3},{e.y1} -{e.x5},{e.y4} {e.x1},-{e.y3} {e.x3},-{e.y5} {e.x5},-{e.y6} ' +
-        '{e.x0},{e.y3} {e.x2},{e.y5} {e.x4},{e.y6} -{e.x0},-{e.y0} -{e.x2},-{e.y1} -{e.x4},-{e.y4} z',
+      d: 'M {mx},{my} l {e.x0},{e.y0} l -{e.x0},-{e.y1} l -{e.x0},{e.y1} Z',
       height: 36,
       width: 36,
-      heightElements: [2.382, 4.764, 4.926, 6.589333, 7.146, 13.178667, 19.768],
-      widthElements: [2.463, 2.808, 4.926, 5.616, 7.389, 8.424]
+      heightElements: [20, 7],
+      widthElements: [8]
     },
     'EVENT_CONDITIONAL': {
       d: 'M {e.x0},{e.y0} l {e.x1},0 l 0,{e.y2} l -{e.x1},0 Z ' +
@@ -2562,7 +2588,7 @@ function PathMap() {
     // compute the start point of the path
     var mx, my;
 
-    if(!!param.abspos) {
+    if (param.abspos) {
       mx = param.abspos.x;
       my = param.abspos.y;
     } else {
@@ -2571,7 +2597,7 @@ function PathMap() {
     }
 
     var coordinates = {}; //map for the scaled coordinates
-    if(param.position) {
+    if (param.position) {
 
       // path
       var heightRatio = (param.containerHeight / rawPath.height) * param.yScaleFactor;
@@ -2642,10 +2668,10 @@ function collectWaypoints(waypoints) {
 
 function notYetDrawn(translate, semantic, refSemantic, property) {
   return new Error(translate('element {element} referenced by {referenced}#{property} not yet drawn', {
-                    element: elementToString(refSemantic),
-                    referenced: elementToString(semantic),
-                    property: property
-                  }));
+    element: elementToString(refSemantic),
+    referenced: elementToString(semantic),
+    property: property
+  }));
 }
 
 /**
@@ -2678,7 +2704,8 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
 
   var di = semantic.di,
       element,
-      translate = this._translate;
+      translate = this._translate,
+      hidden;
 
   // ROOT ELEMENT
   // handle the special case that we deal with a
@@ -2695,7 +2722,7 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
   else if (is(di, 'bpmndi:BPMNShape')) {
 
     var collapsed = !isExpanded(semantic);
-    var hidden = parentElement && (parentElement.hidden || parentElement.collapsed);
+    hidden = parentElement && (parentElement.hidden || parentElement.collapsed);
 
     var bounds = semantic.di.bounds;
 
@@ -2721,7 +2748,10 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
     var source = this._getSource(semantic),
         target = this._getTarget(semantic);
 
+    hidden = parentElement && (parentElement.hidden || parentElement.collapsed);
+
     element = this._elementFactory.createConnection(elementData(semantic, {
+      hidden: hidden,
       source: source,
       target: target,
       waypoints: collectWaypoints(semantic.di.waypoint)
@@ -2735,9 +2765,9 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
     this._canvas.addConnection(element, parentElement);
   } else {
     throw new Error(translate('unknown di {di} for element {semantic}', {
-                      di: elementToString(di),
-                      semantic: elementToString(semantic)
-                    }));
+      di: elementToString(di),
+      semantic: elementToString(semantic)
+    }));
   }
   // (optional) LABEL
   if (hasExternalLabel(semantic)) {
@@ -2861,6 +2891,7 @@ BpmnImporter.prototype._getTarget = function(semantic) {
 BpmnImporter.prototype._getElement = function(semantic) {
   return this._elementRegistry.get(semantic.id);
 };
+
 },{"11":11,"12":12,"13":13,"197":197,"86":86,"9":9}],7:[function(_dereq_,module,exports){
 'use strict';
 
@@ -3992,6 +4023,8 @@ function Context(options) {
       throw error('expected element');
     }
 
+    var elementsById = this.elementsById;
+
     var descriptor = getModdleDescriptor(element);
 
     var idProperty = descriptor.idProperty,
@@ -4001,7 +4034,12 @@ function Context(options) {
       id = element.get(idProperty.name);
 
       if (id) {
-        this.elementsById[id] = element;
+
+        if (elementsById[id]) {
+          throw error('duplicate ID <' + id + '>');
+        }
+
+        elementsById[id] = element;
       }
     }
   };
@@ -4634,6 +4672,11 @@ function getSerializableProperties(element) {
 
     // do not serialize default equals
     if (value === p.default) {
+      return false;
+    }
+
+    // do not serialize null properties
+    if (value === null) {
       return false;
     }
 
@@ -11695,7 +11738,7 @@ Canvas.prototype.hasMarker = function(element, marker) {
  * @param  {String} marker
  */
 Canvas.prototype.toggleMarker = function(element, marker) {
-  if(this.hasMarker(element, marker)) {
+  if (this.hasMarker(element, marker)) {
     this.removeMarker(element, marker);
   } else {
     this.addMarker(element, marker);
@@ -12259,7 +12302,7 @@ Canvas.prototype._setZoom = function(scale, center) {
  *
  * @return {Dimensions}
  */
-Canvas.prototype.getSize = function () {
+Canvas.prototype.getSize = function() {
   return {
     width: this._container.clientWidth,
     height: this._container.clientHeight
@@ -12332,6 +12375,7 @@ Canvas.prototype.resized = function() {
 
 var Model = _dereq_(60);
 
+var assign = _dereq_(197);
 
 /**
  * A factory for diagram-js shapes
@@ -12369,7 +12413,7 @@ ElementFactory.prototype.createConnection = function(attrs) {
  */
 ElementFactory.prototype.create = function(type, attrs) {
 
-  attrs = attrs || {};
+  attrs = assign({}, attrs || {});
 
   if (!attrs.id) {
     attrs.id = type + '_' + (this._uid++);
@@ -12377,7 +12421,7 @@ ElementFactory.prototype.create = function(type, attrs) {
 
   return Model.create(type, attrs);
 };
-},{"60":60}],40:[function(_dereq_,module,exports){
+},{"197":197,"60":60}],40:[function(_dereq_,module,exports){
 'use strict';
 
 var ELEMENT_ID = 'data-element-id';
@@ -12502,7 +12546,7 @@ ElementRegistry.prototype.filter = function(fn) {
   var filtered = [];
 
   this.forEach(function(element, gfx) {
-    if(fn(element, gfx)) {
+    if (fn(element, gfx)) {
       filtered.push(element);
     }
   });
@@ -12788,7 +12832,7 @@ EventBus.prototype.off = function(event, callback) {
 
     // move through listeners from back to front
     // and remove matching listeners
-    for (idx = listeners.length - 1; !!(listener = listeners[idx]); idx--) {
+    for (idx = listeners.length - 1; (listener = listeners[idx]); idx--) {
       listenerCallback = listener.callback;
 
       if (listenerCallback === callback || listenerCallback[FN_REF] === callback) {
@@ -12911,7 +12955,7 @@ EventBus.prototype._invokeListeners = function(event, args, listeners) {
       listener,
       returnValue;
 
-  for (idx = 0; !!(listener = listeners[idx]); idx++) {
+  for (idx = 0; (listener = listeners[idx]); idx++) {
 
     // handle stopped propagation
     if (event.cancelBubble) {
@@ -12978,7 +13022,7 @@ EventBus.prototype._addListener = function(event, newListener) {
 
   // ensure we order listeners by priority from
   // 0 (high) to n > 0 (low)
-  for (idx = 0; !!(existingListener = listeners[idx]); idx++) {
+  for (idx = 0; (existingListener = listeners[idx]); idx++) {
     if (existingListener.priority < newListener.priority) {
 
       // prepend newListener at before existingListener
@@ -13169,7 +13213,7 @@ GraphicsFactory.prototype.drawShape = function(visual, element) {
   return eventBus.fire('render.shape', { gfx: visual, element: element });
 };
 
-GraphicsFactory.prototype.getShapePath = function (element) {
+GraphicsFactory.prototype.getShapePath = function(element) {
   var eventBus = this._eventBus;
 
   return eventBus.fire('render.getShapePath', element);
@@ -13181,7 +13225,7 @@ GraphicsFactory.prototype.drawConnection = function(visual, element) {
   return eventBus.fire('render.connection', { gfx: visual, element: element });
 };
 
-GraphicsFactory.prototype.getConnectionPath = function (waypoints) {
+GraphicsFactory.prototype.getConnectionPath = function(waypoints) {
   var eventBus = this._eventBus;
 
   return eventBus.fire('render.getConnectionPath', waypoints);
@@ -13387,7 +13431,7 @@ DefaultRenderer.prototype.getConnectionPath = function getConnectionPath(connect
 
   var idx, point, connectionPath = [];
 
-  for (idx = 0; !!(point = waypoints[idx]); idx++) {
+  for (idx = 0; (point = waypoints[idx]); idx++) {
 
     // take invisible docking into account
     // when creating the path
@@ -13503,6 +13547,8 @@ var renderUtil = _dereq_(68);
 
 var createLine = renderUtil.createLine,
     updateLine = renderUtil.updateLine;
+
+var LOW_PRIORITY = 500;
 
 /**
  * A plugin that provides interaction events for diagram elements.
@@ -13655,23 +13701,21 @@ function InteractionEvents(eventBus, elementRegistry, styles) {
   eventBus.on([ 'shape.added', 'connection.added' ], function(event) {
     var element = event.element,
         gfx = event.gfx,
-        hit,
-        type;
+        hit;
 
     if (element.waypoints) {
       hit = createLine(element.waypoints);
-      type = 'connection';
     } else {
       hit = Snap.create('rect', { x: 0, y: 0, width: element.width, height: element.height });
-      type = 'shape';
     }
 
     hit.attr(HIT_STYLE).appendTo(gfx.node);
   });
 
-  // update djs-hit on change
-
-  eventBus.on('shape.changed', function(event) {
+  // Update djs-hit on change.
+  // A low priortity is necessary, because djs-hit of labels has to be updated
+  // after the label bounds have been updated in the renderer.
+  eventBus.on('shape.changed', LOW_PRIORITY, function(event) {
 
     var element = event.element,
         gfx = event.gfx,
@@ -13787,6 +13831,7 @@ module.exports = {
 
 var getBBox = _dereq_(62).getBBox;
 
+var LOW_PRIORITY = 500;
 
 /**
  * @class
@@ -13810,7 +13855,9 @@ function Outline(eventBus, styles, elementRegistry) {
     return gfx.rect(10, 10, 0, 0).attr(OUTLINE_STYLE);
   }
 
-  eventBus.on([ 'shape.added', 'shape.changed' ], function(event) {
+  // A low priortity is necessary, because outlines of labels have to be updated
+  // after the label bounds have been updated in the renderer.
+  eventBus.on([ 'shape.added', 'shape.changed' ], LOW_PRIORITY, function(event) {
     var element = event.element,
         gfx     = event.gfx;
 
@@ -13903,7 +13950,8 @@ var isArray = _dereq_(188),
 var domify = _dereq_(212),
     domClasses = _dereq_(209),
     domAttr = _dereq_(208),
-    domRemove = _dereq_(215);
+    domRemove = _dereq_(215),
+    domClear = _dereq_(210);
 
 var getBBox = _dereq_(62).getBBox;
 
@@ -14173,6 +14221,13 @@ Overlays.prototype.hide = function() {
   setVisible(this._overlayRoot, false);
 };
 
+Overlays.prototype.clear = function() {
+  this._overlays = {};
+
+  this._overlayContainers = [];
+
+  domClear(this._overlayRoot);
+};
 
 Overlays.prototype._updateOverlayContainer = function(container) {
   var element = container.element,
@@ -14326,7 +14381,7 @@ Overlays.prototype._addOverlay = function(overlay) {
   this._updateOverlayVisibilty(overlay, this._canvas.viewbox());
 };
 
-Overlays.prototype._updateOverlayVisibilty = function (overlay, viewbox) {
+Overlays.prototype._updateOverlayVisibilty = function(overlay, viewbox) {
   var show = overlay.show,
       htmlContainer = overlay.htmlContainer,
       visible = true;
@@ -14390,8 +14445,10 @@ Overlays.prototype._init = function() {
 
     if (container) {
       domRemove(container.html);
-      var i = self._overlayContainers.indexOf();
-      self._overlayContainers.splice(i, 1);
+      var i = self._overlayContainers.indexOf(container);
+      if (i !== -1) {
+        self._overlayContainers.splice(i, 1);
+      }
     }
   });
 
@@ -14423,9 +14480,14 @@ Overlays.prototype._init = function() {
       domClasses(container.html)[e.add ? 'add' : 'remove'](e.marker);
     }
   });
+
+
+  // clear overlays with diagram
+
+  eventBus.on('diagram.clear', this.clear, this);
 };
 
-},{"188":188,"192":192,"194":194,"197":197,"208":208,"209":209,"212":212,"215":215,"62":62,"65":65,"81":81,"82":82,"83":83}],53:[function(_dereq_,module,exports){
+},{"188":188,"192":192,"194":194,"197":197,"208":208,"209":209,"210":210,"212":212,"215":215,"62":62,"65":65,"81":81,"82":82,"83":83}],53:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'overlays' ],
   overlays: [ 'type', _dereq_(52) ]
@@ -14534,6 +14596,8 @@ Selection.prototype.select = function(elements, add) {
 
 var hasPrimaryModifier = _dereq_(66).hasPrimaryModifier;
 
+var find = _dereq_(82);
+
 
 function SelectionBehavior(eventBus, selection, canvas, elementRegistry) {
 
@@ -14562,11 +14626,14 @@ function SelectionBehavior(eventBus, selection, canvas, elementRegistry) {
 
     // make sure at least the main moved element is being
     // selected after a move operation
-    if (shape && previousSelection.indexOf(shape) === -1) {
+    var inSelection = find(previousSelection, function(selectedShape) {
+      return shape.id === selectedShape.id;
+    });
+
+    if (!inSelection) {
       selection.select(shape);
     }
   });
-
 
   // Shift + click selection
   eventBus.on('element.click', function(event) {
@@ -14604,7 +14671,7 @@ function SelectionBehavior(eventBus, selection, canvas, elementRegistry) {
 SelectionBehavior.$inject = [ 'eventBus', 'selection', 'canvas', 'elementRegistry' ];
 module.exports = SelectionBehavior;
 
-},{"66":66}],56:[function(_dereq_,module,exports){
+},{"66":66,"82":82}],56:[function(_dereq_,module,exports){
 'use strict';
 
 var forEach = _dereq_(83);
@@ -15206,7 +15273,11 @@ function getClosure(elements) {
 }
 
 /**
- * Returns the surrounding bbox for all elements in the array or the element primitive.
+ * Returns the surrounding bbox for all elements in
+ * the array or the element primitive.
+ *
+ * @param {Array<djs.model.Shape>|djs.model.Shape} elements
+ * @param {Boolean} stopRecursion
  */
 function getBBox(elements, stopRecursion) {
 
@@ -15260,16 +15331,15 @@ function getBBox(elements, stopRecursion) {
 /**
  * Returns all elements that are enclosed from the bounding box.
  *
- * @param {Array<Object>} elements List of Elements to search through
- * @param {Object} bbox the enclosing bbox.
- * <ul>
- *  <li>If bbox.(width|height) is not specified
- * the method returns all elements with element.x/y &gt; bbox.x/y
- * </li>
- *  <li>If only bbox.x or bbox.y is specified, method return all elements with
- *  e.x &gt; bbox.x or e.y &gt; bbox.y.</li>
- * </ul>
+ *   * If bbox.(width|height) is not specified the method returns
+ *     all elements with element.x/y > bbox.x/y
+ *   * If only bbox.x or bbox.y is specified, method return all elements with
+ *     e.x > bbox.x or e.y > bbox.y
  *
+ * @param {Array<djs.model.Shape>} elements List of Elements to search through
+ * @param {djs.model.Shape} bbox the enclosing bbox.
+ *
+ * @return {Array<djs.model.Shape>} enclosed elements
  */
 function getEnclosedElements(elements, bbox) {
 
@@ -15537,7 +15607,7 @@ module.exports.componentsToPath = function(elements) {
 function toSVGPoints(points) {
   var result = '';
 
-  for (var i = 0, p; !!(p = points[i]); i++) {
+  for (var i = 0, p; (p = points[i]); i++) {
     result += p.x + ',' + p.y + ' ';
   }
 
@@ -15619,7 +15689,7 @@ function layoutNext(lines, maxWidth, fakeText) {
 
   var textBBox;
 
-  while (true) {
+  for (;;) {
     textBBox = getTextBBox(fitLine, fakeText);
 
     textBBox.width = fitLine ? textBBox.width : 0;
@@ -15639,7 +15709,7 @@ function fit(lines, fitLine, originalLine, textBBox) {
         remainder = originalLine.slice(fitLine.length).trim();
 
     if (/-\s*$/.test(remainder)) {
-      nextLine = remainder.replace(/-\s*$/, '') + nextLine.replace(/^\s+/, '');
+      nextLine = remainder + nextLine.replace(/^\s+/, '');
     } else {
       nextLine = remainder + ' ' + nextLine;
     }
@@ -15763,12 +15833,12 @@ Text.prototype.createText = function(parent, text, options) {
   var y, x;
 
   switch (align.vertical) {
-    case 'middle':
-      y = (box.height - totalHeight) / 2 - layouted[0].height / 4;
-      break;
+  case 'middle':
+    y = (box.height - totalHeight) / 2 - layouted[0].height / 4;
+    break;
 
-    default:
-      y = padding.top;
+  default:
+    y = padding.top;
   }
 
   var textElement = parent.text().attr(style);
@@ -15777,17 +15847,17 @@ Text.prototype.createText = function(parent, text, options) {
     y += line.height;
 
     switch (align.horizontal) {
-      case 'left':
-        x = padding.left;
-        break;
+    case 'left':
+      x = padding.left;
+      break;
 
-      case 'right':
-        x = (maxWidth - padding.right - line.width);
-        break;
+    case 'right':
+      x = (maxWidth - padding.right - line.width);
+      break;
 
-      default:
+    default:
         // aka center
-        x = Math.max(((maxWidth - line.width) / 2 + padding.left), 0);
+      x = Math.max(((maxWidth - line.width) / 2 + padding.left), 0);
     }
 
 
@@ -16003,6 +16073,7 @@ var Injector = function(modules, parent) {
         }
 
         if ((provider[2] === 'factory' || provider[2] === 'type') && provider[1].$scope) {
+          /*jshint -W083 */
           forceNewInstances.forEach(function(scope) {
             if (provider[1].$scope.indexOf(scope) !== -1) {
               fromParentModule[name] = [provider[2], provider[1]];
