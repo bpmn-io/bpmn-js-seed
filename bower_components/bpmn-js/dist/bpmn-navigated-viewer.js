@@ -1,5 +1,5 @@
 /*!
- * bpmn-js - bpmn-navigated-viewer v0.18.0
+ * bpmn-js - bpmn-navigated-viewer v0.20.1
 
  * Copyright 2014, 2015 camunda Services GmbH and other contributors
  *
@@ -8,12 +8,12 @@
  *
  * Source Code: https://github.com/bpmn-io/bpmn-js
  *
- * Date: 2016-11-11
+ * Date: 2017-03-02
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.BpmnJS = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(29);
+var inherits = _dereq_(79);
 
 var Viewer = _dereq_(2);
 
@@ -32,14 +32,14 @@ inherits(NavigatedViewer, Viewer);
 module.exports = NavigatedViewer;
 
 NavigatedViewer.prototype._navigationModules = [
-  _dereq_(188),
-  _dereq_(185)
+  _dereq_(60),
+  _dereq_(57)
 ];
 
 NavigatedViewer.prototype._modules = [].concat(
   NavigatedViewer.prototype._modules,
   NavigatedViewer.prototype._navigationModules);
-},{"185":185,"188":188,"2":2,"29":29}],2:[function(_dereq_,module,exports){
+},{"2":2,"57":57,"60":60,"79":79}],2:[function(_dereq_,module,exports){
 /**
  * The code in the <project-logo></project-logo> area
  * must not be changed.
@@ -48,22 +48,21 @@ NavigatedViewer.prototype._modules = [].concat(
  */
 'use strict';
 
-var assign = _dereq_(116),
-    omit = _dereq_(119),
-    isString = _dereq_(114),
-    isNumber = _dereq_(112);
+var assign = _dereq_(197),
+    omit = _dereq_(201),
+    isNumber = _dereq_(191);
 
-var domify = _dereq_(126),
-    domQuery = _dereq_(128),
-    domRemove = _dereq_(129);
+var domify = _dereq_(212),
+    domQuery = _dereq_(214),
+    domRemove = _dereq_(215);
 
-var innerSVG = _dereq_(153);
+var innerSVG = _dereq_(240);
 
-var Diagram = _dereq_(159),
+var Diagram = _dereq_(31),
     BpmnModdle = _dereq_(16);
 
 
-var inherits = _dereq_(29);
+var inherits = _dereq_(79);
 
 var Importer = _dereq_(9);
 
@@ -88,8 +87,7 @@ function checkValidationError(err) {
 var DEFAULT_OPTIONS = {
   width: '100%',
   height: '100%',
-  position: 'relative',
-  container: 'body'
+  position: 'relative'
 };
 
 
@@ -398,9 +396,49 @@ Viewer.prototype.off = function(event, callback) {
   this.get('eventBus').off(event, callback);
 };
 
+Viewer.prototype.attachTo = function(parentNode) {
+
+  if (!parentNode) {
+    throw new Error('parentNode required');
+  }
+
+  // ensure we detach from the
+  // previous, old parent
+  this.detach();
+
+  // unwrap jQuery if provided
+  if (parentNode.get && parentNode.constructor.prototype.jquery) {
+    parentNode = parentNode.get(0);
+  }
+
+  if (typeof parentNode === 'string') {
+    parentNode = domQuery(parentNode);
+  }
+
+  var container = this._container;
+
+  parentNode.appendChild(container);
+
+  this._emit('attach', {});
+};
+
+Viewer.prototype.detach = function() {
+
+  var container = this._container,
+      parentNode = container.parentNode;
+
+  if (!parentNode) {
+    return;
+  }
+
+  this._emit('detach', {});
+
+  parentNode.removeChild(container);
+};
 
 Viewer.prototype._init = function(container, moddle, options) {
 
+  this._container = container;
   var baseModules = options.modules || this.getModules(),
       additionalModules = options.additionalModules || [],
       staticModules = [
@@ -419,6 +457,10 @@ Viewer.prototype._init = function(container, moddle, options) {
 
   // invoke diagram constructor
   Diagram.call(this, diagramOptions);
+
+  if (options && options.container) {
+    this.attachTo(options.container);
+  }
 };
 
 /**
@@ -435,29 +477,13 @@ Viewer.prototype._emit = function(type, event) {
 
 Viewer.prototype._createContainer = function(options) {
 
-  var parent = options.container,
-      container;
-
-  // support jquery element
-  // unwrap it if passed
-  if (parent.get) {
-    parent = parent.get(0);
-  }
-
-  // support selector
-  if (isString(parent)) {
-    parent = domQuery(parent);
-  }
-
-  container = domify('<div class="bjs-container"></div>');
+  var container = domify('<div class="bjs-container"></div>');
 
   assign(container.style, {
     width: ensureUnit(options.width),
     height: ensureUnit(options.height),
     position: options.position
   });
-
-  parent.appendChild(container);
 
   return container;
 };
@@ -472,9 +498,9 @@ Viewer.prototype._createModdle = function(options) {
 // modules the viewer is composed of
 Viewer.prototype._modules = [
   _dereq_(3),
-  _dereq_(181),
-  _dereq_(180),
-  _dereq_(176)
+  _dereq_(53),
+  _dereq_(52),
+  _dereq_(48)
 ];
 
 // default moddle extensions the viewer is composed of
@@ -483,7 +509,7 @@ Viewer.prototype._moddleExtensions = {};
 /* <project-logo> */
 
 var PoweredBy = _dereq_(15),
-    domEvent = _dereq_(127);
+    domEvent = _dereq_(213);
 
 /**
  * Adds the project logo to the diagram container as
@@ -518,7 +544,7 @@ function addProjectLogo(container) {
 
 /* </project-logo> */
 
-},{"112":112,"114":114,"116":116,"119":119,"126":126,"127":127,"128":128,"129":129,"15":15,"153":153,"159":159,"16":16,"176":176,"180":180,"181":181,"29":29,"3":3,"9":9}],3:[function(_dereq_,module,exports){
+},{"15":15,"16":16,"191":191,"197":197,"201":201,"212":212,"213":213,"214":214,"215":215,"240":240,"3":3,"31":31,"48":48,"52":52,"53":53,"79":79,"9":9}],3:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
     _dereq_(6),
@@ -528,35 +554,35 @@ module.exports = {
 },{"11":11,"6":6}],4:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(29),
-    isObject = _dereq_(113),
-    assign = _dereq_(116),
-    forEach = _dereq_(34),
-    every = _dereq_(31),
-    includes = _dereq_(35),
-    some = _dereq_(38);
+var inherits = _dereq_(79),
+    isObject = _dereq_(192),
+    assign = _dereq_(197),
+    forEach = _dereq_(85),
+    every = _dereq_(82),
+    some = _dereq_(89);
 
-var BaseRenderer = _dereq_(167),
-    TextUtil = _dereq_(201),
+var BaseRenderer = _dereq_(39),
+    TextUtil = _dereq_(73),
     DiUtil = _dereq_(12);
 
-var is = _dereq_(14).is;
+var getBusinessObject = _dereq_(14).getBusinessObject,
+    is = _dereq_(14).is;
 
-var RenderUtil = _dereq_(199);
+var RenderUtil = _dereq_(71);
 
 var componentsToPath = RenderUtil.componentsToPath,
     createLine = RenderUtil.createLine;
 
-var domQuery = _dereq_(128);
+var domQuery = _dereq_(214);
 
-var svgAppend = _dereq_(147),
-    svgAttr = _dereq_(149),
-    svgCreate = _dereq_(152),
-    svgClasses = _dereq_(150);
+var svgAppend = _dereq_(233),
+    svgAttr = _dereq_(235),
+    svgCreate = _dereq_(238),
+    svgClasses = _dereq_(236);
 
-var rotate = _dereq_(200).rotate,
-    transform = _dereq_(200).transform,
-    translate = _dereq_(200).translate;
+var rotate = _dereq_(72).rotate,
+    transform = _dereq_(72).transform,
+    translate = _dereq_(72).translate;
 
 var TASK_BORDER_RADIUS = 10;
 var INNER_OUTER_DIST = 3;
@@ -567,7 +593,7 @@ var LABEL_STYLE = {
 };
 
 
-function BpmnRenderer(eventBus, styles, pathMap, priority) {
+function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
 
   BaseRenderer.call(this, eventBus, priority);
 
@@ -580,151 +606,170 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
 
   var computeStyle = styles.computeStyle;
 
-  function addMarker(id, element) {
-    markers[id] = element;
-  }
+  function addMarker(id, options) {
+    var attrs = assign({
+      fill: 'black',
+      strokeWidth: 1,
+      strokeLinecap: 'round',
+      strokeDasharray: 'none'
+    }, options.attrs);
 
-  function marker(id) {
-    var marker = markers[id];
+    var ref = options.ref || { x: 0, y: 0 };
 
-    return 'url(#' + marker.id + ')';
-  }
+    var scale = options.scale || 1;
 
-  function initMarkers(svg) {
-
-    function createMarker(id, options) {
-      var attrs = assign({
-        fill: 'black',
-        strokeWidth: 1,
-        strokeLinecap: 'round',
-        strokeDasharray: 'none'
-      }, options.attrs);
-
-      var ref = options.ref || { x: 0, y: 0 };
-
-      var scale = options.scale || 1;
-
-      // fix for safari / chrome / firefox bug not correctly
-      // resetting stroke dash array
-      if (attrs.strokeDasharray === 'none') {
-        attrs.strokeDasharray = [10000, 1];
-      }
-
-      var marker = svgCreate('marker');
-
-      svgAttr(options.element, attrs);
-
-      svgAppend(marker, options.element);
-
-      svgAttr(marker, {
-        id: id,
-        viewBox: '0 0 20 20',
-        refX: ref.x,
-        refY: ref.y,
-        markerWidth: 20 * scale,
-        markerHeight: 20 * scale,
-        orient: 'auto'
-      });
-
-      var defs = domQuery('defs', svg);
-
-      if (!defs) {
-        defs = svgCreate('defs');
-
-        svgAppend(svg, defs);
-      }
-
-      svgAppend(defs, marker);
-
-      return addMarker(id, marker);
+    // fix for safari / chrome / firefox bug not correctly
+    // resetting stroke dash array
+    if (attrs.strokeDasharray === 'none') {
+      attrs.strokeDasharray = [10000, 1];
     }
 
-    var sequenceflowEnd = svgCreate('path');
-    svgAttr(sequenceflowEnd, { d: 'M 1 5 L 11 10 L 1 15 Z' });
+    var marker = svgCreate('marker');
 
-    createMarker('sequenceflow-end', {
-      element: sequenceflowEnd,
-      ref: { x: 11, y: 10 },
-      scale: 0.5
+    svgAttr(options.element, attrs);
+
+    svgAppend(marker, options.element);
+
+    svgAttr(marker, {
+      id: id,
+      viewBox: '0 0 20 20',
+      refX: ref.x,
+      refY: ref.y,
+      markerWidth: 20 * scale,
+      markerHeight: 20 * scale,
+      orient: 'auto'
     });
 
-    var messageflowStart = svgCreate('circle');
-    svgAttr(messageflowStart, { cx: 6, cy: 6, r: 3.5 });
+    var defs = domQuery('defs', canvas._svg);
 
-    createMarker('messageflow-start', {
-      element: messageflowStart,
-      attrs: {
-        fill: 'white',
-        stroke: 'black'
-      },
-      ref: { x: 6, y: 6 }
-    });
+    if (!defs) {
+      defs = svgCreate('defs');
 
-    var messageflowEnd = svgCreate('path');
-    svgAttr(messageflowEnd, { d: 'm 1 5 l 0 -3 l 7 3 l -7 3 z' });
+      svgAppend(canvas._svg, defs);
+    }
 
-    createMarker('messageflow-end', {
-      element: messageflowEnd,
-      attrs: {
-        fill: 'white',
-        stroke: 'black',
-        strokeLinecap: 'butt'
-      },
-      ref: { x: 8.5, y: 5 }
-    });
+    svgAppend(defs, marker);
 
-    var associationStart = svgCreate('path');
-    svgAttr(associationStart, { d: 'M 11 5 L 1 10 L 11 15' });
+    markers[id] = marker;
+  }
 
-    createMarker('association-start', {
-      element: associationStart,
-      attrs: {
-        fill: 'none',
-        stroke: 'black',
-        strokeWidth: 1.5
-      },
-      ref: { x: 1, y: 10 },
-      scale: 0.5
-    });
+  function marker(type, fill, stroke) {
+    var id = type + '-' + fill + '-' + stroke;
 
-    var associationEnd = svgCreate('path');
-    svgAttr(associationEnd, { d: 'M 1 5 L 11 10 L 1 15' });
+    if (!markers[id]) {
+      createMarker(type, fill, stroke);
+    }
 
-    createMarker('association-end', {
-      element: associationEnd,
-      attrs: {
-        fill: 'none',
-        stroke: 'black',
-        strokeWidth: 1.5
-      },
-      ref: { x: 12, y: 10 },
-      scale: 0.5
-    });
+    return 'url(#' + id +  ')';
+  }
 
-    var conditionalflowMarker = svgCreate('path');
-    svgAttr(conditionalflowMarker, { d: 'M 0 10 L 8 6 L 16 10 L 8 14 Z' });
+  function createMarker(type, fill, stroke) {
+    var id = type + '-' + fill + '-' + stroke;
 
-    createMarker('conditional-flow-marker', {
-      element: conditionalflowMarker,
-      attrs: {
-        fill: 'white',
-        stroke: 'black'
-      },
-      ref: { x: -1, y: 10 },
-      scale: 0.5
-    });
+    if (type === 'sequenceflow-end') {
+      var sequenceflowEnd = svgCreate('path');
+      svgAttr(sequenceflowEnd, { d: 'M 1 5 L 11 10 L 1 15 Z' });
 
-    var conditionaldefaultflowMarker = svgCreate('path');
-    svgAttr(conditionaldefaultflowMarker, { d: 'M 1 4 L 5 16' });
+      addMarker(id, {
+        element: sequenceflowEnd,
+        ref: { x: 11, y: 10 },
+        scale: 0.5,
+        attrs: {
+          fill: stroke,
+          stroke: stroke
+        }
+      });
+    }
 
-    createMarker('conditional-default-flow-marker', {
-      element: conditionaldefaultflowMarker,
-      attrs: {
-        stroke: 'black'
-      },
-      ref: { x: -5, y: 10 },
-      scale: 0.5
-    });
+    if (type === 'messageflow-start') {
+      var messageflowStart = svgCreate('circle');
+      svgAttr(messageflowStart, { cx: 6, cy: 6, r: 3.5 });
+
+      addMarker(id, {
+        element: messageflowStart,
+        attrs: {
+          fill: fill,
+          stroke: stroke
+        },
+        ref: { x: 6, y: 6 }
+      });
+    }
+
+    if (type === 'messageflow-end') {
+      var messageflowEnd = svgCreate('path');
+      svgAttr(messageflowEnd, { d: 'm 1 5 l 0 -3 l 7 3 l -7 3 z' });
+
+      addMarker(id, {
+        element: messageflowEnd,
+        attrs: {
+          fill: fill,
+          stroke: stroke,
+          strokeLinecap: 'butt'
+        },
+        ref: { x: 8.5, y: 5 }
+      });
+    }
+
+    if (type === 'association-start') {
+      var associationStart = svgCreate('path');
+      svgAttr(associationStart, { d: 'M 11 5 L 1 10 L 11 15' });
+
+      addMarker(id, {
+        element: associationStart,
+        attrs: {
+          fill: 'none',
+          stroke: stroke,
+          strokeWidth: 1.5
+        },
+        ref: { x: 1, y: 10 },
+        scale: 0.5
+      });
+    }
+
+    if (type === 'association-end') {
+      var associationEnd = svgCreate('path');
+      svgAttr(associationEnd, { d: 'M 1 5 L 11 10 L 1 15' });
+
+      addMarker(id, {
+        element: associationEnd,
+        attrs: {
+          fill: 'none',
+          stroke: stroke,
+          strokeWidth: 1.5
+        },
+        ref: { x: 12, y: 10 },
+        scale: 0.5
+      });
+    }
+
+    if (type === 'conditional-flow-marker') {
+      var conditionalflowMarker = svgCreate('path');
+      svgAttr(conditionalflowMarker, { d: 'M 0 10 L 8 6 L 16 10 L 8 14 Z' });
+
+      addMarker(id, {
+        element: conditionalflowMarker,
+        attrs: {
+          fill: fill,
+          stroke: stroke
+        },
+        ref: { x: -1, y: 10 },
+        scale: 0.5
+      });
+    }
+
+    if (type === 'conditional-default-flow-marker') {
+      var conditionaldefaultflowMarker = svgCreate('path');
+      svgAttr(conditionaldefaultflowMarker, { d: 'M 6 4 L 10 16' });
+
+      addMarker(id, {
+        element: conditionaldefaultflowMarker,
+        attrs: {
+          stroke: stroke
+        },
+        ref: { x: 0, y: 10 },
+        scale: 0.5
+      });
+    }
   }
 
   function drawCircle(parentGfx, width, height, offset, attrs) {
@@ -920,15 +965,24 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
   }
 
   function renderLabel(parentGfx, label, options) {
-    var text = textUtil.createText(parentGfx, label || '', options);
+    var text = textUtil.createText(label || '', options);
     svgClasses(text).add('djs-label');
+    svgAppend(parentGfx, text);
 
     return text;
   }
 
   function renderEmbeddedLabel(parentGfx, element, align) {
     var semantic = getSemantic(element);
-    return renderLabel(parentGfx, semantic.name, { box: element, align: align, padding: 5 });
+
+    return renderLabel(parentGfx, semantic.name, {
+      box: element,
+      align: align,
+      padding: 5,
+      style: {
+        fill: getStrokeColor(element)
+      }
+    });
   }
 
   function renderExternalLabel(parentGfx, element) {
@@ -940,13 +994,20 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
       y: element.height / 2 + element.y
     };
 
-    return renderLabel(parentGfx, semantic.name, { box: box, style: { fontSize: '11px' } });
+    return renderLabel(parentGfx, semantic.name, {
+      box: box,
+      fitBox: true,
+      style: { fontSize: '11px' }
+    });
   }
 
   function renderLaneLabel(parentGfx, text, element) {
     var textBox = renderLabel(parentGfx, text, {
       box: { height: 30, width: element.height },
-      align: 'center-middle'
+      align: 'center-middle',
+      style: {
+        fill: getStrokeColor(element)
+      }
     });
 
     var top = -1 * element.height;
@@ -966,10 +1027,14 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
 
   var handlers = this.handlers = {
     'bpmn:Event': function(parentGfx, element, attrs) {
-      return drawCircle(parentGfx, element.width, element.height,  attrs);
+      return drawCircle(parentGfx, element.width, element.height, attrs);
     },
     'bpmn:StartEvent': function(parentGfx, element) {
-      var attrs = {};
+      var attrs = {
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
+      };
+
       var semantic = getSemantic(element);
 
       if (!semantic.isInterrupting) {
@@ -997,8 +1062,8 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
         }
       });
 
-      var fill = isThrowing ? 'black' : 'white';
-      var stroke = isThrowing ? 'white' : 'black';
+      var fill = isThrowing ? getStrokeColor(element) : getFillColor(element);
+      var stroke = isThrowing ? getFillColor(element) : getStrokeColor(element);
 
       var messagePath = drawPath(parentGfx, pathData, {
         strokeWidth: 1,
@@ -1009,9 +1074,10 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
       return messagePath;
     },
     'bpmn:TimerEventDefinition': function(parentGfx, element) {
-
       var circle = drawCircle(parentGfx, element.width, element.height, 0.2 * element.height, {
-        strokeWidth: 2
+        strokeWidth: 2,
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
       });
 
       var pathData = pathMap.getScaledPath('EVENT_TIMER_WH', {
@@ -1027,7 +1093,8 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
 
       drawPath(parentGfx, pathData, {
         strokeWidth: 2,
-        strokeLinecap: 'square'
+        strokeLinecap: 'square',
+        stroke: getStrokeColor(element)
       });
 
       for (var i = 0;i < 12;i++) {
@@ -1049,7 +1116,8 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
         drawPath(parentGfx, linePathData, {
           strokeWidth: 1,
           strokeLinecap: 'square',
-          transform: 'rotate(' + (i * 30) + ',' + height + ',' + width + ')'
+          transform: 'rotate(' + (i * 30) + ',' + height + ',' + width + ')',
+          stroke: getStrokeColor(element)
         });
       }
 
@@ -1067,11 +1135,12 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
         }
       });
 
-      var fill = isThrowing ? 'black' : 'none';
+      var fill = isThrowing ? getStrokeColor(event) : 'none';
 
       return drawPath(parentGfx, pathData, {
         strokeWidth: 1,
-        fill: fill
+        fill: fill,
+        stroke: getStrokeColor(event)
       });
     },
     'bpmn:ConditionalEventDefinition': function(parentGfx, event) {
@@ -1087,7 +1156,8 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
       });
 
       return drawPath(parentGfx, pathData, {
-        strokeWidth: 1
+        strokeWidth: 1,
+        stroke: getStrokeColor(event)
       });
     },
     'bpmn:LinkEventDefinition': function(parentGfx, event, isThrowing) {
@@ -1102,11 +1172,12 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
         }
       });
 
-      var fill = isThrowing ? 'black' : 'none';
+      var fill = isThrowing ? getStrokeColor(event) : 'none';
 
       return drawPath(parentGfx, pathData, {
         strokeWidth: 1,
-        fill: fill
+        fill: fill,
+        stroke: getStrokeColor(event)
       });
     },
     'bpmn:ErrorEventDefinition': function(parentGfx, event, isThrowing) {
@@ -1121,11 +1192,12 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
         }
       });
 
-      var fill = isThrowing ? 'black' : 'none';
+      var fill = isThrowing ? getStrokeColor(event) : 'none';
 
       return drawPath(parentGfx, pathData, {
         strokeWidth: 1,
-        fill: fill
+        fill: fill,
+        stroke: getStrokeColor(event)
       });
     },
     'bpmn:CancelEventDefinition': function(parentGfx, event, isThrowing) {
@@ -1163,11 +1235,12 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
         }
       });
 
-      var fill = isThrowing ? 'black' : 'none';
+      var fill = isThrowing ? getStrokeColor(event) : 'none';
 
       return drawPath(parentGfx, pathData, {
         strokeWidth: 1,
-        fill: fill
+        fill: fill,
+        stroke: getStrokeColor(event)
       });
     },
     'bpmn:SignalEventDefinition': function(parentGfx, event, isThrowing) {
@@ -1182,11 +1255,12 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
         }
       });
 
-      var fill = isThrowing ? 'black' : 'none';
+      var fill = isThrowing ? getStrokeColor(event) : 'none';
 
       return drawPath(parentGfx, pathData, {
         strokeWidth: 1,
-        fill: fill
+        fill: fill,
+        stroke: getStrokeColor(event)
       });
     },
     'bpmn:MultipleEventDefinition': function(parentGfx, event, isThrowing) {
@@ -1221,12 +1295,16 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
       });
 
       return drawPath(parentGfx, pathData, {
-        strokeWidth: 1
+        strokeWidth: 1,
+        fill: getStrokeColor(event),
+        stroke: getStrokeColor(event)
       });
     },
     'bpmn:EndEvent': function(parentGfx, element) {
       var circle = renderer('bpmn:Event')(parentGfx, element, {
-        strokeWidth: 4
+        strokeWidth: 4,
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
       });
 
       renderEventContent(element, parentGfx, true);
@@ -1236,14 +1314,24 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
     'bpmn:TerminateEventDefinition': function(parentGfx, element) {
       var circle = drawCircle(parentGfx, element.width, element.height, 8, {
         strokeWidth: 4,
-        fill: 'black'
+        fill: getStrokeColor(element),
+        stroke: getStrokeColor(element)
       });
 
       return circle;
     },
     'bpmn:IntermediateEvent': function(parentGfx, element) {
-      var outer = renderer('bpmn:Event')(parentGfx, element, { strokeWidth: 1 });
-      /* inner */ drawCircle(parentGfx, element.width, element.height, INNER_OUTER_DIST, { strokeWidth: 1, fill: 'none' });
+      var outer = renderer('bpmn:Event')(parentGfx, element, {
+        strokeWidth: 1,
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
+      });
+
+      /* inner */ drawCircle(parentGfx, element.width, element.height, INNER_OUTER_DIST, {
+        strokeWidth: 1,
+        fill: getFillColor(element, 'none'),
+        stroke: getStrokeColor(element)
+      });
 
       renderEventContent(element, parentGfx);
 
@@ -1256,10 +1344,17 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
       return drawRect(parentGfx, element.width, element.height, TASK_BORDER_RADIUS, attrs);
     },
 
-    'bpmn:Task': function(parentGfx, element, attrs) {
+    'bpmn:Task': function(parentGfx, element) {
+      var attrs = {
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
+      };
+
       var rect = renderer('bpmn:Activity')(parentGfx, element, attrs);
+
       renderEmbeddedLabel(parentGfx, element, 'center-middle');
       attachTaskMarkers(parentGfx, element);
+
       return rect;
     },
     'bpmn:ServiceTask': function(parentGfx, element) {
@@ -1274,7 +1369,8 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
 
       /* service bg */ drawPath(parentGfx, pathDataBG, {
         strokeWidth: 1,
-        fill: 'none'
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
       });
 
       var fillPathData = pathMap.getScaledPath('TASK_TYPE_SERVICE_FILL', {
@@ -1286,8 +1382,7 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
 
       /* service fill */ drawPath(parentGfx, fillPathData, {
         strokeWidth: 0,
-        stroke: 'none',
-        fill: 'white'
+        fill: getFillColor(element)
       });
 
       var pathData = pathMap.getScaledPath('TASK_TYPE_SERVICE', {
@@ -1299,7 +1394,8 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
 
       /* service */ drawPath(parentGfx, pathData, {
         strokeWidth: 1,
-        fill: 'white'
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
       });
 
       return task;
@@ -1319,7 +1415,8 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
 
       /* user path */ drawPath(parentGfx, pathData, {
         strokeWidth: 0.5,
-        fill: 'none'
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
       });
 
       var pathData2 = pathMap.getScaledPath('TASK_TYPE_USER_2', {
@@ -1331,7 +1428,8 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
 
       /* user2 path */ drawPath(parentGfx, pathData2, {
         strokeWidth: 0.5,
-        fill: 'none'
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
       });
 
       var pathData3 = pathMap.getScaledPath('TASK_TYPE_USER_3', {
@@ -1343,7 +1441,8 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
 
       /* user3 path */ drawPath(parentGfx, pathData3, {
         strokeWidth: 0.5,
-        fill: 'black'
+        fill: getStrokeColor(element),
+        stroke: getStrokeColor(element)
       });
 
       return task;
@@ -1359,9 +1458,9 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
       });
 
       /* manual path */ drawPath(parentGfx, pathData, {
-        strokeWidth: 0.25,
-        fill: 'white',
-        stroke: 'black'
+        strokeWidth: 0.5, // 0.25,
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
       });
 
       return task;
@@ -1382,8 +1481,8 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
 
       /* send path */ drawPath(parentGfx, pathData, {
         strokeWidth: 1,
-        fill: 'black',
-        stroke: 'white'
+        fill: getStrokeColor(element),
+        stroke: getFillColor(element)
       });
 
       return task;
@@ -1418,7 +1517,9 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
       }
 
       /* receive path */ drawPath(parentGfx, pathData, {
-        strokeWidth: 1
+        strokeWidth: 1,
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
       });
 
       return task;
@@ -1434,7 +1535,8 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
       });
 
       /* script path */ drawPath(parentGfx, pathData, {
-        strokeWidth: 1
+        strokeWidth: 1,
+        stroke: getStrokeColor(element)
       });
 
       return task;
@@ -1452,7 +1554,8 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
       var businessHeaderPath = drawPath(parentGfx, headerPathData);
       svgAttr(businessHeaderPath, {
         strokeWidth: 1,
-        fill: 'AAA'
+        fill: getFillColor(element, '#aaaaaa'),
+        stroke: getStrokeColor(element)
       });
 
       var headerData = pathMap.getScaledPath('TASK_TYPE_BUSINESS_RULE_MAIN', {
@@ -1464,14 +1567,18 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
 
       var businessPath = drawPath(parentGfx, headerData);
       svgAttr(businessPath, {
-        strokeWidth: 1
+        strokeWidth: 1,
+        stroke: getStrokeColor(element)
       });
 
       return task;
     },
     'bpmn:SubProcess': function(parentGfx, element, attrs) {
-
-      attrs = assign({ fillOpacity: 0.95 }, attrs);
+      attrs = assign({
+        fillOpacity: 0.95,
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
+      }, attrs);
 
       var rect = renderer('bpmn:Activity')(parentGfx, element, attrs);
 
@@ -1501,7 +1608,9 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
     'bpmn:Transaction': function(parentGfx, element) {
       var outer = renderer('bpmn:SubProcess')(parentGfx, element);
 
-      var innerAttrs = styles.style([ 'no-fill', 'no-events' ]);
+      var innerAttrs = styles.style([ 'no-fill', 'no-events' ], {
+        stroke: getStrokeColor(element)
+      });
 
       /* inner path */ drawRect(parentGfx, element.width, element.height, TASK_BORDER_RADIUS - 2, INNER_OUTER_DIST, innerAttrs);
 
@@ -1514,10 +1623,13 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
     },
     'bpmn:Participant': function(parentGfx, element) {
 
-      var lane = renderer('bpmn:Lane')(parentGfx, element, {
+      var attrs = {
         fillOpacity: 0.95,
-        fill: 'White'
-      });
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
+      };
+
+      var lane = renderer('bpmn:Lane')(parentGfx, element, attrs);
 
       var expandedPool = DiUtil.isExpanded(element);
 
@@ -1525,13 +1637,20 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
         drawLine(parentGfx, [
           { x: 30, y: 0 },
           { x: 30, y: element.height }
-        ]);
+        ], {
+          stroke: getStrokeColor(element)
+        });
         var text = getSemantic(element).name;
         renderLaneLabel(parentGfx, text, element);
       } else {
         // Collapsed pool draw text inline
         var text2 = getSemantic(element).name;
-        renderLabel(parentGfx, text2, { box: element, align: 'center-middle' });
+        renderLabel(parentGfx, text2, {
+          box: element, align: 'center-middle',
+          style: {
+            fill: getStrokeColor(element)
+          }
+        });
       }
 
       var participantMultiplicity = !!(getSemantic(element).participantMultiplicity);
@@ -1543,9 +1662,10 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
       return lane;
     },
     'bpmn:Lane': function(parentGfx, element, attrs) {
-      var rect = drawRect(parentGfx, element.width, element.height, 0, attrs || {
-        fill: 'none'
-      });
+      var rect = drawRect(parentGfx, element.width, element.height, 0, assign({
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
+      }, attrs));
 
       var semantic = getSemantic(element);
 
@@ -1557,18 +1677,29 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
       return rect;
     },
     'bpmn:InclusiveGateway': function(parentGfx, element) {
-      var diamond = drawDiamond(parentGfx, element.width, element.height);
+      var attrs = {
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
+      };
+
+      var diamond = drawDiamond(parentGfx, element.width, element.height, attrs);
 
       /* circle path */
       drawCircle(parentGfx, element.width, element.height, element.height * 0.24, {
         strokeWidth: 2.5,
-        fill: 'none'
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
       });
 
       return diamond;
     },
     'bpmn:ExclusiveGateway': function(parentGfx, element) {
-      var diamond = drawDiamond(parentGfx, element.width, element.height);
+      var attrs = {
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
+      };
+
+      var diamond = drawDiamond(parentGfx, element.width, element.height, attrs);
 
       var pathData = pathMap.getScaledPath('GATEWAY_EXCLUSIVE', {
         xScaleFactor: 0.4,
@@ -1584,14 +1715,20 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
       if ((getDi(element).isMarkerVisible)) {
         drawPath(parentGfx, pathData, {
           strokeWidth: 1,
-          fill: 'black'
+          fill: getStrokeColor(element),
+          stroke: getStrokeColor(element)
         });
       }
 
       return diamond;
     },
     'bpmn:ComplexGateway': function(parentGfx, element) {
-      var diamond = drawDiamond(parentGfx, element.width, element.height);
+      var attrs = {
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
+      };
+
+      var diamond = drawDiamond(parentGfx, element.width, element.height, attrs);
 
       var pathData = pathMap.getScaledPath('GATEWAY_COMPLEX', {
         xScaleFactor: 0.5,
@@ -1606,13 +1743,19 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
 
       /* complex path */ drawPath(parentGfx, pathData, {
         strokeWidth: 1,
-        fill: 'black'
+        fill: getStrokeColor(element),
+        stroke: getStrokeColor(element)
       });
 
       return diamond;
     },
     'bpmn:ParallelGateway': function(parentGfx, element) {
-      var diamond = drawDiamond(parentGfx, element.width, element.height);
+      var attrs = {
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
+      };
+
+      var diamond = drawDiamond(parentGfx, element.width, element.height, attrs);
 
       var pathData = pathMap.getScaledPath('GATEWAY_PARALLEL', {
         xScaleFactor: 0.6,
@@ -1627,7 +1770,8 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
 
       /* parallel path */ drawPath(parentGfx, pathData, {
         strokeWidth: 1,
-        fill: 'black'
+        fill: getStrokeColor(element),
+        stroke: getStrokeColor(element)
       });
 
       return diamond;
@@ -1636,11 +1780,17 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
 
       var semantic = getSemantic(element);
 
-      var diamond = drawDiamond(parentGfx, element.width, element.height);
+      var attrs = {
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
+      };
+
+      var diamond = drawDiamond(parentGfx, element.width, element.height, attrs);
 
       /* outer circle path */ drawCircle(parentGfx, element.width, element.height, element.height * 0.20, {
         strokeWidth: 1,
-        fill: 'none'
+        fill: 'none',
+        stroke: getStrokeColor(element)
       });
 
       var type = semantic.eventGatewayType;
@@ -1659,10 +1809,13 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
           }
         });
 
-        /* event path */ drawPath(parentGfx, pathData, {
+        var attrs = {
           strokeWidth: 2,
-          fill: 'none'
-        });
+          fill: getFillColor(element, 'none'),
+          stroke: getStrokeColor(element)
+        };
+
+        /* event path */ drawPath(parentGfx, pathData, attrs);
       }
 
       if (type === 'Parallel') {
@@ -1689,7 +1842,8 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
           var innerCircle = drawCircle(parentGfx, element.width, element.height, element.height * 0.26);
           svgAttr(innerCircle, {
             strokeWidth: 1,
-            fill: 'none'
+            fill: 'none',
+            stroke: getStrokeColor(element)
           });
         }
 
@@ -1704,10 +1858,17 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
     },
     'bpmn:SequenceFlow': function(parentGfx, element) {
       var pathData = createPathFromConnection(element);
-      var path = drawPath(parentGfx, pathData, {
+
+      var fill = getFillColor(element),
+          stroke = getStrokeColor(element);
+
+      var attrs = {
         strokeLinejoin: 'round',
-        markerEnd: marker('sequenceflow-end')
-      });
+        markerEnd: marker('sequenceflow-end', fill, stroke),
+        stroke: getStrokeColor(element)
+      };
+
+      var path = drawPath(parentGfx, pathData, attrs);
 
       var sequenceFlow = getSemantic(element);
       var source = element.source.businessObject;
@@ -1715,7 +1876,7 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
       // conditional flow marker
       if (sequenceFlow.conditionExpression && source.$instanceOf('bpmn:Activity')) {
         svgAttr(path, {
-          markerStart: marker('conditional-flow-marker')
+          markerStart: marker('conditional-flow-marker', fill, stroke)
         });
       }
 
@@ -1723,7 +1884,7 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
       if (source.default && (source.$instanceOf('bpmn:Gateway') || source.$instanceOf('bpmn:Activity')) &&
           source.default === sequenceFlow) {
         svgAttr(path, {
-          markerStart: marker('conditional-default-flow-marker')
+          markerStart: marker('conditional-default-flow-marker', fill, stroke)
         });
       }
 
@@ -1733,31 +1894,41 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
 
       var semantic = getSemantic(element);
 
+      var fill = getFillColor(element),
+          stroke = getStrokeColor(element);
+
       attrs = assign({
         strokeDasharray: '0.5, 5',
         strokeLinecap: 'round',
-        strokeLinejoin: 'round'
+        strokeLinejoin: 'round',
+        stroke: getStrokeColor(element)
       }, attrs || {});
 
       if (semantic.associationDirection === 'One' ||
           semantic.associationDirection === 'Both') {
-        attrs.markerEnd = marker('association-end');
+        attrs.markerEnd = marker('association-end', fill, stroke);
       }
 
       if (semantic.associationDirection === 'Both') {
-        attrs.markerStart = marker('association-start');
+        attrs.markerStart = marker('association-start', fill, stroke);
       }
 
       return drawLine(parentGfx, element.waypoints, attrs);
     },
     'bpmn:DataInputAssociation': function(parentGfx, element) {
+      var fill = getFillColor(element),
+          stroke = getStrokeColor(element);
+
       return renderer('bpmn:Association')(parentGfx, element, {
-        markerEnd: marker('association-end')
+        markerEnd: marker('association-end', fill, stroke)
       });
     },
     'bpmn:DataOutputAssociation': function(parentGfx, element) {
+      var fill = getFillColor(element),
+          stroke = getStrokeColor(element);
+
       return renderer('bpmn:Association')(parentGfx, element, {
-        markerEnd: marker('association-end')
+        markerEnd: marker('association-end', fill, stroke)
       });
     },
     'bpmn:MessageFlow': function(parentGfx, element) {
@@ -1765,15 +1936,22 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
       var semantic = getSemantic(element),
           di = getDi(element);
 
+      var fill = getFillColor(element),
+          stroke = getStrokeColor(element);
+
       var pathData = createPathFromConnection(element);
-      var path = drawPath(parentGfx, pathData, {
-        markerEnd: marker('messageflow-end'),
-        markerStart: marker('messageflow-start'),
+
+      var attrs = {
+        markerEnd: marker('messageflow-end', fill, stroke),
+        markerStart: marker('messageflow-start', fill, stroke),
         strokeDasharray: '10, 12',
         strokeLinecap: 'round',
         strokeLinejoin: 'round',
-        strokeWidth: '1.5px'
-      });
+        strokeWidth: '1.5px',
+        stroke: getStrokeColor(element)
+      };
+
+      var path = drawPath(parentGfx, pathData, attrs);
 
       if (semantic.messageRef) {
         var midPoint = path.getPointAtLength(path.getTotalLength() / 2);
@@ -1812,7 +1990,10 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
         }
       });
 
-      var elementObject = drawPath(parentGfx, pathData, { fill: 'white' });
+      var elementObject = drawPath(parentGfx, pathData, {
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
+      });
 
       var semantic = getSemantic(element);
 
@@ -1861,7 +2042,8 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
 
       var elementStore = drawPath(parentGfx, DATA_STORE_PATH, {
         strokeWidth: 2,
-        fill: 'white'
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
       });
 
       return elementStore;
@@ -1872,7 +2054,9 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
           cancel = semantic.cancelActivity;
 
       var attrs = {
-        strokeWidth: 1
+        strokeWidth: 1,
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
       };
 
       if (!cancel) {
@@ -1896,33 +2080,7 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
       });
     },
     'label': function(parentGfx, element) {
-      // Update external label size and bounds during rendering when
-      // we have the actual rendered bounds anyway.
-
-      var textElement = renderExternalLabel(parentGfx, element);
-
-      var textBBox;
-
-      try {
-        textBBox = textElement.getBBox();
-      } catch (e) {
-        textBBox = { width: 0, height: 0, x: 0 };
-      }
-
-      // update element.x so that the layouted text is still
-      // center alligned (newX = oldMidX - newWidth / 2)
-      element.x = Math.ceil(element.x + element.width / 2) - Math.ceil((textBBox.width / 2));
-
-      // take element width, height from actual bounds
-      element.width = Math.ceil(textBBox.width);
-      element.height = Math.ceil(textBBox.height);
-
-      // compensate bounding box x
-      svgAttr(textElement, {
-        transform: 'translate(' + (-1 * textBBox.x) + ',0)'
-      });
-
-      return textElement;
+      return renderExternalLabel(parentGfx, element);
     },
     'bpmn:TextAnnotation': function(parentGfx, element) {
       var style = {
@@ -1930,42 +2088,24 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
         'stroke': 'none'
       };
 
-      var minHeight = 32,
-          minWidth = 100;
-
-      var text = getSemantic(element).text || '';
-
-      // provide pseudo infinite max width, which is necessary to
-      // avoid automatic line breaks in createText
-      var box = { width: 9000, height: element.height, x: element.x, y: element.y };
-
-      var label = renderLabel(parentGfx, text, { box: box, align: 'left', padding: 5 });
-
-      var height = Math.max(label.getBBox().height + 18, minHeight),
-          width = Math.max(label.getBBox().width, minWidth);
+      var textElement = drawRect(parentGfx, element.width, element.height, 0, 0, style);
 
       var textPathData = pathMap.getScaledPath('TEXT_ANNOTATION', {
         xScaleFactor: 1,
         yScaleFactor: 1,
-        containerWidth: width,
-        containerHeight: height,
+        containerWidth: element.width,
+        containerHeight: element.height,
         position: {
           mx: 0.0,
           my: 0.0
         }
       });
-      drawPath(parentGfx, textPathData);
-
-      var dy = -((height - element.height) / 2);
-
-      // adjust dimension and vertical position
-      assign(element, {
-        width: width,
-        height: height,
-        y: element.y + dy
+      drawPath(parentGfx, textPathData, {
+        stroke: getStrokeColor(element)
       });
 
-      var textElement = drawRect(parentGfx, element.width, element.height, 0, 0, style);
+      var text = getSemantic(element).text || '';
+      renderLabel(parentGfx, text, { box: element, align: 'left-middle', padding: 5 });
 
       return textElement;
     },
@@ -1985,7 +2125,9 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
     },
     'SubProcessMarker': function(parentGfx, element) {
       var markerRect = drawRect(parentGfx, 14, 14, 0, {
-        strokeWidth: 1
+        strokeWidth: 1,
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
       });
 
       // Process marker is placed in the middle of the box
@@ -2003,7 +2145,10 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
         }
       });
 
-      drawMarker('sub-process', parentGfx, markerPath);
+      drawMarker('sub-process', parentGfx, markerPath, {
+        fill: getFillColor(element),
+        stroke: getStrokeColor(element)
+      });
     },
     'ParallelMarker': function(parentGfx, element, position) {
       var markerPath = pathMap.getScaledPath('MARKER_PARALLEL', {
@@ -2088,7 +2233,7 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
   function attachTaskMarkers(parentGfx, element, taskMarkers) {
     var obj = getSemantic(element);
 
-    var subprocess = includes(taskMarkers, 'SubProcessMarker');
+    var subprocess = taskMarkers && taskMarkers.indexOf('SubProcessMarker') !== -1;
     var position;
 
     if (subprocess) {
@@ -2159,18 +2304,12 @@ function BpmnRenderer(eventBus, styles, pathMap, priority) {
       strokeWidth: 2
     });
   }
-
-  // hook onto canvas init event to initialize
-  // connection start/end markers on svg
-  eventBus.on('canvas.init', function(event) {
-    initMarkers(event.svg);
-  });
 }
 
 
 inherits(BpmnRenderer, BaseRenderer);
 
-BpmnRenderer.$inject = [ 'eventBus', 'styles', 'pathMap' ];
+BpmnRenderer.$inject = [ 'eventBus', 'styles', 'pathMap', 'canvas' ];
 
 module.exports = BpmnRenderer;
 
@@ -2335,7 +2474,19 @@ function getRectPath(shape) {
   return componentsToPath(rectPath);
 }
 
-},{"113":113,"116":116,"12":12,"128":128,"14":14,"147":147,"149":149,"150":150,"152":152,"167":167,"199":199,"200":200,"201":201,"29":29,"31":31,"34":34,"35":35,"38":38}],5:[function(_dereq_,module,exports){
+function getFillColor(element, defaultColor) {
+  var bo = getBusinessObject(element);
+
+  return bo.di.get('fill') || defaultColor || 'white';
+}
+
+function getStrokeColor(element, defaultColor) {
+  var bo = getBusinessObject(element);
+
+  return bo.di.get('stroke') || defaultColor || 'black';
+}
+
+},{"12":12,"14":14,"192":192,"197":197,"214":214,"233":233,"235":235,"236":236,"238":238,"39":39,"71":71,"72":72,"73":73,"79":79,"82":82,"85":85,"89":89}],5:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -2825,10 +2976,12 @@ module.exports = {
 },{"4":4,"5":5}],7:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(116),
-    map = _dereq_(36);
+var assign = _dereq_(197),
+    map = _dereq_(87);
 
 var LabelUtil = _dereq_(13);
+
+var TextUtil = _dereq_(73);
 
 var is = _dereq_(14).is;
 
@@ -2860,6 +3013,7 @@ function notYetDrawn(translate, semantic, refSemantic, property) {
   }));
 }
 
+
 /**
  * An importer that adds bpmn elements to the canvas
  *
@@ -2875,6 +3029,8 @@ function BpmnImporter(eventBus, canvas, elementFactory, elementRegistry, transla
   this._elementFactory = elementFactory;
   this._elementRegistry = elementRegistry;
   this._translate = translate;
+
+  this._textUtil = new TextUtil();
 }
 
 BpmnImporter.$inject = [ 'eventBus', 'canvas', 'elementFactory', 'elementRegistry', 'translate' ];
@@ -2943,8 +3099,12 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
       waypoints: collectWaypoints(semantic.di.waypoint)
     }));
 
-    if (is(semantic, 'bpmn:DataInputAssociation') || is(semantic, 'bpmn:DataOutputAssociation')) {
-      // implicit root element
+    if (is(semantic, 'bpmn:DataAssociation')) {
+
+      // render always on top; this ensures DataAssociations
+      // are rendered correctly across different "hacks" people
+      // love to model such as cross participant / sub process
+      // associations
       parentElement = null;
     }
 
@@ -3007,9 +3167,20 @@ BpmnImporter.prototype._attachBoundary = function(boundarySemantic, boundaryElem
  * add label for an element
  */
 BpmnImporter.prototype.addLabel = function(semantic, element) {
-  var bounds = getExternalLabelBounds(semantic, element);
+  var bounds,
+      text,
+      label;
 
-  var label = this._elementFactory.createLabel(elementData(semantic, {
+  bounds = getExternalLabelBounds(semantic, element);
+
+  text = semantic.name;
+
+  if (text) {
+    // get corrected bounds from actual layouted text
+    bounds = getLayoutedBounds(bounds, text, this._textUtil);
+  }
+
+  label = this._elementFactory.createLabel(elementData(semantic, {
     id: semantic.id + '_label',
     labelTarget: element,
     type: 'label',
@@ -3078,14 +3249,42 @@ BpmnImporter.prototype._getElement = function(semantic) {
   return this._elementRegistry.get(semantic.id);
 };
 
-},{"10":10,"116":116,"12":12,"13":13,"14":14,"36":36}],8:[function(_dereq_,module,exports){
+
+// TODO(nikku): repeating code (search for <getLayoutedBounds>)
+
+var EXTERNAL_LABEL_STYLE = {
+  fontFamily: 'Arial, sans-serif',
+  fontSize: '11px'
+};
+
+function getLayoutedBounds(bounds, text, textUtil) {
+
+  var layoutedLabelDimensions = textUtil.getDimensions(text, {
+    box: {
+      width: 90,
+      height: 30,
+      x: bounds.width / 2 + bounds.x,
+      y: bounds.height / 2 + bounds.y
+    },
+    style: EXTERNAL_LABEL_STYLE
+  });
+
+  // resize label shape to fit label text
+  return {
+    x: Math.round(bounds.x + bounds.width / 2 - layoutedLabelDimensions.width / 2),
+    y: Math.round(bounds.y),
+    width: Math.ceil(layoutedLabelDimensions.width),
+    height: Math.ceil(layoutedLabelDimensions.height)
+  };
+}
+},{"10":10,"12":12,"13":13,"14":14,"197":197,"73":73,"87":87}],8:[function(_dereq_,module,exports){
 'use strict';
 
-var filter = _dereq_(32),
-    find = _dereq_(33),
-    forEach = _dereq_(34);
+var filter = _dereq_(83),
+    find = _dereq_(84),
+    forEach = _dereq_(85);
 
-var Refs = _dereq_(142);
+var Refs = _dereq_(228);
 
 var elementToString = _dereq_(10).elementToString;
 
@@ -3525,7 +3724,7 @@ function BpmnTreeWalker(handler, translate) {
 }
 
 module.exports = BpmnTreeWalker;
-},{"10":10,"142":142,"32":32,"33":33,"34":34}],9:[function(_dereq_,module,exports){
+},{"10":10,"228":228,"83":83,"84":84,"85":85}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var BpmnTreeWalker = _dereq_(8);
@@ -3609,17 +3808,17 @@ module.exports.elementToString = function(e) {
 },{}],11:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(181)
+    _dereq_(53)
   ],
   bpmnImporter: [ 'type', _dereq_(7) ]
 };
-},{"181":181,"7":7}],12:[function(_dereq_,module,exports){
+},{"53":53,"7":7}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var is = _dereq_(14).is,
     getBusinessObject = _dereq_(14).getBusinessObject;
 
-var forEach = _dereq_(34);
+var forEach = _dereq_(85);
 
 module.exports.isExpanded = function(element) {
 
@@ -3675,10 +3874,10 @@ module.exports.hasCompensateEventDefinition = function(element) {
   return hasEventDefinition(element, 'bpmn:CompensateEventDefinition');
 };
 
-},{"14":14,"34":34}],13:[function(_dereq_,module,exports){
+},{"14":14,"85":85}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(116);
+var assign = _dereq_(197);
 
 var is = _dereq_(14).is;
 
@@ -3816,7 +4015,7 @@ module.exports.getExternalLabelBounds = function(semantic, element) {
   }, size);
 };
 
-},{"116":116,"14":14}],14:[function(_dereq_,module,exports){
+},{"14":14,"197":197}],14:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -3858,9 +4057,9 @@ module.exports.getBusinessObject = getBusinessObject;
 
 'use strict';
 
-var domify = _dereq_(126);
+var domify = _dereq_(212);
 
-var domDelegate = _dereq_(125);
+var domDelegate = _dereq_(211);
 
 /* jshint -W101 */
 
@@ -3933,18 +4132,18 @@ function open() {
 }
 
 module.exports.open = open;
-},{"125":125,"126":126}],16:[function(_dereq_,module,exports){
+},{"211":211,"212":212}],16:[function(_dereq_,module,exports){
 module.exports = _dereq_(18);
 },{"18":18}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var isString = _dereq_(114),
-    isFunction = _dereq_(110),
-    assign = _dereq_(116);
+var isString = _dereq_(194),
+    isFunction = _dereq_(189),
+    assign = _dereq_(197);
 
-var Moddle = _dereq_(133),
-    XmlReader = _dereq_(131),
-    XmlWriter = _dereq_(132);
+var Moddle = _dereq_(219),
+    XmlReader = _dereq_(217),
+    XmlWriter = _dereq_(218);
 
 /**
  * A sub class of {@link Moddle} with support for import and export of BPMN 2.0 xml files.
@@ -4016,24 +4215,69 @@ BpmnModdle.prototype.toXML = function(element, options, done) {
   }
 };
 
-},{"110":110,"114":114,"116":116,"131":131,"132":132,"133":133}],18:[function(_dereq_,module,exports){
+},{"189":189,"194":194,"197":197,"217":217,"218":218,"219":219}],18:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(116);
+var assign = _dereq_(197);
 
 var BpmnModdle = _dereq_(17);
 
 var packages = {
-  bpmn: _dereq_(19),
-  bpmndi: _dereq_(20),
-  dc: _dereq_(21),
-  di: _dereq_(22)
+  bpmn: _dereq_(20),
+  bpmndi: _dereq_(21),
+  dc: _dereq_(22),
+  di: _dereq_(23),
+  bioc: _dereq_(19)
 };
 
 module.exports = function(additionalPackages, options) {
   return new BpmnModdle(assign({}, packages, additionalPackages), options);
 };
-},{"116":116,"17":17,"19":19,"20":20,"21":21,"22":22}],19:[function(_dereq_,module,exports){
+
+},{"17":17,"19":19,"197":197,"20":20,"21":21,"22":22,"23":23}],19:[function(_dereq_,module,exports){
+module.exports={
+  "name": "bpmn.io colors for BPMN",
+  "uri": "http://bpmn.io/schema/bpmn/biocolor/1.0",
+  "prefix": "bioc",
+  "types": [
+    {
+      "name": "ColoredShape",
+      "extends": [ "bpmndi:BPMNShape" ],
+      "properties": [
+        {
+          "name": "stroke",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "fill",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    },
+    {
+      "name": "ColoredEdge",
+      "extends": [ "bpmndi:BPMNEdge" ],
+      "properties": [
+        {
+          "name": "stroke",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "fill",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    }
+  ],
+  "emumerations": [],
+  "associations": []
+}
+
+},{}],20:[function(_dereq_,module,exports){
 module.exports={
   "name": "BPMN20",
   "uri": "http://www.omg.org/spec/BPMN/20100524/MODEL",
@@ -5557,7 +5801,14 @@ module.exports={
       "superClass": [
         "BaseElement"
       ],
-      "isAbstract": true
+      "isAbstract": false,
+      "properties": [
+        {
+          "name": "body",
+          "type": "String",
+          "isBody": true
+        }
+      ]
     },
     {
       "name": "FormalExpression",
@@ -5569,11 +5820,6 @@ module.exports={
           "name": "language",
           "isAttr": true,
           "type": "String"
-        },
-        {
-          "name": "body",
-          "type": "String",
-          "isBody": true
         },
         {
           "name": "evaluatesToTypeRef",
@@ -6985,7 +7231,7 @@ module.exports={
     "typePrefix": "t"
   }
 }
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 module.exports={
   "name": "BPMNDI",
   "uri": "http://www.omg.org/spec/BPMN/20100524/DI",
@@ -7179,7 +7425,7 @@ module.exports={
   "associations": [],
   "prefix": "bpmndi"
 }
-},{}],21:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 module.exports={
   "name": "DC",
   "uri": "http://www.omg.org/spec/DD/20100524/DC",
@@ -7279,7 +7525,7 @@ module.exports={
   "prefix": "dc",
   "associations": []
 }
-},{}],22:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 module.exports={
   "name": "DI",
   "uri": "http://www.omg.org/spec/DD/20100524/DI",
@@ -7518,8 +7764,201 @@ module.exports={
     "tagAlias": "lowerCase"
   }
 }
-},{}],23:[function(_dereq_,module,exports){
-var matches = _dereq_(26)
+},{}],24:[function(_dereq_,module,exports){
+/**
+ * Module dependencies.
+ */
+
+try {
+  var index = _dereq_(28);
+} catch (err) {
+  var index = _dereq_(28);
+}
+
+/**
+ * Whitespace regexp.
+ */
+
+var re = /\s+/;
+
+/**
+ * toString reference.
+ */
+
+var toString = Object.prototype.toString;
+
+/**
+ * Wrap `el` in a `ClassList`.
+ *
+ * @param {Element} el
+ * @return {ClassList}
+ * @api public
+ */
+
+module.exports = function(el){
+  return new ClassList(el);
+};
+
+/**
+ * Initialize a new ClassList for `el`.
+ *
+ * @param {Element} el
+ * @api private
+ */
+
+function ClassList(el) {
+  if (!el || !el.nodeType) {
+    throw new Error('A DOM element reference is required');
+  }
+  this.el = el;
+  this.list = el.classList;
+}
+
+/**
+ * Add class `name` if not already present.
+ *
+ * @param {String} name
+ * @return {ClassList}
+ * @api public
+ */
+
+ClassList.prototype.add = function(name){
+  // classList
+  if (this.list) {
+    this.list.add(name);
+    return this;
+  }
+
+  // fallback
+  var arr = this.array();
+  var i = index(arr, name);
+  if (!~i) arr.push(name);
+  this.el.className = arr.join(' ');
+  return this;
+};
+
+/**
+ * Remove class `name` when present, or
+ * pass a regular expression to remove
+ * any which match.
+ *
+ * @param {String|RegExp} name
+ * @return {ClassList}
+ * @api public
+ */
+
+ClassList.prototype.remove = function(name){
+  if ('[object RegExp]' == toString.call(name)) {
+    return this.removeMatching(name);
+  }
+
+  // classList
+  if (this.list) {
+    this.list.remove(name);
+    return this;
+  }
+
+  // fallback
+  var arr = this.array();
+  var i = index(arr, name);
+  if (~i) arr.splice(i, 1);
+  this.el.className = arr.join(' ');
+  return this;
+};
+
+/**
+ * Remove all classes matching `re`.
+ *
+ * @param {RegExp} re
+ * @return {ClassList}
+ * @api private
+ */
+
+ClassList.prototype.removeMatching = function(re){
+  var arr = this.array();
+  for (var i = 0; i < arr.length; i++) {
+    if (re.test(arr[i])) {
+      this.remove(arr[i]);
+    }
+  }
+  return this;
+};
+
+/**
+ * Toggle class `name`, can force state via `force`.
+ *
+ * For browsers that support classList, but do not support `force` yet,
+ * the mistake will be detected and corrected.
+ *
+ * @param {String} name
+ * @param {Boolean} force
+ * @return {ClassList}
+ * @api public
+ */
+
+ClassList.prototype.toggle = function(name, force){
+  // classList
+  if (this.list) {
+    if ("undefined" !== typeof force) {
+      if (force !== this.list.toggle(name, force)) {
+        this.list.toggle(name); // toggle again to correct
+      }
+    } else {
+      this.list.toggle(name);
+    }
+    return this;
+  }
+
+  // fallback
+  if ("undefined" !== typeof force) {
+    if (!force) {
+      this.remove(name);
+    } else {
+      this.add(name);
+    }
+  } else {
+    if (this.has(name)) {
+      this.remove(name);
+    } else {
+      this.add(name);
+    }
+  }
+
+  return this;
+};
+
+/**
+ * Return an array of classes.
+ *
+ * @return {Array}
+ * @api public
+ */
+
+ClassList.prototype.array = function(){
+  var className = this.el.getAttribute('class') || '';
+  var str = className.replace(/^\s+|\s+$/g, '');
+  var arr = str.split(re);
+  if ('' === arr[0]) arr.shift();
+  return arr;
+};
+
+/**
+ * Check if class `name` is present.
+ *
+ * @param {String} name
+ * @return {ClassList}
+ * @api public
+ */
+
+ClassList.prototype.has =
+ClassList.prototype.contains = function(name){
+  return this.list
+    ? this.list.contains(name)
+    : !! ~index(this.array(), name);
+};
+
+},{"28":28}],25:[function(_dereq_,module,exports){
+var matches = _dereq_(29)
 
 module.exports = function (element, selector, checkYoSelf, root) {
   element = checkYoSelf ? {parentNode: element} : element
@@ -7539,21 +7978,21 @@ module.exports = function (element, selector, checkYoSelf, root) {
   }
 }
 
-},{"26":26}],24:[function(_dereq_,module,exports){
+},{"29":29}],26:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
 try {
-  var closest = _dereq_(23);
+  var closest = _dereq_(25);
 } catch(err) {
-  var closest = _dereq_(23);
+  var closest = _dereq_(25);
 }
 
 try {
-  var event = _dereq_(25);
+  var event = _dereq_(27);
 } catch(err) {
-  var event = _dereq_(25);
+  var event = _dereq_(27);
 }
 
 /**
@@ -7592,7 +8031,7 @@ exports.unbind = function(el, type, fn, capture){
   event.unbind(el, type, fn, capture);
 };
 
-},{"23":23,"25":25}],25:[function(_dereq_,module,exports){
+},{"25":25,"27":27}],27:[function(_dereq_,module,exports){
 var bind = window.addEventListener ? 'addEventListener' : 'attachEvent',
     unbind = window.removeEventListener ? 'removeEventListener' : 'detachEvent',
     prefix = bind !== 'addEventListener' ? 'on' : '';
@@ -7628,15 +8067,23 @@ exports.unbind = function(el, type, fn, capture){
   el[unbind](prefix + type, fn, capture || false);
   return fn;
 };
-},{}],26:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
+module.exports = function(arr, obj){
+  if (arr.indexOf) return arr.indexOf(obj);
+  for (var i = 0; i < arr.length; ++i) {
+    if (arr[i] === obj) return i;
+  }
+  return -1;
+};
+},{}],29:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
 try {
-  var query = _dereq_(27);
+  var query = _dereq_(30);
 } catch (err) {
-  var query = _dereq_(27);
+  var query = _dereq_(30);
 }
 
 /**
@@ -7680,7 +8127,7 @@ function match(el, selector) {
   return false;
 }
 
-},{"27":27}],27:[function(_dereq_,module,exports){
+},{"30":30}],30:[function(_dereq_,module,exports){
 function one(selector, el) {
   return el.querySelector(selector);
 }
@@ -7703,7 +8150,5659 @@ exports.engine = function(obj){
   return exports;
 };
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
+module.exports = _dereq_(32);
+},{"32":32}],32:[function(_dereq_,module,exports){
+'use strict';
+
+var di = _dereq_(75);
+
+
+/**
+ * Bootstrap an injector from a list of modules, instantiating a number of default components
+ *
+ * @ignore
+ * @param {Array<didi.Module>} bootstrapModules
+ *
+ * @return {didi.Injector} a injector to use to access the components
+ */
+function bootstrap(bootstrapModules) {
+
+  var modules = [],
+      components = [];
+
+  function hasModule(m) {
+    return modules.indexOf(m) >= 0;
+  }
+
+  function addModule(m) {
+    modules.push(m);
+  }
+
+  function visit(m) {
+    if (hasModule(m)) {
+      return;
+    }
+
+    (m.__depends__ || []).forEach(visit);
+
+    if (hasModule(m)) {
+      return;
+    }
+
+    addModule(m);
+
+    (m.__init__ || []).forEach(function(c) {
+      components.push(c);
+    });
+  }
+
+  bootstrapModules.forEach(visit);
+
+  var injector = new di.Injector(modules);
+
+  components.forEach(function(c) {
+
+    try {
+      // eagerly resolve component (fn or string)
+      injector[typeof c === 'string' ? 'get' : 'invoke'](c);
+    } catch (e) {
+      console.error('Failed to instantiate component');
+      console.error(e.stack);
+
+      throw e;
+    }
+  });
+
+  return injector;
+}
+
+/**
+ * Creates an injector from passed options.
+ *
+ * @ignore
+ * @param  {Object} options
+ * @return {didi.Injector}
+ */
+function createInjector(options) {
+
+  options = options || {};
+
+  var configModule = {
+    'config': ['value', options]
+  };
+
+  var coreModule = _dereq_(38);
+
+  var modules = [ configModule, coreModule ].concat(options.modules || []);
+
+  return bootstrap(modules);
+}
+
+
+/**
+ * The main diagram-js entry point that bootstraps the diagram with the given
+ * configuration.
+ *
+ * To register extensions with the diagram, pass them as Array<didi.Module> to the constructor.
+ *
+ * @class djs.Diagram
+ * @memberOf djs
+ * @constructor
+ *
+ * @example
+ *
+ * <caption>Creating a plug-in that logs whenever a shape is added to the canvas.</caption>
+ *
+ * // plug-in implemenentation
+ * function MyLoggingPlugin(eventBus) {
+ *   eventBus.on('shape.added', function(event) {
+ *     console.log('shape ', event.shape, ' was added to the diagram');
+ *   });
+ * }
+ *
+ * // export as module
+ * module.exports = {
+ *   __init__: [ 'myLoggingPlugin' ],
+ *     myLoggingPlugin: [ 'type', MyLoggingPlugin ]
+ * };
+ *
+ *
+ * // instantiate the diagram with the new plug-in
+ *
+ * var diagram = new Diagram({ modules: [ require('path-to-my-logging-plugin') ] });
+ *
+ * diagram.invoke([ 'canvas', function(canvas) {
+ *   // add shape to drawing canvas
+ *   canvas.addShape({ x: 10, y: 10 });
+ * });
+ *
+ * // 'shape ... was added to the diagram' logged to console
+ *
+ * @param {Object} options
+ * @param {Array<didi.Module>} [options.modules] external modules to instantiate with the diagram
+ * @param {didi.Injector} [injector] an (optional) injector to bootstrap the diagram with
+ */
+function Diagram(options, injector) {
+
+  // create injector unless explicitly specified
+  this.injector = injector = injector || createInjector(options);
+
+  // API
+
+  /**
+   * Resolves a diagram service
+   *
+   * @method Diagram#get
+   *
+   * @param {String} name the name of the diagram service to be retrieved
+   * @param {Boolean} [strict=true] if false, resolve missing services to null
+   */
+  this.get = injector.get;
+
+  /**
+   * Executes a function into which diagram services are injected
+   *
+   * @method Diagram#invoke
+   *
+   * @param {Function|Object[]} fn the function to resolve
+   * @param {Object} locals a number of locals to use to resolve certain dependencies
+   */
+  this.invoke = injector.invoke;
+
+  // init
+
+  // indicate via event
+
+
+  /**
+   * An event indicating that all plug-ins are loaded.
+   *
+   * Use this event to fire other events to interested plug-ins
+   *
+   * @memberOf Diagram
+   *
+   * @event diagram.init
+   *
+   * @example
+   *
+   * eventBus.on('diagram.init', function() {
+   *   eventBus.fire('my-custom-event', { foo: 'BAR' });
+   * });
+   *
+   * @type {Object}
+   */
+  this.get('eventBus').fire('diagram.init');
+}
+
+module.exports = Diagram;
+
+
+/**
+ * Destroys the diagram
+ *
+ * @method  Diagram#destroy
+ */
+Diagram.prototype.destroy = function() {
+  this.get('eventBus').fire('diagram.destroy');
+};
+
+/**
+ * Clear the diagram, removing all contents.
+ */
+Diagram.prototype.clear = function() {
+  this.get('eventBus').fire('diagram.clear');
+};
+
+},{"38":38,"75":75}],33:[function(_dereq_,module,exports){
+'use strict';
+
+var isNumber = _dereq_(191),
+    assign = _dereq_(197),
+    forEach = _dereq_(85),
+    every = _dereq_(82),
+    debounce = _dereq_(92);
+
+var Collections = _dereq_(62),
+    Elements = _dereq_(64);
+
+var svgAppend = _dereq_(233),
+    svgAttr = _dereq_(235),
+    svgClasses = _dereq_(236),
+    svgCreate = _dereq_(238),
+    svgTransform = _dereq_(242);
+
+var createMatrix = _dereq_(239).createMatrix;
+
+
+function round(number, resolution) {
+  return Math.round(number * resolution) / resolution;
+}
+
+function ensurePx(number) {
+  return isNumber(number) ? number + 'px' : number;
+}
+
+/**
+ * Creates a HTML container element for a SVG element with
+ * the given configuration
+ *
+ * @param  {Object} options
+ * @return {HTMLElement} the container element
+ */
+function createContainer(options) {
+
+  options = assign({}, { width: '100%', height: '100%' }, options);
+
+  var container = options.container || document.body;
+
+  // create a <div> around the svg element with the respective size
+  // this way we can always get the correct container size
+  // (this is impossible for <svg> elements at the moment)
+  var parent = document.createElement('div');
+  parent.setAttribute('class', 'djs-container');
+
+  assign(parent.style, {
+    position: 'relative',
+    overflow: 'hidden',
+    width: ensurePx(options.width),
+    height: ensurePx(options.height)
+  });
+
+  container.appendChild(parent);
+
+  return parent;
+}
+
+function createGroup(parent, cls) {
+  var group = svgCreate('g');
+  svgClasses(group).add(cls);
+
+  svgAppend(parent, group);
+
+  return group;
+}
+
+var BASE_LAYER = 'base';
+
+
+var REQUIRED_MODEL_ATTRS = {
+  shape: [ 'x', 'y', 'width', 'height' ],
+  connection: [ 'waypoints' ]
+};
+
+/**
+ * The main drawing canvas.
+ *
+ * @class
+ * @constructor
+ *
+ * @emits Canvas#canvas.init
+ *
+ * @param {Object} config
+ * @param {EventBus} eventBus
+ * @param {GraphicsFactory} graphicsFactory
+ * @param {ElementRegistry} elementRegistry
+ */
+function Canvas(config, eventBus, graphicsFactory, elementRegistry) {
+
+  this._eventBus = eventBus;
+  this._elementRegistry = elementRegistry;
+  this._graphicsFactory = graphicsFactory;
+
+  this._init(config || {});
+}
+
+Canvas.$inject = [ 'config.canvas', 'eventBus', 'graphicsFactory', 'elementRegistry' ];
+
+module.exports = Canvas;
+
+
+Canvas.prototype._init = function(config) {
+
+  var eventBus = this._eventBus;
+
+  // Creates a <svg> element that is wrapped into a <div>.
+  // This way we are always able to correctly figure out the size of the svg element
+  // by querying the parent node.
+  //
+  // (It is not possible to get the size of a svg element cross browser @ 2014-04-01)
+  //
+  // <div class="djs-container" style="width: {desired-width}, height: {desired-height}">
+  //   <svg width="100%" height="100%">
+  //    ...
+  //   </svg>
+  // </div>
+
+  // html container
+  var container = this._container = createContainer(config);
+
+  var svg = this._svg = svgCreate('svg');
+  svgAttr(svg, { width: '100%', height: '100%' });
+
+  svgAppend(container, svg);
+
+  var viewport = this._viewport = createGroup(svg, 'viewport');
+
+  this._layers = {};
+
+  // debounce canvas.viewbox.changed events
+  // for smoother diagram interaction
+  if (config.deferUpdate !== false) {
+    this._viewboxChanged = debounce(this._viewboxChanged, 300);
+  }
+
+  eventBus.on('diagram.init', function() {
+
+    /**
+     * An event indicating that the canvas is ready to be drawn on.
+     *
+     * @memberOf Canvas
+     *
+     * @event canvas.init
+     *
+     * @type {Object}
+     * @property {Snap<SVGSVGElement>} svg the created svg element
+     * @property {Snap<SVGGroup>} viewport the direct parent of diagram elements and shapes
+     */
+    eventBus.fire('canvas.init', {
+      svg: svg,
+      viewport: viewport
+    });
+
+    // fire this in order for certain components to check
+    // if they need to be adjusted due the canvas size
+    this.resized();
+
+  }, this);
+
+  eventBus.on('diagram.destroy', 500, this._destroy, this);
+  eventBus.on('diagram.clear', 500, this._clear, this);
+};
+
+Canvas.prototype._destroy = function(emit) {
+  this._eventBus.fire('canvas.destroy', {
+    svg: this._svg,
+    viewport: this._viewport
+  });
+
+  var parent = this._container.parentNode;
+
+  if (parent) {
+    parent.removeChild(this._container);
+  }
+
+  delete this._svg;
+  delete this._container;
+  delete this._layers;
+  delete this._rootElement;
+  delete this._viewport;
+};
+
+Canvas.prototype._clear = function() {
+
+  var self = this;
+
+  var allElements = this._elementRegistry.getAll();
+
+  // remove all elements
+  allElements.forEach(function(element) {
+    var type = Elements.getType(element);
+
+    if (type === 'root') {
+      self.setRootElement(null, true);
+    } else {
+      self._removeElement(element, type);
+    }
+  });
+
+  // force recomputation of view box
+  delete this._cachedViewbox;
+};
+
+/**
+ * Returns the default layer on which
+ * all elements are drawn.
+ *
+ * @returns {Snap<SVGGroup>}
+ */
+Canvas.prototype.getDefaultLayer = function() {
+  return this.getLayer(BASE_LAYER);
+};
+
+/**
+ * Returns a layer that is used to draw elements
+ * or annotations on it.
+ *
+ * @param  {String} name
+ *
+ * @returns {Snap<SVGGroup>}
+ */
+Canvas.prototype.getLayer = function(name) {
+
+  if (!name) {
+    throw new Error('must specify a name');
+  }
+
+  var layer = this._layers[name];
+  if (!layer) {
+    layer = this._layers[name] = createGroup(this._viewport, 'layer-' + name);
+  }
+
+  return layer;
+};
+
+
+/**
+ * Returns the html element that encloses the
+ * drawing canvas.
+ *
+ * @return {DOMNode}
+ */
+Canvas.prototype.getContainer = function() {
+  return this._container;
+};
+
+
+/////////////// markers ///////////////////////////////////
+
+Canvas.prototype._updateMarker = function(element, marker, add) {
+  var container;
+
+  if (!element.id) {
+    element = this._elementRegistry.get(element);
+  }
+
+  // we need to access all
+  container = this._elementRegistry._elements[element.id];
+
+  if (!container) {
+    return;
+  }
+
+  forEach([ container.gfx, container.secondaryGfx ], function(gfx) {
+    if (gfx) {
+      // invoke either addClass or removeClass based on mode
+      if (add) {
+        svgClasses(gfx).add(marker);
+      } else {
+        svgClasses(gfx).remove(marker);
+      }
+    }
+  });
+
+  /**
+   * An event indicating that a marker has been updated for an element
+   *
+   * @event element.marker.update
+   * @type {Object}
+   * @property {djs.model.Element} element the shape
+   * @property {Object} gfx the graphical representation of the shape
+   * @property {String} marker
+   * @property {Boolean} add true if the marker was added, false if it got removed
+   */
+  this._eventBus.fire('element.marker.update', { element: element, gfx: container.gfx, marker: marker, add: !!add });
+};
+
+
+/**
+ * Adds a marker to an element (basically a css class).
+ *
+ * Fires the element.marker.update event, making it possible to
+ * integrate extension into the marker life-cycle, too.
+ *
+ * @example
+ * canvas.addMarker('foo', 'some-marker');
+ *
+ * var fooGfx = canvas.getGraphics('foo');
+ *
+ * fooGfx; // <g class="... some-marker"> ... </g>
+ *
+ * @param {String|djs.model.Base} element
+ * @param {String} marker
+ */
+Canvas.prototype.addMarker = function(element, marker) {
+  this._updateMarker(element, marker, true);
+};
+
+
+/**
+ * Remove a marker from an element.
+ *
+ * Fires the element.marker.update event, making it possible to
+ * integrate extension into the marker life-cycle, too.
+ *
+ * @param  {String|djs.model.Base} element
+ * @param  {String} marker
+ */
+Canvas.prototype.removeMarker = function(element, marker) {
+  this._updateMarker(element, marker, false);
+};
+
+/**
+ * Check the existence of a marker on element.
+ *
+ * @param  {String|djs.model.Base} element
+ * @param  {String} marker
+ */
+Canvas.prototype.hasMarker = function(element, marker) {
+  if (!element.id) {
+    element = this._elementRegistry.get(element);
+  }
+
+  var gfx = this.getGraphics(element);
+
+  return svgClasses(gfx).has(marker);
+};
+
+/**
+ * Toggles a marker on an element.
+ *
+ * Fires the element.marker.update event, making it possible to
+ * integrate extension into the marker life-cycle, too.
+ *
+ * @param  {String|djs.model.Base} element
+ * @param  {String} marker
+ */
+Canvas.prototype.toggleMarker = function(element, marker) {
+  if (this.hasMarker(element, marker)) {
+    this.removeMarker(element, marker);
+  } else {
+    this.addMarker(element, marker);
+  }
+};
+
+Canvas.prototype.getRootElement = function() {
+  if (!this._rootElement) {
+    this.setRootElement({ id: '__implicitroot', children: [] });
+  }
+
+  return this._rootElement;
+};
+
+
+
+//////////////// root element handling ///////////////////////////
+
+/**
+ * Sets a given element as the new root element for the canvas
+ * and returns the new root element.
+ *
+ * @param {Object|djs.model.Root} element
+ * @param {Boolean} [override] whether to override the current root element, if any
+ *
+ * @return {Object|djs.model.Root} new root element
+ */
+Canvas.prototype.setRootElement = function(element, override) {
+
+  if (element) {
+    this._ensureValid('root', element);
+  }
+
+  var currentRoot = this._rootElement,
+      elementRegistry = this._elementRegistry,
+      eventBus = this._eventBus;
+
+  if (currentRoot) {
+    if (!override) {
+      throw new Error('rootElement already set, need to specify override');
+    }
+
+    // simulate element remove event sequence
+    eventBus.fire('root.remove', { element: currentRoot });
+    eventBus.fire('root.removed', { element: currentRoot });
+
+    elementRegistry.remove(currentRoot);
+  }
+
+  if (element) {
+    var gfx = this.getDefaultLayer();
+
+    // resemble element add event sequence
+    eventBus.fire('root.add', { element: element });
+
+    elementRegistry.add(element, gfx, this._svg);
+
+    eventBus.fire('root.added', { element: element, gfx: gfx });
+  }
+
+  this._rootElement = element;
+
+  return element;
+};
+
+
+
+///////////// add functionality ///////////////////////////////
+
+Canvas.prototype._ensureValid = function(type, element) {
+  if (!element.id) {
+    throw new Error('element must have an id');
+  }
+
+  if (this._elementRegistry.get(element.id)) {
+    throw new Error('element with id ' + element.id + ' already exists');
+  }
+
+  var requiredAttrs = REQUIRED_MODEL_ATTRS[type];
+
+  var valid = every(requiredAttrs, function(attr) {
+    return typeof element[attr] !== 'undefined';
+  });
+
+  if (!valid) {
+    throw new Error(
+      'must supply { ' + requiredAttrs.join(', ') + ' } with ' + type);
+  }
+};
+
+Canvas.prototype._setParent = function(element, parent, parentIndex) {
+  Collections.add(parent.children, element, parentIndex);
+  element.parent = parent;
+};
+
+/**
+ * Adds an element to the canvas.
+ *
+ * This wires the parent <-> child relationship between the element and
+ * a explicitly specified parent or an implicit root element.
+ *
+ * During add it emits the events
+ *
+ *  * <{type}.add> (element, parent)
+ *  * <{type}.added> (element, gfx)
+ *
+ * Extensions may hook into these events to perform their magic.
+ *
+ * @param {String} type
+ * @param {Object|djs.model.Base} element
+ * @param {Object|djs.model.Base} [parent]
+ * @param {Number} [parentIndex]
+ *
+ * @return {Object|djs.model.Base} the added element
+ */
+Canvas.prototype._addElement = function(type, element, parent, parentIndex) {
+
+  parent = parent || this.getRootElement();
+
+  var eventBus = this._eventBus,
+      graphicsFactory = this._graphicsFactory;
+
+  this._ensureValid(type, element);
+
+  eventBus.fire(type + '.add', { element: element, parent: parent });
+
+  this._setParent(element, parent, parentIndex);
+
+  // create graphics
+  var gfx = graphicsFactory.create(type, element);
+
+  this._elementRegistry.add(element, gfx);
+
+  // update its visual
+  graphicsFactory.update(type, element, gfx);
+
+  eventBus.fire(type + '.added', { element: element, gfx: gfx });
+
+  return element;
+};
+
+/**
+ * Adds a shape to the canvas
+ *
+ * @param {Object|djs.model.Shape} shape to add to the diagram
+ * @param {djs.model.Base} [parent]
+ * @param {Number} [parentIndex]
+ *
+ * @return {djs.model.Shape} the added shape
+ */
+Canvas.prototype.addShape = function(shape, parent, parentIndex) {
+  return this._addElement('shape', shape, parent, parentIndex);
+};
+
+/**
+ * Adds a connection to the canvas
+ *
+ * @param {Object|djs.model.Connection} connection to add to the diagram
+ * @param {djs.model.Base} [parent]
+ * @param {Number} [parentIndex]
+ *
+ * @return {djs.model.Connection} the added connection
+ */
+Canvas.prototype.addConnection = function(connection, parent, parentIndex) {
+  return this._addElement('connection', connection, parent, parentIndex);
+};
+
+
+/**
+ * Internal remove element
+ */
+Canvas.prototype._removeElement = function(element, type) {
+
+  var elementRegistry = this._elementRegistry,
+      graphicsFactory = this._graphicsFactory,
+      eventBus = this._eventBus;
+
+  element = elementRegistry.get(element.id || element);
+
+  if (!element) {
+    // element was removed already
+    return;
+  }
+
+  eventBus.fire(type + '.remove', { element: element });
+
+  graphicsFactory.remove(element);
+
+  // unset parent <-> child relationship
+  Collections.remove(element.parent && element.parent.children, element);
+  element.parent = null;
+
+  eventBus.fire(type + '.removed', { element: element });
+
+  elementRegistry.remove(element);
+
+  return element;
+};
+
+
+/**
+ * Removes a shape from the canvas
+ *
+ * @param {String|djs.model.Shape} shape or shape id to be removed
+ *
+ * @return {djs.model.Shape} the removed shape
+ */
+Canvas.prototype.removeShape = function(shape) {
+
+  /**
+   * An event indicating that a shape is about to be removed from the canvas.
+   *
+   * @memberOf Canvas
+   *
+   * @event shape.remove
+   * @type {Object}
+   * @property {djs.model.Shape} element the shape descriptor
+   * @property {Object} gfx the graphical representation of the shape
+   */
+
+  /**
+   * An event indicating that a shape has been removed from the canvas.
+   *
+   * @memberOf Canvas
+   *
+   * @event shape.removed
+   * @type {Object}
+   * @property {djs.model.Shape} element the shape descriptor
+   * @property {Object} gfx the graphical representation of the shape
+   */
+  return this._removeElement(shape, 'shape');
+};
+
+
+/**
+ * Removes a connection from the canvas
+ *
+ * @param {String|djs.model.Connection} connection or connection id to be removed
+ *
+ * @return {djs.model.Connection} the removed connection
+ */
+Canvas.prototype.removeConnection = function(connection) {
+
+  /**
+   * An event indicating that a connection is about to be removed from the canvas.
+   *
+   * @memberOf Canvas
+   *
+   * @event connection.remove
+   * @type {Object}
+   * @property {djs.model.Connection} element the connection descriptor
+   * @property {Object} gfx the graphical representation of the connection
+   */
+
+  /**
+   * An event indicating that a connection has been removed from the canvas.
+   *
+   * @memberOf Canvas
+   *
+   * @event connection.removed
+   * @type {Object}
+   * @property {djs.model.Connection} element the connection descriptor
+   * @property {Object} gfx the graphical representation of the connection
+   */
+  return this._removeElement(connection, 'connection');
+};
+
+
+/**
+ * Return the graphical object underlaying a certain diagram element
+ *
+ * @param {String|djs.model.Base} element descriptor of the element
+ * @param {Boolean} [secondary=false] whether to return the secondary connected element
+ *
+ * @return {SVGElement}
+ */
+Canvas.prototype.getGraphics = function(element, secondary) {
+  return this._elementRegistry.getGraphics(element, secondary);
+};
+
+
+/**
+ * Perform a viewbox update via a given change function.
+ *
+ * @param {Function} changeFn
+ */
+Canvas.prototype._changeViewbox = function(changeFn) {
+
+  // notify others of the upcoming viewbox change
+  this._eventBus.fire('canvas.viewbox.changing');
+
+  // perform actual change
+  changeFn.apply(this);
+
+  // reset the cached viewbox so that
+  // a new get operation on viewbox or zoom
+  // triggers a viewbox re-computation
+  this._cachedViewbox = null;
+
+  // notify others of the change; this step
+  // may or may not be debounced
+  this._viewboxChanged();
+};
+
+Canvas.prototype._viewboxChanged = function() {
+  this._eventBus.fire('canvas.viewbox.changed', { viewbox: this.viewbox() });
+};
+
+
+/**
+ * Gets or sets the view box of the canvas, i.e. the
+ * area that is currently displayed.
+ *
+ * The getter may return a cached viewbox (if it is currently
+ * changing). To force a recomputation, pass `false` as the first argument.
+ *
+ * @example
+ *
+ * canvas.viewbox({ x: 100, y: 100, width: 500, height: 500 })
+ *
+ * // sets the visible area of the diagram to (100|100) -> (600|100)
+ * // and and scales it according to the diagram width
+ *
+ * var viewbox = canvas.viewbox(); // pass `false` to force recomputing the box.
+ *
+ * console.log(viewbox);
+ * // {
+ * //   inner: Dimensions,
+ * //   outer: Dimensions,
+ * //   scale,
+ * //   x, y,
+ * //   width, height
+ * // }
+ *
+ * @param  {Object} [box] the new view box to set
+ * @param  {Number} box.x the top left X coordinate of the canvas visible in view box
+ * @param  {Number} box.y the top left Y coordinate of the canvas visible in view box
+ * @param  {Number} box.width the visible width
+ * @param  {Number} box.height
+ *
+ * @return {Object} the current view box
+ */
+Canvas.prototype.viewbox = function(box) {
+
+  if (box === undefined && this._cachedViewbox) {
+    return this._cachedViewbox;
+  }
+
+  var viewport = this._viewport,
+      innerBox,
+      outerBox = this.getSize(),
+      matrix,
+      scale,
+      x, y;
+
+  if (!box) {
+    // compute the inner box based on the
+    // diagrams default layer. This allows us to exclude
+    // external components, such as overlays
+    innerBox = this.getDefaultLayer().getBBox();
+
+    var transform = svgTransform(viewport);
+    matrix = transform ? transform.matrix : createMatrix();
+    scale = round(matrix.a, 1000);
+
+    x = round(-matrix.e || 0, 1000);
+    y = round(-matrix.f || 0, 1000);
+
+    box = this._cachedViewbox = {
+      x: x ? x / scale : 0,
+      y: y ? y / scale : 0,
+      width: outerBox.width / scale,
+      height: outerBox.height / scale,
+      scale: scale,
+      inner: {
+        width: innerBox.width,
+        height: innerBox.height,
+        x: innerBox.x,
+        y: innerBox.y
+      },
+      outer: outerBox
+    };
+
+    return box;
+  } else {
+
+    this._changeViewbox(function() {
+      scale = Math.min(outerBox.width / box.width, outerBox.height / box.height);
+
+      var matrix = this._svg.createSVGMatrix()
+        .scale(scale)
+        .translate(-box.x, -box.y);
+
+      svgTransform(viewport, matrix);
+    });
+  }
+
+  return box;
+};
+
+
+/**
+ * Gets or sets the scroll of the canvas.
+ *
+ * @param {Object} [delta] the new scroll to apply.
+ *
+ * @param {Number} [delta.dx]
+ * @param {Number} [delta.dy]
+ */
+Canvas.prototype.scroll = function(delta) {
+
+  var node = this._viewport;
+  var matrix = node.getCTM();
+
+  if (delta) {
+    this._changeViewbox(function() {
+      delta = assign({ dx: 0, dy: 0 }, delta || {});
+
+      matrix = this._svg.createSVGMatrix().translate(delta.dx, delta.dy).multiply(matrix);
+
+      setCTM(node, matrix);
+    });
+  }
+
+  return { x: matrix.e, y: matrix.f };
+};
+
+
+/**
+ * Gets or sets the current zoom of the canvas, optionally zooming
+ * to the specified position.
+ *
+ * The getter may return a cached zoom level. Call it with `false` as
+ * the first argument to force recomputation of the current level.
+ *
+ * @param {String|Number} [newScale] the new zoom level, either a number, i.e. 0.9,
+ *                                   or `fit-viewport` to adjust the size to fit the current viewport
+ * @param {String|Point} [center] the reference point { x: .., y: ..} to zoom to, 'auto' to zoom into mid or null
+ *
+ * @return {Number} the current scale
+ */
+Canvas.prototype.zoom = function(newScale, center) {
+
+  if (!newScale) {
+    return this.viewbox(newScale).scale;
+  }
+
+  if (newScale === 'fit-viewport') {
+    return this._fitViewport(center);
+  }
+
+  var outer,
+      matrix;
+
+  this._changeViewbox(function() {
+
+    if (typeof center !== 'object') {
+      outer = this.viewbox().outer;
+
+      center = {
+        x: outer.width / 2,
+        y: outer.height / 2
+      };
+    }
+
+    matrix = this._setZoom(newScale, center);
+  });
+
+  return round(matrix.a, 1000);
+};
+
+function setCTM(node, m) {
+  var mstr = 'matrix(' + m.a + ',' + m.b + ',' + m.c + ',' + m.d + ',' + m.e + ',' + m.f + ')';
+  node.setAttribute('transform', mstr);
+}
+
+Canvas.prototype._fitViewport = function(center) {
+
+  var vbox = this.viewbox(),
+      outer = vbox.outer,
+      inner = vbox.inner,
+      newScale,
+      newViewbox;
+
+  // display the complete diagram without zooming in.
+  // instead of relying on internal zoom, we perform a
+  // hard reset on the canvas viewbox to realize this
+  //
+  // if diagram does not need to be zoomed in, we focus it around
+  // the diagram origin instead
+
+  if (inner.x >= 0 &&
+      inner.y >= 0 &&
+      inner.x + inner.width <= outer.width &&
+      inner.y + inner.height <= outer.height &&
+      !center) {
+
+    newViewbox = {
+      x: 0,
+      y: 0,
+      width: Math.max(inner.width + inner.x, outer.width),
+      height: Math.max(inner.height + inner.y, outer.height)
+    };
+  } else {
+
+    newScale = Math.min(1, outer.width / inner.width, outer.height / inner.height);
+    newViewbox = {
+      x: inner.x + (center ? inner.width / 2 - outer.width / newScale / 2 : 0),
+      y: inner.y + (center ? inner.height / 2 - outer.height / newScale / 2 : 0),
+      width: outer.width / newScale,
+      height: outer.height / newScale
+    };
+  }
+
+  this.viewbox(newViewbox);
+
+  return this.viewbox(false).scale;
+};
+
+
+Canvas.prototype._setZoom = function(scale, center) {
+
+  var svg = this._svg,
+      viewport = this._viewport;
+
+  var matrix = svg.createSVGMatrix();
+  var point = svg.createSVGPoint();
+
+  var centerPoint,
+      originalPoint,
+      currentMatrix,
+      scaleMatrix,
+      newMatrix;
+
+  currentMatrix = viewport.getCTM();
+
+  var currentScale = currentMatrix.a;
+
+  if (center) {
+    centerPoint = assign(point, center);
+
+    // revert applied viewport transformations
+    originalPoint = centerPoint.matrixTransform(currentMatrix.inverse());
+
+    // create scale matrix
+    scaleMatrix = matrix
+                    .translate(originalPoint.x, originalPoint.y)
+                    .scale(1 / currentScale * scale)
+                    .translate(-originalPoint.x, -originalPoint.y);
+
+    newMatrix = currentMatrix.multiply(scaleMatrix);
+  } else {
+    newMatrix = matrix.scale(scale);
+  }
+
+  setCTM(this._viewport, newMatrix);
+
+  return newMatrix;
+};
+
+
+/**
+ * Returns the size of the canvas
+ *
+ * @return {Dimensions}
+ */
+Canvas.prototype.getSize = function() {
+  return {
+    width: this._container.clientWidth,
+    height: this._container.clientHeight
+  };
+};
+
+
+/**
+ * Return the absolute bounding box for the given element
+ *
+ * The absolute bounding box may be used to display overlays in the
+ * callers (browser) coordinate system rather than the zoomed in/out
+ * canvas coordinates.
+ *
+ * @param  {ElementDescriptor} element
+ * @return {Bounds} the absolute bounding box
+ */
+Canvas.prototype.getAbsoluteBBox = function(element) {
+  var vbox = this.viewbox();
+  var bbox;
+
+  // connection
+  // use svg bbox
+  if (element.waypoints) {
+    var gfx = this.getGraphics(element);
+
+    var transformBBox = gfx.getBBox(true);
+    bbox = gfx.getBBox();
+
+    bbox.x -= transformBBox.x;
+    bbox.y -= transformBBox.y;
+
+    bbox.width += 2 * transformBBox.x;
+    bbox.height +=  2 * transformBBox.y;
+  }
+  // shapes
+  // use data
+  else {
+    bbox = element;
+  }
+
+  var x = bbox.x * vbox.scale - vbox.x * vbox.scale;
+  var y = bbox.y * vbox.scale - vbox.y * vbox.scale;
+
+  var width = bbox.width * vbox.scale;
+  var height = bbox.height * vbox.scale;
+
+  return {
+    x: x,
+    y: y,
+    width: width,
+    height: height
+  };
+};
+
+/**
+ * Fires an event in order other modules can react to the
+ * canvas resizing
+ */
+Canvas.prototype.resized = function() {
+
+  // force recomputation of view box
+  delete this._cachedViewbox;
+
+  this._eventBus.fire('canvas.resized');
+};
+
+},{"191":191,"197":197,"233":233,"235":235,"236":236,"238":238,"239":239,"242":242,"62":62,"64":64,"82":82,"85":85,"92":92}],34:[function(_dereq_,module,exports){
+'use strict';
+
+var Model = _dereq_(55);
+
+var assign = _dereq_(197);
+
+/**
+ * A factory for diagram-js shapes
+ */
+function ElementFactory() {
+  this._uid = 12;
+}
+
+module.exports = ElementFactory;
+
+
+ElementFactory.prototype.createRoot = function(attrs) {
+  return this.create('root', attrs);
+};
+
+ElementFactory.prototype.createLabel = function(attrs) {
+  return this.create('label', attrs);
+};
+
+ElementFactory.prototype.createShape = function(attrs) {
+  return this.create('shape', attrs);
+};
+
+ElementFactory.prototype.createConnection = function(attrs) {
+  return this.create('connection', attrs);
+};
+
+/**
+ * Create a model element with the given type and
+ * a number of pre-set attributes.
+ *
+ * @param  {String} type
+ * @param  {Object} attrs
+ * @return {djs.model.Base} the newly created model instance
+ */
+ElementFactory.prototype.create = function(type, attrs) {
+
+  attrs = assign({}, attrs || {});
+
+  if (!attrs.id) {
+    attrs.id = type + '_' + (this._uid++);
+  }
+
+  return Model.create(type, attrs);
+};
+},{"197":197,"55":55}],35:[function(_dereq_,module,exports){
+'use strict';
+
+var ELEMENT_ID = 'data-element-id';
+
+var svgAttr = _dereq_(235);
+
+
+/**
+ * @class
+ *
+ * A registry that keeps track of all shapes in the diagram.
+ */
+function ElementRegistry() {
+  this._elements = {};
+}
+
+module.exports = ElementRegistry;
+
+/**
+ * Register a pair of (element, gfx, (secondaryGfx)).
+ *
+ * @param {djs.model.Base} element
+ * @param {SVGElement} gfx
+ * @param {SVGElement} [secondaryGfx] optional other element to register, too
+ */
+ElementRegistry.prototype.add = function(element, gfx, secondaryGfx) {
+
+  var id = element.id;
+
+  this._validateId(id);
+
+  // associate dom node with element
+  svgAttr(gfx, ELEMENT_ID, id);
+
+  if (secondaryGfx) {
+    svgAttr(secondaryGfx, ELEMENT_ID, id);
+  }
+
+  this._elements[id] = { element: element, gfx: gfx, secondaryGfx: secondaryGfx };
+};
+
+/**
+ * Removes an element from the registry.
+ *
+ * @param {djs.model.Base} element
+ */
+ElementRegistry.prototype.remove = function(element) {
+  var elements = this._elements,
+      id = element.id || element,
+      container = id && elements[id];
+
+  if (container) {
+
+    // unset element id on gfx
+    svgAttr(container.gfx, ELEMENT_ID, '');
+
+    if (container.secondaryGfx) {
+      svgAttr(container.secondaryGfx, ELEMENT_ID, '');
+    }
+
+    delete elements[id];
+  }
+};
+
+/**
+ * Update the id of an element
+ *
+ * @param {djs.model.Base} element
+ * @param {String} newId
+ */
+ElementRegistry.prototype.updateId = function(element, newId) {
+
+  this._validateId(newId);
+
+  if (typeof element === 'string') {
+    element = this.get(element);
+  }
+
+  var gfx = this.getGraphics(element),
+      secondaryGfx = this.getGraphics(element, true);
+
+  this.remove(element);
+
+  element.id = newId;
+
+  this.add(element, gfx, secondaryGfx);
+};
+
+/**
+ * Return the model element for a given id or graphics.
+ *
+ * @example
+ *
+ * elementRegistry.get('SomeElementId_1');
+ * elementRegistry.get(gfx);
+ *
+ *
+ * @param {String|SVGElement} filter for selecting the element
+ *
+ * @return {djs.model.Base}
+ */
+ElementRegistry.prototype.get = function(filter) {
+  var id;
+
+  if (typeof filter === 'string') {
+    id = filter;
+  } else {
+    id = filter && svgAttr(filter, ELEMENT_ID);
+  }
+
+  var container = this._elements[id];
+  return container && container.element;
+};
+
+/**
+ * Return all elements that match a given filter function.
+ *
+ * @param {Function} fn
+ *
+ * @return {Array<djs.model.Base>}
+ */
+ElementRegistry.prototype.filter = function(fn) {
+
+  var filtered = [];
+
+  this.forEach(function(element, gfx) {
+    if (fn(element, gfx)) {
+      filtered.push(element);
+    }
+  });
+
+  return filtered;
+};
+
+/**
+ * Return all rendered model elements.
+ *
+ * @return {Array<djs.model.Base>}
+ */
+ElementRegistry.prototype.getAll = function() {
+  return this.filter(function(e) { return e; });
+};
+
+/**
+ * Iterate over all diagram elements.
+ *
+ * @param {Function} fn
+ */
+ElementRegistry.prototype.forEach = function(fn) {
+
+  var map = this._elements;
+
+  Object.keys(map).forEach(function(id) {
+    var container = map[id],
+        element = container.element,
+        gfx = container.gfx;
+
+    return fn(element, gfx);
+  });
+};
+
+/**
+ * Return the graphical representation of an element or its id.
+ *
+ * @example
+ * elementRegistry.getGraphics('SomeElementId_1');
+ * elementRegistry.getGraphics(rootElement); // <g ...>
+ *
+ * elementRegistry.getGraphics(rootElement, true); // <svg ...>
+ *
+ *
+ * @param {String|djs.model.Base} filter
+ * @param {Boolean} [secondary=false] whether to return the secondary connected element
+ *
+ * @return {SVGElement}
+ */
+ElementRegistry.prototype.getGraphics = function(filter, secondary) {
+  var id = filter.id || filter;
+
+  var container = this._elements[id];
+  return container && (secondary ? container.secondaryGfx : container.gfx);
+};
+
+/**
+ * Validate the suitability of the given id and signals a problem
+ * with an exception.
+ *
+ * @param {String} id
+ *
+ * @throws {Error} if id is empty or already assigned
+ */
+ElementRegistry.prototype._validateId = function(id) {
+  if (!id) {
+    throw new Error('element must have an id');
+  }
+
+  if (this._elements[id]) {
+    throw new Error('element with id ' + id + ' already added');
+  }
+};
+
+},{"235":235}],36:[function(_dereq_,module,exports){
+'use strict';
+
+var isFunction = _dereq_(189),
+    isArray = _dereq_(188),
+    isNumber = _dereq_(191),
+    bind = _dereq_(91),
+    assign = _dereq_(197);
+
+var FN_REF = '__fn';
+
+var DEFAULT_PRIORITY = 1000;
+
+var slice = Array.prototype.slice;
+
+/**
+ * A general purpose event bus.
+ *
+ * This component is used to communicate across a diagram instance.
+ * Other parts of a diagram can use it to listen to and broadcast events.
+ *
+ *
+ * ## Registering for Events
+ *
+ * The event bus provides the {@link EventBus#on} and {@link EventBus#once}
+ * methods to register for events. {@link EventBus#off} can be used to
+ * remove event registrations. Listeners receive an instance of {@link Event}
+ * as the first argument. It allows them to hook into the event execution.
+ *
+ * ```javascript
+ *
+ * // listen for event
+ * eventBus.on('foo', function(event) {
+ *
+ *   // access event type
+ *   event.type; // 'foo'
+ *
+ *   // stop propagation to other listeners
+ *   event.stopPropagation();
+ *
+ *   // prevent event default
+ *   event.preventDefault();
+ * });
+ *
+ * // listen for event with custom payload
+ * eventBus.on('bar', function(event, payload) {
+ *   console.log(payload);
+ * });
+ *
+ * // listen for event returning value
+ * eventBus.on('foobar', function(event) {
+ *
+ *   // stop event propagation + prevent default
+ *   return false;
+ *
+ *   // stop event propagation + return custom result
+ *   return {
+ *     complex: 'listening result'
+ *   };
+ * });
+ *
+ *
+ * // listen with custom priority (default=1000, higher is better)
+ * eventBus.on('priorityfoo', 1500, function(event) {
+ *   console.log('invoked first!');
+ * });
+ *
+ *
+ * // listen for event and pass the context (`this`)
+ * eventBus.on('foobar', function(event) {
+ *   this.foo();
+ * }, this);
+ * ```
+ *
+ *
+ * ## Emitting Events
+ *
+ * Events can be emitted via the event bus using {@link EventBus#fire}.
+ *
+ * ```javascript
+ *
+ * // false indicates that the default action
+ * // was prevented by listeners
+ * if (eventBus.fire('foo') === false) {
+ *   console.log('default has been prevented!');
+ * };
+ *
+ *
+ * // custom args + return value listener
+ * eventBus.on('sum', function(event, a, b) {
+ *   return a + b;
+ * });
+ *
+ * // you can pass custom arguments + retrieve result values.
+ * var sum = eventBus.fire('sum', 1, 2);
+ * console.log(sum); // 3
+ * ```
+ */
+function EventBus() {
+  this._listeners = {};
+
+  // cleanup on destroy on lowest priority to allow
+  // message passing until the bitter end
+  this.on('diagram.destroy', 1, this._destroy, this);
+}
+
+module.exports = EventBus;
+
+
+/**
+ * Register an event listener for events with the given name.
+ *
+ * The callback will be invoked with `event, ...additionalArguments`
+ * that have been passed to {@link EventBus#fire}.
+ *
+ * Returning false from a listener will prevent the events default action
+ * (if any is specified). To stop an event from being processed further in
+ * other listeners execute {@link Event#stopPropagation}.
+ *
+ * Returning anything but `undefined` from a listener will stop the listener propagation.
+ *
+ * @param {String|Array<String>} events
+ * @param {Number} [priority=1000] the priority in which this listener is called, larger is higher
+ * @param {Function} callback
+ * @param {Object} [that] Pass context (`this`) to the callback
+ */
+EventBus.prototype.on = function(events, priority, callback, that) {
+
+  events = isArray(events) ? events : [ events ];
+
+  if (isFunction(priority)) {
+    that = callback;
+    callback = priority;
+    priority = DEFAULT_PRIORITY;
+  }
+
+  if (!isNumber(priority)) {
+    throw new Error('priority must be a number');
+  }
+
+  var actualCallback = callback;
+
+  if (that) {
+    actualCallback = bind(callback, that);
+
+    // make sure we remember and are able to remove
+    // bound callbacks via {@link #off} using the original
+    // callback
+    actualCallback[FN_REF] = callback[FN_REF] || callback;
+  }
+
+  var self = this,
+      listener = { priority: priority, callback: actualCallback };
+
+  events.forEach(function(e) {
+    self._addListener(e, listener);
+  });
+};
+
+
+/**
+ * Register an event listener that is executed only once.
+ *
+ * @param {String} event the event name to register for
+ * @param {Function} callback the callback to execute
+ * @param {Object} [that] Pass context (`this`) to the callback
+ */
+EventBus.prototype.once = function(event, priority, callback, that) {
+  var self = this;
+
+  if (isFunction(priority)) {
+    that = callback;
+    callback = priority;
+    priority = DEFAULT_PRIORITY;
+  }
+
+  if (!isNumber(priority)) {
+    throw new Error('priority must be a number');
+  }
+
+  function wrappedCallback() {
+    self.off(event, wrappedCallback);
+    return callback.apply(that, arguments);
+  }
+
+  // make sure we remember and are able to remove
+  // bound callbacks via {@link #off} using the original
+  // callback
+  wrappedCallback[FN_REF] = callback;
+
+  this.on(event, priority, wrappedCallback);
+};
+
+
+/**
+ * Removes event listeners by event and callback.
+ *
+ * If no callback is given, all listeners for a given event name are being removed.
+ *
+ * @param {String} event
+ * @param {Function} [callback]
+ */
+EventBus.prototype.off = function(event, callback) {
+  var listeners = this._getListeners(event),
+      listener,
+      listenerCallback,
+      idx;
+
+  if (callback) {
+
+    // move through listeners from back to front
+    // and remove matching listeners
+    for (idx = listeners.length - 1; (listener = listeners[idx]); idx--) {
+      listenerCallback = listener.callback;
+
+      if (listenerCallback === callback || listenerCallback[FN_REF] === callback) {
+        listeners.splice(idx, 1);
+      }
+    }
+  } else {
+    // clear listeners
+    listeners.length = 0;
+  }
+};
+
+
+/**
+ * Fires a named event.
+ *
+ * @example
+ *
+ * // fire event by name
+ * events.fire('foo');
+ *
+ * // fire event object with nested type
+ * var event = { type: 'foo' };
+ * events.fire(event);
+ *
+ * // fire event with explicit type
+ * var event = { x: 10, y: 20 };
+ * events.fire('element.moved', event);
+ *
+ * // pass additional arguments to the event
+ * events.on('foo', function(event, bar) {
+ *   alert(bar);
+ * });
+ *
+ * events.fire({ type: 'foo' }, 'I am bar!');
+ *
+ * @param {String} [name] the optional event name
+ * @param {Object} [event] the event object
+ * @param {...Object} additional arguments to be passed to the callback functions
+ *
+ * @return {Boolean} the events return value, if specified or false if the
+ *                   default action was prevented by listeners
+ */
+EventBus.prototype.fire = function(type, data) {
+
+  var event,
+      listeners,
+      returnValue,
+      args;
+
+  args = slice.call(arguments);
+
+  if (typeof type === 'object') {
+    event = type;
+    type = event.type;
+  }
+
+  if (!type) {
+    throw new Error('no event type specified');
+  }
+
+  listeners = this._listeners[type];
+
+  if (!listeners) {
+    return;
+  }
+
+  // we make sure we fire instances of our home made
+  // events here. We wrap them only once, though
+  if (data instanceof Event) {
+    // we are fine, we alread have an event
+    event = data;
+  } else {
+    event = new Event();
+    event.init(data);
+  }
+
+  // ensure we pass the event as the first parameter
+  args[0] = event;
+
+  // original event type (in case we delegate)
+  var originalType = event.type;
+
+  // update event type before delegation
+  if (type !== originalType) {
+    event.type = type;
+  }
+
+  try {
+    returnValue = this._invokeListeners(event, args, listeners);
+  } finally {
+    // reset event type after delegation
+    if (type !== originalType) {
+      event.type = originalType;
+    }
+  }
+
+  // set the return value to false if the event default
+  // got prevented and no other return value exists
+  if (returnValue === undefined && event.defaultPrevented) {
+    returnValue = false;
+  }
+
+  return returnValue;
+};
+
+
+EventBus.prototype.handleError = function(error) {
+  return this.fire('error', { error: error }) === false;
+};
+
+
+EventBus.prototype._destroy = function() {
+  this._listeners = {};
+};
+
+EventBus.prototype._invokeListeners = function(event, args, listeners) {
+
+  var idx,
+      listener,
+      returnValue;
+
+  for (idx = 0; (listener = listeners[idx]); idx++) {
+
+    // handle stopped propagation
+    if (event.cancelBubble) {
+      break;
+    }
+
+    returnValue = this._invokeListener(event, args, listener);
+  }
+
+  return returnValue;
+};
+
+EventBus.prototype._invokeListener = function(event, args, listener) {
+
+  var returnValue;
+
+  try {
+    // returning false prevents the default action
+    returnValue = invokeFunction(listener.callback, args);
+
+    // stop propagation on return value
+    if (returnValue !== undefined) {
+      event.returnValue = returnValue;
+      event.stopPropagation();
+    }
+
+    // prevent default on return false
+    if (returnValue === false) {
+      event.preventDefault();
+    }
+  } catch (e) {
+    if (!this.handleError(e)) {
+      console.error('unhandled error in event listener');
+      console.error(e.stack);
+
+      throw e;
+    }
+  }
+
+  return returnValue;
+};
+
+/*
+ * Add new listener with a certain priority to the list
+ * of listeners (for the given event).
+ *
+ * The semantics of listener registration / listener execution are
+ * first register, first serve: New listeners will always be inserted
+ * after existing listeners with the same priority.
+ *
+ * Example: Inserting two listeners with priority 1000 and 1300
+ *
+ *    * before: [ 1500, 1500, 1000, 1000 ]
+ *    * after: [ 1500, 1500, (new=1300), 1000, 1000, (new=1000) ]
+ *
+ * @param {String} event
+ * @param {Object} listener { priority, callback }
+ */
+EventBus.prototype._addListener = function(event, newListener) {
+
+  var listeners = this._getListeners(event),
+      existingListener,
+      idx;
+
+  // ensure we order listeners by priority from
+  // 0 (high) to n > 0 (low)
+  for (idx = 0; (existingListener = listeners[idx]); idx++) {
+    if (existingListener.priority < newListener.priority) {
+
+      // prepend newListener at before existingListener
+      listeners.splice(idx, 0, newListener);
+      return;
+    }
+  }
+
+  listeners.push(newListener);
+};
+
+
+EventBus.prototype._getListeners = function(name) {
+  var listeners = this._listeners[name];
+
+  if (!listeners) {
+    this._listeners[name] = listeners = [];
+  }
+
+  return listeners;
+};
+
+
+/**
+ * A event that is emitted via the event bus.
+ */
+function Event() { }
+
+module.exports.Event = Event;
+
+Event.prototype.stopPropagation = function() {
+  this.cancelBubble = true;
+};
+
+Event.prototype.preventDefault = function() {
+  this.defaultPrevented = true;
+};
+
+Event.prototype.init = function(data) {
+  assign(this, data || {});
+};
+
+
+/**
+ * Invoke function. Be fast...
+ *
+ * @param {Function} fn
+ * @param {Array<Object>} args
+ *
+ * @return {Any}
+ */
+function invokeFunction(fn, args) {
+  return fn.apply(null, args);
+}
+
+},{"188":188,"189":189,"191":191,"197":197,"91":91}],37:[function(_dereq_,module,exports){
+'use strict';
+
+var forEach = _dereq_(85),
+    reduce = _dereq_(88);
+
+var GraphicsUtil = _dereq_(66);
+
+var translate = _dereq_(72).translate;
+
+var domClear = _dereq_(209);
+
+var svgAppend = _dereq_(233),
+    svgAttr = _dereq_(235),
+    svgClasses = _dereq_(236),
+    svgCreate = _dereq_(238),
+    svgRemove = _dereq_(241);
+
+
+/**
+ * A factory that creates graphical elements
+ *
+ * @param {EventBus} eventBus
+ * @param {ElementRegistry} elementRegistry
+ */
+function GraphicsFactory(eventBus, elementRegistry) {
+  this._eventBus = eventBus;
+  this._elementRegistry = elementRegistry;
+}
+
+GraphicsFactory.$inject = [ 'eventBus' , 'elementRegistry' ];
+
+module.exports = GraphicsFactory;
+
+
+GraphicsFactory.prototype._getChildren = function(element) {
+
+  var gfx = this._elementRegistry.getGraphics(element);
+
+  var childrenGfx;
+
+  // root element
+  if (!element.parent) {
+    childrenGfx = gfx;
+  } else {
+    childrenGfx = GraphicsUtil.getChildren(gfx);
+    if (!childrenGfx) {
+      childrenGfx = svgCreate('g');
+      svgClasses(childrenGfx).add('djs-children');
+
+      svgAppend(gfx.parentNode, childrenGfx);
+    }
+  }
+
+  return childrenGfx;
+};
+
+/**
+ * Clears the graphical representation of the element and returns the
+ * cleared visual (the <g class="djs-visual" /> element).
+ */
+GraphicsFactory.prototype._clear = function(gfx) {
+  var visual = GraphicsUtil.getVisual(gfx);
+
+  domClear(visual);
+
+  return visual;
+};
+
+/**
+ * Creates a gfx container for shapes and connections
+ *
+ * The layout is as follows:
+ *
+ * <g class="djs-group">
+ *
+ *   <!-- the gfx -->
+ *   <g class="djs-element djs-(shape|connection)">
+ *     <g class="djs-visual">
+ *       <!-- the renderer draws in here -->
+ *     </g>
+ *
+ *     <!-- extensions (overlays, click box, ...) goes here
+ *   </g>
+ *
+ *   <!-- the gfx child nodes -->
+ *   <g class="djs-children"></g>
+ * </g>
+ *
+ * @param {Object} parent
+ * @param {String} type the type of the element, i.e. shape | connection
+ */
+GraphicsFactory.prototype._createContainer = function(type, parentGfx) {
+  var outerGfx = svgCreate('g');
+  svgClasses(outerGfx).add('djs-group');
+
+  svgAppend(parentGfx, outerGfx);
+
+  var gfx = svgCreate('g');
+  svgClasses(gfx).add('djs-element');
+  svgClasses(gfx).add('djs-' + type);
+
+  svgAppend(outerGfx, gfx);
+
+  // create visual
+  var visual = svgCreate('g');
+  svgClasses(visual).add('djs-visual');
+
+  svgAppend(gfx, visual);
+
+  return gfx;
+};
+
+GraphicsFactory.prototype.create = function(type, element) {
+  var childrenGfx = this._getChildren(element.parent);
+  return this._createContainer(type, childrenGfx);
+};
+
+GraphicsFactory.prototype.updateContainments = function(elements) {
+
+  var self = this,
+      elementRegistry = this._elementRegistry,
+      parents;
+
+  parents = reduce(elements, function(map, e) {
+
+    if (e.parent) {
+      map[e.parent.id] = e.parent;
+    }
+
+    return map;
+  }, {});
+
+  // update all parents of changed and reorganized their children
+  // in the correct order (as indicated in our model)
+  forEach(parents, function(parent) {
+
+    var childGfx = self._getChildren(parent),
+        children = parent.children;
+
+    if (!children) {
+      return;
+    }
+
+    forEach(children.slice().reverse(), function(c) {
+      var gfx = elementRegistry.getGraphics(c);
+
+      prependTo(gfx.parentNode, childGfx);
+    });
+  });
+};
+
+GraphicsFactory.prototype.drawShape = function(visual, element) {
+  var eventBus = this._eventBus;
+
+  return eventBus.fire('render.shape', { gfx: visual, element: element });
+};
+
+GraphicsFactory.prototype.getShapePath = function(element) {
+  var eventBus = this._eventBus;
+
+  return eventBus.fire('render.getShapePath', element);
+};
+
+GraphicsFactory.prototype.drawConnection = function(visual, element) {
+  var eventBus = this._eventBus;
+
+  return eventBus.fire('render.connection', { gfx: visual, element: element });
+};
+
+GraphicsFactory.prototype.getConnectionPath = function(waypoints) {
+  var eventBus = this._eventBus;
+
+  return eventBus.fire('render.getConnectionPath', waypoints);
+};
+
+GraphicsFactory.prototype.update = function(type, element, gfx) {
+  // Do not update root element
+  if (!element.parent) {
+    return;
+  }
+
+  var visual = this._clear(gfx);
+
+  // redraw
+  if (type === 'shape') {
+    this.drawShape(visual, element);
+
+    // update positioning
+    translate(gfx, element.x, element.y);
+  } else
+  if (type === 'connection') {
+    this.drawConnection(visual, element);
+  } else {
+    throw new Error('unknown type: ' + type);
+  }
+
+  if (element.hidden) {
+    svgAttr(gfx, 'display', 'none');
+  } else {
+    svgAttr(gfx, 'display', 'block');
+  }
+};
+
+GraphicsFactory.prototype.remove = function(element) {
+  var gfx = this._elementRegistry.getGraphics(element);
+
+  // remove
+  svgRemove(gfx.parentNode);
+};
+
+////////// helpers ///////////
+
+function prependTo(newNode, parentNode) {
+  parentNode.insertBefore(newNode, parentNode.firstChild);
+}
+
+},{"209":209,"233":233,"235":235,"236":236,"238":238,"241":241,"66":66,"72":72,"85":85,"88":88}],38:[function(_dereq_,module,exports){
+module.exports = {
+  __depends__: [ _dereq_(42) ],
+  __init__: [ 'canvas' ],
+  canvas: [ 'type', _dereq_(33) ],
+  elementRegistry: [ 'type', _dereq_(35) ],
+  elementFactory: [ 'type', _dereq_(34) ],
+  eventBus: [ 'type', _dereq_(36) ],
+  graphicsFactory: [ 'type', _dereq_(37) ]
+};
+},{"33":33,"34":34,"35":35,"36":36,"37":37,"42":42}],39:[function(_dereq_,module,exports){
+'use strict';
+
+var DEFAULT_RENDER_PRIORITY = 1000;
+
+/**
+ * The base implementation of shape and connection renderers.
+ *
+ * @param {EventBus} eventBus
+ * @param {Number} [renderPriority=1000]
+ */
+function BaseRenderer(eventBus, renderPriority) {
+  var self = this;
+
+  renderPriority = renderPriority || DEFAULT_RENDER_PRIORITY;
+
+  eventBus.on([ 'render.shape', 'render.connection' ], renderPriority, function(evt, context) {
+    var type = evt.type,
+        element = context.element,
+        visuals = context.gfx;
+
+    if (self.canRender(element)) {
+      if (type === 'render.shape') {
+        return self.drawShape(visuals, element);
+      } else {
+        return self.drawConnection(visuals, element);
+      }
+    }
+  });
+
+  eventBus.on([ 'render.getShapePath', 'render.getConnectionPath'], renderPriority, function(evt, element) {
+    if (self.canRender(element)) {
+      if (evt.type === 'render.getShapePath') {
+        return self.getShapePath(element);
+      } else {
+        return self.getConnectionPath(element);
+      }
+    }
+  });
+}
+
+/**
+ * Should check whether *this* renderer can render
+ * the element/connection.
+ *
+ * @param {element} element
+ *
+ * @returns {Boolean}
+ */
+BaseRenderer.prototype.canRender = function() {};
+
+/**
+ * Provides the shape's snap svg element to be drawn on the `canvas`.
+ *
+ * @param {djs.Graphics} visuals
+ * @param {Shape} shape
+ *
+ * @returns {Snap.svg} [returns a Snap.svg paper element ]
+ */
+BaseRenderer.prototype.drawShape = function() {};
+
+/**
+ * Provides the shape's snap svg element to be drawn on the `canvas`.
+ *
+ * @param {djs.Graphics} visuals
+ * @param {Connection} connection
+ *
+ * @returns {Snap.svg} [returns a Snap.svg paper element ]
+ */
+BaseRenderer.prototype.drawConnection = function() {};
+
+/**
+ * Gets the SVG path of a shape that represents it's visual bounds.
+ *
+ * @param {Shape} shape
+ *
+ * @return {string} svg path
+ */
+BaseRenderer.prototype.getShapePath = function() {};
+
+/**
+ * Gets the SVG path of a connection that represents it's visual bounds.
+ *
+ * @param {Connection} connection
+ *
+ * @return {string} svg path
+ */
+BaseRenderer.prototype.getConnectionPath = function() {};
+
+module.exports = BaseRenderer;
+
+},{}],40:[function(_dereq_,module,exports){
+'use strict';
+
+var inherits = _dereq_(79);
+
+var BaseRenderer = _dereq_(39);
+
+var renderUtil = _dereq_(71);
+
+var componentsToPath = renderUtil.componentsToPath,
+    createLine = renderUtil.createLine;
+
+var svgAppend = _dereq_(233),
+    svgAttr = _dereq_(235),
+    svgCreate = _dereq_(238);
+
+// apply default renderer with lowest possible priority
+// so that it only kicks in if noone else could render
+var DEFAULT_RENDER_PRIORITY = 1;
+
+/**
+ * The default renderer used for shapes and connections.
+ *
+ * @param {EventBus} eventBus
+ * @param {Styles} styles
+ */
+function DefaultRenderer(eventBus, styles) {
+  //
+  BaseRenderer.call(this, eventBus, DEFAULT_RENDER_PRIORITY);
+
+  this.CONNECTION_STYLE = styles.style([ 'no-fill' ], { strokeWidth: 5, stroke: 'fuchsia' });
+  this.SHAPE_STYLE = styles.style({ fill: 'white', stroke: 'fuchsia', strokeWidth: 2 });
+}
+
+inherits(DefaultRenderer, BaseRenderer);
+
+
+DefaultRenderer.prototype.canRender = function() {
+  return true;
+};
+
+DefaultRenderer.prototype.drawShape = function drawShape(visuals, element) {
+
+  var rect = svgCreate('rect');
+  svgAttr(rect, {
+    x: 0,
+    y: 0,
+    width: element.width || 0,
+    height: element.height || 0
+  });
+  svgAttr(rect, this.SHAPE_STYLE);
+
+  svgAppend(visuals, rect);
+
+  return rect;
+};
+
+DefaultRenderer.prototype.drawConnection = function drawConnection(visuals, connection) {
+
+  var line = createLine(connection.waypoints, this.CONNECTION_STYLE);
+  svgAppend(visuals, line);
+
+  return line;
+};
+
+DefaultRenderer.prototype.getShapePath = function getShapePath(shape) {
+
+  var x = shape.x,
+      y = shape.y,
+      width = shape.width,
+      height = shape.height;
+
+  var shapePath = [
+    ['M', x, y],
+    ['l', width, 0],
+    ['l', 0, height],
+    ['l', -width, 0],
+    ['z']
+  ];
+
+  return componentsToPath(shapePath);
+};
+
+DefaultRenderer.prototype.getConnectionPath = function getConnectionPath(connection) {
+  var waypoints = connection.waypoints;
+
+  var idx, point, connectionPath = [];
+
+  for (idx = 0; (point = waypoints[idx]); idx++) {
+
+    // take invisible docking into account
+    // when creating the path
+    point = point.original || point;
+
+    connectionPath.push([ idx === 0 ? 'M' : 'L', point.x, point.y ]);
+  }
+
+  return componentsToPath(connectionPath);
+};
+
+
+DefaultRenderer.$inject = [ 'eventBus', 'styles' ];
+
+module.exports = DefaultRenderer;
+
+},{"233":233,"235":235,"238":238,"39":39,"71":71,"79":79}],41:[function(_dereq_,module,exports){
+'use strict';
+
+var isArray = _dereq_(188),
+    assign = _dereq_(197),
+    reduce = _dereq_(88);
+
+
+/**
+ * A component that manages shape styles
+ */
+function Styles() {
+
+  var defaultTraits = {
+
+    'no-fill': {
+      fill: 'none'
+    },
+    'no-border': {
+      strokeOpacity: 0.0
+    },
+    'no-events': {
+      pointerEvents: 'none'
+    }
+  };
+
+  var self = this;
+
+  /**
+   * Builds a style definition from a className, a list of traits and an object of additional attributes.
+   *
+   * @param  {String} className
+   * @param  {Array<String>} traits
+   * @param  {Object} additionalAttrs
+   *
+   * @return {Object} the style defintion
+   */
+  this.cls = function(className, traits, additionalAttrs) {
+    var attrs = this.style(traits, additionalAttrs);
+
+    return assign(attrs, { 'class': className });
+  };
+
+  /**
+   * Builds a style definition from a list of traits and an object of additional attributes.
+   *
+   * @param  {Array<String>} traits
+   * @param  {Object} additionalAttrs
+   *
+   * @return {Object} the style defintion
+   */
+  this.style = function(traits, additionalAttrs) {
+
+    if (!isArray(traits) && !additionalAttrs) {
+      additionalAttrs = traits;
+      traits = [];
+    }
+
+    var attrs = reduce(traits, function(attrs, t) {
+      return assign(attrs, defaultTraits[t] || {});
+    }, {});
+
+    return additionalAttrs ? assign(attrs, additionalAttrs) : attrs;
+  };
+
+  this.computeStyle = function(custom, traits, defaultStyles) {
+    if (!isArray(traits)) {
+      defaultStyles = traits;
+      traits = [];
+    }
+
+    return self.style(traits || [], assign({}, defaultStyles, custom || {}));
+  };
+}
+
+module.exports = Styles;
+
+},{"188":188,"197":197,"88":88}],42:[function(_dereq_,module,exports){
+module.exports = {
+  __init__: [ 'defaultRenderer' ],
+  defaultRenderer: [ 'type', _dereq_(40) ],
+  styles: [ 'type', _dereq_(41) ]
+};
+
+},{"40":40,"41":41}],43:[function(_dereq_,module,exports){
+'use strict';
+
+var forEach = _dereq_(85),
+    domDelegate = _dereq_(211);
+
+var isPrimaryButton = _dereq_(69).isPrimaryButton;
+
+var svgAppend = _dereq_(233),
+    svgAttr = _dereq_(235),
+    svgCreate = _dereq_(238);
+
+var domQuery = _dereq_(214);
+
+var renderUtil = _dereq_(71);
+
+var createLine = renderUtil.createLine,
+    updateLine = renderUtil.updateLine;
+
+var LOW_PRIORITY = 500;
+
+/**
+ * A plugin that provides interaction events for diagram elements.
+ *
+ * It emits the following events:
+ *
+ *   * element.hover
+ *   * element.out
+ *   * element.click
+ *   * element.dblclick
+ *   * element.mousedown
+ *
+ * Each event is a tuple { element, gfx, originalEvent }.
+ *
+ * Canceling the event via Event#preventDefault() prevents the original DOM operation.
+ *
+ * @param {EventBus} eventBus
+ */
+function InteractionEvents(eventBus, elementRegistry, styles) {
+
+  var HIT_STYLE = styles.cls('djs-hit', [ 'no-fill', 'no-border' ], {
+    stroke: 'white',
+    strokeWidth: 15
+  });
+
+  /**
+   * Fire an interaction event.
+   *
+   * @param {String} type local event name, e.g. element.click.
+   * @param {DOMEvent} event native event
+   * @param {djs.model.Base} [element] the diagram element to emit the event on;
+   *                                   defaults to the event target
+   */
+  function fire(type, event, element) {
+
+    // only react on left mouse button interactions
+    // for interaction events
+    if (!isPrimaryButton(event)) {
+      return;
+    }
+
+    var target, gfx, returnValue;
+
+    if (!element) {
+      target = event.delegateTarget || event.target;
+
+      if (target) {
+        gfx = target;
+        element = elementRegistry.get(gfx);
+      }
+    } else {
+      gfx = elementRegistry.getGraphics(element);
+    }
+
+    if (!gfx || !element) {
+      return;
+    }
+
+    returnValue = eventBus.fire(type, { element: element, gfx: gfx, originalEvent: event });
+
+    if (returnValue === false) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+  }
+
+  // TODO(nikku): document this
+  var handlers = {};
+
+  function mouseHandler(type) {
+
+    var fn = handlers[type];
+
+    if (!fn) {
+      fn = handlers[type] = function(event) {
+        fire(type, event);
+      };
+    }
+
+    return fn;
+  }
+
+  var bindings = {
+    mouseover: 'element.hover',
+    mouseout: 'element.out',
+    click: 'element.click',
+    dblclick: 'element.dblclick',
+    mousedown: 'element.mousedown',
+    mouseup: 'element.mouseup'
+  };
+
+
+  ///// manual event trigger
+
+  /**
+   * Trigger an interaction event (based on a native dom event)
+   * on the target shape or connection.
+   *
+   * @param {String} eventName the name of the triggered DOM event
+   * @param {MouseEvent} event
+   * @param {djs.model.Base} targetElement
+   */
+  function triggerMouseEvent(eventName, event, targetElement) {
+
+    // i.e. element.mousedown...
+    var localEventName = bindings[eventName];
+
+    if (!localEventName) {
+      throw new Error('unmapped DOM event name <' + eventName + '>');
+    }
+
+    return fire(localEventName, event, targetElement);
+  }
+
+
+  var elementSelector = 'svg, .djs-element';
+
+  ///// event registration
+
+  function registerEvent(node, event, localEvent) {
+    var handler = mouseHandler(localEvent);
+    handler.$delegate = domDelegate.bind(node, elementSelector, event, handler);
+  }
+
+  function unregisterEvent(node, event, localEvent) {
+    domDelegate.unbind(node, event, mouseHandler(localEvent).$delegate);
+  }
+
+  function registerEvents(svg) {
+    forEach(bindings, function(val, key) {
+      registerEvent(svg, key, val);
+    });
+  }
+
+  function unregisterEvents(svg) {
+    forEach(bindings, function(val, key) {
+      unregisterEvent(svg, key, val);
+    });
+  }
+
+  eventBus.on('canvas.destroy', function(event) {
+    unregisterEvents(event.svg);
+  });
+
+  eventBus.on('canvas.init', function(event) {
+    registerEvents(event.svg);
+  });
+
+
+  eventBus.on([ 'shape.added', 'connection.added' ], function(event) {
+    var element = event.element,
+        gfx = event.gfx,
+        hit;
+
+    if (element.waypoints) {
+      hit = createLine(element.waypoints);
+    } else {
+      hit = svgCreate('rect');
+      svgAttr(hit, {
+        x: 0,
+        y: 0,
+        width: element.width,
+        height: element.height
+      });
+    }
+
+    svgAttr(hit, HIT_STYLE);
+
+    svgAppend(gfx, hit);
+  });
+
+  // Update djs-hit on change.
+  // A low priortity is necessary, because djs-hit of labels has to be updated
+  // after the label bounds have been updated in the renderer.
+  eventBus.on('shape.changed', LOW_PRIORITY, function(event) {
+
+    var element = event.element,
+        gfx = event.gfx,
+        hit = domQuery('.djs-hit', gfx);
+
+    svgAttr(hit, {
+      width: element.width,
+      height: element.height
+    });
+  });
+
+  eventBus.on('connection.changed', function(event) {
+
+    var element = event.element,
+        gfx = event.gfx,
+        hit = domQuery('.djs-hit', gfx);
+
+    updateLine(hit, element.waypoints);
+  });
+
+
+  // API
+
+  this.fire = fire;
+
+  this.triggerMouseEvent = triggerMouseEvent;
+
+  this.mouseHandler = mouseHandler;
+
+  this.registerEvent = registerEvent;
+  this.unregisterEvent = unregisterEvent;
+}
+
+
+InteractionEvents.$inject = [ 'eventBus', 'elementRegistry', 'styles' ];
+
+module.exports = InteractionEvents;
+
+
+/**
+ * An event indicating that the mouse hovered over an element
+ *
+ * @event element.hover
+ *
+ * @type {Object}
+ * @property {djs.model.Base} element
+ * @property {SVGElement} gfx
+ * @property {Event} originalEvent
+ */
+
+/**
+ * An event indicating that the mouse has left an element
+ *
+ * @event element.out
+ *
+ * @type {Object}
+ * @property {djs.model.Base} element
+ * @property {SVGElement} gfx
+ * @property {Event} originalEvent
+ */
+
+/**
+ * An event indicating that the mouse has clicked an element
+ *
+ * @event element.click
+ *
+ * @type {Object}
+ * @property {djs.model.Base} element
+ * @property {SVGElement} gfx
+ * @property {Event} originalEvent
+ */
+
+/**
+ * An event indicating that the mouse has double clicked an element
+ *
+ * @event element.dblclick
+ *
+ * @type {Object}
+ * @property {djs.model.Base} element
+ * @property {SVGElement} gfx
+ * @property {Event} originalEvent
+ */
+
+/**
+ * An event indicating that the mouse has gone down on an element.
+ *
+ * @event element.mousedown
+ *
+ * @type {Object}
+ * @property {djs.model.Base} element
+ * @property {SVGElement} gfx
+ * @property {Event} originalEvent
+ */
+
+/**
+ * An event indicating that the mouse has gone up on an element.
+ *
+ * @event element.mouseup
+ *
+ * @type {Object}
+ * @property {djs.model.Base} element
+ * @property {SVGElement} gfx
+ * @property {Event} originalEvent
+ */
+
+},{"211":211,"214":214,"233":233,"235":235,"238":238,"69":69,"71":71,"85":85}],44:[function(_dereq_,module,exports){
+module.exports = {
+  __init__: [ 'interactionEvents' ],
+  interactionEvents: [ 'type', _dereq_(43) ]
+};
+},{"43":43}],45:[function(_dereq_,module,exports){
+'use strict';
+
+var getBBox = _dereq_(64).getBBox;
+
+var LOW_PRIORITY = 500;
+
+var svgAppend = _dereq_(233),
+    svgAttr = _dereq_(235),
+    svgCreate = _dereq_(238);
+
+var domQuery = _dereq_(214);
+
+var assign = _dereq_(197);
+
+
+/**
+ * @class
+ *
+ * A plugin that adds an outline to shapes and connections that may be activated and styled
+ * via CSS classes.
+ *
+ * @param {EventBus} eventBus
+ * @param {Styles} styles
+ * @param {ElementRegistry} elementRegistry
+ */
+function Outline(eventBus, styles, elementRegistry) {
+
+  this.offset = 6;
+
+  var OUTLINE_STYLE = styles.cls('djs-outline', [ 'no-fill' ]);
+
+  var self = this;
+
+  function createOutline(gfx, bounds) {
+    var outline = svgCreate('rect');
+
+    svgAttr(outline, assign({
+      x: 10,
+      y: 10,
+      width: 100,
+      height: 100
+    }, OUTLINE_STYLE));
+
+    svgAppend(gfx, outline);
+
+    return outline;
+  }
+
+  // A low priortity is necessary, because outlines of labels have to be updated
+  // after the label bounds have been updated in the renderer.
+  eventBus.on([ 'shape.added', 'shape.changed' ], LOW_PRIORITY, function(event) {
+    var element = event.element,
+        gfx     = event.gfx;
+
+    var outline = domQuery('.djs-outline', gfx);
+
+    if (!outline) {
+      outline = createOutline(gfx, element);
+    }
+
+    self.updateShapeOutline(outline, element);
+  });
+
+  eventBus.on([ 'connection.added', 'connection.changed' ], function(event) {
+    var element = event.element,
+        gfx     = event.gfx;
+
+    var outline = domQuery('.djs-outline', gfx);
+
+    if (!outline) {
+      outline = createOutline(gfx, element);
+    }
+
+    self.updateConnectionOutline(outline, element);
+  });
+}
+
+
+/**
+ * Updates the outline of a shape respecting the dimension of the
+ * element and an outline offset.
+ *
+ * @param  {SVGElement} outline
+ * @param  {djs.model.Base} element
+ */
+Outline.prototype.updateShapeOutline = function(outline, element) {
+
+  svgAttr(outline, {
+    x: -this.offset,
+    y: -this.offset,
+    width: element.width + this.offset * 2,
+    height: element.height + this.offset * 2
+  });
+
+};
+
+
+/**
+ * Updates the outline of a connection respecting the bounding box of
+ * the connection and an outline offset.
+ *
+ * @param  {SVGElement} outline
+ * @param  {djs.model.Base} element
+ */
+Outline.prototype.updateConnectionOutline = function(outline, connection) {
+
+  var bbox = getBBox(connection);
+
+  svgAttr(outline, {
+    x: bbox.x - this.offset,
+    y: bbox.y - this.offset,
+    width: bbox.width + this.offset * 2,
+    height: bbox.height + this.offset * 2
+  });
+
+};
+
+
+Outline.$inject = ['eventBus', 'styles', 'elementRegistry'];
+
+module.exports = Outline;
+
+},{"197":197,"214":214,"233":233,"235":235,"238":238,"64":64}],46:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = {
+  __init__: [ 'outline' ],
+  outline: [ 'type', _dereq_(45) ]
+};
+},{"45":45}],47:[function(_dereq_,module,exports){
+'use strict';
+
+var isArray = _dereq_(188),
+    isString = _dereq_(194),
+    isObject = _dereq_(192),
+    assign = _dereq_(197),
+    forEach = _dereq_(85),
+    find = _dereq_(84),
+    filter = _dereq_(83);
+
+var domify = _dereq_(212),
+    domClasses = _dereq_(208),
+    domAttr = _dereq_(207),
+    domRemove = _dereq_(215),
+    domClear = _dereq_(209);
+
+var getBBox = _dereq_(64).getBBox;
+
+// document wide unique overlay ids
+var ids = new (_dereq_(67))('ov');
+
+var LOW_PRIORITY = 500;
+
+
+function createRoot(parent) {
+  var root = domify('<div class="djs-overlay-container" style="position: absolute; width: 0; height: 0;" />');
+  parent.insertBefore(root, parent.firstChild);
+
+  return root;
+}
+
+
+function setPosition(el, x, y) {
+  assign(el.style, { left: x + 'px', top: y + 'px' });
+}
+
+function setVisible(el, visible) {
+  el.style.display = visible === false ? 'none' : '';
+}
+
+/**
+ * A service that allows users to attach overlays to diagram elements.
+ *
+ * The overlay service will take care of overlay positioning during updates.
+ *
+ * @example
+ *
+ * // add a pink badge on the top left of the shape
+ * overlays.add(someShape, {
+ *   position: {
+ *     top: -5,
+ *     left: -5
+ *   },
+ *   html: '<div style="width: 10px; background: fuchsia; color: white;">0</div>'
+ * });
+ *
+ * // or add via shape id
+ *
+ * overlays.add('some-element-id', {
+ *   position: {
+ *     top: -5,
+ *     left: -5
+ *   }
+ *   html: '<div style="width: 10px; background: fuchsia; color: white;">0</div>'
+ * });
+ *
+ * // or add with optional type
+ *
+ * overlays.add(someShape, 'badge', {
+ *   position: {
+ *     top: -5,
+ *     left: -5
+ *   }
+ *   html: '<div style="width: 10px; background: fuchsia; color: white;">0</div>'
+ * });
+ *
+ *
+ * // remove an overlay
+ *
+ * var id = overlays.add(...);
+ * overlays.remove(id);
+ *
+ * @param {EventBus} eventBus
+ * @param {Canvas} canvas
+ * @param {ElementRegistry} elementRegistry
+ */
+function Overlays(eventBus, canvas, elementRegistry) {
+
+  this._eventBus = eventBus;
+  this._canvas = canvas;
+  this._elementRegistry = elementRegistry;
+
+  this._ids = ids;
+
+  this._overlayDefaults = {
+    show: {
+      minZoom: 0.7,
+      maxZoom: 5.0
+    }
+  };
+
+  /**
+   * Mapping overlayId -> overlay
+   */
+  this._overlays = {};
+
+  /**
+   * Mapping elementId -> overlay container
+   */
+  this._overlayContainers = [];
+
+  // root html element for all overlays
+  this._overlayRoot = createRoot(canvas.getContainer());
+
+  this._init();
+}
+
+
+Overlays.$inject = [ 'eventBus', 'canvas', 'elementRegistry' ];
+
+module.exports = Overlays;
+
+
+/**
+ * Returns the overlay with the specified id or a list of overlays
+ * for an element with a given type.
+ *
+ * @example
+ *
+ * // return the single overlay with the given id
+ * overlays.get('some-id');
+ *
+ * // return all overlays for the shape
+ * overlays.get({ element: someShape });
+ *
+ * // return all overlays on shape with type 'badge'
+ * overlays.get({ element: someShape, type: 'badge' });
+ *
+ * // shape can also be specified as id
+ * overlays.get({ element: 'element-id', type: 'badge' });
+ *
+ *
+ * @param {Object} search
+ * @param {String} [search.id]
+ * @param {String|djs.model.Base} [search.element]
+ * @param {String} [search.type]
+ *
+ * @return {Object|Array<Object>} the overlay(s)
+ */
+Overlays.prototype.get = function(search) {
+
+  if (isString(search)) {
+    search = { id: search };
+  }
+
+  if (isString(search.element)) {
+    search.element = this._elementRegistry.get(search.element);
+  }
+
+  if (search.element) {
+    var container = this._getOverlayContainer(search.element, true);
+
+    // return a list of overlays when searching by element (+type)
+    if (container) {
+      return search.type ? filter(container.overlays, { type: search.type }) : container.overlays.slice();
+    } else {
+      return [];
+    }
+  } else
+  if (search.type) {
+    return filter(this._overlays, { type: search.type });
+  } else {
+    // return single element when searching by id
+    return search.id ? this._overlays[search.id] : null;
+  }
+};
+
+/**
+ * Adds a HTML overlay to an element.
+ *
+ * @param {String|djs.model.Base}   element   attach overlay to this shape
+ * @param {String}                  [type]    optional type to assign to the overlay
+ * @param {Object}                  overlay   the overlay configuration
+ *
+ * @param {String|DOMElement}       overlay.html                 html element to use as an overlay
+ * @param {Object}                  [overlay.show]               show configuration
+ * @param {Number}                  [overlay.show.minZoom]       minimal zoom level to show the overlay
+ * @param {Number}                  [overlay.show.maxZoom]       maximum zoom level to show the overlay
+ * @param {Object}                  overlay.position             where to attach the overlay
+ * @param {Number}                  [overlay.position.left]      relative to element bbox left attachment
+ * @param {Number}                  [overlay.position.top]       relative to element bbox top attachment
+ * @param {Number}                  [overlay.position.bottom]    relative to element bbox bottom attachment
+ * @param {Number}                  [overlay.position.right]     relative to element bbox right attachment
+ *
+ * @return {String}                 id that may be used to reference the overlay for update or removal
+ */
+Overlays.prototype.add = function(element, type, overlay) {
+
+  if (isObject(type)) {
+    overlay = type;
+    type = null;
+  }
+
+  if (!element.id) {
+    element = this._elementRegistry.get(element);
+  }
+
+  if (!overlay.position) {
+    throw new Error('must specifiy overlay position');
+  }
+
+  if (!overlay.html) {
+    throw new Error('must specifiy overlay html');
+  }
+
+  if (!element) {
+    throw new Error('invalid element specified');
+  }
+
+  var id = this._ids.next();
+
+  overlay = assign({}, this._overlayDefaults, overlay, {
+    id: id,
+    type: type,
+    element: element,
+    html: overlay.html
+  });
+
+  this._addOverlay(overlay);
+
+  return id;
+};
+
+
+/**
+ * Remove an overlay with the given id or all overlays matching the given filter.
+ *
+ * @see Overlays#get for filter options.
+ *
+ * @param {String} [id]
+ * @param {Object} [filter]
+ */
+Overlays.prototype.remove = function(filter) {
+
+  var overlays = this.get(filter) || [];
+
+  if (!isArray(overlays)) {
+    overlays = [ overlays ];
+  }
+
+  var self = this;
+
+  forEach(overlays, function(overlay) {
+
+    var container = self._getOverlayContainer(overlay.element, true);
+
+    if (overlay) {
+      domRemove(overlay.html);
+      domRemove(overlay.htmlContainer);
+
+      delete overlay.htmlContainer;
+      delete overlay.element;
+
+      delete self._overlays[overlay.id];
+    }
+
+    if (container) {
+      var idx = container.overlays.indexOf(overlay);
+      if (idx !== -1) {
+        container.overlays.splice(idx, 1);
+      }
+    }
+  });
+
+};
+
+
+Overlays.prototype.show = function() {
+  setVisible(this._overlayRoot);
+};
+
+
+Overlays.prototype.hide = function() {
+  setVisible(this._overlayRoot, false);
+};
+
+Overlays.prototype.clear = function() {
+  this._overlays = {};
+
+  this._overlayContainers = [];
+
+  domClear(this._overlayRoot);
+};
+
+Overlays.prototype._updateOverlayContainer = function(container) {
+  var element = container.element,
+      html = container.html;
+
+  // update container left,top according to the elements x,y coordinates
+  // this ensures we can attach child elements relative to this container
+
+  var x = element.x,
+      y = element.y;
+
+  if (element.waypoints) {
+    var bbox = getBBox(element);
+    x = bbox.x;
+    y = bbox.y;
+  }
+
+  setPosition(html, x, y);
+
+  domAttr(container.html, 'data-container-id', element.id);
+};
+
+
+Overlays.prototype._updateOverlay = function(overlay) {
+
+  var position = overlay.position,
+      htmlContainer = overlay.htmlContainer,
+      element = overlay.element;
+
+  // update overlay html relative to shape because
+  // it is already positioned on the element
+
+  // update relative
+  var left = position.left,
+      top = position.top;
+
+  if (position.right !== undefined) {
+
+    var width;
+
+    if (element.waypoints) {
+      width = getBBox(element).width;
+    } else {
+      width = element.width;
+    }
+
+    left = position.right * -1 + width;
+  }
+
+  if (position.bottom !== undefined) {
+
+    var height;
+
+    if (element.waypoints) {
+      height = getBBox(element).height;
+    } else {
+      height = element.height;
+    }
+
+    top = position.bottom * -1 + height;
+  }
+
+  setPosition(htmlContainer, left || 0, top || 0);
+};
+
+Overlays.prototype._createOverlayContainer = function(element) {
+  var html = domify('<div class="djs-overlays" style="position: absolute" />');
+
+  this._overlayRoot.appendChild(html);
+
+  var container = {
+    html: html,
+    element: element,
+    overlays: []
+  };
+
+  this._updateOverlayContainer(container);
+
+  this._overlayContainers.push(container);
+
+  return container;
+};
+
+
+Overlays.prototype._updateRoot = function(viewbox) {
+  var a = viewbox.scale || 1;
+  var d = viewbox.scale || 1;
+
+  var matrix = 'matrix(' + a + ',0,0,' + d + ',' + (-1 * viewbox.x * a) + ',' + (-1 * viewbox.y * d) + ')';
+
+  this._overlayRoot.style.transform = matrix;
+  this._overlayRoot.style['-ms-transform'] = matrix;
+  this._overlayRoot.style['-webkit-transform'] = matrix;
+};
+
+
+Overlays.prototype._getOverlayContainer = function(element, raw) {
+  var container = find(this._overlayContainers, function(c) {
+    return c.element === element;
+  });
+
+
+  if (!container && !raw) {
+    return this._createOverlayContainer(element);
+  }
+
+  return container;
+};
+
+
+
+
+
+Overlays.prototype._addOverlay = function(overlay) {
+
+  var id = overlay.id,
+      element = overlay.element,
+      html = overlay.html,
+      htmlContainer,
+      overlayContainer;
+
+  // unwrap jquery (for those who need it)
+  if (html.get && html.constructor.prototype.jquery) {
+    html = html.get(0);
+  }
+
+  // create proper html elements from
+  // overlay HTML strings
+  if (isString(html)) {
+    html = domify(html);
+  }
+
+  overlayContainer = this._getOverlayContainer(element);
+
+  htmlContainer = domify('<div class="djs-overlay" data-overlay-id="' + id + '" style="position: absolute">');
+
+  htmlContainer.appendChild(html);
+
+  if (overlay.type) {
+    domClasses(htmlContainer).add('djs-overlay-' + overlay.type);
+  }
+
+  overlay.htmlContainer = htmlContainer;
+
+  overlayContainer.overlays.push(overlay);
+  overlayContainer.html.appendChild(htmlContainer);
+
+  this._overlays[id] = overlay;
+
+  this._updateOverlay(overlay);
+  this._updateOverlayVisibilty(overlay, this._canvas.viewbox());
+};
+
+Overlays.prototype._updateOverlayVisibilty = function(overlay, viewbox) {
+  var show = overlay.show,
+      htmlContainer = overlay.htmlContainer,
+      visible = true;
+
+  if (show) {
+    if (show.minZoom > viewbox.scale ||
+        show.maxZoom < viewbox.scale) {
+      visible = false;
+    }
+
+    setVisible(htmlContainer, visible);
+  }
+};
+
+Overlays.prototype._updateOverlaysVisibilty = function(viewbox) {
+
+  var self = this;
+
+  forEach(this._overlays, function(overlay) {
+    self._updateOverlayVisibilty(overlay, viewbox);
+  });
+};
+
+
+Overlays.prototype._init = function() {
+
+  var eventBus = this._eventBus;
+
+  var self = this;
+
+
+  // scroll/zoom integration
+
+  function updateViewbox(viewbox) {
+    self._updateRoot(viewbox);
+    self._updateOverlaysVisibilty(viewbox);
+
+    self.show();
+  }
+
+  eventBus.on('canvas.viewbox.changing', function(event) {
+    self.hide();
+  });
+
+  eventBus.on('canvas.viewbox.changed', function(event) {
+    updateViewbox(event.viewbox);
+  });
+
+
+  // remove integration
+
+  eventBus.on([ 'shape.remove', 'connection.remove' ], function(e) {
+    var element = e.element;
+    var overlays = self.get({ element: element });
+
+    forEach(overlays, function(o) {
+      self.remove(o.id);
+    });
+
+    var container = self._getOverlayContainer(element);
+
+    if (container) {
+      domRemove(container.html);
+      var i = self._overlayContainers.indexOf(container);
+      if (i !== -1) {
+        self._overlayContainers.splice(i, 1);
+      }
+    }
+  });
+
+
+  // move integration
+
+  eventBus.on('element.changed', LOW_PRIORITY, function(e) {
+    var element = e.element;
+
+    var container = self._getOverlayContainer(element, true);
+
+    if (container) {
+      forEach(container.overlays, function(overlay) {
+        self._updateOverlay(overlay);
+      });
+
+      self._updateOverlayContainer(container);
+    }
+  });
+
+
+  // marker integration, simply add them on the overlays as classes, too.
+
+  eventBus.on('element.marker.update', function(e) {
+    var container = self._getOverlayContainer(e.element, true);
+    if (container) {
+      domClasses(container.html)[e.add ? 'add' : 'remove'](e.marker);
+    }
+  });
+
+
+  // clear overlays with diagram
+
+  eventBus.on('diagram.clear', this.clear, this);
+};
+
+},{"188":188,"192":192,"194":194,"197":197,"207":207,"208":208,"209":209,"212":212,"215":215,"64":64,"67":67,"83":83,"84":84,"85":85}],48:[function(_dereq_,module,exports){
+module.exports = {
+  __init__: [ 'overlays' ],
+  overlays: [ 'type', _dereq_(47) ]
+};
+},{"47":47}],49:[function(_dereq_,module,exports){
+'use strict';
+
+var isArray = _dereq_(188),
+    forEach = _dereq_(85);
+
+
+/**
+ * A service that offers the current selection in a diagram.
+ * Offers the api to control the selection, too.
+ *
+ * @class
+ *
+ * @param {EventBus} eventBus the event bus
+ */
+function Selection(eventBus) {
+
+  this._eventBus = eventBus;
+
+  this._selectedElements = [];
+
+  var self = this;
+
+  eventBus.on([ 'shape.remove', 'connection.remove' ], function(e) {
+    var element = e.element;
+    self.deselect(element);
+  });
+
+  eventBus.on([ 'diagram.clear' ], function(e) {
+    self.select(null);
+  });
+}
+
+Selection.$inject = [ 'eventBus' ];
+
+module.exports = Selection;
+
+
+Selection.prototype.deselect = function(element) {
+  var selectedElements = this._selectedElements;
+
+  var idx = selectedElements.indexOf(element);
+
+  if (idx !== -1) {
+    var oldSelection = selectedElements.slice();
+
+    selectedElements.splice(idx, 1);
+
+    this._eventBus.fire('selection.changed', { oldSelection: oldSelection, newSelection: selectedElements });
+  }
+};
+
+
+Selection.prototype.get = function() {
+  return this._selectedElements;
+};
+
+Selection.prototype.isSelected = function(element) {
+  return this._selectedElements.indexOf(element) !== -1;
+};
+
+
+/**
+ * This method selects one or more elements on the diagram.
+ *
+ * By passing an additional add parameter you can decide whether or not the element(s)
+ * should be added to the already existing selection or not.
+ *
+ * @method Selection#select
+ *
+ * @param  {Object|Object[]} elements element or array of elements to be selected
+ * @param  {boolean} [add] whether the element(s) should be appended to the current selection, defaults to false
+ */
+Selection.prototype.select = function(elements, add) {
+  var selectedElements = this._selectedElements,
+      oldSelection = selectedElements.slice();
+
+  if (!isArray(elements)) {
+    elements = elements ? [ elements ] : [];
+  }
+
+  // selection may be cleared by passing an empty array or null
+  // to the method
+  if (add) {
+    forEach(elements, function(element) {
+      if (selectedElements.indexOf(element) !== -1) {
+        // already selected
+        return;
+      } else {
+        selectedElements.push(element);
+      }
+    });
+  } else {
+    this._selectedElements = selectedElements = elements.slice();
+  }
+
+  this._eventBus.fire('selection.changed', { oldSelection: oldSelection, newSelection: selectedElements });
+};
+
+},{"188":188,"85":85}],50:[function(_dereq_,module,exports){
+'use strict';
+
+var hasPrimaryModifier = _dereq_(69).hasPrimaryModifier;
+
+var find = _dereq_(84);
+
+
+function SelectionBehavior(eventBus, selection, canvas, elementRegistry) {
+
+  eventBus.on('create.end', 500, function(e) {
+
+    // select the created shape after a
+    // successful create operation
+    if (e.context.canExecute) {
+      selection.select(e.context.shape);
+    }
+  });
+
+  eventBus.on('connect.end', 500, function(e) {
+
+    // select the connect end target
+    // after a connect operation
+    if (e.context.canExecute && e.context.target) {
+      selection.select(e.context.target);
+    }
+  });
+
+  eventBus.on('shape.move.end', 500, function(e) {
+    var previousSelection = e.previousSelection || [];
+
+    var shape = elementRegistry.get(e.context.shape.id);
+
+    // make sure at least the main moved element is being
+    // selected after a move operation
+    var inSelection = find(previousSelection, function(selectedShape) {
+      return shape.id === selectedShape.id;
+    });
+
+    if (!inSelection) {
+      selection.select(shape);
+    }
+  });
+
+  // Shift + click selection
+  eventBus.on('element.click', function(event) {
+
+    var element = event.element;
+
+    // do not select the root element
+    // or connections
+    if (element === canvas.getRootElement()) {
+      element = null;
+    }
+
+    var isSelected = selection.isSelected(element),
+        isMultiSelect = selection.get().length > 1;
+
+    // mouse-event: SELECTION_KEY
+    var add = hasPrimaryModifier(event);
+
+    // select OR deselect element in multi selection
+    if (isSelected && isMultiSelect) {
+      if (add) {
+        return selection.deselect(element);
+      } else {
+        return selection.select(element);
+      }
+    } else
+    if (!isSelected) {
+      selection.select(element, add);
+    } else {
+      selection.deselect(element);
+    }
+  });
+}
+
+SelectionBehavior.$inject = [ 'eventBus', 'selection', 'canvas', 'elementRegistry' ];
+module.exports = SelectionBehavior;
+
+},{"69":69,"84":84}],51:[function(_dereq_,module,exports){
+'use strict';
+
+var forEach = _dereq_(85);
+
+var MARKER_HOVER = 'hover',
+    MARKER_SELECTED = 'selected';
+
+
+/**
+ * A plugin that adds a visible selection UI to shapes and connections
+ * by appending the <code>hover</code> and <code>selected</code> classes to them.
+ *
+ * @class
+ *
+ * Makes elements selectable, too.
+ *
+ * @param {EventBus} events
+ * @param {SelectionService} selection
+ * @param {Canvas} canvas
+ */
+function SelectionVisuals(events, canvas, selection, styles) {
+
+  this._multiSelectionBox = null;
+
+  function addMarker(e, cls) {
+    canvas.addMarker(e, cls);
+  }
+
+  function removeMarker(e, cls) {
+    canvas.removeMarker(e, cls);
+  }
+
+  events.on('element.hover', function(event) {
+    addMarker(event.element, MARKER_HOVER);
+  });
+
+  events.on('element.out', function(event) {
+    removeMarker(event.element, MARKER_HOVER);
+  });
+
+  events.on('selection.changed', function(event) {
+
+    function deselect(s) {
+      removeMarker(s, MARKER_SELECTED);
+    }
+
+    function select(s) {
+      addMarker(s, MARKER_SELECTED);
+    }
+
+    var oldSelection = event.oldSelection,
+        newSelection = event.newSelection;
+
+    forEach(oldSelection, function(e) {
+      if (newSelection.indexOf(e) === -1) {
+        deselect(e);
+      }
+    });
+
+    forEach(newSelection, function(e) {
+      if (oldSelection.indexOf(e) === -1) {
+        select(e);
+      }
+    });
+  });
+}
+
+SelectionVisuals.$inject = [
+  'eventBus',
+  'canvas',
+  'selection',
+  'styles'
+];
+
+module.exports = SelectionVisuals;
+
+},{"85":85}],52:[function(_dereq_,module,exports){
+module.exports = {
+  __init__: [ 'selectionVisuals', 'selectionBehavior' ],
+  __depends__: [
+    _dereq_(44),
+    _dereq_(46)
+  ],
+  selection: [ 'type', _dereq_(49) ],
+  selectionVisuals: [ 'type', _dereq_(51) ],
+  selectionBehavior: [ 'type', _dereq_(50) ]
+};
+
+},{"44":44,"46":46,"49":49,"50":50,"51":51}],53:[function(_dereq_,module,exports){
+module.exports = {
+  translate: [ 'value', _dereq_(54) ]
+};
+},{"54":54}],54:[function(_dereq_,module,exports){
+'use strict';
+
+/**
+ * A simple translation stub to be used for multi-language support
+ * in diagrams. Can be easily replaced with a more sophisticated
+ * solution.
+ *
+ * @example
+ *
+ * // use it inside any diagram component by injecting `translate`.
+ *
+ * function MyService(translate) {
+ *   alert(translate('HELLO {you}', { you: 'You!' }));
+ * }
+ *
+ * @param {String} template to interpolate
+ * @param {Object} [replacements] a map with substitutes
+ *
+ * @return {String} the translated string
+ */
+module.exports = function translate(template, replacements) {
+
+  replacements = replacements || {};
+
+  return template.replace(/{([^}]+)}/g, function(_, key) {
+    return replacements[key] || '{' + key + '}';
+  });
+};
+},{}],55:[function(_dereq_,module,exports){
+'use strict';
+
+var assign = _dereq_(197),
+    inherits = _dereq_(79);
+
+var Refs = _dereq_(228);
+
+var parentRefs = new Refs({ name: 'children', enumerable: true, collection: true }, { name: 'parent' }),
+    labelRefs = new Refs({ name: 'label', enumerable: true }, { name: 'labelTarget' }),
+    attacherRefs = new Refs({ name: 'attachers', collection: true }, { name: 'host' }),
+    outgoingRefs = new Refs({ name: 'outgoing', collection: true }, { name: 'source' }),
+    incomingRefs = new Refs({ name: 'incoming', collection: true }, { name: 'target' });
+
+/**
+ * @namespace djs.model
+ */
+
+/**
+ * @memberOf djs.model
+ */
+
+/**
+ * The basic graphical representation
+ *
+ * @class
+ *
+ * @abstract
+ */
+function Base() {
+
+  /**
+   * The object that backs up the shape
+   *
+   * @name Base#businessObject
+   * @type Object
+   */
+  Object.defineProperty(this, 'businessObject', {
+    writable: true
+  });
+
+  /**
+   * The parent shape
+   *
+   * @name Base#parent
+   * @type Shape
+   */
+  parentRefs.bind(this, 'parent');
+
+  /**
+   * @name Base#label
+   * @type Label
+   */
+  labelRefs.bind(this, 'label');
+
+  /**
+   * The list of outgoing connections
+   *
+   * @name Base#outgoing
+   * @type Array<Connection>
+   */
+  outgoingRefs.bind(this, 'outgoing');
+
+  /**
+   * The list of incoming connections
+   *
+   * @name Base#incoming
+   * @type Array<Connection>
+   */
+  incomingRefs.bind(this, 'incoming');
+}
+
+
+/**
+ * A graphical object
+ *
+ * @class
+ * @constructor
+ *
+ * @extends Base
+ */
+function Shape() {
+  Base.call(this);
+
+  /**
+   * The list of children
+   *
+   * @name Shape#children
+   * @type Array<Base>
+   */
+  parentRefs.bind(this, 'children');
+
+  /**
+   * @name Shape#host
+   * @type Shape
+   */
+  attacherRefs.bind(this, 'host');
+
+  /**
+   * @name Shape#attachers
+   * @type Shape
+   */
+  attacherRefs.bind(this, 'attachers');
+}
+
+inherits(Shape, Base);
+
+
+/**
+ * A root graphical object
+ *
+ * @class
+ * @constructor
+ *
+ * @extends Shape
+ */
+function Root() {
+  Shape.call(this);
+}
+
+inherits(Root, Shape);
+
+
+/**
+ * A label for an element
+ *
+ * @class
+ * @constructor
+ *
+ * @extends Shape
+ */
+function Label() {
+  Shape.call(this);
+
+  /**
+   * The labeled element
+   *
+   * @name Label#labelTarget
+   * @type Base
+   */
+  labelRefs.bind(this, 'labelTarget');
+}
+
+inherits(Label, Shape);
+
+
+/**
+ * A connection between two elements
+ *
+ * @class
+ * @constructor
+ *
+ * @extends Base
+ */
+function Connection() {
+  Base.call(this);
+
+  /**
+   * The element this connection originates from
+   *
+   * @name Connection#source
+   * @type Base
+   */
+  outgoingRefs.bind(this, 'source');
+
+  /**
+   * The element this connection points to
+   *
+   * @name Connection#target
+   * @type Base
+   */
+  incomingRefs.bind(this, 'target');
+}
+
+inherits(Connection, Base);
+
+
+var types = {
+  connection: Connection,
+  shape: Shape,
+  label: Label,
+  root: Root
+};
+
+/**
+ * Creates a new model element of the specified type
+ *
+ * @method create
+ *
+ * @example
+ *
+ * var shape1 = Model.create('shape', { x: 10, y: 10, width: 100, height: 100 });
+ * var shape2 = Model.create('shape', { x: 210, y: 210, width: 100, height: 100 });
+ *
+ * var connection = Model.create('connection', { waypoints: [ { x: 110, y: 55 }, {x: 210, y: 55 } ] });
+ *
+ * @param  {String} type lower-cased model name
+ * @param  {Object} attrs attributes to initialize the new model instance with
+ *
+ * @return {Base} the new model instance
+ */
+module.exports.create = function(type, attrs) {
+  var Type = types[type];
+  if (!Type) {
+    throw new Error('unknown type: <' + type + '>');
+  }
+  return assign(new Type(), attrs);
+};
+
+
+module.exports.Base = Base;
+module.exports.Root = Root;
+module.exports.Shape = Shape;
+module.exports.Connection = Connection;
+module.exports.Label = Label;
+
+},{"197":197,"228":228,"79":79}],56:[function(_dereq_,module,exports){
+'use strict';
+
+var Cursor = _dereq_(63),
+    ClickTrap = _dereq_(61),
+    substract = _dereq_(68).substract,
+    domEvent = _dereq_(213),
+    domClosest = _dereq_(210),
+    EventUtil = _dereq_(65);
+
+
+function length(point) {
+  return Math.sqrt(Math.pow(point.x, 2) + Math.pow(point.y, 2));
+}
+
+
+var THRESHOLD = 15;
+
+
+function MoveCanvas(eventBus, canvas) {
+
+  var container = canvas._container,
+      context;
+
+
+  function handleMove(event) {
+
+    var start = context.start,
+        position = EventUtil.toPoint(event),
+        delta = substract(position, start);
+
+    if (!context.dragging && length(delta) > THRESHOLD) {
+      context.dragging = true;
+
+      // prevent mouse click in this
+      // interaction sequence
+      ClickTrap.install();
+
+      Cursor.set('grab');
+    }
+
+    if (context.dragging) {
+
+      var lastPosition = context.last || context.start;
+
+      delta = substract(position, lastPosition);
+
+      canvas.scroll({
+        dx: delta.x,
+        dy: delta.y
+      });
+
+      context.last = position;
+    }
+
+    // prevent select
+    event.preventDefault();
+  }
+
+
+  function handleEnd(event) {
+    domEvent.unbind(document, 'mousemove', handleMove);
+    domEvent.unbind(document, 'mouseup', handleEnd);
+
+    context = null;
+
+    Cursor.unset();
+  }
+
+  function handleStart(event) {
+    // event is already handled by '.djs-draggable'
+    if (domClosest(event.target, '.djs-draggable')) {
+      return;
+    }
+
+
+    // reject non-left left mouse button or modifier key
+    if (event.button || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
+    }
+
+    context = {
+      start: EventUtil.toPoint(event)
+    };
+
+    domEvent.bind(document, 'mousemove', handleMove);
+    domEvent.bind(document, 'mouseup', handleEnd);
+  }
+
+  domEvent.bind(container, 'mousedown', handleStart);
+}
+
+
+MoveCanvas.$inject = [ 'eventBus', 'canvas' ];
+
+module.exports = MoveCanvas;
+
+},{"210":210,"213":213,"61":61,"63":63,"65":65,"68":68}],57:[function(_dereq_,module,exports){
+module.exports = {
+  __init__: [ 'moveCanvas' ],
+  moveCanvas: [ 'type', _dereq_(56) ]
+};
+},{"56":56}],58:[function(_dereq_,module,exports){
+'use strict';
+
+var domEvent = _dereq_(213),
+    domClosest = _dereq_(210);
+
+var hasPrimaryModifier = _dereq_(69).hasPrimaryModifier,
+    hasSecondaryModifier = _dereq_(69).hasSecondaryModifier;
+
+var isMac = _dereq_(70).isMac;
+
+var getStepRange = _dereq_(59).getStepRange,
+    cap = _dereq_(59).cap;
+
+var log10 = _dereq_(68).log10;
+
+var bind = _dereq_(91);
+
+var RANGE = { min: 0.2, max: 4 },
+    NUM_STEPS = 10;
+
+
+/**
+ * An implementation of zooming and scrolling within the
+ * {@link Canvas} via the mouse wheel.
+ *
+ * Mouse wheel zooming / scrolling may be disabled using
+ * the {@link toggle(enabled)} method.
+ *
+ * Additionally users can define the initial enabled state
+ * by passing `{ zoomScroll: { enabled: false } }` at diagram
+ * initialization.
+ *
+ * @param {EventBus} eventBus
+ * @param {Canvas} canvas
+ * @param {Object} config
+ */
+function ZoomScroll(eventBus, canvas, config) {
+
+  this._enabled = false;
+
+  this._canvas = canvas;
+  this._container = canvas._container;
+
+  this._handleWheel = bind(this._handleWheel, this);
+
+  var newEnabled = !config || config.enabled !== false;
+
+  var self = this;
+
+  eventBus.on('canvas.init', function(e) {
+    self._init(newEnabled);
+  });
+}
+
+ZoomScroll.$inject = [ 'eventBus', 'canvas', 'config.zoomScroll' ];
+
+module.exports = ZoomScroll;
+
+ZoomScroll.prototype.scroll = function scroll(delta) {
+  this._canvas.scroll(delta);
+};
+
+
+ZoomScroll.prototype.reset = function reset() {
+  this._canvas.zoom('fit-viewport');
+};
+
+
+ZoomScroll.prototype.zoom = function zoom(direction, position) {
+  var canvas = this._canvas;
+  var currentZoom = canvas.zoom(false);
+
+  var factor = Math.pow(1 + Math.abs(direction) , direction > 0 ? 1 : -1);
+
+  canvas.zoom(cap(RANGE, currentZoom * factor), position);
+};
+
+
+ZoomScroll.prototype._handleWheel = function handleWheel(event) {
+  // event is already handled by '.djs-scrollable'
+  if (domClosest(event.target, '.djs-scrollable', true)) {
+    return;
+  }
+
+  var element = this._container;
+
+  event.preventDefault();
+
+  // mouse-event: SELECTION_KEY
+  // mouse-event: AND_KEY
+  var isVerticalScroll = hasPrimaryModifier(event),
+      isHorizontalScroll = hasSecondaryModifier(event);
+
+  var factor;
+
+  if (isVerticalScroll || isHorizontalScroll) {
+
+    if (isMac) {
+      factor = event.deltaMode === 0 ? 1.25 : 50;
+    } else {
+      factor = event.deltaMode === 0 ? 1/40 : 1/2;
+    }
+
+    var delta = {};
+
+    if (isHorizontalScroll) {
+      delta.dx = (factor * (event.deltaX || event.deltaY));
+    } else {
+      delta.dy = (factor * event.deltaY);
+    }
+    this.scroll(delta);
+  } else {
+    factor = (event.deltaMode === 0 ? 1/40 : 1/2);
+
+    var elementRect = element.getBoundingClientRect();
+
+    var offset =  {
+      x: event.clientX - elementRect.left,
+      y: event.clientY - elementRect.top
+    };
+
+    // zoom in relative to diagram {x,y} coordinates
+    this.zoom(event.deltaY * factor / (-5), offset);
+  }
+};
+
+/**
+ * Zoom along fixed zoom steps
+ *
+ * @param {Integer} direction zoom direction (1 for zooming in, -1 for out)
+ */
+ZoomScroll.prototype.stepZoom = function stepZoom(direction, position) {
+
+  var canvas = this._canvas,
+      stepRange = getStepRange(RANGE, NUM_STEPS);
+
+  direction = direction > 0 ? 1 : -1;
+
+  var currentLinearZoomLevel = log10(canvas.zoom());
+
+  // snap to a proximate zoom step
+  var newLinearZoomLevel = Math.round(currentLinearZoomLevel / stepRange) * stepRange;
+
+  // increase or decrease one zoom step in the given direction
+  newLinearZoomLevel += stepRange * direction;
+
+  // calculate the absolute logarithmic zoom level based on the linear zoom level
+  // (e.g. 2 for an absolute x2 zoom)
+  var newLogZoomLevel = Math.pow(10, newLinearZoomLevel);
+
+  canvas.zoom(cap(RANGE, newLogZoomLevel), position);
+};
+
+
+/**
+ * Toggle the zoom scroll ability via mouse wheel.
+ *
+ * @param  {Boolean} [newEnabled] new enabled state
+ */
+ZoomScroll.prototype.toggle = function toggle(newEnabled) {
+
+  var element = this._container;
+  var handleWheel = this._handleWheel;
+
+  var oldEnabled = this._enabled;
+
+  if (typeof newEnabled === 'undefined') {
+    newEnabled = !oldEnabled;
+  }
+
+  // only react on actual changes
+  if (oldEnabled !== newEnabled) {
+
+    // add or remove wheel listener based on
+    // changed enabled state
+    domEvent[newEnabled ? 'bind' : 'unbind'](element, 'wheel', handleWheel, false);
+  }
+
+  this._enabled = newEnabled;
+
+  return newEnabled;
+};
+
+
+ZoomScroll.prototype._init = function(newEnabled) {
+  this.toggle(newEnabled);
+};
+
+},{"210":210,"213":213,"59":59,"68":68,"69":69,"70":70,"91":91}],59:[function(_dereq_,module,exports){
+'use strict';
+
+
+var log10 = _dereq_(68).log10;
+
+/**
+ * Get the linear range between two zoom steps based on the
+ * total number of zoom steps (defined as NUM_STEPS)
+ */
+module.exports.getStepRange = function(range, steps) {
+
+  var minLinearRange = log10(range.min),
+      maxLinearRange = log10(range.max);
+
+  var absoluteLinearRange = Math.abs(minLinearRange) + Math.abs(maxLinearRange);
+
+  return absoluteLinearRange / steps;
+};
+
+module.exports.cap = function(range, scale) {
+  return Math.max(range.min, Math.min(range.max, scale));
+};
+
+},{"68":68}],60:[function(_dereq_,module,exports){
+module.exports = {
+  __init__: [ 'zoomScroll' ],
+  zoomScroll: [ 'type', _dereq_(58) ]
+};
+},{"58":58}],61:[function(_dereq_,module,exports){
+'use strict';
+
+var domEvent = _dereq_(213),
+    stopEvent = _dereq_(65).stopEvent;
+
+function trap(event) {
+  stopEvent(event);
+
+  toggle(false);
+}
+
+function toggle(active) {
+  domEvent[active ? 'bind' : 'unbind'](document.body, 'click', trap, true);
+}
+
+/**
+ * Installs a click trap that prevents a ghost click following a dragging operation.
+ *
+ * @return {Function} a function to immediately remove the installed trap.
+ */
+function install() {
+
+  toggle(true);
+
+  return function() {
+    toggle(false);
+  };
+}
+
+module.exports.install = install;
+},{"213":213,"65":65}],62:[function(_dereq_,module,exports){
+'use strict';
+
+/**
+ * Failsafe remove an element from a collection
+ *
+ * @param  {Array<Object>} [collection]
+ * @param  {Object} [element]
+ *
+ * @return {Number} the previous index of the element
+ */
+module.exports.remove = function(collection, element) {
+
+  if (!collection || !element) {
+    return -1;
+  }
+
+  var idx = collection.indexOf(element);
+
+  if (idx !== -1) {
+    collection.splice(idx, 1);
+  }
+
+  return idx;
+};
+
+/**
+ * Fail save add an element to the given connection, ensuring
+ * it does not yet exist.
+ *
+ * @param {Array<Object>} collection
+ * @param {Object} element
+ * @param {Number} idx
+ */
+module.exports.add = function(collection, element, idx) {
+
+  if (!collection || !element) {
+    return;
+  }
+
+  if (typeof idx !== 'number') {
+    idx = -1;
+  }
+
+  var currentIdx = collection.indexOf(element);
+
+  if (currentIdx !== -1) {
+
+    if (currentIdx === idx) {
+      // nothing to do, position has not changed
+      return;
+    } else {
+
+      if (idx !== -1) {
+        // remove from current position
+        collection.splice(currentIdx, 1);
+      } else {
+        // already exists in collection
+        return;
+      }
+    }
+  }
+
+  if (idx !== -1) {
+    // insert at specified position
+    collection.splice(idx, 0, element);
+  } else {
+    // push to end
+    collection.push(element);
+  }
+};
+
+
+/**
+ * Fail save get the index of an element in a collection.
+ *
+ * @param {Array<Object>} collection
+ * @param {Object} element
+ *
+ * @return {Number} the index or -1 if collection or element do
+ *                  not exist or the element is not contained.
+ */
+module.exports.indexOf = function(collection, element) {
+
+  if (!collection || !element) {
+    return -1;
+  }
+
+  return collection.indexOf(element);
+};
+
+},{}],63:[function(_dereq_,module,exports){
+'use strict';
+
+var domClasses = _dereq_(208);
+
+var CURSOR_CLS_PATTERN = /^djs-cursor-.*$/;
+
+
+module.exports.set = function(mode) {
+  var classes = domClasses(document.body);
+
+  classes.removeMatching(CURSOR_CLS_PATTERN);
+
+  if (mode) {
+    classes.add('djs-cursor-' + mode);
+  }
+};
+
+module.exports.unset = function() {
+  this.set(null);
+};
+
+module.exports.has = function(mode) {
+  var classes = domClasses(document.body);
+
+  return classes.has('djs-cursor-' + mode);
+};
+
+},{"208":208}],64:[function(_dereq_,module,exports){
+'use strict';
+
+var isArray = _dereq_(188),
+    isNumber = _dereq_(191),
+    groupBy = _dereq_(86),
+    forEach = _dereq_(85);
+
+/**
+ * Adds an element to a collection and returns true if the
+ * element was added.
+ *
+ * @param {Array<Object>} elements
+ * @param {Object} e
+ * @param {Boolean} unique
+ */
+function add(elements, e, unique) {
+  var canAdd = !unique || elements.indexOf(e) === -1;
+
+  if (canAdd) {
+    elements.push(e);
+  }
+
+  return canAdd;
+}
+
+/**
+ * Iterate over each element in a collection, calling the iterator function `fn`
+ * with (element, index, recursionDepth).
+ *
+ * Recurse into all elements that are returned by `fn`.
+ *
+ * @param  {Object|Array<Object>} elements
+ * @param  {Function} fn iterator function called with (element, index, recursionDepth)
+ * @param  {Number} [depth] maximum recursion depth
+ */
+function eachElement(elements, fn, depth) {
+
+  depth = depth || 0;
+
+  if (!isArray(elements)) {
+    elements = [ elements ];
+  }
+
+  forEach(elements, function(s, i) {
+    var filter = fn(s, i, depth);
+
+    if (isArray(filter) && filter.length) {
+      eachElement(filter, fn, depth + 1);
+    }
+  });
+}
+
+/**
+ * Collects self + child elements up to a given depth from a list of elements.
+ *
+ * @param  {djs.model.Base|Array<djs.model.Base>} elements the elements to select the children from
+ * @param  {Boolean} unique whether to return a unique result set (no duplicates)
+ * @param  {Number} maxDepth the depth to search through or -1 for infinite
+ *
+ * @return {Array<djs.model.Base>} found elements
+ */
+function selfAndChildren(elements, unique, maxDepth) {
+  var result = [],
+      processedChildren = [];
+
+  eachElement(elements, function(element, i, depth) {
+    add(result, element, unique);
+
+    var children = element.children;
+
+    // max traversal depth not reached yet
+    if (maxDepth === -1 || depth < maxDepth) {
+
+      // children exist && children not yet processed
+      if (children && add(processedChildren, children, unique)) {
+        return children;
+      }
+    }
+  });
+
+  return result;
+}
+
+/**
+ * Return self + direct children for a number of elements
+ *
+ * @param  {Array<djs.model.Base>} elements to query
+ * @param  {Boolean} allowDuplicates to allow duplicates in the result set
+ *
+ * @return {Array<djs.model.Base>} the collected elements
+ */
+function selfAndDirectChildren(elements, allowDuplicates) {
+  return selfAndChildren(elements, !allowDuplicates, 1);
+}
+
+/**
+ * Return self + ALL children for a number of elements
+ *
+ * @param  {Array<djs.model.Base>} elements to query
+ * @param  {Boolean} allowDuplicates to allow duplicates in the result set
+ *
+ * @return {Array<djs.model.Base>} the collected elements
+ */
+function selfAndAllChildren(elements, allowDuplicates) {
+  return selfAndChildren(elements, !allowDuplicates, -1);
+}
+
+/**
+ * Gets the the closure for all selected elements,
+ * their connections and their attachment's connections
+ *
+ * @param {Array<djs.model.Base>} elements
+ * @return {Object} enclosure
+ */
+function getClosure(elements) {
+
+  // original elements passed to this function
+  var topLevel = groupBy(elements, function(e) { return e.id; });
+
+  var allShapes = {},
+      allConnections = {},
+      enclosedElements = {},
+      enclosedConnections = {};
+
+  function handleConnection(c) {
+    if (topLevel[c.source.id] && topLevel[c.target.id]) {
+      topLevel[c.id] = c;
+    }
+
+    // not enclosed as a child, but maybe logically
+    // (connecting two moved elements?)
+    if (allShapes[c.source.id] && allShapes[c.target.id]) {
+      enclosedConnections[c.id] = enclosedElements[c.id] = c;
+    }
+
+    allConnections[c.id] = c;
+  }
+
+  function handleElement(element) {
+
+    enclosedElements[element.id] = element;
+
+    if (element.waypoints) {
+      // remember connection
+      enclosedConnections[element.id] = allConnections[element.id] = element;
+    } else {
+      // remember shape
+      allShapes[element.id] = element;
+
+      // remember all connections
+      forEach(element.incoming, handleConnection);
+
+      forEach(element.outgoing, handleConnection);
+
+      // recurse into children
+      return element.children;
+    }
+  }
+
+  eachElement(elements, handleElement);
+
+  return {
+    allShapes: allShapes,
+    allConnections: allConnections,
+    topLevel: topLevel,
+    enclosedConnections: enclosedConnections,
+    enclosedElements: enclosedElements
+  };
+}
+
+/**
+ * Returns the surrounding bbox for all elements in
+ * the array or the element primitive.
+ *
+ * @param {Array<djs.model.Shape>|djs.model.Shape} elements
+ * @param {Boolean} stopRecursion
+ */
+function getBBox(elements, stopRecursion) {
+
+  stopRecursion = !!stopRecursion;
+  if (!isArray(elements)) {
+    elements = [elements];
+  }
+
+  var minX,
+      minY,
+      maxX,
+      maxY;
+
+  forEach(elements, function(element) {
+
+    // If element is a connection the bbox must be computed first
+    var bbox = element;
+    if (element.waypoints && !stopRecursion) {
+      bbox = getBBox(element.waypoints, true);
+    }
+
+    var x = bbox.x,
+        y = bbox.y,
+        height = bbox.height || 0,
+        width  = bbox.width  || 0;
+
+    if (x < minX || minX === undefined) {
+      minX = x;
+    }
+    if (y < minY || minY === undefined) {
+      minY = y;
+    }
+
+    if ((x + width) > maxX || maxX === undefined) {
+      maxX = x + width;
+    }
+    if ((y + height) > maxY || maxY === undefined) {
+      maxY = y + height;
+    }
+  });
+
+  return {
+    x: minX,
+    y: minY,
+    height: maxY - minY,
+    width: maxX - minX
+  };
+}
+
+
+/**
+ * Returns all elements that are enclosed from the bounding box.
+ *
+ *   * If bbox.(width|height) is not specified the method returns
+ *     all elements with element.x/y > bbox.x/y
+ *   * If only bbox.x or bbox.y is specified, method return all elements with
+ *     e.x > bbox.x or e.y > bbox.y
+ *
+ * @param {Array<djs.model.Shape>} elements List of Elements to search through
+ * @param {djs.model.Shape} bbox the enclosing bbox.
+ *
+ * @return {Array<djs.model.Shape>} enclosed elements
+ */
+function getEnclosedElements(elements, bbox) {
+
+  var filteredElements = {};
+
+  forEach(elements, function(element) {
+
+    var e = element;
+
+    if (e.waypoints) {
+      e = getBBox(e);
+    }
+
+    if (!isNumber(bbox.y) && (e.x > bbox.x)) {
+      filteredElements[element.id] = element;
+    }
+    if (!isNumber(bbox.x) && (e.y > bbox.y)) {
+      filteredElements[element.id] = element;
+    }
+    if (e.x > bbox.x && e.y > bbox.y) {
+      if (isNumber(bbox.width) && isNumber(bbox.height) &&
+          e.width  + e.x < bbox.width  + bbox.x &&
+          e.height + e.y < bbox.height + bbox.y) {
+
+        filteredElements[element.id] = element;
+      } else if (!isNumber(bbox.width) || !isNumber(bbox.height)) {
+        filteredElements[element.id] = element;
+      }
+    }
+  });
+
+  return filteredElements;
+}
+
+
+module.exports.add = add;
+module.exports.eachElement = eachElement;
+module.exports.selfAndDirectChildren = selfAndDirectChildren;
+module.exports.selfAndAllChildren = selfAndAllChildren;
+module.exports.getBBox = getBBox;
+module.exports.getEnclosedElements = getEnclosedElements;
+
+module.exports.getClosure = getClosure;
+
+
+function getElementType(element) {
+
+  if ('waypoints' in element) {
+    return 'connection';
+  }
+
+  if ('x' in element) {
+    return 'shape';
+  }
+
+  return 'root';
+}
+
+module.exports.getType = getElementType;
+},{"188":188,"191":191,"85":85,"86":86}],65:[function(_dereq_,module,exports){
+'use strict';
+
+function __preventDefault(event) {
+  return event && event.preventDefault();
+}
+
+function __stopPropagation(event, immediate) {
+  if (!event) {
+    return;
+  }
+
+  if (event.stopPropagation) {
+    event.stopPropagation();
+  }
+
+  if (immediate && event.stopImmediatePropagation) {
+    event.stopImmediatePropagation();
+  }
+}
+
+
+function getOriginal(event) {
+  return event.originalEvent || event.srcEvent;
+}
+
+module.exports.getOriginal = getOriginal;
+
+
+function stopEvent(event, immediate) {
+  stopPropagation(event, immediate);
+  preventDefault(event);
+}
+
+module.exports.stopEvent = stopEvent;
+
+
+function preventDefault(event) {
+  __preventDefault(event);
+  __preventDefault(getOriginal(event));
+}
+
+module.exports.preventDefault = preventDefault;
+
+
+function stopPropagation(event, immediate) {
+  __stopPropagation(event, immediate);
+  __stopPropagation(getOriginal(event), immediate);
+}
+
+module.exports.stopPropagation = stopPropagation;
+
+
+function toPoint(event) {
+
+  if (event.pointers && event.pointers.length) {
+    event = event.pointers[0];
+  }
+
+  if (event.touches && event.touches.length) {
+    event = event.touches[0];
+  }
+
+  return event ? {
+    x: event.clientX,
+    y: event.clientY
+  } : null;
+}
+
+module.exports.toPoint = toPoint;
+
+},{}],66:[function(_dereq_,module,exports){
+'use strict';
+
+var domQuery = _dereq_(214);
+
+/**
+ * SVGs for elements are generated by the {@link GraphicsFactory}.
+ *
+ * This utility gives quick access to the important semantic
+ * parts of an element.
+ */
+
+/**
+ * Returns the visual part of a diagram element
+ *
+ * @param {Snap<SVGElement>} gfx
+ *
+ * @return {Snap<SVGElement>}
+ */
+function getVisual(gfx) {
+  return domQuery('.djs-visual', gfx);
+}
+
+/**
+ * Returns the children for a given diagram element.
+ *
+ * @param {Snap<SVGElement>} gfx
+ * @return {Snap<SVGElement>}
+ */
+function getChildren(gfx) {
+  return gfx.parentNode.childNodes[1];
+}
+
+module.exports.getVisual = getVisual;
+module.exports.getChildren = getChildren;
+
+},{"214":214}],67:[function(_dereq_,module,exports){
+'use strict';
+
+/**
+ * Util that provides unique IDs.
+ *
+ * @class djs.util.IdGenerator
+ * @constructor
+ * @memberOf djs.util
+ *
+ * The ids can be customized via a given prefix and contain a random value to avoid collisions.
+ *
+ * @param {String} prefix a prefix to prepend to generated ids (for better readability)
+ */
+function IdGenerator(prefix) {
+
+  this._counter = 0;
+  this._prefix = (prefix ? prefix + '-' : '') + Math.floor(Math.random() * 1000000000) + '-';
+}
+
+module.exports = IdGenerator;
+
+/**
+ * Returns a next unique ID.
+ *
+ * @method djs.util.IdGenerator#next
+ *
+ * @returns {String} the id
+ */
+IdGenerator.prototype.next = function() {
+  return this._prefix + (++this._counter);
+};
+
+},{}],68:[function(_dereq_,module,exports){
+'use strict';
+
+/**
+ * Get the logarithm of x with base 10
+ * @param  {Integer} value
+ */
+function log10(x) {
+  return Math.log(x) / Math.log(10);
+}
+
+module.exports.log10 = log10;
+
+
+function substract(p1, p2) {
+  return {
+    x: p1.x - p2.x,
+    y: p1.y - p2.y
+  };
+}
+
+module.exports.substract = substract;
+
+},{}],69:[function(_dereq_,module,exports){
+'use strict';
+
+var getOriginalEvent = _dereq_(65).getOriginal;
+
+var isMac = _dereq_(70).isMac;
+
+
+function isPrimaryButton(event) {
+  // button === 0 -> left áka primary mouse button
+  return !(getOriginalEvent(event) || event).button;
+}
+
+module.exports.isPrimaryButton = isPrimaryButton;
+
+module.exports.isMac = isMac;
+
+module.exports.hasPrimaryModifier = function(event) {
+  var originalEvent = getOriginalEvent(event) || event;
+
+  if (!isPrimaryButton(event)) {
+    return false;
+  }
+
+  // Use alt as primary modifier key for mac OS
+  if (isMac()) {
+    return originalEvent.metaKey;
+  } else {
+    return originalEvent.ctrlKey;
+  }
+};
+
+
+module.exports.hasSecondaryModifier = function(event) {
+  var originalEvent = getOriginalEvent(event) || event;
+
+  return isPrimaryButton(event) && originalEvent.shiftKey;
+};
+
+},{"65":65,"70":70}],70:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports.isMac = function isMac() {
+  return (/mac/i).test(navigator.platform);
+};
+},{}],71:[function(_dereq_,module,exports){
+'use strict';
+
+var svgAttr = _dereq_(235),
+    svgCreate = _dereq_(238);
+
+
+module.exports.componentsToPath = function(elements) {
+  return elements.join(',').replace(/,?([A-z]),?/g, '$1');
+};
+
+function toSVGPoints(points) {
+  var result = '';
+
+  for (var i = 0, p; (p = points[i]); i++) {
+    result += p.x + ',' + p.y + ' ';
+  }
+
+  return result;
+}
+
+module.exports.toSVGPoints = toSVGPoints;
+
+module.exports.createLine = function(points, attrs) {
+
+  var line = svgCreate('polyline');
+  svgAttr(line, { points: toSVGPoints(points) });
+
+  if (attrs) {
+    svgAttr(line, attrs);
+  }
+
+  return line;
+};
+
+module.exports.updateLine = function(gfx, points) {
+  svgAttr(gfx, { points: toSVGPoints(points) });
+
+  return gfx;
+};
+
+},{"235":235,"238":238}],72:[function(_dereq_,module,exports){
+'use strict';
+
+var svgTransform = _dereq_(242);
+
+var createTransform = _dereq_(239).createTransform;
+
+
+/**
+ * @param {<SVGElement>} element
+ * @param {Number} x
+ * @param {Number} y
+ * @param {Number} angle
+ * @param {Number} amount
+ */
+module.exports.transform = function(gfx, x, y, angle, amount) {
+  var translate = createTransform();
+  translate.setTranslate(x, y);
+
+  var rotate = createTransform();
+  rotate.setRotate(angle, 0, 0);
+
+  var scale = createTransform();
+  scale.setScale(amount || 1, amount || 1);
+
+  svgTransform(gfx, [ translate, rotate, scale ]);
+};
+
+
+/**
+ * @param {SVGElement} element
+ * @param {Number} x
+ * @param {Number} y
+ */
+module.exports.translate = function(gfx, x, y) {
+  var translate = createTransform();
+  translate.setTranslate(x, y);
+
+  svgTransform(gfx, translate);
+};
+
+
+/**
+ * @param {SVGElement} element
+ * @param {Number} angle
+ */
+module.exports.rotate = function(gfx, angle) {
+  var rotate = createTransform();
+  rotate.setRotate(angle, 0, 0);
+
+  svgTransform(gfx, rotate);
+};
+
+
+/**
+ * @param {SVGElement} element
+ * @param {Number} amount
+ */
+module.exports.scale = function(gfx, amount) {
+  var scale = createTransform();
+  scale.setScale(amount, amount);
+
+  svgTransform(gfx, scale);
+};
+
+},{"239":239,"242":242}],73:[function(_dereq_,module,exports){
+'use strict';
+
+var isObject = _dereq_(192),
+    assign = _dereq_(197),
+    pick = _dereq_(203),
+    forEach = _dereq_(85),
+    reduce = _dereq_(88),
+    merge = _dereq_(200);
+
+var svgAppend = _dereq_(233),
+    svgAttr = _dereq_(235),
+    svgCreate = _dereq_(238),
+    svgRemove = _dereq_(241);
+
+var DEFAULT_BOX_PADDING = 0;
+
+var DEFAULT_LABEL_SIZE = {
+  width: 150,
+  height: 50
+};
+
+
+function parseAlign(align) {
+
+  var parts = align.split('-');
+
+  return {
+    horizontal: parts[0] || 'center',
+    vertical: parts[1] || 'top'
+  };
+}
+
+function parsePadding(padding) {
+
+  if (isObject(padding)) {
+    return assign({ top: 0, left: 0, right: 0, bottom: 0 }, padding);
+  } else {
+    return {
+      top: padding,
+      left: padding,
+      right: padding,
+      bottom: padding
+    };
+  }
+}
+
+function getTextBBox(text, fakeText) {
+
+  fakeText.textContent = text;
+
+  try {
+    var bbox,
+        emptyLine = text === '';
+
+    // add dummy text, when line is empty to determine correct height
+    fakeText.textContent = emptyLine ? 'dummy' : text;
+
+    bbox = pick(fakeText.getBBox(), [ 'width', 'height' ]);
+
+    if (emptyLine) {
+      // correct width
+      bbox.width = 0;
+    }
+
+    return bbox;
+  } catch (e) {
+    return { width: 0, height: 0 };
+  }
+}
+
+
+/**
+ * Layout the next line and return the layouted element.
+ *
+ * Alters the lines passed.
+ *
+ * @param  {Array<String>} lines
+ * @return {Object} the line descriptor, an object { width, height, text }
+ */
+function layoutNext(lines, maxWidth, fakeText) {
+
+  var originalLine = lines.shift(),
+      fitLine = originalLine;
+
+  var textBBox;
+
+  for (;;) {
+    textBBox = getTextBBox(fitLine, fakeText);
+
+    textBBox.width = fitLine ? textBBox.width : 0;
+
+    // try to fit
+    if (fitLine === ' ' || fitLine === '' || textBBox.width < Math.round(maxWidth) || fitLine.length < 4) {
+      return fit(lines, fitLine, originalLine, textBBox);
+    }
+
+    fitLine = shortenLine(fitLine, textBBox.width, maxWidth);
+  }
+}
+
+function fit(lines, fitLine, originalLine, textBBox) {
+  if (fitLine.length < originalLine.length) {
+    var nextLine = lines[0] || '',
+        remainder = originalLine.slice(fitLine.length).trim();
+
+    if (/-\s*$/.test(remainder)) {
+      nextLine = remainder + nextLine.replace(/^\s+/, '');
+    } else {
+      nextLine = remainder + ' ' + nextLine;
+    }
+
+    lines[0] = nextLine;
+  }
+  return { width: textBBox.width, height: textBBox.height, text: fitLine };
+}
+
+
+/**
+ * Shortens a line based on spacing and hyphens.
+ * Returns the shortened result on success.
+ *
+ * @param  {String} line
+ * @param  {Number} maxLength the maximum characters of the string
+ * @return {String} the shortened string
+ */
+function semanticShorten(line, maxLength) {
+  var parts = line.split(/(\s|-)/g),
+      part,
+      shortenedParts = [],
+      length = 0;
+
+  // try to shorten via spaces + hyphens
+  if (parts.length > 1) {
+    while ((part = parts.shift())) {
+      if (part.length + length < maxLength) {
+        shortenedParts.push(part);
+        length += part.length;
+      } else {
+        // remove previous part, too if hyphen does not fit anymore
+        if (part === '-') {
+          shortenedParts.pop();
+        }
+
+        break;
+      }
+    }
+  }
+
+  return shortenedParts.join('');
+}
+
+
+function shortenLine(line, width, maxWidth) {
+  var length = Math.max(line.length * (maxWidth / width), 1);
+
+  // try to shorten semantically (i.e. based on spaces and hyphens)
+  var shortenedLine = semanticShorten(line, length);
+
+  if (!shortenedLine) {
+
+    // force shorten by cutting the long word
+    shortenedLine = line.slice(0, Math.max(Math.round(length - 1), 1));
+  }
+
+  return shortenedLine;
+}
+
+
+function getHelperSvg() {
+  var helperSvg = document.getElementById('helper-svg');
+
+  if (!helperSvg) {
+    helperSvg = svgCreate('svg');
+
+    svgAttr(helperSvg, {
+      id: 'helper-svg',
+      width: 0,
+      height: 0,
+      style: 'visibility: hidden; position: fixed'
+    });
+
+    document.body.appendChild(helperSvg);
+  }
+
+  return helperSvg;
+}
+
+
+/**
+ * Creates a new label utility
+ *
+ * @param {Object} config
+ * @param {Dimensions} config.size
+ * @param {Number} config.padding
+ * @param {Object} config.style
+ * @param {String} config.align
+ */
+function Text(config) {
+
+  this._config = assign({}, {
+    size: DEFAULT_LABEL_SIZE,
+    padding: DEFAULT_BOX_PADDING,
+    style: {},
+    align: 'center-top'
+  }, config || {});
+}
+
+/**
+ * Returns the layouted text as an SVG element.
+ *
+ * @param {String} text
+ * @param {Object} options
+ *
+ * @return {SVGText}
+ */
+Text.prototype.createText = function(text, options) {
+  return this.layoutText(text, options).element;
+};
+
+/**
+ * Returns a labels layouted dimensions.
+ *
+ * @param {String} text to layout
+ * @param {Object} options
+ *
+ * @return {Dimensions}
+ */
+Text.prototype.getDimensions = function(text, options) {
+  return this.layoutText(text, options).dimensions;
+};
+
+/**
+ * Creates and returns a label and its bounding box.
+ *
+ * @method Text#createText
+ *
+ * @param {String} text the text to render on the label
+ * @param {Object} options
+ * @param {String} options.align how to align in the bounding box.
+ *                               Any of { 'center-middle', 'center-top' },
+ *                               defaults to 'center-top'.
+ * @param {String} options.style style to be applied to the text
+ * @param {boolean} options.fitBox indicates if box will be recalculated to
+ *                                 fit text
+ *
+ * @return {Object} { element, dimensions }
+ */
+Text.prototype.layoutText = function(text, options) {
+  var box = merge({}, this._config.size, options.box || {}),
+      style = merge({}, this._config.style, options.style || {}),
+      align = parseAlign(options.align || this._config.align),
+      padding = parsePadding(options.padding !== undefined ? options.padding : this._config.padding),
+      fitBox = options.fitBox || false;
+
+  var lines = text.split(/\r?\n/g),
+      layouted = [];
+
+  var maxWidth = box.width - padding.left - padding.right;
+
+  // ensure correct rendering by attaching helper text node to invisible SVG
+  var helperText = svgCreate('text');
+  svgAttr(helperText, { x: 0, y: 0 });
+  svgAttr(helperText, style);
+
+  var helperSvg = getHelperSvg();
+
+  svgAppend(helperSvg, helperText);
+
+  while (lines.length) {
+    layouted.push(layoutNext(lines, maxWidth, helperText));
+  }
+
+  var totalHeight = reduce(layouted, function(sum, line, idx) {
+    return sum + line.height;
+  }, 0);
+
+  var maxLineWidth = reduce(layouted, function(sum, line, idx) {
+    return line.width > sum ? line.width : sum;
+  }, 0);
+
+  // the y position of the next line
+  var y, x;
+
+  switch (align.vertical) {
+  case 'middle':
+    y = (box.height - totalHeight) / 2 - layouted[0].height / 4;
+    break;
+
+  default:
+    y = padding.top;
+  }
+
+  var textElement = svgCreate('text');
+
+  svgAttr(textElement, style);
+
+  // layout each line taking into account that parent
+  // shape might resize to fit text size
+  forEach(layouted, function(line) {
+    y += line.height;
+
+    switch (align.horizontal) {
+    case 'left':
+      x = padding.left;
+      break;
+
+    case 'right':
+      x = ((fitBox ? maxLineWidth : maxWidth)
+        - padding.right - line.width);
+      break;
+
+    default:
+      // aka center
+      x = Math.max((((fitBox ? maxLineWidth : maxWidth)
+        - line.width) / 2 + padding.left), 0);
+    }
+
+    var tspan = svgCreate('tspan');
+    svgAttr(tspan, { x: x, y: y });
+
+    tspan.textContent = line.text;
+
+    svgAppend(textElement, tspan);
+  });
+
+  svgRemove(helperText);
+
+  var dimensions = {
+    width: maxLineWidth,
+    height: totalHeight
+  };
+
+  return {
+    dimensions: dimensions,
+    element: textElement
+  };
+};
+
+module.exports = Text;
+
+},{"192":192,"197":197,"200":200,"203":203,"233":233,"235":235,"238":238,"241":241,"85":85,"88":88}],74:[function(_dereq_,module,exports){
+
+var isArray = function(obj) {
+  return Object.prototype.toString.call(obj) === '[object Array]';
+};
+
+var annotate = function() {
+  var args = Array.prototype.slice.call(arguments);
+  
+  if (args.length === 1 && isArray(args[0])) {
+    args = args[0];
+  }
+
+  var fn = args.pop();
+
+  fn.$inject = args;
+
+  return fn;
+};
+
+
+// Current limitations:
+// - can't put into "function arg" comments
+// function /* (no parenthesis like this) */ (){}
+// function abc( /* xx (no parenthesis like this) */ a, b) {}
+//
+// Just put the comment before function or inside:
+// /* (((this is fine))) */ function(a, b) {}
+// function abc(a) { /* (((this is fine))) */}
+
+var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
+var FN_ARG = /\/\*([^\*]*)\*\//m;
+
+var parse = function(fn) {
+  if (typeof fn !== 'function') {
+    throw new Error('Cannot annotate "' + fn + '". Expected a function!');
+  }
+
+  var match = fn.toString().match(FN_ARGS);
+  return match[1] && match[1].split(',').map(function(arg) {
+    match = arg.match(FN_ARG);
+    return match ? match[1].trim() : arg.trim();
+  }) || [];
+};
+
+
+exports.annotate = annotate;
+exports.parse = parse;
+exports.isArray = isArray;
+
+},{}],75:[function(_dereq_,module,exports){
+module.exports = {
+  annotate: _dereq_(74).annotate,
+  Module: _dereq_(77),
+  Injector: _dereq_(76)
+};
+
+},{"74":74,"76":76,"77":77}],76:[function(_dereq_,module,exports){
+var Module = _dereq_(77);
+var autoAnnotate = _dereq_(74).parse;
+var annotate = _dereq_(74).annotate;
+var isArray = _dereq_(74).isArray;
+
+
+var Injector = function(modules, parent) {
+  parent = parent || {
+    get: function(name, strict) {
+      currentlyResolving.push(name);
+
+      if (strict === false) {
+        return null;
+      } else {
+        throw error('No provider for "' + name + '"!');
+      }
+    }
+  };
+
+  var currentlyResolving = [];
+  var providers = this._providers = Object.create(parent._providers || null);
+  var instances = this._instances = Object.create(null);
+
+  var self = instances.injector = this;
+
+  var error = function(msg) {
+    var stack = currentlyResolving.join(' -> ');
+    currentlyResolving.length = 0;
+    return new Error(stack ? msg + ' (Resolving: ' + stack + ')' : msg);
+  };
+
+  /**
+   * Return a named service.
+   *
+   * @param {String} name
+   * @param {Boolean} [strict=true] if false, resolve missing services to null
+   *
+   * @return {Object}
+   */
+  var get = function(name, strict) {
+    if (!providers[name] && name.indexOf('.') !== -1) {
+      var parts = name.split('.');
+      var pivot = get(parts.shift());
+
+      while(parts.length) {
+        pivot = pivot[parts.shift()];
+      }
+
+      return pivot;
+    }
+
+    if (Object.hasOwnProperty.call(instances, name)) {
+      return instances[name];
+    }
+
+    if (Object.hasOwnProperty.call(providers, name)) {
+      if (currentlyResolving.indexOf(name) !== -1) {
+        currentlyResolving.push(name);
+        throw error('Cannot resolve circular dependency!');
+      }
+
+      currentlyResolving.push(name);
+      instances[name] = providers[name][0](providers[name][1]);
+      currentlyResolving.pop();
+
+      return instances[name];
+    }
+
+    return parent.get(name, strict);
+  };
+
+  var instantiate = function(Type) {
+    var instance = Object.create(Type.prototype);
+    var returned = invoke(Type, instance);
+
+    return typeof returned === 'object' ? returned : instance;
+  };
+
+  var invoke = function(fn, context) {
+    if (typeof fn !== 'function') {
+      if (isArray(fn)) {
+        fn = annotate(fn.slice());
+      } else {
+        throw new Error('Cannot invoke "' + fn + '". Expected a function!');
+      }
+    }
+
+    var inject = fn.$inject && fn.$inject || autoAnnotate(fn);
+    var dependencies = inject.map(function(dep) {
+      return get(dep);
+    });
+
+    // TODO(vojta): optimize without apply
+    return fn.apply(context, dependencies);
+  };
+
+
+  var createPrivateInjectorFactory = function(privateChildInjector) {
+    return annotate(function(key) {
+      return privateChildInjector.get(key);
+    });
+  };
+
+  var createChild = function(modules, forceNewInstances) {
+    if (forceNewInstances && forceNewInstances.length) {
+      var fromParentModule = Object.create(null);
+      var matchedScopes = Object.create(null);
+
+      var privateInjectorsCache = [];
+      var privateChildInjectors = [];
+      var privateChildFactories = [];
+
+      var provider;
+      var cacheIdx;
+      var privateChildInjector;
+      var privateChildInjectorFactory;
+      for (var name in providers) {
+        provider = providers[name];
+
+        if (forceNewInstances.indexOf(name) !== -1) {
+          if (provider[2] === 'private') {
+            cacheIdx = privateInjectorsCache.indexOf(provider[3]);
+            if (cacheIdx === -1) {
+              privateChildInjector = provider[3].createChild([], forceNewInstances);
+              privateChildInjectorFactory = createPrivateInjectorFactory(privateChildInjector);
+              privateInjectorsCache.push(provider[3]);
+              privateChildInjectors.push(privateChildInjector);
+              privateChildFactories.push(privateChildInjectorFactory);
+              fromParentModule[name] = [privateChildInjectorFactory, name, 'private', privateChildInjector];
+            } else {
+              fromParentModule[name] = [privateChildFactories[cacheIdx], name, 'private', privateChildInjectors[cacheIdx]];
+            }
+          } else {
+            fromParentModule[name] = [provider[2], provider[1]];
+          }
+          matchedScopes[name] = true;
+        }
+
+        if ((provider[2] === 'factory' || provider[2] === 'type') && provider[1].$scope) {
+          /*jshint -W083 */
+          forceNewInstances.forEach(function(scope) {
+            if (provider[1].$scope.indexOf(scope) !== -1) {
+              fromParentModule[name] = [provider[2], provider[1]];
+              matchedScopes[scope] = true;
+            }
+          });
+        }
+      }
+
+      forceNewInstances.forEach(function(scope) {
+        if (!matchedScopes[scope]) {
+          throw new Error('No provider for "' + scope + '". Cannot use provider from the parent!');
+        }
+      });
+
+      modules.unshift(fromParentModule);
+    }
+
+    return new Injector(modules, self);
+  };
+
+  var factoryMap = {
+    factory: invoke,
+    type: instantiate,
+    value: function(value) {
+      return value;
+    }
+  };
+
+  modules.forEach(function(module) {
+
+    function arrayUnwrap(type, value) {
+      if (type !== 'value' && isArray(value)) {
+        value = annotate(value.slice());
+      }
+
+      return value;
+    }
+
+    // TODO(vojta): handle wrong inputs (modules)
+    if (module instanceof Module) {
+      module.forEach(function(provider) {
+        var name = provider[0];
+        var type = provider[1];
+        var value = provider[2];
+
+        providers[name] = [factoryMap[type], arrayUnwrap(type, value), type];
+      });
+    } else if (typeof module === 'object') {
+      if (module.__exports__) {
+        var clonedModule = Object.keys(module).reduce(function(m, key) {
+          if (key.substring(0, 2) !== '__') {
+            m[key] = module[key];
+          }
+          return m;
+        }, Object.create(null));
+
+        var privateInjector = new Injector((module.__modules__ || []).concat([clonedModule]), self);
+        var getFromPrivateInjector = annotate(function(key) {
+          return privateInjector.get(key);
+        });
+        module.__exports__.forEach(function(key) {
+          providers[key] = [getFromPrivateInjector, key, 'private', privateInjector];
+        });
+      } else {
+        Object.keys(module).forEach(function(name) {
+          if (module[name][2] === 'private') {
+            providers[name] = module[name];
+            return;
+          }
+
+          var type = module[name][0];
+          var value = module[name][1];
+
+          providers[name] = [factoryMap[type], arrayUnwrap(type, value), type];
+        });
+      }
+    }
+  });
+
+  // public API
+  this.get = get;
+  this.invoke = invoke;
+  this.instantiate = instantiate;
+  this.createChild = createChild;
+};
+
+module.exports = Injector;
+
+},{"74":74,"77":77}],77:[function(_dereq_,module,exports){
+var Module = function() {
+  var providers = [];
+
+  this.factory = function(name, factory) {
+    providers.push([name, 'factory', factory]);
+    return this;
+  };
+
+  this.value = function(name, value) {
+    providers.push([name, 'value', value]);
+    return this;
+  };
+
+  this.type = function(name, type) {
+    providers.push([name, 'type', type]);
+    return this;
+  };
+
+  this.forEach = function(iterator) {
+    providers.forEach(iterator);
+  };
+};
+
+module.exports = Module;
+
+},{}],78:[function(_dereq_,module,exports){
 
 /**
  * Expose `parse`.
@@ -7817,7 +13916,7 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],79:[function(_dereq_,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -7842,7 +13941,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],80:[function(_dereq_,module,exports){
 /**
  * Gets the last element of `array`.
  *
@@ -7863,12 +13962,139 @@ function last(array) {
 
 module.exports = last;
 
-},{}],31:[function(_dereq_,module,exports){
-var arrayEvery = _dereq_(43),
-    baseCallback = _dereq_(51),
-    baseEvery = _dereq_(56),
-    isArray = _dereq_(109),
-    isIterateeCall = _dereq_(98);
+},{}],81:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(95),
+    LodashWrapper = _dereq_(96),
+    baseLodash = _dereq_(127),
+    isArray = _dereq_(188),
+    isObjectLike = _dereq_(173),
+    wrapperClone = _dereq_(186);
+
+/** Used for native method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * Creates a `lodash` object which wraps `value` to enable implicit chaining.
+ * Methods that operate on and return arrays, collections, and functions can
+ * be chained together. Methods that retrieve a single value or may return a
+ * primitive value will automatically end the chain returning the unwrapped
+ * value. Explicit chaining may be enabled using `_.chain`. The execution of
+ * chained methods is lazy, that is, execution is deferred until `_#value`
+ * is implicitly or explicitly called.
+ *
+ * Lazy evaluation allows several methods to support shortcut fusion. Shortcut
+ * fusion is an optimization strategy which merge iteratee calls; this can help
+ * to avoid the creation of intermediate data structures and greatly reduce the
+ * number of iteratee executions.
+ *
+ * Chaining is supported in custom builds as long as the `_#value` method is
+ * directly or indirectly included in the build.
+ *
+ * In addition to lodash methods, wrappers have `Array` and `String` methods.
+ *
+ * The wrapper `Array` methods are:
+ * `concat`, `join`, `pop`, `push`, `reverse`, `shift`, `slice`, `sort`,
+ * `splice`, and `unshift`
+ *
+ * The wrapper `String` methods are:
+ * `replace` and `split`
+ *
+ * The wrapper methods that support shortcut fusion are:
+ * `compact`, `drop`, `dropRight`, `dropRightWhile`, `dropWhile`, `filter`,
+ * `first`, `initial`, `last`, `map`, `pluck`, `reject`, `rest`, `reverse`,
+ * `slice`, `take`, `takeRight`, `takeRightWhile`, `takeWhile`, `toArray`,
+ * and `where`
+ *
+ * The chainable wrapper methods are:
+ * `after`, `ary`, `assign`, `at`, `before`, `bind`, `bindAll`, `bindKey`,
+ * `callback`, `chain`, `chunk`, `commit`, `compact`, `concat`, `constant`,
+ * `countBy`, `create`, `curry`, `debounce`, `defaults`, `defaultsDeep`,
+ * `defer`, `delay`, `difference`, `drop`, `dropRight`, `dropRightWhile`,
+ * `dropWhile`, `fill`, `filter`, `flatten`, `flattenDeep`, `flow`, `flowRight`,
+ * `forEach`, `forEachRight`, `forIn`, `forInRight`, `forOwn`, `forOwnRight`,
+ * `functions`, `groupBy`, `indexBy`, `initial`, `intersection`, `invert`,
+ * `invoke`, `keys`, `keysIn`, `map`, `mapKeys`, `mapValues`, `matches`,
+ * `matchesProperty`, `memoize`, `merge`, `method`, `methodOf`, `mixin`,
+ * `modArgs`, `negate`, `omit`, `once`, `pairs`, `partial`, `partialRight`,
+ * `partition`, `pick`, `plant`, `pluck`, `property`, `propertyOf`, `pull`,
+ * `pullAt`, `push`, `range`, `rearg`, `reject`, `remove`, `rest`, `restParam`,
+ * `reverse`, `set`, `shuffle`, `slice`, `sort`, `sortBy`, `sortByAll`,
+ * `sortByOrder`, `splice`, `spread`, `take`, `takeRight`, `takeRightWhile`,
+ * `takeWhile`, `tap`, `throttle`, `thru`, `times`, `toArray`, `toPlainObject`,
+ * `transform`, `union`, `uniq`, `unshift`, `unzip`, `unzipWith`, `values`,
+ * `valuesIn`, `where`, `without`, `wrap`, `xor`, `zip`, `zipObject`, `zipWith`
+ *
+ * The wrapper methods that are **not** chainable by default are:
+ * `add`, `attempt`, `camelCase`, `capitalize`, `ceil`, `clone`, `cloneDeep`,
+ * `deburr`, `endsWith`, `escape`, `escapeRegExp`, `every`, `find`, `findIndex`,
+ * `findKey`, `findLast`, `findLastIndex`, `findLastKey`, `findWhere`, `first`,
+ * `floor`, `get`, `gt`, `gte`, `has`, `identity`, `includes`, `indexOf`,
+ * `inRange`, `isArguments`, `isArray`, `isBoolean`, `isDate`, `isElement`,
+ * `isEmpty`, `isEqual`, `isError`, `isFinite` `isFunction`, `isMatch`,
+ * `isNative`, `isNaN`, `isNull`, `isNumber`, `isObject`, `isPlainObject`,
+ * `isRegExp`, `isString`, `isUndefined`, `isTypedArray`, `join`, `kebabCase`,
+ * `last`, `lastIndexOf`, `lt`, `lte`, `max`, `min`, `noConflict`, `noop`,
+ * `now`, `pad`, `padLeft`, `padRight`, `parseInt`, `pop`, `random`, `reduce`,
+ * `reduceRight`, `repeat`, `result`, `round`, `runInContext`, `shift`, `size`,
+ * `snakeCase`, `some`, `sortedIndex`, `sortedLastIndex`, `startCase`,
+ * `startsWith`, `sum`, `template`, `trim`, `trimLeft`, `trimRight`, `trunc`,
+ * `unescape`, `uniqueId`, `value`, and `words`
+ *
+ * The wrapper method `sample` will return a wrapped value when `n` is provided,
+ * otherwise an unwrapped value is returned.
+ *
+ * @name _
+ * @constructor
+ * @category Chain
+ * @param {*} value The value to wrap in a `lodash` instance.
+ * @returns {Object} Returns the new `lodash` wrapper instance.
+ * @example
+ *
+ * var wrapped = _([1, 2, 3]);
+ *
+ * // returns an unwrapped value
+ * wrapped.reduce(function(total, n) {
+ *   return total + n;
+ * });
+ * // => 6
+ *
+ * // returns a wrapped value
+ * var squares = wrapped.map(function(n) {
+ *   return n * n;
+ * });
+ *
+ * _.isArray(squares);
+ * // => false
+ *
+ * _.isArray(squares.value());
+ * // => true
+ */
+function lodash(value) {
+  if (isObjectLike(value) && !isArray(value) && !(value instanceof LazyWrapper)) {
+    if (value instanceof LodashWrapper) {
+      return value;
+    }
+    if (hasOwnProperty.call(value, '__chain__') && hasOwnProperty.call(value, '__wrapped__')) {
+      return wrapperClone(value);
+    }
+  }
+  return new LodashWrapper(value);
+}
+
+// Ensure wrappers are instances of `baseLodash`.
+lodash.prototype = baseLodash.prototype;
+
+module.exports = lodash;
+
+},{"127":127,"173":173,"186":186,"188":188,"95":95,"96":96}],82:[function(_dereq_,module,exports){
+var arrayEvery = _dereq_(100),
+    baseCallback = _dereq_(108),
+    baseEvery = _dereq_(114),
+    isArray = _dereq_(188),
+    isIterateeCall = _dereq_(169);
 
 /**
  * Checks if `predicate` returns truthy for **all** elements of `collection`.
@@ -7931,11 +14157,11 @@ function every(collection, predicate, thisArg) {
 
 module.exports = every;
 
-},{"109":109,"43":43,"51":51,"56":56,"98":98}],32:[function(_dereq_,module,exports){
-var arrayFilter = _dereq_(44),
-    baseCallback = _dereq_(51),
-    baseFilter = _dereq_(57),
-    isArray = _dereq_(109);
+},{"100":100,"108":108,"114":114,"169":169,"188":188}],83:[function(_dereq_,module,exports){
+var arrayFilter = _dereq_(101),
+    baseCallback = _dereq_(108),
+    baseFilter = _dereq_(115),
+    isArray = _dereq_(188);
 
 /**
  * Iterates over elements of `collection`, returning an array of all elements
@@ -7994,9 +14220,9 @@ function filter(collection, predicate, thisArg) {
 
 module.exports = filter;
 
-},{"109":109,"44":44,"51":51,"57":57}],33:[function(_dereq_,module,exports){
-var baseEach = _dereq_(55),
-    createFind = _dereq_(86);
+},{"101":101,"108":108,"115":115,"188":188}],84:[function(_dereq_,module,exports){
+var baseEach = _dereq_(113),
+    createFind = _dereq_(152);
 
 /**
  * Iterates over elements of `collection`, returning the first element
@@ -8052,10 +14278,10 @@ var find = createFind(baseEach);
 
 module.exports = find;
 
-},{"55":55,"86":86}],34:[function(_dereq_,module,exports){
-var arrayEach = _dereq_(42),
-    baseEach = _dereq_(55),
-    createForEach = _dereq_(87);
+},{"113":113,"152":152}],85:[function(_dereq_,module,exports){
+var arrayEach = _dereq_(99),
+    baseEach = _dereq_(113),
+    createForEach = _dereq_(153);
 
 /**
  * Iterates over elements of `collection` invoking `iteratee` for each element.
@@ -8091,70 +14317,72 @@ var forEach = createForEach(arrayEach, baseEach);
 
 module.exports = forEach;
 
-},{"42":42,"55":55,"87":87}],35:[function(_dereq_,module,exports){
-var baseIndexOf = _dereq_(65),
-    getLength = _dereq_(92),
-    isArray = _dereq_(109),
-    isIterateeCall = _dereq_(98),
-    isLength = _dereq_(100),
-    isString = _dereq_(114),
-    values = _dereq_(122);
+},{"113":113,"153":153,"99":99}],86:[function(_dereq_,module,exports){
+var createAggregator = _dereq_(145);
 
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMax = Math.max;
+/** Used for native method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
 
 /**
- * Checks if `target` is in `collection` using
- * [`SameValueZero`](http://ecma-international.org/ecma-262/6.0/#sec-samevaluezero)
- * for equality comparisons. If `fromIndex` is negative, it's used as the offset
- * from the end of `collection`.
+ * Creates an object composed of keys generated from the results of running
+ * each element of `collection` through `iteratee`. The corresponding value
+ * of each key is an array of the elements responsible for generating the key.
+ * The `iteratee` is bound to `thisArg` and invoked with three arguments:
+ * (value, index|key, collection).
+ *
+ * If a property name is provided for `iteratee` the created `_.property`
+ * style callback returns the property value of the given element.
+ *
+ * If a value is also provided for `thisArg` the created `_.matchesProperty`
+ * style callback returns `true` for elements that have a matching property
+ * value, else `false`.
+ *
+ * If an object is provided for `iteratee` the created `_.matches` style
+ * callback returns `true` for elements that have the properties of the given
+ * object, else `false`.
  *
  * @static
  * @memberOf _
- * @alias contains, include
  * @category Collection
- * @param {Array|Object|string} collection The collection to search.
- * @param {*} target The value to search for.
- * @param {number} [fromIndex=0] The index to search from.
- * @param- {Object} [guard] Enables use as a callback for functions like `_.reduce`.
- * @returns {boolean} Returns `true` if a matching element is found, else `false`.
+ * @param {Array|Object|string} collection The collection to iterate over.
+ * @param {Function|Object|string} [iteratee=_.identity] The function invoked
+ *  per iteration.
+ * @param {*} [thisArg] The `this` binding of `iteratee`.
+ * @returns {Object} Returns the composed aggregate object.
  * @example
  *
- * _.includes([1, 2, 3], 1);
- * // => true
+ * _.groupBy([4.2, 6.1, 6.4], function(n) {
+ *   return Math.floor(n);
+ * });
+ * // => { '4': [4.2], '6': [6.1, 6.4] }
  *
- * _.includes([1, 2, 3], 1, 2);
- * // => false
+ * _.groupBy([4.2, 6.1, 6.4], function(n) {
+ *   return this.floor(n);
+ * }, Math);
+ * // => { '4': [4.2], '6': [6.1, 6.4] }
  *
- * _.includes({ 'user': 'fred', 'age': 40 }, 'fred');
- * // => true
- *
- * _.includes('pebbles', 'eb');
- * // => true
+ * // using the `_.property` callback shorthand
+ * _.groupBy(['one', 'two', 'three'], 'length');
+ * // => { '3': ['one', 'two'], '5': ['three'] }
  */
-function includes(collection, target, fromIndex, guard) {
-  var length = collection ? getLength(collection) : 0;
-  if (!isLength(length)) {
-    collection = values(collection);
-    length = collection.length;
-  }
-  if (typeof fromIndex != 'number' || (guard && isIterateeCall(target, fromIndex, guard))) {
-    fromIndex = 0;
+var groupBy = createAggregator(function(result, value, key) {
+  if (hasOwnProperty.call(result, key)) {
+    result[key].push(value);
   } else {
-    fromIndex = fromIndex < 0 ? nativeMax(length + fromIndex, 0) : (fromIndex || 0);
+    result[key] = [value];
   }
-  return (typeof collection == 'string' || !isArray(collection) && isString(collection))
-    ? (fromIndex <= length && collection.indexOf(target, fromIndex) > -1)
-    : (!!length && baseIndexOf(collection, target, fromIndex) > -1);
-}
+});
 
-module.exports = includes;
+module.exports = groupBy;
 
-},{"100":100,"109":109,"114":114,"122":122,"65":65,"92":92,"98":98}],36:[function(_dereq_,module,exports){
-var arrayMap = _dereq_(45),
-    baseCallback = _dereq_(51),
-    baseMap = _dereq_(69),
-    isArray = _dereq_(109);
+},{"145":145}],87:[function(_dereq_,module,exports){
+var arrayMap = _dereq_(102),
+    baseCallback = _dereq_(108),
+    baseMap = _dereq_(128),
+    isArray = _dereq_(188);
 
 /**
  * Creates an array of values by running each element in `collection` through
@@ -8220,10 +14448,10 @@ function map(collection, iteratee, thisArg) {
 
 module.exports = map;
 
-},{"109":109,"45":45,"51":51,"69":69}],37:[function(_dereq_,module,exports){
-var arrayReduce = _dereq_(47),
-    baseEach = _dereq_(55),
-    createReduce = _dereq_(88);
+},{"102":102,"108":108,"128":128,"188":188}],88:[function(_dereq_,module,exports){
+var arrayReduce = _dereq_(104),
+    baseEach = _dereq_(113),
+    createReduce = _dereq_(156);
 
 /**
  * Reduces `collection` to a value which is the accumulated result of running
@@ -8266,12 +14494,12 @@ var reduce = createReduce(arrayReduce, baseEach);
 
 module.exports = reduce;
 
-},{"47":47,"55":55,"88":88}],38:[function(_dereq_,module,exports){
-var arraySome = _dereq_(48),
-    baseCallback = _dereq_(51),
-    baseSome = _dereq_(76),
-    isArray = _dereq_(109),
-    isIterateeCall = _dereq_(98);
+},{"104":104,"113":113,"156":156}],89:[function(_dereq_,module,exports){
+var arraySome = _dereq_(105),
+    baseCallback = _dereq_(108),
+    baseSome = _dereq_(138),
+    isArray = _dereq_(188),
+    isIterateeCall = _dereq_(169);
 
 /**
  * Checks if `predicate` returns truthy for **any** element of `collection`.
@@ -8335,9 +14563,276 @@ function some(collection, predicate, thisArg) {
 
 module.exports = some;
 
-},{"109":109,"48":48,"51":51,"76":76,"98":98}],39:[function(_dereq_,module,exports){
-var baseDelay = _dereq_(53),
-    restParam = _dereq_(40);
+},{"105":105,"108":108,"138":138,"169":169,"188":188}],90:[function(_dereq_,module,exports){
+var getNative = _dereq_(165);
+
+/* Native method references for those with the same name as other `lodash` methods. */
+var nativeNow = getNative(Date, 'now');
+
+/**
+ * Gets the number of milliseconds that have elapsed since the Unix epoch
+ * (1 January 1970 00:00:00 UTC).
+ *
+ * @static
+ * @memberOf _
+ * @category Date
+ * @example
+ *
+ * _.defer(function(stamp) {
+ *   console.log(_.now() - stamp);
+ * }, _.now());
+ * // => logs the number of milliseconds it took for the deferred function to be invoked
+ */
+var now = nativeNow || function() {
+  return new Date().getTime();
+};
+
+module.exports = now;
+
+},{"165":165}],91:[function(_dereq_,module,exports){
+var createWrapper = _dereq_(157),
+    replaceHolders = _dereq_(181),
+    restParam = _dereq_(94);
+
+/** Used to compose bitmasks for wrapper metadata. */
+var BIND_FLAG = 1,
+    PARTIAL_FLAG = 32;
+
+/**
+ * Creates a function that invokes `func` with the `this` binding of `thisArg`
+ * and prepends any additional `_.bind` arguments to those provided to the
+ * bound function.
+ *
+ * The `_.bind.placeholder` value, which defaults to `_` in monolithic builds,
+ * may be used as a placeholder for partially applied arguments.
+ *
+ * **Note:** Unlike native `Function#bind` this method does not set the "length"
+ * property of bound functions.
+ *
+ * @static
+ * @memberOf _
+ * @category Function
+ * @param {Function} func The function to bind.
+ * @param {*} thisArg The `this` binding of `func`.
+ * @param {...*} [partials] The arguments to be partially applied.
+ * @returns {Function} Returns the new bound function.
+ * @example
+ *
+ * var greet = function(greeting, punctuation) {
+ *   return greeting + ' ' + this.user + punctuation;
+ * };
+ *
+ * var object = { 'user': 'fred' };
+ *
+ * var bound = _.bind(greet, object, 'hi');
+ * bound('!');
+ * // => 'hi fred!'
+ *
+ * // using placeholders
+ * var bound = _.bind(greet, object, _, '!');
+ * bound('hi');
+ * // => 'hi fred!'
+ */
+var bind = restParam(function(func, thisArg, partials) {
+  var bitmask = BIND_FLAG;
+  if (partials.length) {
+    var holders = replaceHolders(partials, bind.placeholder);
+    bitmask |= PARTIAL_FLAG;
+  }
+  return createWrapper(func, bitmask, thisArg, partials, holders);
+});
+
+// Assign default placeholders.
+bind.placeholder = {};
+
+module.exports = bind;
+
+},{"157":157,"181":181,"94":94}],92:[function(_dereq_,module,exports){
+var isObject = _dereq_(192),
+    now = _dereq_(90);
+
+/** Used as the `TypeError` message for "Functions" methods. */
+var FUNC_ERROR_TEXT = 'Expected a function';
+
+/* Native method references for those with the same name as other `lodash` methods. */
+var nativeMax = Math.max;
+
+/**
+ * Creates a debounced function that delays invoking `func` until after `wait`
+ * milliseconds have elapsed since the last time the debounced function was
+ * invoked. The debounced function comes with a `cancel` method to cancel
+ * delayed invocations. Provide an options object to indicate that `func`
+ * should be invoked on the leading and/or trailing edge of the `wait` timeout.
+ * Subsequent calls to the debounced function return the result of the last
+ * `func` invocation.
+ *
+ * **Note:** If `leading` and `trailing` options are `true`, `func` is invoked
+ * on the trailing edge of the timeout only if the the debounced function is
+ * invoked more than once during the `wait` timeout.
+ *
+ * See [David Corbacho's article](http://drupalmotion.com/article/debounce-and-throttle-visual-explanation)
+ * for details over the differences between `_.debounce` and `_.throttle`.
+ *
+ * @static
+ * @memberOf _
+ * @category Function
+ * @param {Function} func The function to debounce.
+ * @param {number} [wait=0] The number of milliseconds to delay.
+ * @param {Object} [options] The options object.
+ * @param {boolean} [options.leading=false] Specify invoking on the leading
+ *  edge of the timeout.
+ * @param {number} [options.maxWait] The maximum time `func` is allowed to be
+ *  delayed before it's invoked.
+ * @param {boolean} [options.trailing=true] Specify invoking on the trailing
+ *  edge of the timeout.
+ * @returns {Function} Returns the new debounced function.
+ * @example
+ *
+ * // avoid costly calculations while the window size is in flux
+ * jQuery(window).on('resize', _.debounce(calculateLayout, 150));
+ *
+ * // invoke `sendMail` when the click event is fired, debouncing subsequent calls
+ * jQuery('#postbox').on('click', _.debounce(sendMail, 300, {
+ *   'leading': true,
+ *   'trailing': false
+ * }));
+ *
+ * // ensure `batchLog` is invoked once after 1 second of debounced calls
+ * var source = new EventSource('/stream');
+ * jQuery(source).on('message', _.debounce(batchLog, 250, {
+ *   'maxWait': 1000
+ * }));
+ *
+ * // cancel a debounced call
+ * var todoChanges = _.debounce(batchLog, 1000);
+ * Object.observe(models.todo, todoChanges);
+ *
+ * Object.observe(models, function(changes) {
+ *   if (_.find(changes, { 'user': 'todo', 'type': 'delete'})) {
+ *     todoChanges.cancel();
+ *   }
+ * }, ['delete']);
+ *
+ * // ...at some point `models.todo` is changed
+ * models.todo.completed = true;
+ *
+ * // ...before 1 second has passed `models.todo` is deleted
+ * // which cancels the debounced `todoChanges` call
+ * delete models.todo;
+ */
+function debounce(func, wait, options) {
+  var args,
+      maxTimeoutId,
+      result,
+      stamp,
+      thisArg,
+      timeoutId,
+      trailingCall,
+      lastCalled = 0,
+      maxWait = false,
+      trailing = true;
+
+  if (typeof func != 'function') {
+    throw new TypeError(FUNC_ERROR_TEXT);
+  }
+  wait = wait < 0 ? 0 : (+wait || 0);
+  if (options === true) {
+    var leading = true;
+    trailing = false;
+  } else if (isObject(options)) {
+    leading = !!options.leading;
+    maxWait = 'maxWait' in options && nativeMax(+options.maxWait || 0, wait);
+    trailing = 'trailing' in options ? !!options.trailing : trailing;
+  }
+
+  function cancel() {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+    if (maxTimeoutId) {
+      clearTimeout(maxTimeoutId);
+    }
+    lastCalled = 0;
+    maxTimeoutId = timeoutId = trailingCall = undefined;
+  }
+
+  function complete(isCalled, id) {
+    if (id) {
+      clearTimeout(id);
+    }
+    maxTimeoutId = timeoutId = trailingCall = undefined;
+    if (isCalled) {
+      lastCalled = now();
+      result = func.apply(thisArg, args);
+      if (!timeoutId && !maxTimeoutId) {
+        args = thisArg = undefined;
+      }
+    }
+  }
+
+  function delayed() {
+    var remaining = wait - (now() - stamp);
+    if (remaining <= 0 || remaining > wait) {
+      complete(trailingCall, maxTimeoutId);
+    } else {
+      timeoutId = setTimeout(delayed, remaining);
+    }
+  }
+
+  function maxDelayed() {
+    complete(trailing, timeoutId);
+  }
+
+  function debounced() {
+    args = arguments;
+    stamp = now();
+    thisArg = this;
+    trailingCall = trailing && (timeoutId || !leading);
+
+    if (maxWait === false) {
+      var leadingCall = leading && !timeoutId;
+    } else {
+      if (!maxTimeoutId && !leading) {
+        lastCalled = stamp;
+      }
+      var remaining = maxWait - (stamp - lastCalled),
+          isCalled = remaining <= 0 || remaining > maxWait;
+
+      if (isCalled) {
+        if (maxTimeoutId) {
+          maxTimeoutId = clearTimeout(maxTimeoutId);
+        }
+        lastCalled = stamp;
+        result = func.apply(thisArg, args);
+      }
+      else if (!maxTimeoutId) {
+        maxTimeoutId = setTimeout(maxDelayed, remaining);
+      }
+    }
+    if (isCalled && timeoutId) {
+      timeoutId = clearTimeout(timeoutId);
+    }
+    else if (!timeoutId && wait !== maxWait) {
+      timeoutId = setTimeout(delayed, wait);
+    }
+    if (leadingCall) {
+      isCalled = true;
+      result = func.apply(thisArg, args);
+    }
+    if (isCalled && !timeoutId && !maxTimeoutId) {
+      args = thisArg = undefined;
+    }
+    return result;
+  }
+  debounced.cancel = cancel;
+  return debounced;
+}
+
+module.exports = debounce;
+
+},{"192":192,"90":90}],93:[function(_dereq_,module,exports){
+var baseDelay = _dereq_(111),
+    restParam = _dereq_(94);
 
 /**
  * Defers invoking the `func` until the current call stack has cleared. Any
@@ -8362,7 +14857,7 @@ var defer = restParam(function(func, args) {
 
 module.exports = defer;
 
-},{"40":40,"53":53}],40:[function(_dereq_,module,exports){
+},{"111":111,"94":94}],94:[function(_dereq_,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -8422,10 +14917,61 @@ function restParam(func, start) {
 
 module.exports = restParam;
 
-},{}],41:[function(_dereq_,module,exports){
+},{}],95:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(110),
+    baseLodash = _dereq_(127);
+
+/** Used as references for `-Infinity` and `Infinity`. */
+var POSITIVE_INFINITY = Number.POSITIVE_INFINITY;
+
+/**
+ * Creates a lazy wrapper object which wraps `value` to enable lazy evaluation.
+ *
+ * @private
+ * @param {*} value The value to wrap.
+ */
+function LazyWrapper(value) {
+  this.__wrapped__ = value;
+  this.__actions__ = [];
+  this.__dir__ = 1;
+  this.__filtered__ = false;
+  this.__iteratees__ = [];
+  this.__takeCount__ = POSITIVE_INFINITY;
+  this.__views__ = [];
+}
+
+LazyWrapper.prototype = baseCreate(baseLodash.prototype);
+LazyWrapper.prototype.constructor = LazyWrapper;
+
+module.exports = LazyWrapper;
+
+},{"110":110,"127":127}],96:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(110),
+    baseLodash = _dereq_(127);
+
+/**
+ * The base constructor for creating `lodash` wrapper objects.
+ *
+ * @private
+ * @param {*} value The value to wrap.
+ * @param {boolean} [chainAll] Enable chaining for all wrapper methods.
+ * @param {Array} [actions=[]] Actions to peform to resolve the unwrapped value.
+ */
+function LodashWrapper(value, chainAll, actions) {
+  this.__wrapped__ = value;
+  this.__actions__ = actions || [];
+  this.__chain__ = !!chainAll;
+}
+
+LodashWrapper.prototype = baseCreate(baseLodash.prototype);
+LodashWrapper.prototype.constructor = LodashWrapper;
+
+module.exports = LodashWrapper;
+
+},{"110":110,"127":127}],97:[function(_dereq_,module,exports){
 (function (global){
-var cachePush = _dereq_(81),
-    getNative = _dereq_(94);
+var cachePush = _dereq_(142),
+    getNative = _dereq_(165);
 
 /** Native method references. */
 var Set = getNative(global, 'Set');
@@ -8456,7 +15002,29 @@ module.exports = SetCache;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"81":81,"94":94}],42:[function(_dereq_,module,exports){
+},{"142":142,"165":165}],98:[function(_dereq_,module,exports){
+/**
+ * Copies the values of `source` to `array`.
+ *
+ * @private
+ * @param {Array} source The array to copy values from.
+ * @param {Array} [array=[]] The array to copy values to.
+ * @returns {Array} Returns `array`.
+ */
+function arrayCopy(source, array) {
+  var index = -1,
+      length = source.length;
+
+  array || (array = Array(length));
+  while (++index < length) {
+    array[index] = source[index];
+  }
+  return array;
+}
+
+module.exports = arrayCopy;
+
+},{}],99:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.forEach` for arrays without support for callback
  * shorthands and `this` binding.
@@ -8480,7 +15048,7 @@ function arrayEach(array, iteratee) {
 
 module.exports = arrayEach;
 
-},{}],43:[function(_dereq_,module,exports){
+},{}],100:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.every` for arrays without support for callback
  * shorthands and `this` binding.
@@ -8505,7 +15073,7 @@ function arrayEvery(array, predicate) {
 
 module.exports = arrayEvery;
 
-},{}],44:[function(_dereq_,module,exports){
+},{}],101:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.filter` for arrays without support for callback
  * shorthands and `this` binding.
@@ -8532,7 +15100,7 @@ function arrayFilter(array, predicate) {
 
 module.exports = arrayFilter;
 
-},{}],45:[function(_dereq_,module,exports){
+},{}],102:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.map` for arrays without support for callback
  * shorthands and `this` binding.
@@ -8555,7 +15123,7 @@ function arrayMap(array, iteratee) {
 
 module.exports = arrayMap;
 
-},{}],46:[function(_dereq_,module,exports){
+},{}],103:[function(_dereq_,module,exports){
 /**
  * Appends the elements of `values` to `array`.
  *
@@ -8577,7 +15145,7 @@ function arrayPush(array, values) {
 
 module.exports = arrayPush;
 
-},{}],47:[function(_dereq_,module,exports){
+},{}],104:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.reduce` for arrays without support for callback
  * shorthands and `this` binding.
@@ -8605,7 +15173,7 @@ function arrayReduce(array, iteratee, accumulator, initFromArray) {
 
 module.exports = arrayReduce;
 
-},{}],48:[function(_dereq_,module,exports){
+},{}],105:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.some` for arrays without support for callback
  * shorthands and `this` binding.
@@ -8630,8 +15198,8 @@ function arraySome(array, predicate) {
 
 module.exports = arraySome;
 
-},{}],49:[function(_dereq_,module,exports){
-var keys = _dereq_(117);
+},{}],106:[function(_dereq_,module,exports){
+var keys = _dereq_(198);
 
 /**
  * A specialized version of `_.assign` for customizing assigned values without
@@ -8664,9 +15232,9 @@ function assignWith(object, source, customizer) {
 
 module.exports = assignWith;
 
-},{"117":117}],50:[function(_dereq_,module,exports){
-var baseCopy = _dereq_(52),
-    keys = _dereq_(117);
+},{"198":198}],107:[function(_dereq_,module,exports){
+var baseCopy = _dereq_(109),
+    keys = _dereq_(198);
 
 /**
  * The base implementation of `_.assign` without support for argument juggling,
@@ -8685,12 +15253,12 @@ function baseAssign(object, source) {
 
 module.exports = baseAssign;
 
-},{"117":117,"52":52}],51:[function(_dereq_,module,exports){
-var baseMatches = _dereq_(70),
-    baseMatchesProperty = _dereq_(71),
-    bindCallback = _dereq_(79),
-    identity = _dereq_(123),
-    property = _dereq_(124);
+},{"109":109,"198":198}],108:[function(_dereq_,module,exports){
+var baseMatches = _dereq_(129),
+    baseMatchesProperty = _dereq_(130),
+    bindCallback = _dereq_(140),
+    identity = _dereq_(204),
+    property = _dereq_(206);
 
 /**
  * The base implementation of `_.callback` which supports specifying the
@@ -8722,7 +15290,7 @@ function baseCallback(func, thisArg, argCount) {
 
 module.exports = baseCallback;
 
-},{"123":123,"124":124,"70":70,"71":71,"79":79}],52:[function(_dereq_,module,exports){
+},{"129":129,"130":130,"140":140,"204":204,"206":206}],109:[function(_dereq_,module,exports){
 /**
  * Copies properties of `source` to `object`.
  *
@@ -8747,7 +15315,32 @@ function baseCopy(source, props, object) {
 
 module.exports = baseCopy;
 
-},{}],53:[function(_dereq_,module,exports){
+},{}],110:[function(_dereq_,module,exports){
+var isObject = _dereq_(192);
+
+/**
+ * The base implementation of `_.create` without support for assigning
+ * properties to the created object.
+ *
+ * @private
+ * @param {Object} prototype The object to inherit from.
+ * @returns {Object} Returns the new object.
+ */
+var baseCreate = (function() {
+  function object() {}
+  return function(prototype) {
+    if (isObject(prototype)) {
+      object.prototype = prototype;
+      var result = new object;
+      object.prototype = undefined;
+    }
+    return result || {};
+  };
+}());
+
+module.exports = baseCreate;
+
+},{"192":192}],111:[function(_dereq_,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -8770,10 +15363,10 @@ function baseDelay(func, wait, args) {
 
 module.exports = baseDelay;
 
-},{}],54:[function(_dereq_,module,exports){
-var baseIndexOf = _dereq_(65),
-    cacheIndexOf = _dereq_(80),
-    createCache = _dereq_(85);
+},{}],112:[function(_dereq_,module,exports){
+var baseIndexOf = _dereq_(123),
+    cacheIndexOf = _dereq_(141),
+    createCache = _dereq_(150);
 
 /** Used as the size to enable large array optimizations. */
 var LARGE_ARRAY_SIZE = 200;
@@ -8827,9 +15420,9 @@ function baseDifference(array, values) {
 
 module.exports = baseDifference;
 
-},{"65":65,"80":80,"85":85}],55:[function(_dereq_,module,exports){
-var baseForOwn = _dereq_(63),
-    createBaseEach = _dereq_(83);
+},{"123":123,"141":141,"150":150}],113:[function(_dereq_,module,exports){
+var baseForOwn = _dereq_(121),
+    createBaseEach = _dereq_(147);
 
 /**
  * The base implementation of `_.forEach` without support for callback
@@ -8844,8 +15437,8 @@ var baseEach = createBaseEach(baseForOwn);
 
 module.exports = baseEach;
 
-},{"63":63,"83":83}],56:[function(_dereq_,module,exports){
-var baseEach = _dereq_(55);
+},{"121":121,"147":147}],114:[function(_dereq_,module,exports){
+var baseEach = _dereq_(113);
 
 /**
  * The base implementation of `_.every` without support for callback
@@ -8868,8 +15461,8 @@ function baseEvery(collection, predicate) {
 
 module.exports = baseEvery;
 
-},{"55":55}],57:[function(_dereq_,module,exports){
-var baseEach = _dereq_(55);
+},{"113":113}],115:[function(_dereq_,module,exports){
+var baseEach = _dereq_(113);
 
 /**
  * The base implementation of `_.filter` without support for callback
@@ -8892,7 +15485,7 @@ function baseFilter(collection, predicate) {
 
 module.exports = baseFilter;
 
-},{"55":55}],58:[function(_dereq_,module,exports){
+},{"113":113}],116:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.find`, `_.findLast`, `_.findKey`, and `_.findLastKey`,
  * without support for callback shorthands and `this` binding, which iterates
@@ -8919,7 +15512,7 @@ function baseFind(collection, predicate, eachFunc, retKey) {
 
 module.exports = baseFind;
 
-},{}],59:[function(_dereq_,module,exports){
+},{}],117:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.findIndex` and `_.findLastIndex` without
  * support for callback shorthands and `this` binding.
@@ -8944,12 +15537,12 @@ function baseFindIndex(array, predicate, fromRight) {
 
 module.exports = baseFindIndex;
 
-},{}],60:[function(_dereq_,module,exports){
-var arrayPush = _dereq_(46),
-    isArguments = _dereq_(108),
-    isArray = _dereq_(109),
-    isArrayLike = _dereq_(96),
-    isObjectLike = _dereq_(101);
+},{}],118:[function(_dereq_,module,exports){
+var arrayPush = _dereq_(103),
+    isArguments = _dereq_(187),
+    isArray = _dereq_(188),
+    isArrayLike = _dereq_(167),
+    isObjectLike = _dereq_(173);
 
 /**
  * The base implementation of `_.flatten` with added support for restricting
@@ -8987,8 +15580,8 @@ function baseFlatten(array, isDeep, isStrict, result) {
 
 module.exports = baseFlatten;
 
-},{"101":101,"108":108,"109":109,"46":46,"96":96}],61:[function(_dereq_,module,exports){
-var createBaseFor = _dereq_(84);
+},{"103":103,"167":167,"173":173,"187":187,"188":188}],119:[function(_dereq_,module,exports){
+var createBaseFor = _dereq_(148);
 
 /**
  * The base implementation of `baseForIn` and `baseForOwn` which iterates
@@ -9006,9 +15599,9 @@ var baseFor = createBaseFor();
 
 module.exports = baseFor;
 
-},{"84":84}],62:[function(_dereq_,module,exports){
-var baseFor = _dereq_(61),
-    keysIn = _dereq_(118);
+},{"148":148}],120:[function(_dereq_,module,exports){
+var baseFor = _dereq_(119),
+    keysIn = _dereq_(199);
 
 /**
  * The base implementation of `_.forIn` without support for callback
@@ -9025,9 +15618,9 @@ function baseForIn(object, iteratee) {
 
 module.exports = baseForIn;
 
-},{"118":118,"61":61}],63:[function(_dereq_,module,exports){
-var baseFor = _dereq_(61),
-    keys = _dereq_(117);
+},{"119":119,"199":199}],121:[function(_dereq_,module,exports){
+var baseFor = _dereq_(119),
+    keys = _dereq_(198);
 
 /**
  * The base implementation of `_.forOwn` without support for callback
@@ -9044,8 +15637,8 @@ function baseForOwn(object, iteratee) {
 
 module.exports = baseForOwn;
 
-},{"117":117,"61":61}],64:[function(_dereq_,module,exports){
-var toObject = _dereq_(106);
+},{"119":119,"198":198}],122:[function(_dereq_,module,exports){
+var toObject = _dereq_(184);
 
 /**
  * The base implementation of `get` without support for string paths
@@ -9075,8 +15668,8 @@ function baseGet(object, path, pathKey) {
 
 module.exports = baseGet;
 
-},{"106":106}],65:[function(_dereq_,module,exports){
-var indexOfNaN = _dereq_(95);
+},{"184":184}],123:[function(_dereq_,module,exports){
+var indexOfNaN = _dereq_(166);
 
 /**
  * The base implementation of `_.indexOf` without support for binary searches.
@@ -9104,10 +15697,10 @@ function baseIndexOf(array, value, fromIndex) {
 
 module.exports = baseIndexOf;
 
-},{"95":95}],66:[function(_dereq_,module,exports){
-var baseIsEqualDeep = _dereq_(67),
-    isObject = _dereq_(113),
-    isObjectLike = _dereq_(101);
+},{"166":166}],124:[function(_dereq_,module,exports){
+var baseIsEqualDeep = _dereq_(125),
+    isObject = _dereq_(192),
+    isObjectLike = _dereq_(173);
 
 /**
  * The base implementation of `_.isEqual` without support for `this` binding
@@ -9134,12 +15727,12 @@ function baseIsEqual(value, other, customizer, isLoose, stackA, stackB) {
 
 module.exports = baseIsEqual;
 
-},{"101":101,"113":113,"67":67}],67:[function(_dereq_,module,exports){
-var equalArrays = _dereq_(89),
-    equalByTag = _dereq_(90),
-    equalObjects = _dereq_(91),
-    isArray = _dereq_(109),
-    isTypedArray = _dereq_(115);
+},{"125":125,"173":173,"192":192}],125:[function(_dereq_,module,exports){
+var equalArrays = _dereq_(158),
+    equalByTag = _dereq_(159),
+    equalObjects = _dereq_(160),
+    isArray = _dereq_(188),
+    isTypedArray = _dereq_(195);
 
 /** `Object#toString` result references. */
 var argsTag = '[object Arguments]',
@@ -9238,9 +15831,9 @@ function baseIsEqualDeep(object, other, equalFunc, customizer, isLoose, stackA, 
 
 module.exports = baseIsEqualDeep;
 
-},{"109":109,"115":115,"89":89,"90":90,"91":91}],68:[function(_dereq_,module,exports){
-var baseIsEqual = _dereq_(66),
-    toObject = _dereq_(106);
+},{"158":158,"159":159,"160":160,"188":188,"195":195}],126:[function(_dereq_,module,exports){
+var baseIsEqual = _dereq_(124),
+    toObject = _dereq_(184);
 
 /**
  * The base implementation of `_.isMatch` without support for callback
@@ -9292,9 +15885,21 @@ function baseIsMatch(object, matchData, customizer) {
 
 module.exports = baseIsMatch;
 
-},{"106":106,"66":66}],69:[function(_dereq_,module,exports){
-var baseEach = _dereq_(55),
-    isArrayLike = _dereq_(96);
+},{"124":124,"184":184}],127:[function(_dereq_,module,exports){
+/**
+ * The function whose prototype all chaining wrappers inherit from.
+ *
+ * @private
+ */
+function baseLodash() {
+  // No operation performed.
+}
+
+module.exports = baseLodash;
+
+},{}],128:[function(_dereq_,module,exports){
+var baseEach = _dereq_(113),
+    isArrayLike = _dereq_(167);
 
 /**
  * The base implementation of `_.map` without support for callback shorthands
@@ -9317,10 +15922,10 @@ function baseMap(collection, iteratee) {
 
 module.exports = baseMap;
 
-},{"55":55,"96":96}],70:[function(_dereq_,module,exports){
-var baseIsMatch = _dereq_(68),
-    getMatchData = _dereq_(93),
-    toObject = _dereq_(106);
+},{"113":113,"167":167}],129:[function(_dereq_,module,exports){
+var baseIsMatch = _dereq_(126),
+    getMatchData = _dereq_(164),
+    toObject = _dereq_(184);
 
 /**
  * The base implementation of `_.matches` which does not clone `source`.
@@ -9349,16 +15954,16 @@ function baseMatches(source) {
 
 module.exports = baseMatches;
 
-},{"106":106,"68":68,"93":93}],71:[function(_dereq_,module,exports){
-var baseGet = _dereq_(64),
-    baseIsEqual = _dereq_(66),
-    baseSlice = _dereq_(75),
-    isArray = _dereq_(109),
-    isKey = _dereq_(99),
-    isStrictComparable = _dereq_(102),
-    last = _dereq_(30),
-    toObject = _dereq_(106),
-    toPath = _dereq_(107);
+},{"126":126,"164":164,"184":184}],130:[function(_dereq_,module,exports){
+var baseGet = _dereq_(122),
+    baseIsEqual = _dereq_(124),
+    baseSlice = _dereq_(137),
+    isArray = _dereq_(188),
+    isKey = _dereq_(170),
+    isStrictComparable = _dereq_(174),
+    last = _dereq_(80),
+    toObject = _dereq_(184),
+    toPath = _dereq_(185);
 
 /**
  * The base implementation of `_.matchesProperty` which does not clone `srcValue`.
@@ -9396,7 +16001,134 @@ function baseMatchesProperty(path, srcValue) {
 
 module.exports = baseMatchesProperty;
 
-},{"102":102,"106":106,"107":107,"109":109,"30":30,"64":64,"66":66,"75":75,"99":99}],72:[function(_dereq_,module,exports){
+},{"122":122,"124":124,"137":137,"170":170,"174":174,"184":184,"185":185,"188":188,"80":80}],131:[function(_dereq_,module,exports){
+var arrayEach = _dereq_(99),
+    baseMergeDeep = _dereq_(132),
+    isArray = _dereq_(188),
+    isArrayLike = _dereq_(167),
+    isObject = _dereq_(192),
+    isObjectLike = _dereq_(173),
+    isTypedArray = _dereq_(195),
+    keys = _dereq_(198);
+
+/**
+ * The base implementation of `_.merge` without support for argument juggling,
+ * multiple sources, and `this` binding `customizer` functions.
+ *
+ * @private
+ * @param {Object} object The destination object.
+ * @param {Object} source The source object.
+ * @param {Function} [customizer] The function to customize merged values.
+ * @param {Array} [stackA=[]] Tracks traversed source objects.
+ * @param {Array} [stackB=[]] Associates values with source counterparts.
+ * @returns {Object} Returns `object`.
+ */
+function baseMerge(object, source, customizer, stackA, stackB) {
+  if (!isObject(object)) {
+    return object;
+  }
+  var isSrcArr = isArrayLike(source) && (isArray(source) || isTypedArray(source)),
+      props = isSrcArr ? undefined : keys(source);
+
+  arrayEach(props || source, function(srcValue, key) {
+    if (props) {
+      key = srcValue;
+      srcValue = source[key];
+    }
+    if (isObjectLike(srcValue)) {
+      stackA || (stackA = []);
+      stackB || (stackB = []);
+      baseMergeDeep(object, source, key, baseMerge, customizer, stackA, stackB);
+    }
+    else {
+      var value = object[key],
+          result = customizer ? customizer(value, srcValue, key, object, source) : undefined,
+          isCommon = result === undefined;
+
+      if (isCommon) {
+        result = srcValue;
+      }
+      if ((result !== undefined || (isSrcArr && !(key in object))) &&
+          (isCommon || (result === result ? (result !== value) : (value === value)))) {
+        object[key] = result;
+      }
+    }
+  });
+  return object;
+}
+
+module.exports = baseMerge;
+
+},{"132":132,"167":167,"173":173,"188":188,"192":192,"195":195,"198":198,"99":99}],132:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(98),
+    isArguments = _dereq_(187),
+    isArray = _dereq_(188),
+    isArrayLike = _dereq_(167),
+    isPlainObject = _dereq_(193),
+    isTypedArray = _dereq_(195),
+    toPlainObject = _dereq_(196);
+
+/**
+ * A specialized version of `baseMerge` for arrays and objects which performs
+ * deep merges and tracks traversed objects enabling objects with circular
+ * references to be merged.
+ *
+ * @private
+ * @param {Object} object The destination object.
+ * @param {Object} source The source object.
+ * @param {string} key The key of the value to merge.
+ * @param {Function} mergeFunc The function to merge values.
+ * @param {Function} [customizer] The function to customize merged values.
+ * @param {Array} [stackA=[]] Tracks traversed source objects.
+ * @param {Array} [stackB=[]] Associates values with source counterparts.
+ * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
+ */
+function baseMergeDeep(object, source, key, mergeFunc, customizer, stackA, stackB) {
+  var length = stackA.length,
+      srcValue = source[key];
+
+  while (length--) {
+    if (stackA[length] == srcValue) {
+      object[key] = stackB[length];
+      return;
+    }
+  }
+  var value = object[key],
+      result = customizer ? customizer(value, srcValue, key, object, source) : undefined,
+      isCommon = result === undefined;
+
+  if (isCommon) {
+    result = srcValue;
+    if (isArrayLike(srcValue) && (isArray(srcValue) || isTypedArray(srcValue))) {
+      result = isArray(value)
+        ? value
+        : (isArrayLike(value) ? arrayCopy(value) : []);
+    }
+    else if (isPlainObject(srcValue) || isArguments(srcValue)) {
+      result = isArguments(value)
+        ? toPlainObject(value)
+        : (isPlainObject(value) ? value : {});
+    }
+    else {
+      isCommon = false;
+    }
+  }
+  // Add the source value to the stack of traversed objects and associate
+  // it with its merged value.
+  stackA.push(srcValue);
+  stackB.push(result);
+
+  if (isCommon) {
+    // Recursively merge objects and arrays (susceptible to call stack limits).
+    object[key] = mergeFunc(result, srcValue, customizer, stackA, stackB);
+  } else if (result === result ? (result !== value) : (value === value)) {
+    object[key] = result;
+  }
+}
+
+module.exports = baseMergeDeep;
+
+},{"167":167,"187":187,"188":188,"193":193,"195":195,"196":196,"98":98}],133:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.property` without support for deep paths.
  *
@@ -9412,9 +16144,9 @@ function baseProperty(key) {
 
 module.exports = baseProperty;
 
-},{}],73:[function(_dereq_,module,exports){
-var baseGet = _dereq_(64),
-    toPath = _dereq_(107);
+},{}],134:[function(_dereq_,module,exports){
+var baseGet = _dereq_(122),
+    toPath = _dereq_(185);
 
 /**
  * A specialized version of `baseProperty` which supports deep paths.
@@ -9433,7 +16165,7 @@ function basePropertyDeep(path) {
 
 module.exports = basePropertyDeep;
 
-},{"107":107,"64":64}],74:[function(_dereq_,module,exports){
+},{"122":122,"185":185}],135:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.reduce` and `_.reduceRight` without support
  * for callback shorthands and `this` binding, which iterates over `collection`
@@ -9459,7 +16191,26 @@ function baseReduce(collection, iteratee, accumulator, initFromCollection, eachF
 
 module.exports = baseReduce;
 
-},{}],75:[function(_dereq_,module,exports){
+},{}],136:[function(_dereq_,module,exports){
+var identity = _dereq_(204),
+    metaMap = _dereq_(176);
+
+/**
+ * The base implementation of `setData` without support for hot loop detection.
+ *
+ * @private
+ * @param {Function} func The function to associate metadata with.
+ * @param {*} data The metadata.
+ * @returns {Function} Returns `func`.
+ */
+var baseSetData = !metaMap ? identity : function(func, data) {
+  metaMap.set(func, data);
+  return func;
+};
+
+module.exports = baseSetData;
+
+},{"176":176,"204":204}],137:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.slice` without an iteratee call guard.
  *
@@ -9493,8 +16244,8 @@ function baseSlice(array, start, end) {
 
 module.exports = baseSlice;
 
-},{}],76:[function(_dereq_,module,exports){
-var baseEach = _dereq_(55);
+},{}],138:[function(_dereq_,module,exports){
+var baseEach = _dereq_(113);
 
 /**
  * The base implementation of `_.some` without support for callback shorthands
@@ -9518,7 +16269,7 @@ function baseSome(collection, predicate) {
 
 module.exports = baseSome;
 
-},{"55":55}],77:[function(_dereq_,module,exports){
+},{"113":113}],139:[function(_dereq_,module,exports){
 /**
  * Converts `value` to a string if it's not one. An empty string is returned
  * for `null` or `undefined` values.
@@ -9533,32 +16284,8 @@ function baseToString(value) {
 
 module.exports = baseToString;
 
-},{}],78:[function(_dereq_,module,exports){
-/**
- * The base implementation of `_.values` and `_.valuesIn` which creates an
- * array of `object` property values corresponding to the property names
- * of `props`.
- *
- * @private
- * @param {Object} object The object to query.
- * @param {Array} props The property names to get values for.
- * @returns {Object} Returns the array of property values.
- */
-function baseValues(object, props) {
-  var index = -1,
-      length = props.length,
-      result = Array(length);
-
-  while (++index < length) {
-    result[index] = object[props[index]];
-  }
-  return result;
-}
-
-module.exports = baseValues;
-
-},{}],79:[function(_dereq_,module,exports){
-var identity = _dereq_(123);
+},{}],140:[function(_dereq_,module,exports){
+var identity = _dereq_(204);
 
 /**
  * A specialized version of `baseCallback` which only supports `this` binding
@@ -9598,8 +16325,8 @@ function bindCallback(func, thisArg, argCount) {
 
 module.exports = bindCallback;
 
-},{"123":123}],80:[function(_dereq_,module,exports){
-var isObject = _dereq_(113);
+},{"204":204}],141:[function(_dereq_,module,exports){
+var isObject = _dereq_(192);
 
 /**
  * Checks if `value` is in `cache` mimicking the return signature of
@@ -9619,8 +16346,8 @@ function cacheIndexOf(cache, value) {
 
 module.exports = cacheIndexOf;
 
-},{"113":113}],81:[function(_dereq_,module,exports){
-var isObject = _dereq_(113);
+},{"192":192}],142:[function(_dereq_,module,exports){
+var isObject = _dereq_(192);
 
 /**
  * Adds `value` to the cache.
@@ -9641,10 +16368,121 @@ function cachePush(value) {
 
 module.exports = cachePush;
 
-},{"113":113}],82:[function(_dereq_,module,exports){
-var bindCallback = _dereq_(79),
-    isIterateeCall = _dereq_(98),
-    restParam = _dereq_(40);
+},{"192":192}],143:[function(_dereq_,module,exports){
+/* Native method references for those with the same name as other `lodash` methods. */
+var nativeMax = Math.max;
+
+/**
+ * Creates an array that is the composition of partially applied arguments,
+ * placeholders, and provided arguments into a single array of arguments.
+ *
+ * @private
+ * @param {Array|Object} args The provided arguments.
+ * @param {Array} partials The arguments to prepend to those provided.
+ * @param {Array} holders The `partials` placeholder indexes.
+ * @returns {Array} Returns the new array of composed arguments.
+ */
+function composeArgs(args, partials, holders) {
+  var holdersLength = holders.length,
+      argsIndex = -1,
+      argsLength = nativeMax(args.length - holdersLength, 0),
+      leftIndex = -1,
+      leftLength = partials.length,
+      result = Array(leftLength + argsLength);
+
+  while (++leftIndex < leftLength) {
+    result[leftIndex] = partials[leftIndex];
+  }
+  while (++argsIndex < holdersLength) {
+    result[holders[argsIndex]] = args[argsIndex];
+  }
+  while (argsLength--) {
+    result[leftIndex++] = args[argsIndex++];
+  }
+  return result;
+}
+
+module.exports = composeArgs;
+
+},{}],144:[function(_dereq_,module,exports){
+/* Native method references for those with the same name as other `lodash` methods. */
+var nativeMax = Math.max;
+
+/**
+ * This function is like `composeArgs` except that the arguments composition
+ * is tailored for `_.partialRight`.
+ *
+ * @private
+ * @param {Array|Object} args The provided arguments.
+ * @param {Array} partials The arguments to append to those provided.
+ * @param {Array} holders The `partials` placeholder indexes.
+ * @returns {Array} Returns the new array of composed arguments.
+ */
+function composeArgsRight(args, partials, holders) {
+  var holdersIndex = -1,
+      holdersLength = holders.length,
+      argsIndex = -1,
+      argsLength = nativeMax(args.length - holdersLength, 0),
+      rightIndex = -1,
+      rightLength = partials.length,
+      result = Array(argsLength + rightLength);
+
+  while (++argsIndex < argsLength) {
+    result[argsIndex] = args[argsIndex];
+  }
+  var offset = argsIndex;
+  while (++rightIndex < rightLength) {
+    result[offset + rightIndex] = partials[rightIndex];
+  }
+  while (++holdersIndex < holdersLength) {
+    result[offset + holders[holdersIndex]] = args[argsIndex++];
+  }
+  return result;
+}
+
+module.exports = composeArgsRight;
+
+},{}],145:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(108),
+    baseEach = _dereq_(113),
+    isArray = _dereq_(188);
+
+/**
+ * Creates a `_.countBy`, `_.groupBy`, `_.indexBy`, or `_.partition` function.
+ *
+ * @private
+ * @param {Function} setter The function to set keys and values of the accumulator object.
+ * @param {Function} [initializer] The function to initialize the accumulator object.
+ * @returns {Function} Returns the new aggregator function.
+ */
+function createAggregator(setter, initializer) {
+  return function(collection, iteratee, thisArg) {
+    var result = initializer ? initializer() : {};
+    iteratee = baseCallback(iteratee, thisArg, 3);
+
+    if (isArray(collection)) {
+      var index = -1,
+          length = collection.length;
+
+      while (++index < length) {
+        var value = collection[index];
+        setter(result, value, iteratee(value, index, collection), collection);
+      }
+    } else {
+      baseEach(collection, function(value, key, collection) {
+        setter(result, value, iteratee(value, key, collection), collection);
+      });
+    }
+    return result;
+  };
+}
+
+module.exports = createAggregator;
+
+},{"108":108,"113":113,"188":188}],146:[function(_dereq_,module,exports){
+var bindCallback = _dereq_(140),
+    isIterateeCall = _dereq_(169),
+    restParam = _dereq_(94);
 
 /**
  * Creates a `_.assign`, `_.defaults`, or `_.merge` function.
@@ -9684,10 +16522,10 @@ function createAssigner(assigner) {
 
 module.exports = createAssigner;
 
-},{"40":40,"79":79,"98":98}],83:[function(_dereq_,module,exports){
-var getLength = _dereq_(92),
-    isLength = _dereq_(100),
-    toObject = _dereq_(106);
+},{"140":140,"169":169,"94":94}],147:[function(_dereq_,module,exports){
+var getLength = _dereq_(163),
+    isLength = _dereq_(172),
+    toObject = _dereq_(184);
 
 /**
  * Creates a `baseEach` or `baseEachRight` function.
@@ -9717,8 +16555,8 @@ function createBaseEach(eachFunc, fromRight) {
 
 module.exports = createBaseEach;
 
-},{"100":100,"106":106,"92":92}],84:[function(_dereq_,module,exports){
-var toObject = _dereq_(106);
+},{"163":163,"172":172,"184":184}],148:[function(_dereq_,module,exports){
+var toObject = _dereq_(184);
 
 /**
  * Creates a base function for `_.forIn` or `_.forInRight`.
@@ -9746,10 +16584,37 @@ function createBaseFor(fromRight) {
 
 module.exports = createBaseFor;
 
-},{"106":106}],85:[function(_dereq_,module,exports){
+},{"184":184}],149:[function(_dereq_,module,exports){
 (function (global){
-var SetCache = _dereq_(41),
-    getNative = _dereq_(94);
+var createCtorWrapper = _dereq_(151);
+
+/**
+ * Creates a function that wraps `func` and invokes it with the `this`
+ * binding of `thisArg`.
+ *
+ * @private
+ * @param {Function} func The function to bind.
+ * @param {*} [thisArg] The `this` binding of `func`.
+ * @returns {Function} Returns the new bound function.
+ */
+function createBindWrapper(func, thisArg) {
+  var Ctor = createCtorWrapper(func);
+
+  function wrapper() {
+    var fn = (this && this !== global && this instanceof wrapper) ? Ctor : func;
+    return fn.apply(thisArg, arguments);
+  }
+  return wrapper;
+}
+
+module.exports = createBindWrapper;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+
+},{"151":151}],150:[function(_dereq_,module,exports){
+(function (global){
+var SetCache = _dereq_(97),
+    getNative = _dereq_(165);
 
 /** Native method references. */
 var Set = getNative(global, 'Set');
@@ -9772,11 +16637,50 @@ module.exports = createCache;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"41":41,"94":94}],86:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(51),
-    baseFind = _dereq_(58),
-    baseFindIndex = _dereq_(59),
-    isArray = _dereq_(109);
+},{"165":165,"97":97}],151:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(110),
+    isObject = _dereq_(192);
+
+/**
+ * Creates a function that produces an instance of `Ctor` regardless of
+ * whether it was invoked as part of a `new` expression or by `call` or `apply`.
+ *
+ * @private
+ * @param {Function} Ctor The constructor to wrap.
+ * @returns {Function} Returns the new wrapped function.
+ */
+function createCtorWrapper(Ctor) {
+  return function() {
+    // Use a `switch` statement to work with class constructors.
+    // See http://ecma-international.org/ecma-262/6.0/#sec-ecmascript-function-objects-call-thisargument-argumentslist
+    // for more details.
+    var args = arguments;
+    switch (args.length) {
+      case 0: return new Ctor;
+      case 1: return new Ctor(args[0]);
+      case 2: return new Ctor(args[0], args[1]);
+      case 3: return new Ctor(args[0], args[1], args[2]);
+      case 4: return new Ctor(args[0], args[1], args[2], args[3]);
+      case 5: return new Ctor(args[0], args[1], args[2], args[3], args[4]);
+      case 6: return new Ctor(args[0], args[1], args[2], args[3], args[4], args[5]);
+      case 7: return new Ctor(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+    }
+    var thisBinding = baseCreate(Ctor.prototype),
+        result = Ctor.apply(thisBinding, args);
+
+    // Mimic the constructor's `return` behavior.
+    // See https://es5.github.io/#x13.2.2 for more details.
+    return isObject(result) ? result : thisBinding;
+  };
+}
+
+module.exports = createCtorWrapper;
+
+},{"110":110,"192":192}],152:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(108),
+    baseFind = _dereq_(116),
+    baseFindIndex = _dereq_(117),
+    isArray = _dereq_(188);
 
 /**
  * Creates a `_.find` or `_.findLast` function.
@@ -9799,9 +16703,9 @@ function createFind(eachFunc, fromRight) {
 
 module.exports = createFind;
 
-},{"109":109,"51":51,"58":58,"59":59}],87:[function(_dereq_,module,exports){
-var bindCallback = _dereq_(79),
-    isArray = _dereq_(109);
+},{"108":108,"116":116,"117":117,"188":188}],153:[function(_dereq_,module,exports){
+var bindCallback = _dereq_(140),
+    isArray = _dereq_(188);
 
 /**
  * Creates a function for `_.forEach` or `_.forEachRight`.
@@ -9821,10 +16725,174 @@ function createForEach(arrayFunc, eachFunc) {
 
 module.exports = createForEach;
 
-},{"109":109,"79":79}],88:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(51),
-    baseReduce = _dereq_(74),
-    isArray = _dereq_(109);
+},{"140":140,"188":188}],154:[function(_dereq_,module,exports){
+(function (global){
+var arrayCopy = _dereq_(98),
+    composeArgs = _dereq_(143),
+    composeArgsRight = _dereq_(144),
+    createCtorWrapper = _dereq_(151),
+    isLaziable = _dereq_(171),
+    reorder = _dereq_(180),
+    replaceHolders = _dereq_(181),
+    setData = _dereq_(182);
+
+/** Used to compose bitmasks for wrapper metadata. */
+var BIND_FLAG = 1,
+    BIND_KEY_FLAG = 2,
+    CURRY_BOUND_FLAG = 4,
+    CURRY_FLAG = 8,
+    CURRY_RIGHT_FLAG = 16,
+    PARTIAL_FLAG = 32,
+    PARTIAL_RIGHT_FLAG = 64,
+    ARY_FLAG = 128;
+
+/* Native method references for those with the same name as other `lodash` methods. */
+var nativeMax = Math.max;
+
+/**
+ * Creates a function that wraps `func` and invokes it with optional `this`
+ * binding of, partial application, and currying.
+ *
+ * @private
+ * @param {Function|string} func The function or method name to reference.
+ * @param {number} bitmask The bitmask of flags. See `createWrapper` for more details.
+ * @param {*} [thisArg] The `this` binding of `func`.
+ * @param {Array} [partials] The arguments to prepend to those provided to the new function.
+ * @param {Array} [holders] The `partials` placeholder indexes.
+ * @param {Array} [partialsRight] The arguments to append to those provided to the new function.
+ * @param {Array} [holdersRight] The `partialsRight` placeholder indexes.
+ * @param {Array} [argPos] The argument positions of the new function.
+ * @param {number} [ary] The arity cap of `func`.
+ * @param {number} [arity] The arity of `func`.
+ * @returns {Function} Returns the new wrapped function.
+ */
+function createHybridWrapper(func, bitmask, thisArg, partials, holders, partialsRight, holdersRight, argPos, ary, arity) {
+  var isAry = bitmask & ARY_FLAG,
+      isBind = bitmask & BIND_FLAG,
+      isBindKey = bitmask & BIND_KEY_FLAG,
+      isCurry = bitmask & CURRY_FLAG,
+      isCurryBound = bitmask & CURRY_BOUND_FLAG,
+      isCurryRight = bitmask & CURRY_RIGHT_FLAG,
+      Ctor = isBindKey ? undefined : createCtorWrapper(func);
+
+  function wrapper() {
+    // Avoid `arguments` object use disqualifying optimizations by
+    // converting it to an array before providing it to other functions.
+    var length = arguments.length,
+        index = length,
+        args = Array(length);
+
+    while (index--) {
+      args[index] = arguments[index];
+    }
+    if (partials) {
+      args = composeArgs(args, partials, holders);
+    }
+    if (partialsRight) {
+      args = composeArgsRight(args, partialsRight, holdersRight);
+    }
+    if (isCurry || isCurryRight) {
+      var placeholder = wrapper.placeholder,
+          argsHolders = replaceHolders(args, placeholder);
+
+      length -= argsHolders.length;
+      if (length < arity) {
+        var newArgPos = argPos ? arrayCopy(argPos) : undefined,
+            newArity = nativeMax(arity - length, 0),
+            newsHolders = isCurry ? argsHolders : undefined,
+            newHoldersRight = isCurry ? undefined : argsHolders,
+            newPartials = isCurry ? args : undefined,
+            newPartialsRight = isCurry ? undefined : args;
+
+        bitmask |= (isCurry ? PARTIAL_FLAG : PARTIAL_RIGHT_FLAG);
+        bitmask &= ~(isCurry ? PARTIAL_RIGHT_FLAG : PARTIAL_FLAG);
+
+        if (!isCurryBound) {
+          bitmask &= ~(BIND_FLAG | BIND_KEY_FLAG);
+        }
+        var newData = [func, bitmask, thisArg, newPartials, newsHolders, newPartialsRight, newHoldersRight, newArgPos, ary, newArity],
+            result = createHybridWrapper.apply(undefined, newData);
+
+        if (isLaziable(func)) {
+          setData(result, newData);
+        }
+        result.placeholder = placeholder;
+        return result;
+      }
+    }
+    var thisBinding = isBind ? thisArg : this,
+        fn = isBindKey ? thisBinding[func] : func;
+
+    if (argPos) {
+      args = reorder(args, argPos);
+    }
+    if (isAry && ary < args.length) {
+      args.length = ary;
+    }
+    if (this && this !== global && this instanceof wrapper) {
+      fn = Ctor || createCtorWrapper(func);
+    }
+    return fn.apply(thisBinding, args);
+  }
+  return wrapper;
+}
+
+module.exports = createHybridWrapper;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+
+},{"143":143,"144":144,"151":151,"171":171,"180":180,"181":181,"182":182,"98":98}],155:[function(_dereq_,module,exports){
+(function (global){
+var createCtorWrapper = _dereq_(151);
+
+/** Used to compose bitmasks for wrapper metadata. */
+var BIND_FLAG = 1;
+
+/**
+ * Creates a function that wraps `func` and invokes it with the optional `this`
+ * binding of `thisArg` and the `partials` prepended to those provided to
+ * the wrapper.
+ *
+ * @private
+ * @param {Function} func The function to partially apply arguments to.
+ * @param {number} bitmask The bitmask of flags. See `createWrapper` for more details.
+ * @param {*} thisArg The `this` binding of `func`.
+ * @param {Array} partials The arguments to prepend to those provided to the new function.
+ * @returns {Function} Returns the new bound function.
+ */
+function createPartialWrapper(func, bitmask, thisArg, partials) {
+  var isBind = bitmask & BIND_FLAG,
+      Ctor = createCtorWrapper(func);
+
+  function wrapper() {
+    // Avoid `arguments` object use disqualifying optimizations by
+    // converting it to an array before providing it `func`.
+    var argsIndex = -1,
+        argsLength = arguments.length,
+        leftIndex = -1,
+        leftLength = partials.length,
+        args = Array(leftLength + argsLength);
+
+    while (++leftIndex < leftLength) {
+      args[leftIndex] = partials[leftIndex];
+    }
+    while (argsLength--) {
+      args[leftIndex++] = arguments[++argsIndex];
+    }
+    var fn = (this && this !== global && this instanceof wrapper) ? Ctor : func;
+    return fn.apply(isBind ? thisArg : this, args);
+  }
+  return wrapper;
+}
+
+module.exports = createPartialWrapper;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+
+},{"151":151}],156:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(108),
+    baseReduce = _dereq_(135),
+    isArray = _dereq_(188);
 
 /**
  * Creates a function for `_.reduce` or `_.reduceRight`.
@@ -9845,8 +16913,96 @@ function createReduce(arrayFunc, eachFunc) {
 
 module.exports = createReduce;
 
-},{"109":109,"51":51,"74":74}],89:[function(_dereq_,module,exports){
-var arraySome = _dereq_(48);
+},{"108":108,"135":135,"188":188}],157:[function(_dereq_,module,exports){
+var baseSetData = _dereq_(136),
+    createBindWrapper = _dereq_(149),
+    createHybridWrapper = _dereq_(154),
+    createPartialWrapper = _dereq_(155),
+    getData = _dereq_(161),
+    mergeData = _dereq_(175),
+    setData = _dereq_(182);
+
+/** Used to compose bitmasks for wrapper metadata. */
+var BIND_FLAG = 1,
+    BIND_KEY_FLAG = 2,
+    PARTIAL_FLAG = 32,
+    PARTIAL_RIGHT_FLAG = 64;
+
+/** Used as the `TypeError` message for "Functions" methods. */
+var FUNC_ERROR_TEXT = 'Expected a function';
+
+/* Native method references for those with the same name as other `lodash` methods. */
+var nativeMax = Math.max;
+
+/**
+ * Creates a function that either curries or invokes `func` with optional
+ * `this` binding and partially applied arguments.
+ *
+ * @private
+ * @param {Function|string} func The function or method name to reference.
+ * @param {number} bitmask The bitmask of flags.
+ *  The bitmask may be composed of the following flags:
+ *     1 - `_.bind`
+ *     2 - `_.bindKey`
+ *     4 - `_.curry` or `_.curryRight` of a bound function
+ *     8 - `_.curry`
+ *    16 - `_.curryRight`
+ *    32 - `_.partial`
+ *    64 - `_.partialRight`
+ *   128 - `_.rearg`
+ *   256 - `_.ary`
+ * @param {*} [thisArg] The `this` binding of `func`.
+ * @param {Array} [partials] The arguments to be partially applied.
+ * @param {Array} [holders] The `partials` placeholder indexes.
+ * @param {Array} [argPos] The argument positions of the new function.
+ * @param {number} [ary] The arity cap of `func`.
+ * @param {number} [arity] The arity of `func`.
+ * @returns {Function} Returns the new wrapped function.
+ */
+function createWrapper(func, bitmask, thisArg, partials, holders, argPos, ary, arity) {
+  var isBindKey = bitmask & BIND_KEY_FLAG;
+  if (!isBindKey && typeof func != 'function') {
+    throw new TypeError(FUNC_ERROR_TEXT);
+  }
+  var length = partials ? partials.length : 0;
+  if (!length) {
+    bitmask &= ~(PARTIAL_FLAG | PARTIAL_RIGHT_FLAG);
+    partials = holders = undefined;
+  }
+  length -= (holders ? holders.length : 0);
+  if (bitmask & PARTIAL_RIGHT_FLAG) {
+    var partialsRight = partials,
+        holdersRight = holders;
+
+    partials = holders = undefined;
+  }
+  var data = isBindKey ? undefined : getData(func),
+      newData = [func, bitmask, thisArg, partials, holders, partialsRight, holdersRight, argPos, ary, arity];
+
+  if (data) {
+    mergeData(newData, data);
+    bitmask = newData[1];
+    arity = newData[9];
+  }
+  newData[9] = arity == null
+    ? (isBindKey ? 0 : func.length)
+    : (nativeMax(arity - length, 0) || 0);
+
+  if (bitmask == BIND_FLAG) {
+    var result = createBindWrapper(newData[0], newData[2]);
+  } else if ((bitmask == PARTIAL_FLAG || bitmask == (BIND_FLAG | PARTIAL_FLAG)) && !newData[4].length) {
+    result = createPartialWrapper.apply(undefined, newData);
+  } else {
+    result = createHybridWrapper.apply(undefined, newData);
+  }
+  var setter = data ? baseSetData : setData;
+  return setter(result, newData);
+}
+
+module.exports = createWrapper;
+
+},{"136":136,"149":149,"154":154,"155":155,"161":161,"175":175,"182":182}],158:[function(_dereq_,module,exports){
+var arraySome = _dereq_(105);
 
 /**
  * A specialized version of `baseIsEqualDeep` for arrays with support for
@@ -9898,7 +17054,7 @@ function equalArrays(array, other, equalFunc, customizer, isLoose, stackA, stack
 
 module.exports = equalArrays;
 
-},{"48":48}],90:[function(_dereq_,module,exports){
+},{"105":105}],159:[function(_dereq_,module,exports){
 /** `Object#toString` result references. */
 var boolTag = '[object Boolean]',
     dateTag = '[object Date]',
@@ -9948,8 +17104,8 @@ function equalByTag(object, other, tag) {
 
 module.exports = equalByTag;
 
-},{}],91:[function(_dereq_,module,exports){
-var keys = _dereq_(117);
+},{}],160:[function(_dereq_,module,exports){
+var keys = _dereq_(198);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -10017,8 +17173,52 @@ function equalObjects(object, other, equalFunc, customizer, isLoose, stackA, sta
 
 module.exports = equalObjects;
 
-},{"117":117}],92:[function(_dereq_,module,exports){
-var baseProperty = _dereq_(72);
+},{"198":198}],161:[function(_dereq_,module,exports){
+var metaMap = _dereq_(176),
+    noop = _dereq_(205);
+
+/**
+ * Gets metadata for `func`.
+ *
+ * @private
+ * @param {Function} func The function to query.
+ * @returns {*} Returns the metadata for `func`.
+ */
+var getData = !metaMap ? noop : function(func) {
+  return metaMap.get(func);
+};
+
+module.exports = getData;
+
+},{"176":176,"205":205}],162:[function(_dereq_,module,exports){
+var realNames = _dereq_(179);
+
+/**
+ * Gets the name of `func`.
+ *
+ * @private
+ * @param {Function} func The function to query.
+ * @returns {string} Returns the function name.
+ */
+function getFuncName(func) {
+  var result = (func.name + ''),
+      array = realNames[result],
+      length = array ? array.length : 0;
+
+  while (length--) {
+    var data = array[length],
+        otherFunc = data.func;
+    if (otherFunc == null || otherFunc == func) {
+      return data.name;
+    }
+  }
+  return result;
+}
+
+module.exports = getFuncName;
+
+},{"179":179}],163:[function(_dereq_,module,exports){
+var baseProperty = _dereq_(133);
 
 /**
  * Gets the "length" property value of `object`.
@@ -10034,9 +17234,9 @@ var getLength = baseProperty('length');
 
 module.exports = getLength;
 
-},{"72":72}],93:[function(_dereq_,module,exports){
-var isStrictComparable = _dereq_(102),
-    pairs = _dereq_(120);
+},{"133":133}],164:[function(_dereq_,module,exports){
+var isStrictComparable = _dereq_(174),
+    pairs = _dereq_(202);
 
 /**
  * Gets the propery names, values, and compare flags of `object`.
@@ -10057,8 +17257,8 @@ function getMatchData(object) {
 
 module.exports = getMatchData;
 
-},{"102":102,"120":120}],94:[function(_dereq_,module,exports){
-var isNative = _dereq_(111);
+},{"174":174,"202":202}],165:[function(_dereq_,module,exports){
+var isNative = _dereq_(190);
 
 /**
  * Gets the native function at `key` of `object`.
@@ -10075,7 +17275,7 @@ function getNative(object, key) {
 
 module.exports = getNative;
 
-},{"111":111}],95:[function(_dereq_,module,exports){
+},{"190":190}],166:[function(_dereq_,module,exports){
 /**
  * Gets the index at which the first occurrence of `NaN` is found in `array`.
  *
@@ -10100,9 +17300,9 @@ function indexOfNaN(array, fromIndex, fromRight) {
 
 module.exports = indexOfNaN;
 
-},{}],96:[function(_dereq_,module,exports){
-var getLength = _dereq_(92),
-    isLength = _dereq_(100);
+},{}],167:[function(_dereq_,module,exports){
+var getLength = _dereq_(163),
+    isLength = _dereq_(172);
 
 /**
  * Checks if `value` is array-like.
@@ -10117,7 +17317,7 @@ function isArrayLike(value) {
 
 module.exports = isArrayLike;
 
-},{"100":100,"92":92}],97:[function(_dereq_,module,exports){
+},{"163":163,"172":172}],168:[function(_dereq_,module,exports){
 /** Used to detect unsigned integer values. */
 var reIsUint = /^\d+$/;
 
@@ -10143,10 +17343,10 @@ function isIndex(value, length) {
 
 module.exports = isIndex;
 
-},{}],98:[function(_dereq_,module,exports){
-var isArrayLike = _dereq_(96),
-    isIndex = _dereq_(97),
-    isObject = _dereq_(113);
+},{}],169:[function(_dereq_,module,exports){
+var isArrayLike = _dereq_(167),
+    isIndex = _dereq_(168),
+    isObject = _dereq_(192);
 
 /**
  * Checks if the provided arguments are from an iteratee call.
@@ -10173,9 +17373,9 @@ function isIterateeCall(value, index, object) {
 
 module.exports = isIterateeCall;
 
-},{"113":113,"96":96,"97":97}],99:[function(_dereq_,module,exports){
-var isArray = _dereq_(109),
-    toObject = _dereq_(106);
+},{"167":167,"168":168,"192":192}],170:[function(_dereq_,module,exports){
+var isArray = _dereq_(188),
+    toObject = _dereq_(184);
 
 /** Used to match property names within property paths. */
 var reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\n\\]|\\.)*?\1)\]/,
@@ -10203,7 +17403,36 @@ function isKey(value, object) {
 
 module.exports = isKey;
 
-},{"106":106,"109":109}],100:[function(_dereq_,module,exports){
+},{"184":184,"188":188}],171:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(95),
+    getData = _dereq_(161),
+    getFuncName = _dereq_(162),
+    lodash = _dereq_(81);
+
+/**
+ * Checks if `func` has a lazy counterpart.
+ *
+ * @private
+ * @param {Function} func The function to check.
+ * @returns {boolean} Returns `true` if `func` has a lazy counterpart, else `false`.
+ */
+function isLaziable(func) {
+  var funcName = getFuncName(func),
+      other = lodash[funcName];
+
+  if (typeof other != 'function' || !(funcName in LazyWrapper.prototype)) {
+    return false;
+  }
+  if (func === other) {
+    return true;
+  }
+  var data = getData(other);
+  return !!data && func === data[0];
+}
+
+module.exports = isLaziable;
+
+},{"161":161,"162":162,"81":81,"95":95}],172:[function(_dereq_,module,exports){
 /**
  * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
  * of an array-like value.
@@ -10225,7 +17454,7 @@ function isLength(value) {
 
 module.exports = isLength;
 
-},{}],101:[function(_dereq_,module,exports){
+},{}],173:[function(_dereq_,module,exports){
 /**
  * Checks if `value` is object-like.
  *
@@ -10239,8 +17468,8 @@ function isObjectLike(value) {
 
 module.exports = isObjectLike;
 
-},{}],102:[function(_dereq_,module,exports){
-var isObject = _dereq_(113);
+},{}],174:[function(_dereq_,module,exports){
+var isObject = _dereq_(192);
 
 /**
  * Checks if `value` is suitable for strict equality comparisons, i.e. `===`.
@@ -10256,8 +17485,113 @@ function isStrictComparable(value) {
 
 module.exports = isStrictComparable;
 
-},{"113":113}],103:[function(_dereq_,module,exports){
-var toObject = _dereq_(106);
+},{"192":192}],175:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(98),
+    composeArgs = _dereq_(143),
+    composeArgsRight = _dereq_(144),
+    replaceHolders = _dereq_(181);
+
+/** Used to compose bitmasks for wrapper metadata. */
+var BIND_FLAG = 1,
+    CURRY_BOUND_FLAG = 4,
+    CURRY_FLAG = 8,
+    ARY_FLAG = 128,
+    REARG_FLAG = 256;
+
+/** Used as the internal argument placeholder. */
+var PLACEHOLDER = '__lodash_placeholder__';
+
+/* Native method references for those with the same name as other `lodash` methods. */
+var nativeMin = Math.min;
+
+/**
+ * Merges the function metadata of `source` into `data`.
+ *
+ * Merging metadata reduces the number of wrappers required to invoke a function.
+ * This is possible because methods like `_.bind`, `_.curry`, and `_.partial`
+ * may be applied regardless of execution order. Methods like `_.ary` and `_.rearg`
+ * augment function arguments, making the order in which they are executed important,
+ * preventing the merging of metadata. However, we make an exception for a safe
+ * common case where curried functions have `_.ary` and or `_.rearg` applied.
+ *
+ * @private
+ * @param {Array} data The destination metadata.
+ * @param {Array} source The source metadata.
+ * @returns {Array} Returns `data`.
+ */
+function mergeData(data, source) {
+  var bitmask = data[1],
+      srcBitmask = source[1],
+      newBitmask = bitmask | srcBitmask,
+      isCommon = newBitmask < ARY_FLAG;
+
+  var isCombo =
+    (srcBitmask == ARY_FLAG && bitmask == CURRY_FLAG) ||
+    (srcBitmask == ARY_FLAG && bitmask == REARG_FLAG && data[7].length <= source[8]) ||
+    (srcBitmask == (ARY_FLAG | REARG_FLAG) && bitmask == CURRY_FLAG);
+
+  // Exit early if metadata can't be merged.
+  if (!(isCommon || isCombo)) {
+    return data;
+  }
+  // Use source `thisArg` if available.
+  if (srcBitmask & BIND_FLAG) {
+    data[2] = source[2];
+    // Set when currying a bound function.
+    newBitmask |= (bitmask & BIND_FLAG) ? 0 : CURRY_BOUND_FLAG;
+  }
+  // Compose partial arguments.
+  var value = source[3];
+  if (value) {
+    var partials = data[3];
+    data[3] = partials ? composeArgs(partials, value, source[4]) : arrayCopy(value);
+    data[4] = partials ? replaceHolders(data[3], PLACEHOLDER) : arrayCopy(source[4]);
+  }
+  // Compose partial right arguments.
+  value = source[5];
+  if (value) {
+    partials = data[5];
+    data[5] = partials ? composeArgsRight(partials, value, source[6]) : arrayCopy(value);
+    data[6] = partials ? replaceHolders(data[5], PLACEHOLDER) : arrayCopy(source[6]);
+  }
+  // Use source `argPos` if available.
+  value = source[7];
+  if (value) {
+    data[7] = arrayCopy(value);
+  }
+  // Use source `ary` if it's smaller.
+  if (srcBitmask & ARY_FLAG) {
+    data[8] = data[8] == null ? source[8] : nativeMin(data[8], source[8]);
+  }
+  // Use source `arity` if one is not provided.
+  if (data[9] == null) {
+    data[9] = source[9];
+  }
+  // Use source `func` and merge bitmasks.
+  data[0] = source[0];
+  data[1] = newBitmask;
+
+  return data;
+}
+
+module.exports = mergeData;
+
+},{"143":143,"144":144,"181":181,"98":98}],176:[function(_dereq_,module,exports){
+(function (global){
+var getNative = _dereq_(165);
+
+/** Native method references. */
+var WeakMap = getNative(global, 'WeakMap');
+
+/** Used to store function metadata. */
+var metaMap = WeakMap && new WeakMap;
+
+module.exports = metaMap;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+
+},{"165":165}],177:[function(_dereq_,module,exports){
+var toObject = _dereq_(184);
 
 /**
  * A specialized version of `_.pick` which picks `object` properties specified
@@ -10286,8 +17620,8 @@ function pickByArray(object, props) {
 
 module.exports = pickByArray;
 
-},{"106":106}],104:[function(_dereq_,module,exports){
-var baseForIn = _dereq_(62);
+},{"184":184}],178:[function(_dereq_,module,exports){
+var baseForIn = _dereq_(120);
 
 /**
  * A specialized version of `_.pick` which picks `object` properties `predicate`
@@ -10310,12 +17644,122 @@ function pickByCallback(object, predicate) {
 
 module.exports = pickByCallback;
 
-},{"62":62}],105:[function(_dereq_,module,exports){
-var isArguments = _dereq_(108),
-    isArray = _dereq_(109),
-    isIndex = _dereq_(97),
-    isLength = _dereq_(100),
-    keysIn = _dereq_(118);
+},{"120":120}],179:[function(_dereq_,module,exports){
+/** Used to lookup unminified function names. */
+var realNames = {};
+
+module.exports = realNames;
+
+},{}],180:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(98),
+    isIndex = _dereq_(168);
+
+/* Native method references for those with the same name as other `lodash` methods. */
+var nativeMin = Math.min;
+
+/**
+ * Reorder `array` according to the specified indexes where the element at
+ * the first index is assigned as the first element, the element at
+ * the second index is assigned as the second element, and so on.
+ *
+ * @private
+ * @param {Array} array The array to reorder.
+ * @param {Array} indexes The arranged array indexes.
+ * @returns {Array} Returns `array`.
+ */
+function reorder(array, indexes) {
+  var arrLength = array.length,
+      length = nativeMin(indexes.length, arrLength),
+      oldArray = arrayCopy(array);
+
+  while (length--) {
+    var index = indexes[length];
+    array[length] = isIndex(index, arrLength) ? oldArray[index] : undefined;
+  }
+  return array;
+}
+
+module.exports = reorder;
+
+},{"168":168,"98":98}],181:[function(_dereq_,module,exports){
+/** Used as the internal argument placeholder. */
+var PLACEHOLDER = '__lodash_placeholder__';
+
+/**
+ * Replaces all `placeholder` elements in `array` with an internal placeholder
+ * and returns an array of their indexes.
+ *
+ * @private
+ * @param {Array} array The array to modify.
+ * @param {*} placeholder The placeholder to replace.
+ * @returns {Array} Returns the new array of placeholder indexes.
+ */
+function replaceHolders(array, placeholder) {
+  var index = -1,
+      length = array.length,
+      resIndex = -1,
+      result = [];
+
+  while (++index < length) {
+    if (array[index] === placeholder) {
+      array[index] = PLACEHOLDER;
+      result[++resIndex] = index;
+    }
+  }
+  return result;
+}
+
+module.exports = replaceHolders;
+
+},{}],182:[function(_dereq_,module,exports){
+var baseSetData = _dereq_(136),
+    now = _dereq_(90);
+
+/** Used to detect when a function becomes hot. */
+var HOT_COUNT = 150,
+    HOT_SPAN = 16;
+
+/**
+ * Sets metadata for `func`.
+ *
+ * **Note:** If this function becomes hot, i.e. is invoked a lot in a short
+ * period of time, it will trip its breaker and transition to an identity function
+ * to avoid garbage collection pauses in V8. See [V8 issue 2070](https://code.google.com/p/v8/issues/detail?id=2070)
+ * for more details.
+ *
+ * @private
+ * @param {Function} func The function to associate metadata with.
+ * @param {*} data The metadata.
+ * @returns {Function} Returns `func`.
+ */
+var setData = (function() {
+  var count = 0,
+      lastCalled = 0;
+
+  return function(key, value) {
+    var stamp = now(),
+        remaining = HOT_SPAN - (stamp - lastCalled);
+
+    lastCalled = stamp;
+    if (remaining > 0) {
+      if (++count >= HOT_COUNT) {
+        return key;
+      }
+    } else {
+      count = 0;
+    }
+    return baseSetData(key, value);
+  };
+}());
+
+module.exports = setData;
+
+},{"136":136,"90":90}],183:[function(_dereq_,module,exports){
+var isArguments = _dereq_(187),
+    isArray = _dereq_(188),
+    isIndex = _dereq_(168),
+    isLength = _dereq_(172),
+    keysIn = _dereq_(199);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -10353,8 +17797,8 @@ function shimKeys(object) {
 
 module.exports = shimKeys;
 
-},{"100":100,"108":108,"109":109,"118":118,"97":97}],106:[function(_dereq_,module,exports){
-var isObject = _dereq_(113);
+},{"168":168,"172":172,"187":187,"188":188,"199":199}],184:[function(_dereq_,module,exports){
+var isObject = _dereq_(192);
 
 /**
  * Converts `value` to an object if it's not one.
@@ -10369,9 +17813,9 @@ function toObject(value) {
 
 module.exports = toObject;
 
-},{"113":113}],107:[function(_dereq_,module,exports){
-var baseToString = _dereq_(77),
-    isArray = _dereq_(109);
+},{"192":192}],185:[function(_dereq_,module,exports){
+var baseToString = _dereq_(139),
+    isArray = _dereq_(188);
 
 /** Used to match property names within property paths. */
 var rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\n\\]|\\.)*?)\2)\]/g;
@@ -10399,9 +17843,29 @@ function toPath(value) {
 
 module.exports = toPath;
 
-},{"109":109,"77":77}],108:[function(_dereq_,module,exports){
-var isArrayLike = _dereq_(96),
-    isObjectLike = _dereq_(101);
+},{"139":139,"188":188}],186:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(95),
+    LodashWrapper = _dereq_(96),
+    arrayCopy = _dereq_(98);
+
+/**
+ * Creates a clone of `wrapper`.
+ *
+ * @private
+ * @param {Object} wrapper The wrapper to clone.
+ * @returns {Object} Returns the cloned wrapper.
+ */
+function wrapperClone(wrapper) {
+  return wrapper instanceof LazyWrapper
+    ? wrapper.clone()
+    : new LodashWrapper(wrapper.__wrapped__, wrapper.__chain__, arrayCopy(wrapper.__actions__));
+}
+
+module.exports = wrapperClone;
+
+},{"95":95,"96":96,"98":98}],187:[function(_dereq_,module,exports){
+var isArrayLike = _dereq_(167),
+    isObjectLike = _dereq_(173);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -10435,10 +17899,10 @@ function isArguments(value) {
 
 module.exports = isArguments;
 
-},{"101":101,"96":96}],109:[function(_dereq_,module,exports){
-var getNative = _dereq_(94),
-    isLength = _dereq_(100),
-    isObjectLike = _dereq_(101);
+},{"167":167,"173":173}],188:[function(_dereq_,module,exports){
+var getNative = _dereq_(165),
+    isLength = _dereq_(172),
+    isObjectLike = _dereq_(173);
 
 /** `Object#toString` result references. */
 var arrayTag = '[object Array]';
@@ -10477,8 +17941,8 @@ var isArray = nativeIsArray || function(value) {
 
 module.exports = isArray;
 
-},{"100":100,"101":101,"94":94}],110:[function(_dereq_,module,exports){
-var isObject = _dereq_(113);
+},{"165":165,"172":172,"173":173}],189:[function(_dereq_,module,exports){
+var isObject = _dereq_(192);
 
 /** `Object#toString` result references. */
 var funcTag = '[object Function]';
@@ -10517,9 +17981,9 @@ function isFunction(value) {
 
 module.exports = isFunction;
 
-},{"113":113}],111:[function(_dereq_,module,exports){
-var isFunction = _dereq_(110),
-    isObjectLike = _dereq_(101);
+},{"192":192}],190:[function(_dereq_,module,exports){
+var isFunction = _dereq_(189),
+    isObjectLike = _dereq_(173);
 
 /** Used to detect host constructors (Safari > 5). */
 var reIsHostCtor = /^\[object .+?Constructor\]$/;
@@ -10567,8 +18031,8 @@ function isNative(value) {
 
 module.exports = isNative;
 
-},{"101":101,"110":110}],112:[function(_dereq_,module,exports){
-var isObjectLike = _dereq_(101);
+},{"173":173,"189":189}],191:[function(_dereq_,module,exports){
+var isObjectLike = _dereq_(173);
 
 /** `Object#toString` result references. */
 var numberTag = '[object Number]';
@@ -10610,7 +18074,7 @@ function isNumber(value) {
 
 module.exports = isNumber;
 
-},{"101":101}],113:[function(_dereq_,module,exports){
+},{"173":173}],192:[function(_dereq_,module,exports){
 /**
  * Checks if `value` is the [language type](https://es5.github.io/#x8) of `Object`.
  * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
@@ -10640,8 +18104,81 @@ function isObject(value) {
 
 module.exports = isObject;
 
-},{}],114:[function(_dereq_,module,exports){
-var isObjectLike = _dereq_(101);
+},{}],193:[function(_dereq_,module,exports){
+var baseForIn = _dereq_(120),
+    isArguments = _dereq_(187),
+    isObjectLike = _dereq_(173);
+
+/** `Object#toString` result references. */
+var objectTag = '[object Object]';
+
+/** Used for native method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * Used to resolve the [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
+ * of values.
+ */
+var objToString = objectProto.toString;
+
+/**
+ * Checks if `value` is a plain object, that is, an object created by the
+ * `Object` constructor or one with a `[[Prototype]]` of `null`.
+ *
+ * **Note:** This method assumes objects created by the `Object` constructor
+ * have no inherited enumerable properties.
+ *
+ * @static
+ * @memberOf _
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a plain object, else `false`.
+ * @example
+ *
+ * function Foo() {
+ *   this.a = 1;
+ * }
+ *
+ * _.isPlainObject(new Foo);
+ * // => false
+ *
+ * _.isPlainObject([1, 2, 3]);
+ * // => false
+ *
+ * _.isPlainObject({ 'x': 0, 'y': 0 });
+ * // => true
+ *
+ * _.isPlainObject(Object.create(null));
+ * // => true
+ */
+function isPlainObject(value) {
+  var Ctor;
+
+  // Exit early for non `Object` objects.
+  if (!(isObjectLike(value) && objToString.call(value) == objectTag && !isArguments(value)) ||
+      (!hasOwnProperty.call(value, 'constructor') && (Ctor = value.constructor, typeof Ctor == 'function' && !(Ctor instanceof Ctor)))) {
+    return false;
+  }
+  // IE < 9 iterates inherited properties before own properties. If the first
+  // iterated property is an object's own property then there are no inherited
+  // enumerable properties.
+  var result;
+  // In most environments an object's own properties are iterated before
+  // its inherited properties. If the last iterated property is an object's
+  // own property then there are no inherited enumerable properties.
+  baseForIn(value, function(subValue, key) {
+    result = key;
+  });
+  return result === undefined || hasOwnProperty.call(value, result);
+}
+
+module.exports = isPlainObject;
+
+},{"120":120,"173":173,"187":187}],194:[function(_dereq_,module,exports){
+var isObjectLike = _dereq_(173);
 
 /** `Object#toString` result references. */
 var stringTag = '[object String]';
@@ -10677,9 +18214,9 @@ function isString(value) {
 
 module.exports = isString;
 
-},{"101":101}],115:[function(_dereq_,module,exports){
-var isLength = _dereq_(100),
-    isObjectLike = _dereq_(101);
+},{"173":173}],195:[function(_dereq_,module,exports){
+var isLength = _dereq_(172),
+    isObjectLike = _dereq_(173);
 
 /** `Object#toString` result references. */
 var argsTag = '[object Arguments]',
@@ -10753,10 +18290,43 @@ function isTypedArray(value) {
 
 module.exports = isTypedArray;
 
-},{"100":100,"101":101}],116:[function(_dereq_,module,exports){
-var assignWith = _dereq_(49),
-    baseAssign = _dereq_(50),
-    createAssigner = _dereq_(82);
+},{"172":172,"173":173}],196:[function(_dereq_,module,exports){
+var baseCopy = _dereq_(109),
+    keysIn = _dereq_(199);
+
+/**
+ * Converts `value` to a plain object flattening inherited enumerable
+ * properties of `value` to own properties of the plain object.
+ *
+ * @static
+ * @memberOf _
+ * @category Lang
+ * @param {*} value The value to convert.
+ * @returns {Object} Returns the converted plain object.
+ * @example
+ *
+ * function Foo() {
+ *   this.b = 2;
+ * }
+ *
+ * Foo.prototype.c = 3;
+ *
+ * _.assign({ 'a': 1 }, new Foo);
+ * // => { 'a': 1, 'b': 2 }
+ *
+ * _.assign({ 'a': 1 }, _.toPlainObject(new Foo));
+ * // => { 'a': 1, 'b': 2, 'c': 3 }
+ */
+function toPlainObject(value) {
+  return baseCopy(value, keysIn(value));
+}
+
+module.exports = toPlainObject;
+
+},{"109":109,"199":199}],197:[function(_dereq_,module,exports){
+var assignWith = _dereq_(106),
+    baseAssign = _dereq_(107),
+    createAssigner = _dereq_(146);
 
 /**
  * Assigns own enumerable properties of source object(s) to the destination
@@ -10798,11 +18368,11 @@ var assign = createAssigner(function(object, source, customizer) {
 
 module.exports = assign;
 
-},{"49":49,"50":50,"82":82}],117:[function(_dereq_,module,exports){
-var getNative = _dereq_(94),
-    isArrayLike = _dereq_(96),
-    isObject = _dereq_(113),
-    shimKeys = _dereq_(105);
+},{"106":106,"107":107,"146":146}],198:[function(_dereq_,module,exports){
+var getNative = _dereq_(165),
+    isArrayLike = _dereq_(167),
+    isObject = _dereq_(192),
+    shimKeys = _dereq_(183);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeKeys = getNative(Object, 'keys');
@@ -10845,12 +18415,12 @@ var keys = !nativeKeys ? shimKeys : function(object) {
 
 module.exports = keys;
 
-},{"105":105,"113":113,"94":94,"96":96}],118:[function(_dereq_,module,exports){
-var isArguments = _dereq_(108),
-    isArray = _dereq_(109),
-    isIndex = _dereq_(97),
-    isLength = _dereq_(100),
-    isObject = _dereq_(113);
+},{"165":165,"167":167,"183":183,"192":192}],199:[function(_dereq_,module,exports){
+var isArguments = _dereq_(187),
+    isArray = _dereq_(188),
+    isIndex = _dereq_(168),
+    isLength = _dereq_(172),
+    isObject = _dereq_(192);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -10911,15 +18481,71 @@ function keysIn(object) {
 
 module.exports = keysIn;
 
-},{"100":100,"108":108,"109":109,"113":113,"97":97}],119:[function(_dereq_,module,exports){
-var arrayMap = _dereq_(45),
-    baseDifference = _dereq_(54),
-    baseFlatten = _dereq_(60),
-    bindCallback = _dereq_(79),
-    keysIn = _dereq_(118),
-    pickByArray = _dereq_(103),
-    pickByCallback = _dereq_(104),
-    restParam = _dereq_(40);
+},{"168":168,"172":172,"187":187,"188":188,"192":192}],200:[function(_dereq_,module,exports){
+var baseMerge = _dereq_(131),
+    createAssigner = _dereq_(146);
+
+/**
+ * Recursively merges own enumerable properties of the source object(s), that
+ * don't resolve to `undefined` into the destination object. Subsequent sources
+ * overwrite property assignments of previous sources. If `customizer` is
+ * provided it's invoked to produce the merged values of the destination and
+ * source properties. If `customizer` returns `undefined` merging is handled
+ * by the method instead. The `customizer` is bound to `thisArg` and invoked
+ * with five arguments: (objectValue, sourceValue, key, object, source).
+ *
+ * @static
+ * @memberOf _
+ * @category Object
+ * @param {Object} object The destination object.
+ * @param {...Object} [sources] The source objects.
+ * @param {Function} [customizer] The function to customize assigned values.
+ * @param {*} [thisArg] The `this` binding of `customizer`.
+ * @returns {Object} Returns `object`.
+ * @example
+ *
+ * var users = {
+ *   'data': [{ 'user': 'barney' }, { 'user': 'fred' }]
+ * };
+ *
+ * var ages = {
+ *   'data': [{ 'age': 36 }, { 'age': 40 }]
+ * };
+ *
+ * _.merge(users, ages);
+ * // => { 'data': [{ 'user': 'barney', 'age': 36 }, { 'user': 'fred', 'age': 40 }] }
+ *
+ * // using a customizer callback
+ * var object = {
+ *   'fruits': ['apple'],
+ *   'vegetables': ['beet']
+ * };
+ *
+ * var other = {
+ *   'fruits': ['banana'],
+ *   'vegetables': ['carrot']
+ * };
+ *
+ * _.merge(object, other, function(a, b) {
+ *   if (_.isArray(a)) {
+ *     return a.concat(b);
+ *   }
+ * });
+ * // => { 'fruits': ['apple', 'banana'], 'vegetables': ['beet', 'carrot'] }
+ */
+var merge = createAssigner(baseMerge);
+
+module.exports = merge;
+
+},{"131":131,"146":146}],201:[function(_dereq_,module,exports){
+var arrayMap = _dereq_(102),
+    baseDifference = _dereq_(112),
+    baseFlatten = _dereq_(118),
+    bindCallback = _dereq_(140),
+    keysIn = _dereq_(199),
+    pickByArray = _dereq_(177),
+    pickByCallback = _dereq_(178),
+    restParam = _dereq_(94);
 
 /**
  * The opposite of `_.pick`; this method creates an object composed of the
@@ -10960,9 +18586,9 @@ var omit = restParam(function(object, props) {
 
 module.exports = omit;
 
-},{"103":103,"104":104,"118":118,"40":40,"45":45,"54":54,"60":60,"79":79}],120:[function(_dereq_,module,exports){
-var keys = _dereq_(117),
-    toObject = _dereq_(106);
+},{"102":102,"112":112,"118":118,"140":140,"177":177,"178":178,"199":199,"94":94}],202:[function(_dereq_,module,exports){
+var keys = _dereq_(198),
+    toObject = _dereq_(184);
 
 /**
  * Creates a two dimensional array of the key-value pairs for `object`,
@@ -10995,12 +18621,12 @@ function pairs(object) {
 
 module.exports = pairs;
 
-},{"106":106,"117":117}],121:[function(_dereq_,module,exports){
-var baseFlatten = _dereq_(60),
-    bindCallback = _dereq_(79),
-    pickByArray = _dereq_(103),
-    pickByCallback = _dereq_(104),
-    restParam = _dereq_(40);
+},{"184":184,"198":198}],203:[function(_dereq_,module,exports){
+var baseFlatten = _dereq_(118),
+    bindCallback = _dereq_(140),
+    pickByArray = _dereq_(177),
+    pickByCallback = _dereq_(178),
+    restParam = _dereq_(94);
 
 /**
  * Creates an object composed of the picked `object` properties. Property
@@ -11039,42 +18665,7 @@ var pick = restParam(function(object, props) {
 
 module.exports = pick;
 
-},{"103":103,"104":104,"40":40,"60":60,"79":79}],122:[function(_dereq_,module,exports){
-var baseValues = _dereq_(78),
-    keys = _dereq_(117);
-
-/**
- * Creates an array of the own enumerable property values of `object`.
- *
- * **Note:** Non-object values are coerced to objects.
- *
- * @static
- * @memberOf _
- * @category Object
- * @param {Object} object The object to query.
- * @returns {Array} Returns the array of property values.
- * @example
- *
- * function Foo() {
- *   this.a = 1;
- *   this.b = 2;
- * }
- *
- * Foo.prototype.c = 3;
- *
- * _.values(new Foo);
- * // => [1, 2] (iteration order is not guaranteed)
- *
- * _.values('hi');
- * // => ['h', 'i']
- */
-function values(object) {
-  return baseValues(object, keys(object));
-}
-
-module.exports = values;
-
-},{"117":117,"78":78}],123:[function(_dereq_,module,exports){
+},{"118":118,"140":140,"177":177,"178":178,"94":94}],204:[function(_dereq_,module,exports){
 /**
  * This method returns the first argument provided to it.
  *
@@ -11096,10 +18687,31 @@ function identity(value) {
 
 module.exports = identity;
 
-},{}],124:[function(_dereq_,module,exports){
-var baseProperty = _dereq_(72),
-    basePropertyDeep = _dereq_(73),
-    isKey = _dereq_(99);
+},{}],205:[function(_dereq_,module,exports){
+/**
+ * A no-operation function that returns `undefined` regardless of the
+ * arguments it receives.
+ *
+ * @static
+ * @memberOf _
+ * @category Utility
+ * @example
+ *
+ * var object = { 'user': 'fred' };
+ *
+ * _.noop(object) === undefined;
+ * // => true
+ */
+function noop() {
+  // No operation performed.
+}
+
+module.exports = noop;
+
+},{}],206:[function(_dereq_,module,exports){
+var baseProperty = _dereq_(133),
+    basePropertyDeep = _dereq_(134),
+    isKey = _dereq_(170);
 
 /**
  * Creates a function that returns the property value at `path` on a
@@ -11129,19 +18741,61 @@ function property(path) {
 
 module.exports = property;
 
-},{"72":72,"73":73,"99":99}],125:[function(_dereq_,module,exports){
+},{"133":133,"134":134,"170":170}],207:[function(_dereq_,module,exports){
+/**
+ * Set attribute `name` to `val`, or get attr `name`.
+ *
+ * @param {Element} el
+ * @param {String} name
+ * @param {String} [val]
+ * @api public
+ */
+
+module.exports = function(el, name, val) {
+  // get
+  if (arguments.length == 2) {
+    return el.getAttribute(name);
+  }
+
+  // remove
+  if (val === null) {
+    return el.removeAttribute(name);
+  }
+
+  // set
+  el.setAttribute(name, val);
+
+  return el;
+};
+},{}],208:[function(_dereq_,module,exports){
 module.exports = _dereq_(24);
-},{"24":24}],126:[function(_dereq_,module,exports){
-module.exports = _dereq_(28);
-},{"28":28}],127:[function(_dereq_,module,exports){
+},{"24":24}],209:[function(_dereq_,module,exports){
+module.exports = function(el) {
+
+  var c;
+
+  while (el.childNodes.length) {
+    c = el.childNodes[0];
+    el.removeChild(c);
+  }
+
+  return el;
+};
+},{}],210:[function(_dereq_,module,exports){
 module.exports = _dereq_(25);
-},{"25":25}],128:[function(_dereq_,module,exports){
+},{"25":25}],211:[function(_dereq_,module,exports){
+module.exports = _dereq_(26);
+},{"26":26}],212:[function(_dereq_,module,exports){
+module.exports = _dereq_(78);
+},{"78":78}],213:[function(_dereq_,module,exports){
 module.exports = _dereq_(27);
-},{"27":27}],129:[function(_dereq_,module,exports){
+},{"27":27}],214:[function(_dereq_,module,exports){
+module.exports = _dereq_(30);
+},{"30":30}],215:[function(_dereq_,module,exports){
 module.exports = function(el) {
   el.parentNode && el.parentNode.removeChild(el);
 };
-},{}],130:[function(_dereq_,module,exports){
+},{}],216:[function(_dereq_,module,exports){
 'use strict';
 
 function capitalize(string) {
@@ -11190,23 +18844,23 @@ module.exports.serializeAsType = function(element) {
 module.exports.serializeAsProperty = function(element) {
   return serializeFormat(element) === 'property';
 };
-},{}],131:[function(_dereq_,module,exports){
+},{}],217:[function(_dereq_,module,exports){
 'use strict';
 
-var reduce = _dereq_(37),
-    forEach = _dereq_(34),
-    find = _dereq_(33),
-    assign = _dereq_(116),
-    defer = _dereq_(39);
+var reduce = _dereq_(88),
+    forEach = _dereq_(85),
+    find = _dereq_(84),
+    assign = _dereq_(197),
+    defer = _dereq_(93);
 
-var Stack = _dereq_(146),
-    SaxParser = _dereq_(145).parser,
-    Moddle = _dereq_(133),
-    parseNameNs = _dereq_(138).parseName,
-    Types = _dereq_(141),
+var Stack = _dereq_(232),
+    SaxParser = _dereq_(231).parser,
+    Moddle = _dereq_(219),
+    parseNameNs = _dereq_(224).parseName,
+    Types = _dereq_(227),
     coerceType = Types.coerceType,
     isSimpleType = Types.isSimple,
-    common = _dereq_(130),
+    common = _dereq_(216),
     XSI_TYPE = common.XSI_TYPE,
     XSI_URI = common.DEFAULT_NS_MAP.xsi,
     serializeAsType = common.serializeAsType,
@@ -11397,7 +19051,7 @@ BaseHandler.prototype.handleNode = function() {};
  */
 function NoopHandler() { }
 
-NoopHandler.prototype = new BaseHandler();
+NoopHandler.prototype = Object.create(BaseHandler.prototype);
 
 NoopHandler.prototype.handleNode = function() {
   return this;
@@ -11405,7 +19059,7 @@ NoopHandler.prototype.handleNode = function() {
 
 function BodyHandler() {}
 
-BodyHandler.prototype = new BaseHandler();
+BodyHandler.prototype = Object.create(BaseHandler.prototype);
 
 BodyHandler.prototype.handleText = function(text) {
   this.body = (this.body || '') + text;
@@ -11416,7 +19070,7 @@ function ReferenceHandler(property, context) {
   this.context = context;
 }
 
-ReferenceHandler.prototype = new BodyHandler();
+ReferenceHandler.prototype = Object.create(BodyHandler.prototype);
 
 ReferenceHandler.prototype.handleNode = function(node) {
 
@@ -11445,11 +19099,11 @@ function ValueHandler(propertyDesc, element) {
   this.propertyDesc = propertyDesc;
 }
 
-ValueHandler.prototype = new BodyHandler();
+ValueHandler.prototype = Object.create(BodyHandler.prototype);
 
 ValueHandler.prototype.handleEnd = function() {
 
-  var value = this.body,
+  var value = this.body || '',
       element = this.element,
       propertyDesc = this.propertyDesc;
 
@@ -11492,7 +19146,7 @@ function ElementHandler(model, type, context) {
   this.context = context;
 }
 
-ElementHandler.prototype = new BaseElementHandler();
+ElementHandler.prototype = Object.create(BaseElementHandler.prototype);
 
 ElementHandler.prototype.addReference = function(reference) {
   this.context.addReference(reference);
@@ -11920,18 +19574,18 @@ XMLReader.prototype.handler = function(name) {
 
 module.exports = XMLReader;
 module.exports.ElementHandler = ElementHandler;
-},{"116":116,"130":130,"133":133,"138":138,"141":141,"145":145,"146":146,"33":33,"34":34,"37":37,"39":39}],132:[function(_dereq_,module,exports){
+},{"197":197,"216":216,"219":219,"224":224,"227":227,"231":231,"232":232,"84":84,"85":85,"88":88,"93":93}],218:[function(_dereq_,module,exports){
 'use strict';
 
-var map = _dereq_(36),
-    forEach = _dereq_(34),
-    isString = _dereq_(114),
-    filter = _dereq_(32),
-    assign = _dereq_(116);
+var map = _dereq_(87),
+    forEach = _dereq_(85),
+    isString = _dereq_(194),
+    filter = _dereq_(83),
+    assign = _dereq_(197);
 
-var Types = _dereq_(141),
-    parseNameNs = _dereq_(138).parseName,
-    common = _dereq_(130),
+var Types = _dereq_(227),
+    parseNameNs = _dereq_(224).parseName,
+    common = _dereq_(216),
     nameToAlias = common.nameToAlias,
     serializeAsType = common.serializeAsType,
     serializeAsProperty = common.serializeAsProperty;
@@ -12604,9 +20258,9 @@ function XMLWriter(options) {
 
 module.exports = XMLWriter;
 
-},{"114":114,"116":116,"130":130,"138":138,"141":141,"32":32,"34":34,"36":36}],133:[function(_dereq_,module,exports){
-module.exports = _dereq_(137);
-},{"137":137}],134:[function(_dereq_,module,exports){
+},{"194":194,"197":197,"216":216,"224":224,"227":227,"83":83,"85":85,"87":87}],219:[function(_dereq_,module,exports){
+module.exports = _dereq_(223);
+},{"223":223}],220:[function(_dereq_,module,exports){
 'use strict';
 
 function Base() { }
@@ -12621,14 +20275,14 @@ Base.prototype.set = function(name, value) {
 
 
 module.exports = Base;
-},{}],135:[function(_dereq_,module,exports){
+},{}],221:[function(_dereq_,module,exports){
 'use strict';
 
-var pick = _dereq_(121),
-    assign = _dereq_(116),
-    forEach = _dereq_(34);
+var pick = _dereq_(203),
+    assign = _dereq_(197),
+    forEach = _dereq_(85);
 
-var parseNameNs = _dereq_(138).parseName;
+var parseNameNs = _dereq_(224).parseName;
 
 
 function DescriptorBuilder(nameNs) {
@@ -12846,12 +20500,12 @@ DescriptorBuilder.prototype.addTrait = function(t, inherited) {
   allTypes.push(t);
 };
 
-},{"116":116,"121":121,"138":138,"34":34}],136:[function(_dereq_,module,exports){
+},{"197":197,"203":203,"224":224,"85":85}],222:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(34);
+var forEach = _dereq_(85);
 
-var Base = _dereq_(134);
+var Base = _dereq_(220);
 
 
 function Factory(model, properties) {
@@ -12904,20 +20558,20 @@ Factory.prototype.createType = function(descriptor) {
 
   return ModdleElement;
 };
-},{"134":134,"34":34}],137:[function(_dereq_,module,exports){
+},{"220":220,"85":85}],223:[function(_dereq_,module,exports){
 'use strict';
 
-var isString = _dereq_(114),
-    isObject = _dereq_(113),
-    forEach = _dereq_(34),
-    find = _dereq_(33);
+var isString = _dereq_(194),
+    isObject = _dereq_(192),
+    forEach = _dereq_(85),
+    find = _dereq_(84);
 
 
-var Factory = _dereq_(136),
-    Registry = _dereq_(140),
-    Properties = _dereq_(139);
+var Factory = _dereq_(222),
+    Registry = _dereq_(226),
+    Properties = _dereq_(225);
 
-var parseNameNs = _dereq_(138).parseName;
+var parseNameNs = _dereq_(224).parseName;
 
 
 //// Moddle implementation /////////////////////////////////////////////////
@@ -13115,7 +20769,6 @@ Moddle.prototype.hasType = function(element, type) {
   });
 };
 
-
 /**
  * Returns the descriptor of an elements named property
  */
@@ -13123,7 +20776,14 @@ Moddle.prototype.getPropertyDescriptor = function(element, property) {
   return this.getElementDescriptor(element).propertiesByName[property];
 };
 
-},{"113":113,"114":114,"136":136,"138":138,"139":139,"140":140,"33":33,"34":34}],138:[function(_dereq_,module,exports){
+/**
+ * Returns a mapped type's descriptor
+ */
+Moddle.prototype.getTypeDescriptor = function(type) {
+  return this.registry.typeMap[type];
+};
+
+},{"192":192,"194":194,"222":222,"224":224,"225":225,"226":226,"84":84,"85":85}],224:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -13160,7 +20820,7 @@ module.exports.parseName = function(name, defaultPrefix) {
     localName: localName
   };
 };
-},{}],139:[function(_dereq_,module,exports){
+},{}],225:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -13279,16 +20939,16 @@ function defineProperty(target, property, value) {
     configurable: true
   });
 }
-},{}],140:[function(_dereq_,module,exports){
+},{}],226:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(116),
-    forEach = _dereq_(34);
+var assign = _dereq_(197),
+    forEach = _dereq_(85);
 
-var Types = _dereq_(141),
-    DescriptorBuilder = _dereq_(135);
+var Types = _dereq_(227),
+    DescriptorBuilder = _dereq_(221);
 
-var parseNameNs = _dereq_(138).parseName,
+var parseNameNs = _dereq_(224).parseName,
     isBuiltInType = Types.isBuiltIn;
 
 
@@ -13338,7 +20998,8 @@ Registry.prototype.registerType = function(type, pkg) {
   type = assign({}, type, {
     superClass: (type.superClass || []).slice(),
     extends: (type.extends || []).slice(),
-    properties: (type.properties || []).slice()
+    properties: (type.properties || []).slice(),
+    meta: assign(({}, type.meta || {}))
   });
 
   var ns = parseNameNs(type.name, pkg.prefix),
@@ -13464,7 +21125,8 @@ Registry.prototype.getEffectiveDescriptor = function(name) {
 Registry.prototype.definePackage = function(target, pkg) {
   this.properties.define(target, '$pkg', { value: pkg });
 };
-},{"116":116,"135":135,"138":138,"141":141,"34":34}],141:[function(_dereq_,module,exports){
+
+},{"197":197,"221":221,"224":224,"227":227,"85":85}],227:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -13515,11 +21177,11 @@ module.exports.isBuiltIn = function(type) {
 module.exports.isSimple = function(type) {
   return !!TYPE_CONVERTERS[type];
 };
-},{}],142:[function(_dereq_,module,exports){
-module.exports = _dereq_(144);
+},{}],228:[function(_dereq_,module,exports){
+module.exports = _dereq_(230);
 
-module.exports.Collection = _dereq_(143);
-},{"143":143,"144":144}],143:[function(_dereq_,module,exports){
+module.exports.Collection = _dereq_(229);
+},{"229":229,"230":230}],229:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -13616,10 +21278,10 @@ function isExtended(collection) {
 module.exports.extend = extend;
 
 module.exports.isExtended = isExtended;
-},{}],144:[function(_dereq_,module,exports){
+},{}],230:[function(_dereq_,module,exports){
 'use strict';
 
-var Collection = _dereq_(143);
+var Collection = _dereq_(229);
 
 function hasOwnProperty(e, property) {
   return Object.prototype.hasOwnProperty.call(e, property.name || property);
@@ -13808,7 +21470,7 @@ module.exports = Refs;
  * @property {boolean} [collection=false]
  * @property {boolean} [enumerable=false]
  */
-},{"143":143}],145:[function(_dereq_,module,exports){
+},{"229":229}],231:[function(_dereq_,module,exports){
 (function (Buffer){
 // wrapper for non-node envs
 ;(function (sax) {
@@ -15223,7 +22885,7 @@ if (!String.fromCodePoint) {
 
 }).call(this,undefined)
 
-},{"undefined":undefined}],146:[function(_dereq_,module,exports){
+},{"undefined":undefined}],232:[function(_dereq_,module,exports){
 /**
  * Tiny stack for browser or server
  *
@@ -15340,14 +23002,14 @@ else {
 }
 } )( this );
 
-},{}],147:[function(_dereq_,module,exports){
+},{}],233:[function(_dereq_,module,exports){
 /**
  * append utility
  */
 
 module.exports = append;
 
-var appendTo = _dereq_(148);
+var appendTo = _dereq_(234);
 
 /**
  * Append a node to an element
@@ -15361,13 +23023,13 @@ function append(element, node) {
   appendTo(node, element);
   return element;
 }
-},{"148":148}],148:[function(_dereq_,module,exports){
+},{"234":234}],234:[function(_dereq_,module,exports){
 /**
  * appendTo utility
  */
 module.exports = appendTo;
 
-var ensureImported = _dereq_(155);
+var ensureImported = _dereq_(243);
 
 /**
  * Append a node to a target element and return the appended node.
@@ -15381,7 +23043,7 @@ function appendTo(element, target) {
   target.appendChild(ensureImported(element, target));
   return element;
 }
-},{"155":155}],149:[function(_dereq_,module,exports){
+},{"243":243}],235:[function(_dereq_,module,exports){
 /**
  * attribute accessor utility
  */
@@ -15485,7 +23147,7 @@ function setAttributes(node, attrs) {
 
   var names = Object.keys(attrs), i, name;
 
-  for (i = 0, name; !!(name = names[i]); i++) {
+  for (i = 0, name; (name = names[i]); i++) {
     setAttribute(node, name, attrs[name]);
   }
 }
@@ -15514,7 +23176,7 @@ function attr(node, name, value) {
   return node;
 }
 
-},{}],150:[function(_dereq_,module,exports){
+},{}],236:[function(_dereq_,module,exports){
 /**
  * Clear utility
  */
@@ -15522,7 +23184,7 @@ module.exports = classes;
 
 var index = function(arr, obj) {
   if (arr.indexOf) {
-     return arr.indexOf(obj);
+    return arr.indexOf(obj);
   }
 
 
@@ -15539,6 +23201,10 @@ var re = /\s+/;
 
 var toString = Object.prototype.toString;
 
+function defined(o) {
+  return typeof o !== 'undefined';
+}
+
 /**
  * Wrap `el` in a `ClassList`.
  *
@@ -15549,7 +23215,7 @@ var toString = Object.prototype.toString;
 
 function classes(el) {
   return new ClassList(el);
-};
+}
 
 function ClassList(el) {
   if (!el || !el.nodeType) {
@@ -15578,9 +23244,11 @@ ClassList.prototype.add = function(name) {
   // fallback
   var arr = this.array();
   var i = index(arr, name);
-  if (!~i) arr.push(name);
+  if (!~i) {
+    arr.push(name);
+  }
 
-  if (this.el.className.baseVal !== undefined) {
+  if (defined(this.el.className.baseVal)) {
     this.el.className.baseVal = arr.join(' ');
   } else {
     this.el.className = arr.join(' ');
@@ -15600,7 +23268,7 @@ ClassList.prototype.add = function(name) {
  */
 
 ClassList.prototype.remove = function(name) {
-  if ('[object RegExp]' == toString.call(name)) {
+  if ('[object RegExp]' === toString.call(name)) {
     return this.removeMatching(name);
   }
 
@@ -15613,7 +23281,9 @@ ClassList.prototype.remove = function(name) {
   // fallback
   var arr = this.array();
   var i = index(arr, name);
-  if (~i) arr.splice(i, 1);
+  if (~i) {
+    arr.splice(i, 1);
+  }
   this.el.className.baseVal = arr.join(' ');
   return this;
 };
@@ -15651,7 +23321,7 @@ ClassList.prototype.removeMatching = function(re) {
 ClassList.prototype.toggle = function(name, force) {
   // classList
   if (this.list) {
-    if ("undefined" !== typeof force) {
+    if (defined(force)) {
       if (force !== this.list.toggle(name, force)) {
         this.list.toggle(name); // toggle again to correct
       }
@@ -15662,7 +23332,7 @@ ClassList.prototype.toggle = function(name, force) {
   }
 
   // fallback
-  if ("undefined" !== typeof force) {
+  if (defined(force)) {
     if (!force) {
       this.remove(name);
     } else {
@@ -15690,7 +23360,9 @@ ClassList.prototype.array = function() {
   var className = this.el.getAttribute('class') || '';
   var str = className.replace(/^\s+|\s+$/g, '');
   var arr = str.split(re);
-  if ('' === arr[0]) arr.shift();
+  if ('' === arr[0]) {
+    arr.shift();
+  }
   return arr;
 };
 
@@ -15704,12 +23376,14 @@ ClassList.prototype.array = function() {
 
 ClassList.prototype.has =
 ClassList.prototype.contains = function(name) {
-  return this.list
-    ? this.list.contains(name)
-    : !! ~index(this.array(), name);
+  return (
+    this.list ?
+      this.list.contains(name) :
+      !! ~index(this.array(), name)
+  );
 };
 
-},{}],151:[function(_dereq_,module,exports){
+},{}],237:[function(_dereq_,module,exports){
 /**
  * Clear utility
  */
@@ -15717,7 +23391,7 @@ ClassList.prototype.contains = function(name) {
 module.exports = clear;
 
 
-var remove = _dereq_(154);
+var remove = _dereq_(241);
 
 /**
  * Removes all children from the given element
@@ -15728,13 +23402,13 @@ var remove = _dereq_(154);
 function clear(element) {
   var child;
 
-  while (!!(child = element.firstChild)) {
+  while ((child = element.firstChild)) {
     remove(child);
   }
 
   return element;
 }
-},{"154":154}],152:[function(_dereq_,module,exports){
+},{"241":241}],238:[function(_dereq_,module,exports){
 /**
  * Create utility for SVG elements
  */
@@ -15742,9 +23416,9 @@ function clear(element) {
 module.exports = create;
 
 
-var attr = _dereq_(149);
-var parse = _dereq_(157);
-var ns = _dereq_(156);
+var attr = _dereq_(235);
+var parse = _dereq_(245);
+var ns = _dereq_(244);
 
 
 /**
@@ -15771,7 +23445,76 @@ function create(name, attrs) {
 
   return element;
 }
-},{"149":149,"156":156,"157":157}],153:[function(_dereq_,module,exports){
+},{"235":235,"244":244,"245":245}],239:[function(_dereq_,module,exports){
+/**
+ * Geometry helpers
+ */
+
+module.exports = { createPoint: createPoint, createMatrix: createMatrix, createTransform: createTransform };
+
+
+var create = _dereq_(238);
+
+// fake node used to instantiate svg geometry elements
+var node = create('svg');
+
+function extend(object, props) {
+  var i, k, keys = Object.keys(props);
+
+  for (i = 0; (k = keys[i]); i++) {
+    object[k] = props[k];
+  }
+
+  return object;
+}
+
+
+function createPoint(x, y) {
+  var point = node.createSVGPoint();
+
+  switch (arguments.length) {
+  case 0:
+    return point;
+  case 2:
+    x = {
+      x: x,
+      y: y
+    };
+    break;
+  }
+
+  return extend(point, x);
+}
+
+function createMatrix(a, b, c, d, e, f) {
+  var matrix = node.createSVGMatrix();
+
+  switch (arguments.length) {
+  case 0:
+    return matrix;
+  case 6:
+    a = {
+      a: a,
+      b: b,
+      c: c,
+      d: d,
+      e: e,
+      f: f
+    };
+    break;
+  }
+
+  return extend(matrix, a);
+}
+
+function createTransform(matrix) {
+  if (matrix) {
+    return node.createSVGTransformFromMatrix(matrix);
+  } else {
+    return node.createSVGTransform();
+  }
+}
+},{"238":238}],240:[function(_dereq_,module,exports){
 /**
  * innerHTML like functionality for SVG elements.
  * based on innerSVG (https://code.google.com/p/innersvg)
@@ -15780,10 +23523,10 @@ function create(name, attrs) {
 module.exports = innerSVG;
 
 
-var clear = _dereq_(151);
-var appendTo = _dereq_(148);
-var parse = _dereq_(157);
-var serialize = _dereq_(158);
+var clear = _dereq_(237);
+var appendTo = _dereq_(234);
+var parse = _dereq_(245);
+var serialize = _dereq_(246);
 
 
 function set(element, svg) {
@@ -15825,7 +23568,7 @@ function innerSVG(element, svg) {
 
     try {
       set(element, svg);
-    } catch(e) {
+    } catch (e) {
       throw new Error('error parsing SVG: ' + e.message);
     }
 
@@ -15834,14 +23577,54 @@ function innerSVG(element, svg) {
     return get(element);
   }
 }
-},{"148":148,"151":151,"157":157,"158":158}],154:[function(_dereq_,module,exports){
+},{"234":234,"237":237,"245":245,"246":246}],241:[function(_dereq_,module,exports){
 module.exports = remove;
 
 function remove(element) {
   element.parentNode.removeChild(element);
   return element;
 }
-},{}],155:[function(_dereq_,module,exports){
+},{}],242:[function(_dereq_,module,exports){
+/**
+ * transform accessor utility
+ */
+
+module.exports = transform;
+
+function wrapMatrix(transformList, transform) {
+  if (transform instanceof SVGMatrix) {
+    return transformList.createSVGTransformFromMatrix(transform);
+  } else {
+    return transform;
+  }
+}
+
+function setTransforms(transformList, transforms) {
+  var i, t;
+
+  transformList.clear();
+
+  for (i = 0; (t = transforms[i]); i++) {
+    transformList.appendItem(wrapMatrix(transformList, t));
+  }
+
+  transformList.consolidate();
+}
+
+function transform(node, transforms) {
+  var transformList = node.transform.baseVal;
+
+  if (arguments.length === 1) {
+    return transformList.consolidate();
+  } else {
+    if (transforms.length) {
+      setTransforms(transformList, transforms);
+    } else {
+      transformList.initialize(wrapMatrix(transformList, transforms));
+    }
+  }
+}
+},{}],243:[function(_dereq_,module,exports){
 module.exports = ensureImported;
 
 function ensureImported(element, target) {
@@ -15850,18 +23633,20 @@ function ensureImported(element, target) {
     try {
       // may fail on webkit
       return target.ownerDocument.importNode(element, true);
-    } catch (e) { }
+    } catch (e) {
+      // ignore
+    }
   }
 
   return element;
 }
-},{}],156:[function(_dereq_,module,exports){
+},{}],244:[function(_dereq_,module,exports){
 var ns = {
   svg: 'http://www.w3.org/2000/svg'
 };
 
 module.exports = ns;
-},{}],157:[function(_dereq_,module,exports){
+},{}],245:[function(_dereq_,module,exports){
 /**
  * DOM parsing utility
  */
@@ -15869,18 +23654,14 @@ module.exports = ns;
 module.exports = parse;
 
 
-var ns = _dereq_(156);
+var ns = _dereq_(244);
 
 var SVG_START = '<svg xmlns="' + ns.svg + '"';
 
 function parse(svg) {
 
-  var doc;
-
   // ensure we import a valid svg document
   if (svg.substring(0, 4) === '<svg') {
-    doc = true;
-
     if (svg.indexOf(ns.svg) === -1) {
       svg = SVG_START + svg.substring(4);
     }
@@ -15902,7 +23683,7 @@ function parseDocument(svg) {
 
   return parser.parseFromString(svg, 'text/xml');
 }
-},{"156":156}],158:[function(_dereq_,module,exports){
+},{"244":244}],246:[function(_dereq_,module,exports){
 /**
  * Serialization util
  */
@@ -15911,12 +23692,13 @@ module.exports = serialize;
 
 
 var TEXT_ENTITIES = /([&<>]{1})/g;
-var ATTR_ENTITIES = /([\n\r]{1})/g;
+var ATTR_ENTITIES = /([\n\r"]{1})/g;
 
 var ENTITY_REPLACEMENT = {
   '&': '&amp;',
   '<': '&lt;',
-  '>': '&gt;'
+  '>': '&gt;',
+  '"': '\''
 };
 
 function escape(str, pattern) {
@@ -15933,7831 +23715,52 @@ function serialize(node, output) {
   var i, len, attrMap, attrNode, childNodes;
 
   switch (node.nodeType) {
-    // TEXT
-    case 3:
-      // replace special XML characters
-      output.push(escape(node.textContent, TEXT_ENTITIES));
-      break;
+  // TEXT
+  case 3:
+    // replace special XML characters
+    output.push(escape(node.textContent, TEXT_ENTITIES));
+    break;
 
-    // ELEMENT
-    case 1:
-      output.push('<', node.tagName);
+  // ELEMENT
+  case 1:
+    output.push('<', node.tagName);
 
-      if (node.hasAttributes()) {
-        attrMap = node.attributes;
-        for (i = 0, len = attrMap.length; i < len; ++i) {
-          attrNode = attrMap.item(i);
-          output.push(' ', attrNode.name, '="', escape(attrNode.value, ATTR_ENTITIES), '"');
-        }
+    if (node.hasAttributes()) {
+      attrMap = node.attributes;
+      for (i = 0, len = attrMap.length; i < len; ++i) {
+        attrNode = attrMap.item(i);
+        output.push(' ', attrNode.name, '="', escape(attrNode.value, ATTR_ENTITIES), '"');
       }
+    }
 
-      if (node.hasChildNodes()) {
-        output.push('>');
-        childNodes = node.childNodes;
-        for (i = 0, len = childNodes.length; i < len; ++i) {
-          serialize(childNodes.item(i), output);
-        }
-        output.push('</', node.tagName, '>');
-      } else {
-        output.push('/>');
+    if (node.hasChildNodes()) {
+      output.push('>');
+      childNodes = node.childNodes;
+      for (i = 0, len = childNodes.length; i < len; ++i) {
+        serialize(childNodes.item(i), output);
       }
-      break;
+      output.push('</', node.tagName, '>');
+    } else {
+      output.push('/>');
+    }
+    break;
 
-    // COMMENT
-    case 8:
-      output.push('<!--', escape(node.nodeValue, TEXT_ENTITIES), '-->');
-      break;
+  // COMMENT
+  case 8:
+    output.push('<!--', escape(node.nodeValue, TEXT_ENTITIES), '-->');
+    break;
 
-    // CDATA
-    case 4:
-      output.push('<![CDATA[', node.nodeValue, ']]>');
-      break;
+  // CDATA
+  case 4:
+    output.push('<![CDATA[', node.nodeValue, ']]>');
+    break;
 
-    default:
-      throw new Error('unable to handle node ' + node.nodeType);
+  default:
+    throw new Error('unable to handle node ' + node.nodeType);
   }
 
   return output;
 }
-},{}],159:[function(_dereq_,module,exports){
-module.exports = _dereq_(160);
-},{"160":160}],160:[function(_dereq_,module,exports){
-'use strict';
-
-var di = _dereq_(210);
-
-
-/**
- * Bootstrap an injector from a list of modules, instantiating a number of default components
- *
- * @ignore
- * @param {Array<didi.Module>} bootstrapModules
- *
- * @return {didi.Injector} a injector to use to access the components
- */
-function bootstrap(bootstrapModules) {
-
-  var modules = [],
-      components = [];
-
-  function hasModule(m) {
-    return modules.indexOf(m) >= 0;
-  }
-
-  function addModule(m) {
-    modules.push(m);
-  }
-
-  function visit(m) {
-    if (hasModule(m)) {
-      return;
-    }
-
-    (m.__depends__ || []).forEach(visit);
-
-    if (hasModule(m)) {
-      return;
-    }
-
-    addModule(m);
-
-    (m.__init__ || []).forEach(function(c) {
-      components.push(c);
-    });
-  }
-
-  bootstrapModules.forEach(visit);
-
-  var injector = new di.Injector(modules);
-
-  components.forEach(function(c) {
-
-    try {
-      // eagerly resolve component (fn or string)
-      injector[typeof c === 'string' ? 'get' : 'invoke'](c);
-    } catch (e) {
-      console.error('Failed to instantiate component');
-      console.error(e.stack);
-
-      throw e;
-    }
-  });
-
-  return injector;
-}
-
-/**
- * Creates an injector from passed options.
- *
- * @ignore
- * @param  {Object} options
- * @return {didi.Injector}
- */
-function createInjector(options) {
-
-  options = options || {};
-
-  var configModule = {
-    'config': ['value', options]
-  };
-
-  var coreModule = _dereq_(166);
-
-  var modules = [ configModule, coreModule ].concat(options.modules || []);
-
-  return bootstrap(modules);
-}
-
-
-/**
- * The main diagram-js entry point that bootstraps the diagram with the given
- * configuration.
- *
- * To register extensions with the diagram, pass them as Array<didi.Module> to the constructor.
- *
- * @class djs.Diagram
- * @memberOf djs
- * @constructor
- *
- * @example
- *
- * <caption>Creating a plug-in that logs whenever a shape is added to the canvas.</caption>
- *
- * // plug-in implemenentation
- * function MyLoggingPlugin(eventBus) {
- *   eventBus.on('shape.added', function(event) {
- *     console.log('shape ', event.shape, ' was added to the diagram');
- *   });
- * }
- *
- * // export as module
- * module.exports = {
- *   __init__: [ 'myLoggingPlugin' ],
- *     myLoggingPlugin: [ 'type', MyLoggingPlugin ]
- * };
- *
- *
- * // instantiate the diagram with the new plug-in
- *
- * var diagram = new Diagram({ modules: [ require('path-to-my-logging-plugin') ] });
- *
- * diagram.invoke([ 'canvas', function(canvas) {
- *   // add shape to drawing canvas
- *   canvas.addShape({ x: 10, y: 10 });
- * });
- *
- * // 'shape ... was added to the diagram' logged to console
- *
- * @param {Object} options
- * @param {Array<didi.Module>} [options.modules] external modules to instantiate with the diagram
- * @param {didi.Injector} [injector] an (optional) injector to bootstrap the diagram with
- */
-function Diagram(options, injector) {
-
-  // create injector unless explicitly specified
-  this.injector = injector = injector || createInjector(options);
-
-  // API
-
-  /**
-   * Resolves a diagram service
-   *
-   * @method Diagram#get
-   *
-   * @param {String} name the name of the diagram service to be retrieved
-   * @param {Boolean} [strict=true] if false, resolve missing services to null
-   */
-  this.get = injector.get;
-
-  /**
-   * Executes a function into which diagram services are injected
-   *
-   * @method Diagram#invoke
-   *
-   * @param {Function|Object[]} fn the function to resolve
-   * @param {Object} locals a number of locals to use to resolve certain dependencies
-   */
-  this.invoke = injector.invoke;
-
-  // init
-
-  // indicate via event
-
-
-  /**
-   * An event indicating that all plug-ins are loaded.
-   *
-   * Use this event to fire other events to interested plug-ins
-   *
-   * @memberOf Diagram
-   *
-   * @event diagram.init
-   *
-   * @example
-   *
-   * eventBus.on('diagram.init', function() {
-   *   eventBus.fire('my-custom-event', { foo: 'BAR' });
-   * });
-   *
-   * @type {Object}
-   */
-  this.get('eventBus').fire('diagram.init');
-}
-
-module.exports = Diagram;
-
-
-/**
- * Destroys the diagram
- *
- * @method  Diagram#destroy
- */
-Diagram.prototype.destroy = function() {
-  this.get('eventBus').fire('diagram.destroy');
-};
-
-/**
- * Clear the diagram, removing all contents.
- */
-Diagram.prototype.clear = function() {
-  this.get('eventBus').fire('diagram.clear');
-};
-
-},{"166":166,"210":210}],161:[function(_dereq_,module,exports){
-'use strict';
-
-var isNumber = _dereq_(312),
-    assign = _dereq_(318),
-    forEach = _dereq_(220),
-    every = _dereq_(217),
-    debounce = _dereq_(225);
-
-var Collections = _dereq_(190),
-    Elements = _dereq_(192);
-
-var svgAppend = _dereq_(339),
-    svgAttr = _dereq_(341),
-    svgClasses = _dereq_(342),
-    svgCreate = _dereq_(343),
-    svgTransform = _dereq_(346);
-
-var createMatrix = _dereq_(344).createMatrix;
-
-
-function round(number, resolution) {
-  return Math.round(number * resolution) / resolution;
-}
-
-function ensurePx(number) {
-  return isNumber(number) ? number + 'px' : number;
-}
-
-/**
- * Creates a HTML container element for a SVG element with
- * the given configuration
- *
- * @param  {Object} options
- * @return {HTMLElement} the container element
- */
-function createContainer(options) {
-
-  options = assign({}, { width: '100%', height: '100%' }, options);
-
-  var container = options.container || document.body;
-
-  // create a <div> around the svg element with the respective size
-  // this way we can always get the correct container size
-  // (this is impossible for <svg> elements at the moment)
-  var parent = document.createElement('div');
-  parent.setAttribute('class', 'djs-container');
-
-  assign(parent.style, {
-    position: 'relative',
-    overflow: 'hidden',
-    width: ensurePx(options.width),
-    height: ensurePx(options.height)
-  });
-
-  container.appendChild(parent);
-
-  return parent;
-}
-
-function createGroup(parent, cls) {
-  var group = svgCreate('g');
-  svgClasses(group).add(cls);
-
-  svgAppend(parent, group);
-
-  return group;
-}
-
-var BASE_LAYER = 'base';
-
-
-var REQUIRED_MODEL_ATTRS = {
-  shape: [ 'x', 'y', 'width', 'height' ],
-  connection: [ 'waypoints' ]
-};
-
-/**
- * The main drawing canvas.
- *
- * @class
- * @constructor
- *
- * @emits Canvas#canvas.init
- *
- * @param {Object} config
- * @param {EventBus} eventBus
- * @param {GraphicsFactory} graphicsFactory
- * @param {ElementRegistry} elementRegistry
- */
-function Canvas(config, eventBus, graphicsFactory, elementRegistry) {
-
-  this._eventBus = eventBus;
-  this._elementRegistry = elementRegistry;
-  this._graphicsFactory = graphicsFactory;
-
-  this._init(config || {});
-}
-
-Canvas.$inject = [ 'config.canvas', 'eventBus', 'graphicsFactory', 'elementRegistry' ];
-
-module.exports = Canvas;
-
-
-Canvas.prototype._init = function(config) {
-
-  var eventBus = this._eventBus;
-
-  // Creates a <svg> element that is wrapped into a <div>.
-  // This way we are always able to correctly figure out the size of the svg element
-  // by querying the parent node.
-  //
-  // (It is not possible to get the size of a svg element cross browser @ 2014-04-01)
-  //
-  // <div class="djs-container" style="width: {desired-width}, height: {desired-height}">
-  //   <svg width="100%" height="100%">
-  //    ...
-  //   </svg>
-  // </div>
-
-  // html container
-  var container = this._container = createContainer(config);
-
-  var svg = this._svg = svgCreate('svg');
-  svgAttr(svg, { width: '100%', height: '100%' });
-
-  svgAppend(container, svg);
-
-  var viewport = this._viewport = createGroup(svg, 'viewport');
-
-  this._layers = {};
-
-  // debounce canvas.viewbox.changed events
-  // for smoother diagram interaction
-  if (config.deferUpdate !== false) {
-    this._viewboxChanged = debounce(this._viewboxChanged, 300);
-  }
-
-  eventBus.on('diagram.init', function() {
-
-    /**
-     * An event indicating that the canvas is ready to be drawn on.
-     *
-     * @memberOf Canvas
-     *
-     * @event canvas.init
-     *
-     * @type {Object}
-     * @property {Snap<SVGSVGElement>} svg the created svg element
-     * @property {Snap<SVGGroup>} viewport the direct parent of diagram elements and shapes
-     */
-    eventBus.fire('canvas.init', {
-      svg: svg,
-      viewport: viewport
-    });
-
-    // fire this in order for certain components to check
-    // if they need to be adjusted due the canvas size
-    this.resized();
-
-  }, this);
-
-  eventBus.on('diagram.destroy', 500, this._destroy, this);
-  eventBus.on('diagram.clear', 500, this._clear, this);
-};
-
-Canvas.prototype._destroy = function(emit) {
-  this._eventBus.fire('canvas.destroy', {
-    svg: this._svg,
-    viewport: this._viewport
-  });
-
-  var parent = this._container.parentNode;
-
-  if (parent) {
-    parent.removeChild(this._container);
-  }
-
-  delete this._svg;
-  delete this._container;
-  delete this._layers;
-  delete this._rootElement;
-  delete this._viewport;
-};
-
-Canvas.prototype._clear = function() {
-
-  var self = this;
-
-  var allElements = this._elementRegistry.getAll();
-
-  // remove all elements
-  allElements.forEach(function(element) {
-    var type = Elements.getType(element);
-
-    if (type === 'root') {
-      self.setRootElement(null, true);
-    } else {
-      self._removeElement(element, type);
-    }
-  });
-
-  // force recomputation of view box
-  delete this._cachedViewbox;
-};
-
-/**
- * Returns the default layer on which
- * all elements are drawn.
- *
- * @returns {Snap<SVGGroup>}
- */
-Canvas.prototype.getDefaultLayer = function() {
-  return this.getLayer(BASE_LAYER);
-};
-
-/**
- * Returns a layer that is used to draw elements
- * or annotations on it.
- *
- * @param  {String} name
- *
- * @returns {Snap<SVGGroup>}
- */
-Canvas.prototype.getLayer = function(name) {
-
-  if (!name) {
-    throw new Error('must specify a name');
-  }
-
-  var layer = this._layers[name];
-  if (!layer) {
-    layer = this._layers[name] = createGroup(this._viewport, 'layer-' + name);
-  }
-
-  return layer;
-};
-
-
-/**
- * Returns the html element that encloses the
- * drawing canvas.
- *
- * @return {DOMNode}
- */
-Canvas.prototype.getContainer = function() {
-  return this._container;
-};
-
-
-/////////////// markers ///////////////////////////////////
-
-Canvas.prototype._updateMarker = function(element, marker, add) {
-  var container;
-
-  if (!element.id) {
-    element = this._elementRegistry.get(element);
-  }
-
-  // we need to access all
-  container = this._elementRegistry._elements[element.id];
-
-  if (!container) {
-    return;
-  }
-
-  forEach([ container.gfx, container.secondaryGfx ], function(gfx) {
-    if (gfx) {
-      // invoke either addClass or removeClass based on mode
-      if (add) {
-        svgClasses(gfx).add(marker);
-      } else {
-        svgClasses(gfx).remove(marker);
-      }
-    }
-  });
-
-  /**
-   * An event indicating that a marker has been updated for an element
-   *
-   * @event element.marker.update
-   * @type {Object}
-   * @property {djs.model.Element} element the shape
-   * @property {Object} gfx the graphical representation of the shape
-   * @property {String} marker
-   * @property {Boolean} add true if the marker was added, false if it got removed
-   */
-  this._eventBus.fire('element.marker.update', { element: element, gfx: container.gfx, marker: marker, add: !!add });
-};
-
-
-/**
- * Adds a marker to an element (basically a css class).
- *
- * Fires the element.marker.update event, making it possible to
- * integrate extension into the marker life-cycle, too.
- *
- * @example
- * canvas.addMarker('foo', 'some-marker');
- *
- * var fooGfx = canvas.getGraphics('foo');
- *
- * fooGfx; // <g class="... some-marker"> ... </g>
- *
- * @param {String|djs.model.Base} element
- * @param {String} marker
- */
-Canvas.prototype.addMarker = function(element, marker) {
-  this._updateMarker(element, marker, true);
-};
-
-
-/**
- * Remove a marker from an element.
- *
- * Fires the element.marker.update event, making it possible to
- * integrate extension into the marker life-cycle, too.
- *
- * @param  {String|djs.model.Base} element
- * @param  {String} marker
- */
-Canvas.prototype.removeMarker = function(element, marker) {
-  this._updateMarker(element, marker, false);
-};
-
-/**
- * Check the existence of a marker on element.
- *
- * @param  {String|djs.model.Base} element
- * @param  {String} marker
- */
-Canvas.prototype.hasMarker = function(element, marker) {
-  if (!element.id) {
-    element = this._elementRegistry.get(element);
-  }
-
-  var gfx = this.getGraphics(element);
-
-  return svgClasses(gfx).has(marker);
-};
-
-/**
- * Toggles a marker on an element.
- *
- * Fires the element.marker.update event, making it possible to
- * integrate extension into the marker life-cycle, too.
- *
- * @param  {String|djs.model.Base} element
- * @param  {String} marker
- */
-Canvas.prototype.toggleMarker = function(element, marker) {
-  if (this.hasMarker(element, marker)) {
-    this.removeMarker(element, marker);
-  } else {
-    this.addMarker(element, marker);
-  }
-};
-
-Canvas.prototype.getRootElement = function() {
-  if (!this._rootElement) {
-    this.setRootElement({ id: '__implicitroot', children: [] });
-  }
-
-  return this._rootElement;
-};
-
-
-
-//////////////// root element handling ///////////////////////////
-
-/**
- * Sets a given element as the new root element for the canvas
- * and returns the new root element.
- *
- * @param {Object|djs.model.Root} element
- * @param {Boolean} [override] whether to override the current root element, if any
- *
- * @return {Object|djs.model.Root} new root element
- */
-Canvas.prototype.setRootElement = function(element, override) {
-
-  if (element) {
-    this._ensureValid('root', element);
-  }
-
-  var currentRoot = this._rootElement,
-      elementRegistry = this._elementRegistry,
-      eventBus = this._eventBus;
-
-  if (currentRoot) {
-    if (!override) {
-      throw new Error('rootElement already set, need to specify override');
-    }
-
-    // simulate element remove event sequence
-    eventBus.fire('root.remove', { element: currentRoot });
-    eventBus.fire('root.removed', { element: currentRoot });
-
-    elementRegistry.remove(currentRoot);
-  }
-
-  if (element) {
-    var gfx = this.getDefaultLayer();
-
-    // resemble element add event sequence
-    eventBus.fire('root.add', { element: element });
-
-    elementRegistry.add(element, gfx, this._svg);
-
-    eventBus.fire('root.added', { element: element, gfx: gfx });
-  }
-
-  this._rootElement = element;
-
-  return element;
-};
-
-
-
-///////////// add functionality ///////////////////////////////
-
-Canvas.prototype._ensureValid = function(type, element) {
-  if (!element.id) {
-    throw new Error('element must have an id');
-  }
-
-  if (this._elementRegistry.get(element.id)) {
-    throw new Error('element with id ' + element.id + ' already exists');
-  }
-
-  var requiredAttrs = REQUIRED_MODEL_ATTRS[type];
-
-  var valid = every(requiredAttrs, function(attr) {
-    return typeof element[attr] !== 'undefined';
-  });
-
-  if (!valid) {
-    throw new Error(
-      'must supply { ' + requiredAttrs.join(', ') + ' } with ' + type);
-  }
-};
-
-Canvas.prototype._setParent = function(element, parent, parentIndex) {
-  Collections.add(parent.children, element, parentIndex);
-  element.parent = parent;
-};
-
-/**
- * Adds an element to the canvas.
- *
- * This wires the parent <-> child relationship between the element and
- * a explicitly specified parent or an implicit root element.
- *
- * During add it emits the events
- *
- *  * <{type}.add> (element, parent)
- *  * <{type}.added> (element, gfx)
- *
- * Extensions may hook into these events to perform their magic.
- *
- * @param {String} type
- * @param {Object|djs.model.Base} element
- * @param {Object|djs.model.Base} [parent]
- * @param {Number} [parentIndex]
- *
- * @return {Object|djs.model.Base} the added element
- */
-Canvas.prototype._addElement = function(type, element, parent, parentIndex) {
-
-  parent = parent || this.getRootElement();
-
-  var eventBus = this._eventBus,
-      graphicsFactory = this._graphicsFactory;
-
-  this._ensureValid(type, element);
-
-  eventBus.fire(type + '.add', { element: element, parent: parent });
-
-  this._setParent(element, parent, parentIndex);
-
-  // create graphics
-  var gfx = graphicsFactory.create(type, element);
-
-  this._elementRegistry.add(element, gfx);
-
-  // update its visual
-  graphicsFactory.update(type, element, gfx);
-
-  eventBus.fire(type + '.added', { element: element, gfx: gfx });
-
-  return element;
-};
-
-/**
- * Adds a shape to the canvas
- *
- * @param {Object|djs.model.Shape} shape to add to the diagram
- * @param {djs.model.Base} [parent]
- * @param {Number} [parentIndex]
- *
- * @return {djs.model.Shape} the added shape
- */
-Canvas.prototype.addShape = function(shape, parent, parentIndex) {
-  return this._addElement('shape', shape, parent, parentIndex);
-};
-
-/**
- * Adds a connection to the canvas
- *
- * @param {Object|djs.model.Connection} connection to add to the diagram
- * @param {djs.model.Base} [parent]
- * @param {Number} [parentIndex]
- *
- * @return {djs.model.Connection} the added connection
- */
-Canvas.prototype.addConnection = function(connection, parent, parentIndex) {
-  return this._addElement('connection', connection, parent, parentIndex);
-};
-
-
-/**
- * Internal remove element
- */
-Canvas.prototype._removeElement = function(element, type) {
-
-  var elementRegistry = this._elementRegistry,
-      graphicsFactory = this._graphicsFactory,
-      eventBus = this._eventBus;
-
-  element = elementRegistry.get(element.id || element);
-
-  if (!element) {
-    // element was removed already
-    return;
-  }
-
-  eventBus.fire(type + '.remove', { element: element });
-
-  graphicsFactory.remove(element);
-
-  // unset parent <-> child relationship
-  Collections.remove(element.parent && element.parent.children, element);
-  element.parent = null;
-
-  eventBus.fire(type + '.removed', { element: element });
-
-  elementRegistry.remove(element);
-
-  return element;
-};
-
-
-/**
- * Removes a shape from the canvas
- *
- * @param {String|djs.model.Shape} shape or shape id to be removed
- *
- * @return {djs.model.Shape} the removed shape
- */
-Canvas.prototype.removeShape = function(shape) {
-
-  /**
-   * An event indicating that a shape is about to be removed from the canvas.
-   *
-   * @memberOf Canvas
-   *
-   * @event shape.remove
-   * @type {Object}
-   * @property {djs.model.Shape} element the shape descriptor
-   * @property {Object} gfx the graphical representation of the shape
-   */
-
-  /**
-   * An event indicating that a shape has been removed from the canvas.
-   *
-   * @memberOf Canvas
-   *
-   * @event shape.removed
-   * @type {Object}
-   * @property {djs.model.Shape} element the shape descriptor
-   * @property {Object} gfx the graphical representation of the shape
-   */
-  return this._removeElement(shape, 'shape');
-};
-
-
-/**
- * Removes a connection from the canvas
- *
- * @param {String|djs.model.Connection} connection or connection id to be removed
- *
- * @return {djs.model.Connection} the removed connection
- */
-Canvas.prototype.removeConnection = function(connection) {
-
-  /**
-   * An event indicating that a connection is about to be removed from the canvas.
-   *
-   * @memberOf Canvas
-   *
-   * @event connection.remove
-   * @type {Object}
-   * @property {djs.model.Connection} element the connection descriptor
-   * @property {Object} gfx the graphical representation of the connection
-   */
-
-  /**
-   * An event indicating that a connection has been removed from the canvas.
-   *
-   * @memberOf Canvas
-   *
-   * @event connection.removed
-   * @type {Object}
-   * @property {djs.model.Connection} element the connection descriptor
-   * @property {Object} gfx the graphical representation of the connection
-   */
-  return this._removeElement(connection, 'connection');
-};
-
-
-/**
- * Return the graphical object underlaying a certain diagram element
- *
- * @param {String|djs.model.Base} element descriptor of the element
- * @param {Boolean} [secondary=false] whether to return the secondary connected element
- *
- * @return {SVGElement}
- */
-Canvas.prototype.getGraphics = function(element, secondary) {
-  return this._elementRegistry.getGraphics(element, secondary);
-};
-
-
-/**
- * Perform a viewbox update via a given change function.
- *
- * @param {Function} changeFn
- */
-Canvas.prototype._changeViewbox = function(changeFn) {
-
-  // notify others of the upcoming viewbox change
-  this._eventBus.fire('canvas.viewbox.changing');
-
-  // perform actual change
-  changeFn.apply(this);
-
-  // reset the cached viewbox so that
-  // a new get operation on viewbox or zoom
-  // triggers a viewbox re-computation
-  this._cachedViewbox = null;
-
-  // notify others of the change; this step
-  // may or may not be debounced
-  this._viewboxChanged();
-};
-
-Canvas.prototype._viewboxChanged = function() {
-  this._eventBus.fire('canvas.viewbox.changed', { viewbox: this.viewbox() });
-};
-
-
-/**
- * Gets or sets the view box of the canvas, i.e. the
- * area that is currently displayed.
- *
- * The getter may return a cached viewbox (if it is currently
- * changing). To force a recomputation, pass `false` as the first argument.
- *
- * @example
- *
- * canvas.viewbox({ x: 100, y: 100, width: 500, height: 500 })
- *
- * // sets the visible area of the diagram to (100|100) -> (600|100)
- * // and and scales it according to the diagram width
- *
- * var viewbox = canvas.viewbox(); // pass `false` to force recomputing the box.
- *
- * console.log(viewbox);
- * // {
- * //   inner: Dimensions,
- * //   outer: Dimensions,
- * //   scale,
- * //   x, y,
- * //   width, height
- * // }
- *
- * @param  {Object} [box] the new view box to set
- * @param  {Number} box.x the top left X coordinate of the canvas visible in view box
- * @param  {Number} box.y the top left Y coordinate of the canvas visible in view box
- * @param  {Number} box.width the visible width
- * @param  {Number} box.height
- *
- * @return {Object} the current view box
- */
-Canvas.prototype.viewbox = function(box) {
-
-  if (box === undefined && this._cachedViewbox) {
-    return this._cachedViewbox;
-  }
-
-  var viewport = this._viewport,
-      innerBox,
-      outerBox = this.getSize(),
-      matrix,
-      scale,
-      x, y;
-
-  if (!box) {
-    // compute the inner box based on the
-    // diagrams default layer. This allows us to exclude
-    // external components, such as overlays
-    innerBox = this.getDefaultLayer().getBBox();
-
-    var transform = svgTransform(viewport);
-    matrix = transform ? transform.matrix : createMatrix();
-    scale = round(matrix.a, 1000);
-
-    x = round(-matrix.e || 0, 1000);
-    y = round(-matrix.f || 0, 1000);
-
-    box = this._cachedViewbox = {
-      x: x ? x / scale : 0,
-      y: y ? y / scale : 0,
-      width: outerBox.width / scale,
-      height: outerBox.height / scale,
-      scale: scale,
-      inner: {
-        width: innerBox.width,
-        height: innerBox.height,
-        x: innerBox.x,
-        y: innerBox.y
-      },
-      outer: outerBox
-    };
-
-    return box;
-  } else {
-
-    this._changeViewbox(function() {
-      scale = Math.min(outerBox.width / box.width, outerBox.height / box.height);
-
-      var matrix = this._svg.createSVGMatrix()
-        .scale(scale)
-        .translate(-box.x, -box.y);
-
-      svgTransform(viewport, matrix);
-    });
-  }
-
-  return box;
-};
-
-
-/**
- * Gets or sets the scroll of the canvas.
- *
- * @param {Object} [delta] the new scroll to apply.
- *
- * @param {Number} [delta.dx]
- * @param {Number} [delta.dy]
- */
-Canvas.prototype.scroll = function(delta) {
-
-  var node = this._viewport;
-  var matrix = node.getCTM();
-
-  if (delta) {
-    this._changeViewbox(function() {
-      delta = assign({ dx: 0, dy: 0 }, delta || {});
-
-      matrix = this._svg.createSVGMatrix().translate(delta.dx, delta.dy).multiply(matrix);
-
-      setCTM(node, matrix);
-    });
-  }
-
-  return { x: matrix.e, y: matrix.f };
-};
-
-
-/**
- * Gets or sets the current zoom of the canvas, optionally zooming
- * to the specified position.
- *
- * The getter may return a cached zoom level. Call it with `false` as
- * the first argument to force recomputation of the current level.
- *
- * @param {String|Number} [newScale] the new zoom level, either a number, i.e. 0.9,
- *                                   or `fit-viewport` to adjust the size to fit the current viewport
- * @param {String|Point} [center] the reference point { x: .., y: ..} to zoom to, 'auto' to zoom into mid or null
- *
- * @return {Number} the current scale
- */
-Canvas.prototype.zoom = function(newScale, center) {
-
-  if (!newScale) {
-    return this.viewbox(newScale).scale;
-  }
-
-  if (newScale === 'fit-viewport') {
-    return this._fitViewport(center);
-  }
-
-  var outer,
-      matrix;
-
-  this._changeViewbox(function() {
-
-    if (typeof center !== 'object') {
-      outer = this.viewbox().outer;
-
-      center = {
-        x: outer.width / 2,
-        y: outer.height / 2
-      };
-    }
-
-    matrix = this._setZoom(newScale, center);
-  });
-
-  return round(matrix.a, 1000);
-};
-
-function setCTM(node, m) {
-  var mstr = 'matrix(' + m.a + ',' + m.b + ',' + m.c + ',' + m.d + ',' + m.e + ',' + m.f + ')';
-  node.setAttribute('transform', mstr);
-}
-
-Canvas.prototype._fitViewport = function(center) {
-
-  var vbox = this.viewbox(),
-      outer = vbox.outer,
-      inner = vbox.inner,
-      newScale,
-      newViewbox;
-
-  // display the complete diagram without zooming in.
-  // instead of relying on internal zoom, we perform a
-  // hard reset on the canvas viewbox to realize this
-  //
-  // if diagram does not need to be zoomed in, we focus it around
-  // the diagram origin instead
-
-  if (inner.x >= 0 &&
-      inner.y >= 0 &&
-      inner.x + inner.width <= outer.width &&
-      inner.y + inner.height <= outer.height &&
-      !center) {
-
-    newViewbox = {
-      x: 0,
-      y: 0,
-      width: Math.max(inner.width + inner.x, outer.width),
-      height: Math.max(inner.height + inner.y, outer.height)
-    };
-  } else {
-
-    newScale = Math.min(1, outer.width / inner.width, outer.height / inner.height);
-    newViewbox = {
-      x: inner.x + (center ? inner.width / 2 - outer.width / newScale / 2 : 0),
-      y: inner.y + (center ? inner.height / 2 - outer.height / newScale / 2 : 0),
-      width: outer.width / newScale,
-      height: outer.height / newScale
-    };
-  }
-
-  this.viewbox(newViewbox);
-
-  return this.viewbox(false).scale;
-};
-
-
-Canvas.prototype._setZoom = function(scale, center) {
-
-  var svg = this._svg,
-      viewport = this._viewport;
-
-  var matrix = svg.createSVGMatrix();
-  var point = svg.createSVGPoint();
-
-  var centerPoint,
-      originalPoint,
-      currentMatrix,
-      scaleMatrix,
-      newMatrix;
-
-  currentMatrix = viewport.getCTM();
-
-  var currentScale = currentMatrix.a;
-
-  if (center) {
-    centerPoint = assign(point, center);
-
-    // revert applied viewport transformations
-    originalPoint = centerPoint.matrixTransform(currentMatrix.inverse());
-
-    // create scale matrix
-    scaleMatrix = matrix
-                    .translate(originalPoint.x, originalPoint.y)
-                    .scale(1 / currentScale * scale)
-                    .translate(-originalPoint.x, -originalPoint.y);
-
-    newMatrix = currentMatrix.multiply(scaleMatrix);
-  } else {
-    newMatrix = matrix.scale(scale);
-  }
-
-  setCTM(this._viewport, newMatrix);
-
-  return newMatrix;
-};
-
-
-/**
- * Returns the size of the canvas
- *
- * @return {Dimensions}
- */
-Canvas.prototype.getSize = function() {
-  return {
-    width: this._container.clientWidth,
-    height: this._container.clientHeight
-  };
-};
-
-
-/**
- * Return the absolute bounding box for the given element
- *
- * The absolute bounding box may be used to display overlays in the
- * callers (browser) coordinate system rather than the zoomed in/out
- * canvas coordinates.
- *
- * @param  {ElementDescriptor} element
- * @return {Bounds} the absolute bounding box
- */
-Canvas.prototype.getAbsoluteBBox = function(element) {
-  var vbox = this.viewbox();
-  var bbox;
-
-  // connection
-  // use svg bbox
-  if (element.waypoints) {
-    var gfx = this.getGraphics(element);
-
-    var transformBBox = gfx.getBBox(true);
-    bbox = gfx.getBBox();
-
-    bbox.x -= transformBBox.x;
-    bbox.y -= transformBBox.y;
-
-    bbox.width += 2 * transformBBox.x;
-    bbox.height +=  2 * transformBBox.y;
-  }
-  // shapes
-  // use data
-  else {
-    bbox = element;
-  }
-
-  var x = bbox.x * vbox.scale - vbox.x * vbox.scale;
-  var y = bbox.y * vbox.scale - vbox.y * vbox.scale;
-
-  var width = bbox.width * vbox.scale;
-  var height = bbox.height * vbox.scale;
-
-  return {
-    x: x,
-    y: y,
-    width: width,
-    height: height
-  };
-};
-
-/**
- * Fires an event in order other modules can react to the
- * canvas resizing
- */
-Canvas.prototype.resized = function() {
-
-  // force recomputation of view box
-  delete this._cachedViewbox;
-
-  this._eventBus.fire('canvas.resized');
-};
-
-},{"190":190,"192":192,"217":217,"220":220,"225":225,"312":312,"318":318,"339":339,"341":341,"342":342,"343":343,"344":344,"346":346}],162:[function(_dereq_,module,exports){
-'use strict';
-
-var Model = _dereq_(183);
-
-var assign = _dereq_(318);
-
-/**
- * A factory for diagram-js shapes
- */
-function ElementFactory() {
-  this._uid = 12;
-}
-
-module.exports = ElementFactory;
-
-
-ElementFactory.prototype.createRoot = function(attrs) {
-  return this.create('root', attrs);
-};
-
-ElementFactory.prototype.createLabel = function(attrs) {
-  return this.create('label', attrs);
-};
-
-ElementFactory.prototype.createShape = function(attrs) {
-  return this.create('shape', attrs);
-};
-
-ElementFactory.prototype.createConnection = function(attrs) {
-  return this.create('connection', attrs);
-};
-
-/**
- * Create a model element with the given type and
- * a number of pre-set attributes.
- *
- * @param  {String} type
- * @param  {Object} attrs
- * @return {djs.model.Base} the newly created model instance
- */
-ElementFactory.prototype.create = function(type, attrs) {
-
-  attrs = assign({}, attrs || {});
-
-  if (!attrs.id) {
-    attrs.id = type + '_' + (this._uid++);
-  }
-
-  return Model.create(type, attrs);
-};
-},{"183":183,"318":318}],163:[function(_dereq_,module,exports){
-'use strict';
-
-var ELEMENT_ID = 'data-element-id';
-
-var svgAttr = _dereq_(341);
-
-
-/**
- * @class
- *
- * A registry that keeps track of all shapes in the diagram.
- */
-function ElementRegistry() {
-  this._elements = {};
-}
-
-module.exports = ElementRegistry;
-
-/**
- * Register a pair of (element, gfx, (secondaryGfx)).
- *
- * @param {djs.model.Base} element
- * @param {SVGElement} gfx
- * @param {SVGElement} [secondaryGfx] optional other element to register, too
- */
-ElementRegistry.prototype.add = function(element, gfx, secondaryGfx) {
-
-  var id = element.id;
-
-  this._validateId(id);
-
-  // associate dom node with element
-  svgAttr(gfx, ELEMENT_ID, id);
-
-  if (secondaryGfx) {
-    svgAttr(secondaryGfx, ELEMENT_ID, id);
-  }
-
-  this._elements[id] = { element: element, gfx: gfx, secondaryGfx: secondaryGfx };
-};
-
-/**
- * Removes an element from the registry.
- *
- * @param {djs.model.Base} element
- */
-ElementRegistry.prototype.remove = function(element) {
-  var elements = this._elements,
-      id = element.id || element,
-      container = id && elements[id];
-
-  if (container) {
-
-    // unset element id on gfx
-    svgAttr(container.gfx, ELEMENT_ID, '');
-
-    if (container.secondaryGfx) {
-      svgAttr(container.secondaryGfx, ELEMENT_ID, '');
-    }
-
-    delete elements[id];
-  }
-};
-
-/**
- * Update the id of an element
- *
- * @param {djs.model.Base} element
- * @param {String} newId
- */
-ElementRegistry.prototype.updateId = function(element, newId) {
-
-  this._validateId(newId);
-
-  if (typeof element === 'string') {
-    element = this.get(element);
-  }
-
-  var gfx = this.getGraphics(element),
-      secondaryGfx = this.getGraphics(element, true);
-
-  this.remove(element);
-
-  element.id = newId;
-
-  this.add(element, gfx, secondaryGfx);
-};
-
-/**
- * Return the model element for a given id or graphics.
- *
- * @example
- *
- * elementRegistry.get('SomeElementId_1');
- * elementRegistry.get(gfx);
- *
- *
- * @param {String|SVGElement} filter for selecting the element
- *
- * @return {djs.model.Base}
- */
-ElementRegistry.prototype.get = function(filter) {
-  var id;
-
-  if (typeof filter === 'string') {
-    id = filter;
-  } else {
-    id = filter && svgAttr(filter, ELEMENT_ID);
-  }
-
-  var container = this._elements[id];
-  return container && container.element;
-};
-
-/**
- * Return all elements that match a given filter function.
- *
- * @param {Function} fn
- *
- * @return {Array<djs.model.Base>}
- */
-ElementRegistry.prototype.filter = function(fn) {
-
-  var filtered = [];
-
-  this.forEach(function(element, gfx) {
-    if (fn(element, gfx)) {
-      filtered.push(element);
-    }
-  });
-
-  return filtered;
-};
-
-/**
- * Return all rendered model elements.
- *
- * @return {Array<djs.model.Base>}
- */
-ElementRegistry.prototype.getAll = function() {
-  return this.filter(function(e) { return e; });
-};
-
-/**
- * Iterate over all diagram elements.
- *
- * @param {Function} fn
- */
-ElementRegistry.prototype.forEach = function(fn) {
-
-  var map = this._elements;
-
-  Object.keys(map).forEach(function(id) {
-    var container = map[id],
-        element = container.element,
-        gfx = container.gfx;
-
-    return fn(element, gfx);
-  });
-};
-
-/**
- * Return the graphical representation of an element or its id.
- *
- * @example
- * elementRegistry.getGraphics('SomeElementId_1');
- * elementRegistry.getGraphics(rootElement); // <g ...>
- *
- * elementRegistry.getGraphics(rootElement, true); // <svg ...>
- *
- *
- * @param {String|djs.model.Base} filter
- * @param {Boolean} [secondary=false] whether to return the secondary connected element
- *
- * @return {SVGElement}
- */
-ElementRegistry.prototype.getGraphics = function(filter, secondary) {
-  var id = filter.id || filter;
-
-  var container = this._elements[id];
-  return container && (secondary ? container.secondaryGfx : container.gfx);
-};
-
-/**
- * Validate the suitability of the given id and signals a problem
- * with an exception.
- *
- * @param {String} id
- *
- * @throws {Error} if id is empty or already assigned
- */
-ElementRegistry.prototype._validateId = function(id) {
-  if (!id) {
-    throw new Error('element must have an id');
-  }
-
-  if (this._elements[id]) {
-    throw new Error('element with id ' + id + ' already added');
-  }
-};
-
-},{"341":341}],164:[function(_dereq_,module,exports){
-'use strict';
-
-var isFunction = _dereq_(310),
-    isArray = _dereq_(309),
-    isNumber = _dereq_(312),
-    bind = _dereq_(224),
-    assign = _dereq_(318);
-
-var FN_REF = '__fn';
-
-var DEFAULT_PRIORITY = 1000;
-
-var slice = Array.prototype.slice;
-
-/**
- * A general purpose event bus.
- *
- * This component is used to communicate across a diagram instance.
- * Other parts of a diagram can use it to listen to and broadcast events.
- *
- *
- * ## Registering for Events
- *
- * The event bus provides the {@link EventBus#on} and {@link EventBus#once}
- * methods to register for events. {@link EventBus#off} can be used to
- * remove event registrations. Listeners receive an instance of {@link Event}
- * as the first argument. It allows them to hook into the event execution.
- *
- * ```javascript
- *
- * // listen for event
- * eventBus.on('foo', function(event) {
- *
- *   // access event type
- *   event.type; // 'foo'
- *
- *   // stop propagation to other listeners
- *   event.stopPropagation();
- *
- *   // prevent event default
- *   event.preventDefault();
- * });
- *
- * // listen for event with custom payload
- * eventBus.on('bar', function(event, payload) {
- *   console.log(payload);
- * });
- *
- * // listen for event returning value
- * eventBus.on('foobar', function(event) {
- *
- *   // stop event propagation + prevent default
- *   return false;
- *
- *   // stop event propagation + return custom result
- *   return {
- *     complex: 'listening result'
- *   };
- * });
- *
- *
- * // listen with custom priority (default=1000, higher is better)
- * eventBus.on('priorityfoo', 1500, function(event) {
- *   console.log('invoked first!');
- * });
- *
- *
- * // listen for event and pass the context (`this`)
- * eventBus.on('foobar', function(event) {
- *   this.foo();
- * }, this);
- * ```
- *
- *
- * ## Emitting Events
- *
- * Events can be emitted via the event bus using {@link EventBus#fire}.
- *
- * ```javascript
- *
- * // false indicates that the default action
- * // was prevented by listeners
- * if (eventBus.fire('foo') === false) {
- *   console.log('default has been prevented!');
- * };
- *
- *
- * // custom args + return value listener
- * eventBus.on('sum', function(event, a, b) {
- *   return a + b;
- * });
- *
- * // you can pass custom arguments + retrieve result values.
- * var sum = eventBus.fire('sum', 1, 2);
- * console.log(sum); // 3
- * ```
- */
-function EventBus() {
-  this._listeners = {};
-
-  // cleanup on destroy on lowest priority to allow
-  // message passing until the bitter end
-  this.on('diagram.destroy', 1, this._destroy, this);
-}
-
-module.exports = EventBus;
-
-
-/**
- * Register an event listener for events with the given name.
- *
- * The callback will be invoked with `event, ...additionalArguments`
- * that have been passed to {@link EventBus#fire}.
- *
- * Returning false from a listener will prevent the events default action
- * (if any is specified). To stop an event from being processed further in
- * other listeners execute {@link Event#stopPropagation}.
- *
- * Returning anything but `undefined` from a listener will stop the listener propagation.
- *
- * @param {String|Array<String>} events
- * @param {Number} [priority=1000] the priority in which this listener is called, larger is higher
- * @param {Function} callback
- * @param {Object} [that] Pass context (`this`) to the callback
- */
-EventBus.prototype.on = function(events, priority, callback, that) {
-
-  events = isArray(events) ? events : [ events ];
-
-  if (isFunction(priority)) {
-    that = callback;
-    callback = priority;
-    priority = DEFAULT_PRIORITY;
-  }
-
-  if (!isNumber(priority)) {
-    throw new Error('priority must be a number');
-  }
-
-  var actualCallback = callback;
-
-  if (that) {
-    actualCallback = bind(callback, that);
-
-    // make sure we remember and are able to remove
-    // bound callbacks via {@link #off} using the original
-    // callback
-    actualCallback[FN_REF] = callback[FN_REF] || callback;
-  }
-
-  var self = this,
-      listener = { priority: priority, callback: actualCallback };
-
-  events.forEach(function(e) {
-    self._addListener(e, listener);
-  });
-};
-
-
-/**
- * Register an event listener that is executed only once.
- *
- * @param {String} event the event name to register for
- * @param {Function} callback the callback to execute
- * @param {Object} [that] Pass context (`this`) to the callback
- */
-EventBus.prototype.once = function(event, priority, callback, that) {
-  var self = this;
-
-  if (isFunction(priority)) {
-    that = callback;
-    callback = priority;
-    priority = DEFAULT_PRIORITY;
-  }
-
-  if (!isNumber(priority)) {
-    throw new Error('priority must be a number');
-  }
-
-  function wrappedCallback() {
-    self.off(event, wrappedCallback);
-    return callback.apply(that, arguments);
-  }
-
-  // make sure we remember and are able to remove
-  // bound callbacks via {@link #off} using the original
-  // callback
-  wrappedCallback[FN_REF] = callback;
-
-  this.on(event, priority, wrappedCallback);
-};
-
-
-/**
- * Removes event listeners by event and callback.
- *
- * If no callback is given, all listeners for a given event name are being removed.
- *
- * @param {String} event
- * @param {Function} [callback]
- */
-EventBus.prototype.off = function(event, callback) {
-  var listeners = this._getListeners(event),
-      listener,
-      listenerCallback,
-      idx;
-
-  if (callback) {
-
-    // move through listeners from back to front
-    // and remove matching listeners
-    for (idx = listeners.length - 1; (listener = listeners[idx]); idx--) {
-      listenerCallback = listener.callback;
-
-      if (listenerCallback === callback || listenerCallback[FN_REF] === callback) {
-        listeners.splice(idx, 1);
-      }
-    }
-  } else {
-    // clear listeners
-    listeners.length = 0;
-  }
-};
-
-
-/**
- * Fires a named event.
- *
- * @example
- *
- * // fire event by name
- * events.fire('foo');
- *
- * // fire event object with nested type
- * var event = { type: 'foo' };
- * events.fire(event);
- *
- * // fire event with explicit type
- * var event = { x: 10, y: 20 };
- * events.fire('element.moved', event);
- *
- * // pass additional arguments to the event
- * events.on('foo', function(event, bar) {
- *   alert(bar);
- * });
- *
- * events.fire({ type: 'foo' }, 'I am bar!');
- *
- * @param {String} [name] the optional event name
- * @param {Object} [event] the event object
- * @param {...Object} additional arguments to be passed to the callback functions
- *
- * @return {Boolean} the events return value, if specified or false if the
- *                   default action was prevented by listeners
- */
-EventBus.prototype.fire = function(type, data) {
-
-  var event,
-      listeners,
-      returnValue,
-      args;
-
-  args = slice.call(arguments);
-
-  if (typeof type === 'object') {
-    event = type;
-    type = event.type;
-  }
-
-  if (!type) {
-    throw new Error('no event type specified');
-  }
-
-  listeners = this._listeners[type];
-
-  if (!listeners) {
-    return;
-  }
-
-  // we make sure we fire instances of our home made
-  // events here. We wrap them only once, though
-  if (data instanceof Event) {
-    // we are fine, we alread have an event
-    event = data;
-  } else {
-    event = new Event();
-    event.init(data);
-  }
-
-  // ensure we pass the event as the first parameter
-  args[0] = event;
-
-  // original event type (in case we delegate)
-  var originalType = event.type;
-
-  // update event type before delegation
-  if (type !== originalType) {
-    event.type = type;
-  }
-
-  try {
-    returnValue = this._invokeListeners(event, args, listeners);
-  } finally {
-    // reset event type after delegation
-    if (type !== originalType) {
-      event.type = originalType;
-    }
-  }
-
-  // set the return value to false if the event default
-  // got prevented and no other return value exists
-  if (returnValue === undefined && event.defaultPrevented) {
-    returnValue = false;
-  }
-
-  return returnValue;
-};
-
-
-EventBus.prototype.handleError = function(error) {
-  return this.fire('error', { error: error }) === false;
-};
-
-
-EventBus.prototype._destroy = function() {
-  this._listeners = {};
-};
-
-EventBus.prototype._invokeListeners = function(event, args, listeners) {
-
-  var idx,
-      listener,
-      returnValue;
-
-  for (idx = 0; (listener = listeners[idx]); idx++) {
-
-    // handle stopped propagation
-    if (event.cancelBubble) {
-      break;
-    }
-
-    returnValue = this._invokeListener(event, args, listener);
-  }
-
-  return returnValue;
-};
-
-EventBus.prototype._invokeListener = function(event, args, listener) {
-
-  var returnValue;
-
-  try {
-    // returning false prevents the default action
-    returnValue = invokeFunction(listener.callback, args);
-
-    // stop propagation on return value
-    if (returnValue !== undefined) {
-      event.returnValue = returnValue;
-      event.stopPropagation();
-    }
-
-    // prevent default on return false
-    if (returnValue === false) {
-      event.preventDefault();
-    }
-  } catch (e) {
-    if (!this.handleError(e)) {
-      console.error('unhandled error in event listener');
-      console.error(e.stack);
-
-      throw e;
-    }
-  }
-
-  return returnValue;
-};
-
-/*
- * Add new listener with a certain priority to the list
- * of listeners (for the given event).
- *
- * The semantics of listener registration / listener execution are
- * first register, first serve: New listeners will always be inserted
- * after existing listeners with the same priority.
- *
- * Example: Inserting two listeners with priority 1000 and 1300
- *
- *    * before: [ 1500, 1500, 1000, 1000 ]
- *    * after: [ 1500, 1500, (new=1300), 1000, 1000, (new=1000) ]
- *
- * @param {String} event
- * @param {Object} listener { priority, callback }
- */
-EventBus.prototype._addListener = function(event, newListener) {
-
-  var listeners = this._getListeners(event),
-      existingListener,
-      idx;
-
-  // ensure we order listeners by priority from
-  // 0 (high) to n > 0 (low)
-  for (idx = 0; (existingListener = listeners[idx]); idx++) {
-    if (existingListener.priority < newListener.priority) {
-
-      // prepend newListener at before existingListener
-      listeners.splice(idx, 0, newListener);
-      return;
-    }
-  }
-
-  listeners.push(newListener);
-};
-
-
-EventBus.prototype._getListeners = function(name) {
-  var listeners = this._listeners[name];
-
-  if (!listeners) {
-    this._listeners[name] = listeners = [];
-  }
-
-  return listeners;
-};
-
-
-/**
- * A event that is emitted via the event bus.
- */
-function Event() { }
-
-module.exports.Event = Event;
-
-Event.prototype.stopPropagation = function() {
-  this.cancelBubble = true;
-};
-
-Event.prototype.preventDefault = function() {
-  this.defaultPrevented = true;
-};
-
-Event.prototype.init = function(data) {
-  assign(this, data || {});
-};
-
-
-/**
- * Invoke function. Be fast...
- *
- * @param {Function} fn
- * @param {Array<Object>} args
- *
- * @return {Any}
- */
-function invokeFunction(fn, args) {
-  return fn.apply(null, args);
-}
-
-},{"224":224,"309":309,"310":310,"312":312,"318":318}],165:[function(_dereq_,module,exports){
-'use strict';
-
-var forEach = _dereq_(220),
-    reduce = _dereq_(222);
-
-var GraphicsUtil = _dereq_(194);
-
-var translate = _dereq_(200).translate;
-
-var domClear = _dereq_(329);
-
-var svgAppend = _dereq_(339),
-    svgAttr = _dereq_(341),
-    svgClasses = _dereq_(342),
-    svgCreate = _dereq_(343),
-    svgRemove = _dereq_(345);
-
-
-/**
- * A factory that creates graphical elements
- *
- * @param {EventBus} eventBus
- * @param {ElementRegistry} elementRegistry
- */
-function GraphicsFactory(eventBus, elementRegistry) {
-  this._eventBus = eventBus;
-  this._elementRegistry = elementRegistry;
-}
-
-GraphicsFactory.$inject = [ 'eventBus' , 'elementRegistry' ];
-
-module.exports = GraphicsFactory;
-
-
-GraphicsFactory.prototype._getChildren = function(element) {
-
-  var gfx = this._elementRegistry.getGraphics(element);
-
-  var childrenGfx;
-
-  // root element
-  if (!element.parent) {
-    childrenGfx = gfx;
-  } else {
-    childrenGfx = GraphicsUtil.getChildren(gfx);
-    if (!childrenGfx) {
-      childrenGfx = svgCreate('g');
-      svgClasses(childrenGfx).add('djs-children');
-
-      svgAppend(gfx.parentNode, childrenGfx);
-    }
-  }
-
-  return childrenGfx;
-};
-
-/**
- * Clears the graphical representation of the element and returns the
- * cleared visual (the <g class="djs-visual" /> element).
- */
-GraphicsFactory.prototype._clear = function(gfx) {
-  var visual = GraphicsUtil.getVisual(gfx);
-
-  domClear(visual);
-
-  return visual;
-};
-
-/**
- * Creates a gfx container for shapes and connections
- *
- * The layout is as follows:
- *
- * <g class="djs-group">
- *
- *   <!-- the gfx -->
- *   <g class="djs-element djs-(shape|connection)">
- *     <g class="djs-visual">
- *       <!-- the renderer draws in here -->
- *     </g>
- *
- *     <!-- extensions (overlays, click box, ...) goes here
- *   </g>
- *
- *   <!-- the gfx child nodes -->
- *   <g class="djs-children"></g>
- * </g>
- *
- * @param {Object} parent
- * @param {String} type the type of the element, i.e. shape | connection
- */
-GraphicsFactory.prototype._createContainer = function(type, parentGfx) {
-  var outerGfx = svgCreate('g');
-  svgClasses(outerGfx).add('djs-group');
-
-  svgAppend(parentGfx, outerGfx);
-
-  var gfx = svgCreate('g');
-  svgClasses(gfx).add('djs-element');
-  svgClasses(gfx).add('djs-' + type);
-
-  svgAppend(outerGfx, gfx);
-
-  // create visual
-  var visual = svgCreate('g');
-  svgClasses(visual).add('djs-visual');
-
-  svgAppend(gfx, visual);
-
-  return gfx;
-};
-
-GraphicsFactory.prototype.create = function(type, element) {
-  var childrenGfx = this._getChildren(element.parent);
-  return this._createContainer(type, childrenGfx);
-};
-
-GraphicsFactory.prototype.updateContainments = function(elements) {
-
-  var self = this,
-      elementRegistry = this._elementRegistry,
-      parents;
-
-  parents = reduce(elements, function(map, e) {
-
-    if (e.parent) {
-      map[e.parent.id] = e.parent;
-    }
-
-    return map;
-  }, {});
-
-  // update all parents of changed and reorganized their children
-  // in the correct order (as indicated in our model)
-  forEach(parents, function(parent) {
-
-    var childGfx = self._getChildren(parent),
-        children = parent.children;
-
-    if (!children) {
-      return;
-    }
-
-    forEach(children.slice().reverse(), function(c) {
-      var gfx = elementRegistry.getGraphics(c);
-
-      prependTo(gfx.parentNode, childGfx);
-    });
-  });
-};
-
-GraphicsFactory.prototype.drawShape = function(visual, element) {
-  var eventBus = this._eventBus;
-
-  return eventBus.fire('render.shape', { gfx: visual, element: element });
-};
-
-GraphicsFactory.prototype.getShapePath = function(element) {
-  var eventBus = this._eventBus;
-
-  return eventBus.fire('render.getShapePath', element);
-};
-
-GraphicsFactory.prototype.drawConnection = function(visual, element) {
-  var eventBus = this._eventBus;
-
-  return eventBus.fire('render.connection', { gfx: visual, element: element });
-};
-
-GraphicsFactory.prototype.getConnectionPath = function(waypoints) {
-  var eventBus = this._eventBus;
-
-  return eventBus.fire('render.getConnectionPath', waypoints);
-};
-
-GraphicsFactory.prototype.update = function(type, element, gfx) {
-  // Do not update root element
-  if (!element.parent) {
-    return;
-  }
-
-  var visual = this._clear(gfx);
-
-  // redraw
-  if (type === 'shape') {
-    this.drawShape(visual, element);
-
-    // update positioning
-    translate(gfx, element.x, element.y);
-  } else
-  if (type === 'connection') {
-    this.drawConnection(visual, element);
-  } else {
-    throw new Error('unknown type: ' + type);
-  }
-
-  if (element.hidden) {
-    svgAttr(gfx, 'display', 'none');
-  } else {
-    svgAttr(gfx, 'display', 'block');
-  }
-};
-
-GraphicsFactory.prototype.remove = function(element) {
-  var gfx = this._elementRegistry.getGraphics(element);
-
-  // remove
-  svgRemove(gfx.parentNode);
-};
-
-////////// helpers ///////////
-
-function prependTo(newNode, parentNode) {
-  parentNode.insertBefore(newNode, parentNode.firstChild);
-}
-
-},{"194":194,"200":200,"220":220,"222":222,"329":329,"339":339,"341":341,"342":342,"343":343,"345":345}],166:[function(_dereq_,module,exports){
-module.exports = {
-  __depends__: [ _dereq_(170) ],
-  __init__: [ 'canvas' ],
-  canvas: [ 'type', _dereq_(161) ],
-  elementRegistry: [ 'type', _dereq_(163) ],
-  elementFactory: [ 'type', _dereq_(162) ],
-  eventBus: [ 'type', _dereq_(164) ],
-  graphicsFactory: [ 'type', _dereq_(165) ]
-};
-},{"161":161,"162":162,"163":163,"164":164,"165":165,"170":170}],167:[function(_dereq_,module,exports){
-'use strict';
-
-var DEFAULT_RENDER_PRIORITY = 1000;
-
-/**
- * The base implementation of shape and connection renderers.
- *
- * @param {EventBus} eventBus
- * @param {Number} [renderPriority=1000]
- */
-function BaseRenderer(eventBus, renderPriority) {
-  var self = this;
-
-  renderPriority = renderPriority || DEFAULT_RENDER_PRIORITY;
-
-  eventBus.on([ 'render.shape', 'render.connection' ], renderPriority, function(evt, context) {
-    var type = evt.type,
-        element = context.element,
-        visuals = context.gfx;
-
-    if (self.canRender(element)) {
-      if (type === 'render.shape') {
-        return self.drawShape(visuals, element);
-      } else {
-        return self.drawConnection(visuals, element);
-      }
-    }
-  });
-
-  eventBus.on([ 'render.getShapePath', 'render.getConnectionPath'], renderPriority, function(evt, element) {
-    if (self.canRender(element)) {
-      if (evt.type === 'render.getShapePath') {
-        return self.getShapePath(element);
-      } else {
-        return self.getConnectionPath(element);
-      }
-    }
-  });
-}
-
-/**
- * Should check whether *this* renderer can render
- * the element/connection.
- *
- * @param {element} element
- *
- * @returns {Boolean}
- */
-BaseRenderer.prototype.canRender = function() {};
-
-/**
- * Provides the shape's snap svg element to be drawn on the `canvas`.
- *
- * @param {djs.Graphics} visuals
- * @param {Shape} shape
- *
- * @returns {Snap.svg} [returns a Snap.svg paper element ]
- */
-BaseRenderer.prototype.drawShape = function() {};
-
-/**
- * Provides the shape's snap svg element to be drawn on the `canvas`.
- *
- * @param {djs.Graphics} visuals
- * @param {Connection} connection
- *
- * @returns {Snap.svg} [returns a Snap.svg paper element ]
- */
-BaseRenderer.prototype.drawConnection = function() {};
-
-/**
- * Gets the SVG path of a shape that represents it's visual bounds.
- *
- * @param {Shape} shape
- *
- * @return {string} svg path
- */
-BaseRenderer.prototype.getShapePath = function() {};
-
-/**
- * Gets the SVG path of a connection that represents it's visual bounds.
- *
- * @param {Connection} connection
- *
- * @return {string} svg path
- */
-BaseRenderer.prototype.getConnectionPath = function() {};
-
-module.exports = BaseRenderer;
-
-},{}],168:[function(_dereq_,module,exports){
-'use strict';
-
-var inherits = _dereq_(214);
-
-var BaseRenderer = _dereq_(167);
-
-var renderUtil = _dereq_(199);
-
-var componentsToPath = renderUtil.componentsToPath,
-    createLine = renderUtil.createLine;
-
-var svgAppend = _dereq_(339),
-    svgAttr = _dereq_(341),
-    svgCreate = _dereq_(343);
-
-// apply default renderer with lowest possible priority
-// so that it only kicks in if noone else could render
-var DEFAULT_RENDER_PRIORITY = 1;
-
-/**
- * The default renderer used for shapes and connections.
- *
- * @param {EventBus} eventBus
- * @param {Styles} styles
- */
-function DefaultRenderer(eventBus, styles) {
-  //
-  BaseRenderer.call(this, eventBus, DEFAULT_RENDER_PRIORITY);
-
-  this.CONNECTION_STYLE = styles.style([ 'no-fill' ], { strokeWidth: 5, stroke: 'fuchsia' });
-  this.SHAPE_STYLE = styles.style({ fill: 'white', stroke: 'fuchsia', strokeWidth: 2 });
-}
-
-inherits(DefaultRenderer, BaseRenderer);
-
-
-DefaultRenderer.prototype.canRender = function() {
-  return true;
-};
-
-DefaultRenderer.prototype.drawShape = function drawShape(visuals, element) {
-
-  var rect = svgCreate('rect');
-  svgAttr(rect, {
-    x: 0,
-    y: 0,
-    width: element.width || 0,
-    height: element.height || 0
-  });
-  svgAttr(rect, this.SHAPE_STYLE);
-
-  svgAppend(visuals, rect);
-
-  return rect;
-};
-
-DefaultRenderer.prototype.drawConnection = function drawConnection(visuals, connection) {
-
-  var line = createLine(connection.waypoints, this.CONNECTION_STYLE);
-  svgAppend(visuals, line);
-
-  return line;
-};
-
-DefaultRenderer.prototype.getShapePath = function getShapePath(shape) {
-
-  var x = shape.x,
-      y = shape.y,
-      width = shape.width,
-      height = shape.height;
-
-  var shapePath = [
-    ['M', x, y],
-    ['l', width, 0],
-    ['l', 0, height],
-    ['l', -width, 0],
-    ['z']
-  ];
-
-  return componentsToPath(shapePath);
-};
-
-DefaultRenderer.prototype.getConnectionPath = function getConnectionPath(connection) {
-  var waypoints = connection.waypoints;
-
-  var idx, point, connectionPath = [];
-
-  for (idx = 0; (point = waypoints[idx]); idx++) {
-
-    // take invisible docking into account
-    // when creating the path
-    point = point.original || point;
-
-    connectionPath.push([ idx === 0 ? 'M' : 'L', point.x, point.y ]);
-  }
-
-  return componentsToPath(connectionPath);
-};
-
-
-DefaultRenderer.$inject = [ 'eventBus', 'styles' ];
-
-module.exports = DefaultRenderer;
-
-},{"167":167,"199":199,"214":214,"339":339,"341":341,"343":343}],169:[function(_dereq_,module,exports){
-'use strict';
-
-var isArray = _dereq_(309),
-    assign = _dereq_(318),
-    reduce = _dereq_(222);
-
-
-/**
- * A component that manages shape styles
- */
-function Styles() {
-
-  var defaultTraits = {
-
-    'no-fill': {
-      fill: 'none'
-    },
-    'no-border': {
-      strokeOpacity: 0.0
-    },
-    'no-events': {
-      pointerEvents: 'none'
-    }
-  };
-
-  var self = this;
-
-  /**
-   * Builds a style definition from a className, a list of traits and an object of additional attributes.
-   *
-   * @param  {String} className
-   * @param  {Array<String>} traits
-   * @param  {Object} additionalAttrs
-   *
-   * @return {Object} the style defintion
-   */
-  this.cls = function(className, traits, additionalAttrs) {
-    var attrs = this.style(traits, additionalAttrs);
-
-    return assign(attrs, { 'class': className });
-  };
-
-  /**
-   * Builds a style definition from a list of traits and an object of additional attributes.
-   *
-   * @param  {Array<String>} traits
-   * @param  {Object} additionalAttrs
-   *
-   * @return {Object} the style defintion
-   */
-  this.style = function(traits, additionalAttrs) {
-
-    if (!isArray(traits) && !additionalAttrs) {
-      additionalAttrs = traits;
-      traits = [];
-    }
-
-    var attrs = reduce(traits, function(attrs, t) {
-      return assign(attrs, defaultTraits[t] || {});
-    }, {});
-
-    return additionalAttrs ? assign(attrs, additionalAttrs) : attrs;
-  };
-
-  this.computeStyle = function(custom, traits, defaultStyles) {
-    if (!isArray(traits)) {
-      defaultStyles = traits;
-      traits = [];
-    }
-
-    return self.style(traits || [], assign({}, defaultStyles, custom || {}));
-  };
-}
-
-module.exports = Styles;
-
-},{"222":222,"309":309,"318":318}],170:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'defaultRenderer' ],
-  defaultRenderer: [ 'type', _dereq_(168) ],
-  styles: [ 'type', _dereq_(169) ]
-};
-
-},{"168":168,"169":169}],171:[function(_dereq_,module,exports){
-'use strict';
-
-var forEach = _dereq_(220),
-    domDelegate = _dereq_(331);
-
-var isPrimaryButton = _dereq_(197).isPrimaryButton;
-
-var svgAppend = _dereq_(339),
-    svgAttr = _dereq_(341),
-    svgCreate = _dereq_(343);
-
-var domQuery = _dereq_(334);
-
-var renderUtil = _dereq_(199);
-
-var createLine = renderUtil.createLine,
-    updateLine = renderUtil.updateLine;
-
-var LOW_PRIORITY = 500;
-
-/**
- * A plugin that provides interaction events for diagram elements.
- *
- * It emits the following events:
- *
- *   * element.hover
- *   * element.out
- *   * element.click
- *   * element.dblclick
- *   * element.mousedown
- *
- * Each event is a tuple { element, gfx, originalEvent }.
- *
- * Canceling the event via Event#preventDefault() prevents the original DOM operation.
- *
- * @param {EventBus} eventBus
- */
-function InteractionEvents(eventBus, elementRegistry, styles) {
-
-  var HIT_STYLE = styles.cls('djs-hit', [ 'no-fill', 'no-border' ], {
-    stroke: 'white',
-    strokeWidth: 15
-  });
-
-  /**
-   * Fire an interaction event.
-   *
-   * @param {String} type local event name, e.g. element.click.
-   * @param {DOMEvent} event native event
-   * @param {djs.model.Base} [element] the diagram element to emit the event on;
-   *                                   defaults to the event target
-   */
-  function fire(type, event, element) {
-
-    // only react on left mouse button interactions
-    // for interaction events
-    if (!isPrimaryButton(event)) {
-      return;
-    }
-
-    var target, gfx, returnValue;
-
-    if (!element) {
-      target = event.delegateTarget || event.target;
-
-      if (target) {
-        gfx = target;
-        element = elementRegistry.get(gfx);
-      }
-    } else {
-      gfx = elementRegistry.getGraphics(element);
-    }
-
-    if (!gfx || !element) {
-      return;
-    }
-
-    returnValue = eventBus.fire(type, { element: element, gfx: gfx, originalEvent: event });
-
-    if (returnValue === false) {
-      event.stopPropagation();
-      event.preventDefault();
-    }
-  }
-
-  // TODO(nikku): document this
-  var handlers = {};
-
-  function mouseHandler(type) {
-
-    var fn = handlers[type];
-
-    if (!fn) {
-      fn = handlers[type] = function(event) {
-        fire(type, event);
-      };
-    }
-
-    return fn;
-  }
-
-  var bindings = {
-    mouseover: 'element.hover',
-    mouseout: 'element.out',
-    click: 'element.click',
-    dblclick: 'element.dblclick',
-    mousedown: 'element.mousedown',
-    mouseup: 'element.mouseup'
-  };
-
-
-  ///// manual event trigger
-
-  /**
-   * Trigger an interaction event (based on a native dom event)
-   * on the target shape or connection.
-   *
-   * @param {String} eventName the name of the triggered DOM event
-   * @param {MouseEvent} event
-   * @param {djs.model.Base} targetElement
-   */
-  function triggerMouseEvent(eventName, event, targetElement) {
-
-    // i.e. element.mousedown...
-    var localEventName = bindings[eventName];
-
-    if (!localEventName) {
-      throw new Error('unmapped DOM event name <' + eventName + '>');
-    }
-
-    return fire(localEventName, event, targetElement);
-  }
-
-
-  var elementSelector = 'svg, .djs-element';
-
-  ///// event registration
-
-  function registerEvent(node, event, localEvent) {
-    var handler = mouseHandler(localEvent);
-    handler.$delegate = domDelegate.bind(node, elementSelector, event, handler);
-  }
-
-  function unregisterEvent(node, event, localEvent) {
-    domDelegate.unbind(node, event, mouseHandler(localEvent).$delegate);
-  }
-
-  function registerEvents(svg) {
-    forEach(bindings, function(val, key) {
-      registerEvent(svg, key, val);
-    });
-  }
-
-  function unregisterEvents(svg) {
-    forEach(bindings, function(val, key) {
-      unregisterEvent(svg, key, val);
-    });
-  }
-
-  eventBus.on('canvas.destroy', function(event) {
-    unregisterEvents(event.svg);
-  });
-
-  eventBus.on('canvas.init', function(event) {
-    registerEvents(event.svg);
-  });
-
-
-  eventBus.on([ 'shape.added', 'connection.added' ], function(event) {
-    var element = event.element,
-        gfx = event.gfx,
-        hit;
-
-    if (element.waypoints) {
-      hit = createLine(element.waypoints);
-    } else {
-      hit = svgCreate('rect');
-      svgAttr(hit, {
-        x: 0,
-        y: 0,
-        width: element.width,
-        height: element.height
-      });
-    }
-
-    svgAttr(hit, HIT_STYLE);
-
-    svgAppend(gfx, hit);
-  });
-
-  // Update djs-hit on change.
-  // A low priortity is necessary, because djs-hit of labels has to be updated
-  // after the label bounds have been updated in the renderer.
-  eventBus.on('shape.changed', LOW_PRIORITY, function(event) {
-
-    var element = event.element,
-        gfx = event.gfx,
-        hit = domQuery('.djs-hit', gfx);
-
-    svgAttr(hit, {
-      width: element.width,
-      height: element.height
-    });
-  });
-
-  eventBus.on('connection.changed', function(event) {
-
-    var element = event.element,
-        gfx = event.gfx,
-        hit = domQuery('.djs-hit', gfx);
-
-    updateLine(hit, element.waypoints);
-  });
-
-
-  // API
-
-  this.fire = fire;
-
-  this.triggerMouseEvent = triggerMouseEvent;
-
-  this.mouseHandler = mouseHandler;
-
-  this.registerEvent = registerEvent;
-  this.unregisterEvent = unregisterEvent;
-}
-
-
-InteractionEvents.$inject = [ 'eventBus', 'elementRegistry', 'styles' ];
-
-module.exports = InteractionEvents;
-
-
-/**
- * An event indicating that the mouse hovered over an element
- *
- * @event element.hover
- *
- * @type {Object}
- * @property {djs.model.Base} element
- * @property {SVGElement} gfx
- * @property {Event} originalEvent
- */
-
-/**
- * An event indicating that the mouse has left an element
- *
- * @event element.out
- *
- * @type {Object}
- * @property {djs.model.Base} element
- * @property {SVGElement} gfx
- * @property {Event} originalEvent
- */
-
-/**
- * An event indicating that the mouse has clicked an element
- *
- * @event element.click
- *
- * @type {Object}
- * @property {djs.model.Base} element
- * @property {SVGElement} gfx
- * @property {Event} originalEvent
- */
-
-/**
- * An event indicating that the mouse has double clicked an element
- *
- * @event element.dblclick
- *
- * @type {Object}
- * @property {djs.model.Base} element
- * @property {SVGElement} gfx
- * @property {Event} originalEvent
- */
-
-/**
- * An event indicating that the mouse has gone down on an element.
- *
- * @event element.mousedown
- *
- * @type {Object}
- * @property {djs.model.Base} element
- * @property {SVGElement} gfx
- * @property {Event} originalEvent
- */
-
-/**
- * An event indicating that the mouse has gone up on an element.
- *
- * @event element.mouseup
- *
- * @type {Object}
- * @property {djs.model.Base} element
- * @property {SVGElement} gfx
- * @property {Event} originalEvent
- */
-
-},{"197":197,"199":199,"220":220,"331":331,"334":334,"339":339,"341":341,"343":343}],172:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'interactionEvents' ],
-  interactionEvents: [ 'type', _dereq_(171) ]
-};
-},{"171":171}],173:[function(_dereq_,module,exports){
-'use strict';
-
-var getBBox = _dereq_(192).getBBox;
-
-var LOW_PRIORITY = 500;
-
-var svgAppend = _dereq_(339),
-    svgAttr = _dereq_(341),
-    svgCreate = _dereq_(343);
-
-var domQuery = _dereq_(334);
-
-var assign = _dereq_(318);
-
-
-/**
- * @class
- *
- * A plugin that adds an outline to shapes and connections that may be activated and styled
- * via CSS classes.
- *
- * @param {EventBus} eventBus
- * @param {Styles} styles
- * @param {ElementRegistry} elementRegistry
- */
-function Outline(eventBus, styles, elementRegistry) {
-
-  this.offset = 6;
-
-  var OUTLINE_STYLE = styles.cls('djs-outline', [ 'no-fill' ]);
-
-  var self = this;
-
-  function createOutline(gfx, bounds) {
-    var outline = svgCreate('rect');
-
-    svgAttr(outline, assign({
-      x: 10,
-      y: 10,
-      width: 100,
-      height: 100
-    }, OUTLINE_STYLE));
-
-    svgAppend(gfx, outline);
-
-    return outline;
-  }
-
-  // A low priortity is necessary, because outlines of labels have to be updated
-  // after the label bounds have been updated in the renderer.
-  eventBus.on([ 'shape.added', 'shape.changed' ], LOW_PRIORITY, function(event) {
-    var element = event.element,
-        gfx     = event.gfx;
-
-    var outline = domQuery('.djs-outline', gfx);
-
-    if (!outline) {
-      outline = createOutline(gfx, element);
-    }
-
-    self.updateShapeOutline(outline, element);
-  });
-
-  eventBus.on([ 'connection.added', 'connection.changed' ], function(event) {
-    var element = event.element,
-        gfx     = event.gfx;
-
-    var outline = domQuery('.djs-outline', gfx);
-
-    if (!outline) {
-      outline = createOutline(gfx, element);
-    }
-
-    self.updateConnectionOutline(outline, element);
-  });
-}
-
-
-/**
- * Updates the outline of a shape respecting the dimension of the
- * element and an outline offset.
- *
- * @param  {SVGElement} outline
- * @param  {djs.model.Base} element
- */
-Outline.prototype.updateShapeOutline = function(outline, element) {
-
-  svgAttr(outline, {
-    x: -this.offset,
-    y: -this.offset,
-    width: element.width + this.offset * 2,
-    height: element.height + this.offset * 2
-  });
-
-};
-
-
-/**
- * Updates the outline of a connection respecting the bounding box of
- * the connection and an outline offset.
- *
- * @param  {SVGElement} outline
- * @param  {djs.model.Base} element
- */
-Outline.prototype.updateConnectionOutline = function(outline, connection) {
-
-  var bbox = getBBox(connection);
-
-  svgAttr(outline, {
-    x: bbox.x - this.offset,
-    y: bbox.y - this.offset,
-    width: bbox.width + this.offset * 2,
-    height: bbox.height + this.offset * 2
-  });
-
-};
-
-
-Outline.$inject = ['eventBus', 'styles', 'elementRegistry'];
-
-module.exports = Outline;
-
-},{"192":192,"318":318,"334":334,"339":339,"341":341,"343":343}],174:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = {
-  __init__: [ 'outline' ],
-  outline: [ 'type', _dereq_(173) ]
-};
-},{"173":173}],175:[function(_dereq_,module,exports){
-'use strict';
-
-var isArray = _dereq_(309),
-    isString = _dereq_(315),
-    isObject = _dereq_(313),
-    assign = _dereq_(318),
-    forEach = _dereq_(220),
-    find = _dereq_(219),
-    filter = _dereq_(218);
-
-var domify = _dereq_(332),
-    domClasses = _dereq_(328),
-    domAttr = _dereq_(327),
-    domRemove = _dereq_(335),
-    domClear = _dereq_(329);
-
-var getBBox = _dereq_(192).getBBox;
-
-// document wide unique overlay ids
-var ids = new (_dereq_(195))('ov');
-
-
-function createRoot(parent) {
-  var root = domify('<div class="djs-overlay-container" style="position: absolute; width: 0; height: 0;" />');
-  parent.insertBefore(root, parent.firstChild);
-
-  return root;
-}
-
-
-function setPosition(el, x, y) {
-  assign(el.style, { left: x + 'px', top: y + 'px' });
-}
-
-function setVisible(el, visible) {
-  el.style.display = visible === false ? 'none' : '';
-}
-
-/**
- * A service that allows users to attach overlays to diagram elements.
- *
- * The overlay service will take care of overlay positioning during updates.
- *
- * @example
- *
- * // add a pink badge on the top left of the shape
- * overlays.add(someShape, {
- *   position: {
- *     top: -5,
- *     left: -5
- *   },
- *   html: '<div style="width: 10px; background: fuchsia; color: white;">0</div>'
- * });
- *
- * // or add via shape id
- *
- * overlays.add('some-element-id', {
- *   position: {
- *     top: -5,
- *     left: -5
- *   }
- *   html: '<div style="width: 10px; background: fuchsia; color: white;">0</div>'
- * });
- *
- * // or add with optional type
- *
- * overlays.add(someShape, 'badge', {
- *   position: {
- *     top: -5,
- *     left: -5
- *   }
- *   html: '<div style="width: 10px; background: fuchsia; color: white;">0</div>'
- * });
- *
- *
- * // remove an overlay
- *
- * var id = overlays.add(...);
- * overlays.remove(id);
- *
- * @param {EventBus} eventBus
- * @param {Canvas} canvas
- * @param {ElementRegistry} elementRegistry
- */
-function Overlays(eventBus, canvas, elementRegistry) {
-
-  this._eventBus = eventBus;
-  this._canvas = canvas;
-  this._elementRegistry = elementRegistry;
-
-  this._ids = ids;
-
-  this._overlayDefaults = {
-    show: {
-      minZoom: 0.7,
-      maxZoom: 5.0
-    }
-  };
-
-  /**
-   * Mapping overlayId -> overlay
-   */
-  this._overlays = {};
-
-  /**
-   * Mapping elementId -> overlay container
-   */
-  this._overlayContainers = [];
-
-  // root html element for all overlays
-  this._overlayRoot = createRoot(canvas.getContainer());
-
-  this._init();
-}
-
-
-Overlays.$inject = [ 'eventBus', 'canvas', 'elementRegistry' ];
-
-module.exports = Overlays;
-
-
-/**
- * Returns the overlay with the specified id or a list of overlays
- * for an element with a given type.
- *
- * @example
- *
- * // return the single overlay with the given id
- * overlays.get('some-id');
- *
- * // return all overlays for the shape
- * overlays.get({ element: someShape });
- *
- * // return all overlays on shape with type 'badge'
- * overlays.get({ element: someShape, type: 'badge' });
- *
- * // shape can also be specified as id
- * overlays.get({ element: 'element-id', type: 'badge' });
- *
- *
- * @param {Object} search
- * @param {String} [search.id]
- * @param {String|djs.model.Base} [search.element]
- * @param {String} [search.type]
- *
- * @return {Object|Array<Object>} the overlay(s)
- */
-Overlays.prototype.get = function(search) {
-
-  if (isString(search)) {
-    search = { id: search };
-  }
-
-  if (isString(search.element)) {
-    search.element = this._elementRegistry.get(search.element);
-  }
-
-  if (search.element) {
-    var container = this._getOverlayContainer(search.element, true);
-
-    // return a list of overlays when searching by element (+type)
-    if (container) {
-      return search.type ? filter(container.overlays, { type: search.type }) : container.overlays.slice();
-    } else {
-      return [];
-    }
-  } else
-  if (search.type) {
-    return filter(this._overlays, { type: search.type });
-  } else {
-    // return single element when searching by id
-    return search.id ? this._overlays[search.id] : null;
-  }
-};
-
-/**
- * Adds a HTML overlay to an element.
- *
- * @param {String|djs.model.Base}   element   attach overlay to this shape
- * @param {String}                  [type]    optional type to assign to the overlay
- * @param {Object}                  overlay   the overlay configuration
- *
- * @param {String|DOMElement}       overlay.html                 html element to use as an overlay
- * @param {Object}                  [overlay.show]               show configuration
- * @param {Number}                  [overlay.show.minZoom]       minimal zoom level to show the overlay
- * @param {Number}                  [overlay.show.maxZoom]       maximum zoom level to show the overlay
- * @param {Object}                  overlay.position             where to attach the overlay
- * @param {Number}                  [overlay.position.left]      relative to element bbox left attachment
- * @param {Number}                  [overlay.position.top]       relative to element bbox top attachment
- * @param {Number}                  [overlay.position.bottom]    relative to element bbox bottom attachment
- * @param {Number}                  [overlay.position.right]     relative to element bbox right attachment
- *
- * @return {String}                 id that may be used to reference the overlay for update or removal
- */
-Overlays.prototype.add = function(element, type, overlay) {
-
-  if (isObject(type)) {
-    overlay = type;
-    type = null;
-  }
-
-  if (!element.id) {
-    element = this._elementRegistry.get(element);
-  }
-
-  if (!overlay.position) {
-    throw new Error('must specifiy overlay position');
-  }
-
-  if (!overlay.html) {
-    throw new Error('must specifiy overlay html');
-  }
-
-  if (!element) {
-    throw new Error('invalid element specified');
-  }
-
-  var id = this._ids.next();
-
-  overlay = assign({}, this._overlayDefaults, overlay, {
-    id: id,
-    type: type,
-    element: element,
-    html: overlay.html
-  });
-
-  this._addOverlay(overlay);
-
-  return id;
-};
-
-
-/**
- * Remove an overlay with the given id or all overlays matching the given filter.
- *
- * @see Overlays#get for filter options.
- *
- * @param {String} [id]
- * @param {Object} [filter]
- */
-Overlays.prototype.remove = function(filter) {
-
-  var overlays = this.get(filter) || [];
-
-  if (!isArray(overlays)) {
-    overlays = [ overlays ];
-  }
-
-  var self = this;
-
-  forEach(overlays, function(overlay) {
-
-    var container = self._getOverlayContainer(overlay.element, true);
-
-    if (overlay) {
-      domRemove(overlay.html);
-      domRemove(overlay.htmlContainer);
-
-      delete overlay.htmlContainer;
-      delete overlay.element;
-
-      delete self._overlays[overlay.id];
-    }
-
-    if (container) {
-      var idx = container.overlays.indexOf(overlay);
-      if (idx !== -1) {
-        container.overlays.splice(idx, 1);
-      }
-    }
-  });
-
-};
-
-
-Overlays.prototype.show = function() {
-  setVisible(this._overlayRoot);
-};
-
-
-Overlays.prototype.hide = function() {
-  setVisible(this._overlayRoot, false);
-};
-
-Overlays.prototype.clear = function() {
-  this._overlays = {};
-
-  this._overlayContainers = [];
-
-  domClear(this._overlayRoot);
-};
-
-Overlays.prototype._updateOverlayContainer = function(container) {
-  var element = container.element,
-      html = container.html;
-
-  // update container left,top according to the elements x,y coordinates
-  // this ensures we can attach child elements relative to this container
-
-  var x = element.x,
-      y = element.y;
-
-  if (element.waypoints) {
-    var bbox = getBBox(element);
-    x = bbox.x;
-    y = bbox.y;
-  }
-
-  setPosition(html, x, y);
-
-  domAttr(container.html, 'data-container-id', element.id);
-};
-
-
-Overlays.prototype._updateOverlay = function(overlay) {
-
-  var position = overlay.position,
-      htmlContainer = overlay.htmlContainer,
-      element = overlay.element;
-
-  // update overlay html relative to shape because
-  // it is already positioned on the element
-
-  // update relative
-  var left = position.left,
-      top = position.top;
-
-  if (position.right !== undefined) {
-
-    var width;
-
-    if (element.waypoints) {
-      width = getBBox(element).width;
-    } else {
-      width = element.width;
-    }
-
-    left = position.right * -1 + width;
-  }
-
-  if (position.bottom !== undefined) {
-
-    var height;
-
-    if (element.waypoints) {
-      height = getBBox(element).height;
-    } else {
-      height = element.height;
-    }
-
-    top = position.bottom * -1 + height;
-  }
-
-  setPosition(htmlContainer, left || 0, top || 0);
-};
-
-Overlays.prototype._createOverlayContainer = function(element) {
-  var html = domify('<div class="djs-overlays" style="position: absolute" />');
-
-  this._overlayRoot.appendChild(html);
-
-  var container = {
-    html: html,
-    element: element,
-    overlays: []
-  };
-
-  this._updateOverlayContainer(container);
-
-  this._overlayContainers.push(container);
-
-  return container;
-};
-
-
-Overlays.prototype._updateRoot = function(viewbox) {
-  var a = viewbox.scale || 1;
-  var d = viewbox.scale || 1;
-
-  var matrix = 'matrix(' + a + ',0,0,' + d + ',' + (-1 * viewbox.x * a) + ',' + (-1 * viewbox.y * d) + ')';
-
-  this._overlayRoot.style.transform = matrix;
-  this._overlayRoot.style['-ms-transform'] = matrix;
-  this._overlayRoot.style['-webkit-transform'] = matrix;
-};
-
-
-Overlays.prototype._getOverlayContainer = function(element, raw) {
-  var container = find(this._overlayContainers, function(c) {
-    return c.element === element;
-  });
-
-
-  if (!container && !raw) {
-    return this._createOverlayContainer(element);
-  }
-
-  return container;
-};
-
-
-
-
-
-Overlays.prototype._addOverlay = function(overlay) {
-
-  var id = overlay.id,
-      element = overlay.element,
-      html = overlay.html,
-      htmlContainer,
-      overlayContainer;
-
-  // unwrap jquery (for those who need it)
-  if (html.get) {
-    html = html.get(0);
-  }
-
-  // create proper html elements from
-  // overlay HTML strings
-  if (isString(html)) {
-    html = domify(html);
-  }
-
-  overlayContainer = this._getOverlayContainer(element);
-
-  htmlContainer = domify('<div class="djs-overlay" data-overlay-id="' + id + '" style="position: absolute">');
-
-  htmlContainer.appendChild(html);
-
-  if (overlay.type) {
-    domClasses(htmlContainer).add('djs-overlay-' + overlay.type);
-  }
-
-  overlay.htmlContainer = htmlContainer;
-
-  overlayContainer.overlays.push(overlay);
-  overlayContainer.html.appendChild(htmlContainer);
-
-  this._overlays[id] = overlay;
-
-  this._updateOverlay(overlay);
-  this._updateOverlayVisibilty(overlay, this._canvas.viewbox());
-};
-
-Overlays.prototype._updateOverlayVisibilty = function(overlay, viewbox) {
-  var show = overlay.show,
-      htmlContainer = overlay.htmlContainer,
-      visible = true;
-
-  if (show) {
-    if (show.minZoom > viewbox.scale ||
-        show.maxZoom < viewbox.scale) {
-      visible = false;
-    }
-
-    setVisible(htmlContainer, visible);
-  }
-};
-
-Overlays.prototype._updateOverlaysVisibilty = function(viewbox) {
-
-  var self = this;
-
-  forEach(this._overlays, function(overlay) {
-    self._updateOverlayVisibilty(overlay, viewbox);
-  });
-};
-
-
-Overlays.prototype._init = function() {
-
-  var eventBus = this._eventBus;
-
-  var self = this;
-
-
-  // scroll/zoom integration
-
-  function updateViewbox(viewbox) {
-    self._updateRoot(viewbox);
-    self._updateOverlaysVisibilty(viewbox);
-
-    self.show();
-  }
-
-  eventBus.on('canvas.viewbox.changing', function(event) {
-    self.hide();
-  });
-
-  eventBus.on('canvas.viewbox.changed', function(event) {
-    updateViewbox(event.viewbox);
-  });
-
-
-  // remove integration
-
-  eventBus.on([ 'shape.remove', 'connection.remove' ], function(e) {
-    var element = e.element;
-    var overlays = self.get({ element: element });
-
-    forEach(overlays, function(o) {
-      self.remove(o.id);
-    });
-
-    var container = self._getOverlayContainer(element);
-
-    if (container) {
-      domRemove(container.html);
-      var i = self._overlayContainers.indexOf(container);
-      if (i !== -1) {
-        self._overlayContainers.splice(i, 1);
-      }
-    }
-  });
-
-
-  // move integration
-
-  eventBus.on([
-    'element.changed'
-  ], function(e) {
-    var element = e.element;
-
-    var container = self._getOverlayContainer(element, true);
-
-    if (container) {
-      forEach(container.overlays, function(overlay) {
-        self._updateOverlay(overlay);
-      });
-
-      self._updateOverlayContainer(container);
-    }
-  });
-
-
-  // marker integration, simply add them on the overlays as classes, too.
-
-  eventBus.on('element.marker.update', function(e) {
-    var container = self._getOverlayContainer(e.element, true);
-    if (container) {
-      domClasses(container.html)[e.add ? 'add' : 'remove'](e.marker);
-    }
-  });
-
-
-  // clear overlays with diagram
-
-  eventBus.on('diagram.clear', this.clear, this);
-};
-
-},{"192":192,"195":195,"218":218,"219":219,"220":220,"309":309,"313":313,"315":315,"318":318,"327":327,"328":328,"329":329,"332":332,"335":335}],176:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'overlays' ],
-  overlays: [ 'type', _dereq_(175) ]
-};
-},{"175":175}],177:[function(_dereq_,module,exports){
-'use strict';
-
-var isArray = _dereq_(309),
-    forEach = _dereq_(220);
-
-
-/**
- * A service that offers the current selection in a diagram.
- * Offers the api to control the selection, too.
- *
- * @class
- *
- * @param {EventBus} eventBus the event bus
- */
-function Selection(eventBus) {
-
-  this._eventBus = eventBus;
-
-  this._selectedElements = [];
-
-  var self = this;
-
-  eventBus.on([ 'shape.remove', 'connection.remove' ], function(e) {
-    var element = e.element;
-    self.deselect(element);
-  });
-
-  eventBus.on([ 'diagram.clear' ], function(e) {
-    self.select(null);
-  });
-}
-
-Selection.$inject = [ 'eventBus' ];
-
-module.exports = Selection;
-
-
-Selection.prototype.deselect = function(element) {
-  var selectedElements = this._selectedElements;
-
-  var idx = selectedElements.indexOf(element);
-
-  if (idx !== -1) {
-    var oldSelection = selectedElements.slice();
-
-    selectedElements.splice(idx, 1);
-
-    this._eventBus.fire('selection.changed', { oldSelection: oldSelection, newSelection: selectedElements });
-  }
-};
-
-
-Selection.prototype.get = function() {
-  return this._selectedElements;
-};
-
-Selection.prototype.isSelected = function(element) {
-  return this._selectedElements.indexOf(element) !== -1;
-};
-
-
-/**
- * This method selects one or more elements on the diagram.
- *
- * By passing an additional add parameter you can decide whether or not the element(s)
- * should be added to the already existing selection or not.
- *
- * @method Selection#select
- *
- * @param  {Object|Object[]} elements element or array of elements to be selected
- * @param  {boolean} [add] whether the element(s) should be appended to the current selection, defaults to false
- */
-Selection.prototype.select = function(elements, add) {
-  var selectedElements = this._selectedElements,
-      oldSelection = selectedElements.slice();
-
-  if (!isArray(elements)) {
-    elements = elements ? [ elements ] : [];
-  }
-
-  // selection may be cleared by passing an empty array or null
-  // to the method
-  if (add) {
-    forEach(elements, function(element) {
-      if (selectedElements.indexOf(element) !== -1) {
-        // already selected
-        return;
-      } else {
-        selectedElements.push(element);
-      }
-    });
-  } else {
-    this._selectedElements = selectedElements = elements.slice();
-  }
-
-  this._eventBus.fire('selection.changed', { oldSelection: oldSelection, newSelection: selectedElements });
-};
-
-},{"220":220,"309":309}],178:[function(_dereq_,module,exports){
-'use strict';
-
-var hasPrimaryModifier = _dereq_(197).hasPrimaryModifier;
-
-var find = _dereq_(219);
-
-
-function SelectionBehavior(eventBus, selection, canvas, elementRegistry) {
-
-  eventBus.on('create.end', 500, function(e) {
-
-    // select the created shape after a
-    // successful create operation
-    if (e.context.canExecute) {
-      selection.select(e.context.shape);
-    }
-  });
-
-  eventBus.on('connect.end', 500, function(e) {
-
-    // select the connect end target
-    // after a connect operation
-    if (e.context.canExecute && e.context.target) {
-      selection.select(e.context.target);
-    }
-  });
-
-  eventBus.on('shape.move.end', 500, function(e) {
-    var previousSelection = e.previousSelection || [];
-
-    var shape = elementRegistry.get(e.context.shape.id);
-
-    // make sure at least the main moved element is being
-    // selected after a move operation
-    var inSelection = find(previousSelection, function(selectedShape) {
-      return shape.id === selectedShape.id;
-    });
-
-    if (!inSelection) {
-      selection.select(shape);
-    }
-  });
-
-  // Shift + click selection
-  eventBus.on('element.click', function(event) {
-
-    var element = event.element;
-
-    // do not select the root element
-    // or connections
-    if (element === canvas.getRootElement()) {
-      element = null;
-    }
-
-    var isSelected = selection.isSelected(element),
-        isMultiSelect = selection.get().length > 1;
-
-    // mouse-event: SELECTION_KEY
-    var add = hasPrimaryModifier(event);
-
-    // select OR deselect element in multi selection
-    if (isSelected && isMultiSelect) {
-      if (add) {
-        return selection.deselect(element);
-      } else {
-        return selection.select(element);
-      }
-    } else
-    if (!isSelected) {
-      selection.select(element, add);
-    } else {
-      selection.deselect(element);
-    }
-  });
-}
-
-SelectionBehavior.$inject = [ 'eventBus', 'selection', 'canvas', 'elementRegistry' ];
-module.exports = SelectionBehavior;
-
-},{"197":197,"219":219}],179:[function(_dereq_,module,exports){
-'use strict';
-
-var forEach = _dereq_(220);
-
-var MARKER_HOVER = 'hover',
-    MARKER_SELECTED = 'selected';
-
-
-/**
- * A plugin that adds a visible selection UI to shapes and connections
- * by appending the <code>hover</code> and <code>selected</code> classes to them.
- *
- * @class
- *
- * Makes elements selectable, too.
- *
- * @param {EventBus} events
- * @param {SelectionService} selection
- * @param {Canvas} canvas
- */
-function SelectionVisuals(events, canvas, selection, styles) {
-
-  this._multiSelectionBox = null;
-
-  function addMarker(e, cls) {
-    canvas.addMarker(e, cls);
-  }
-
-  function removeMarker(e, cls) {
-    canvas.removeMarker(e, cls);
-  }
-
-  events.on('element.hover', function(event) {
-    addMarker(event.element, MARKER_HOVER);
-  });
-
-  events.on('element.out', function(event) {
-    removeMarker(event.element, MARKER_HOVER);
-  });
-
-  events.on('selection.changed', function(event) {
-
-    function deselect(s) {
-      removeMarker(s, MARKER_SELECTED);
-    }
-
-    function select(s) {
-      addMarker(s, MARKER_SELECTED);
-    }
-
-    var oldSelection = event.oldSelection,
-        newSelection = event.newSelection;
-
-    forEach(oldSelection, function(e) {
-      if (newSelection.indexOf(e) === -1) {
-        deselect(e);
-      }
-    });
-
-    forEach(newSelection, function(e) {
-      if (oldSelection.indexOf(e) === -1) {
-        select(e);
-      }
-    });
-  });
-}
-
-SelectionVisuals.$inject = [
-  'eventBus',
-  'canvas',
-  'selection',
-  'styles'
-];
-
-module.exports = SelectionVisuals;
-
-},{"220":220}],180:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'selectionVisuals', 'selectionBehavior' ],
-  __depends__: [
-    _dereq_(172),
-    _dereq_(174)
-  ],
-  selection: [ 'type', _dereq_(177) ],
-  selectionVisuals: [ 'type', _dereq_(179) ],
-  selectionBehavior: [ 'type', _dereq_(178) ]
-};
-
-},{"172":172,"174":174,"177":177,"178":178,"179":179}],181:[function(_dereq_,module,exports){
-module.exports = {
-  translate: [ 'value', _dereq_(182) ]
-};
-},{"182":182}],182:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * A simple translation stub to be used for multi-language support
- * in diagrams. Can be easily replaced with a more sophisticated
- * solution.
- *
- * @example
- *
- * // use it inside any diagram component by injecting `translate`.
- *
- * function MyService(translate) {
- *   alert(translate('HELLO {you}', { you: 'You!' }));
- * }
- *
- * @param {String} template to interpolate
- * @param {Object} [replacements] a map with substitutes
- *
- * @return {String} the translated string
- */
-module.exports = function translate(template, replacements) {
-
-  replacements = replacements || {};
-
-  return template.replace(/{([^}]+)}/g, function(_, key) {
-    return replacements[key] || '{' + key + '}';
-  });
-};
-},{}],183:[function(_dereq_,module,exports){
-'use strict';
-
-var assign = _dereq_(318),
-    inherits = _dereq_(214);
-
-var Refs = _dereq_(336);
-
-var parentRefs = new Refs({ name: 'children', enumerable: true, collection: true }, { name: 'parent' }),
-    labelRefs = new Refs({ name: 'label', enumerable: true }, { name: 'labelTarget' }),
-    attacherRefs = new Refs({ name: 'attachers', collection: true }, { name: 'host' }),
-    outgoingRefs = new Refs({ name: 'outgoing', collection: true }, { name: 'source' }),
-    incomingRefs = new Refs({ name: 'incoming', collection: true }, { name: 'target' });
-
-/**
- * @namespace djs.model
- */
-
-/**
- * @memberOf djs.model
- */
-
-/**
- * The basic graphical representation
- *
- * @class
- *
- * @abstract
- */
-function Base() {
-
-  /**
-   * The object that backs up the shape
-   *
-   * @name Base#businessObject
-   * @type Object
-   */
-  Object.defineProperty(this, 'businessObject', {
-    writable: true
-  });
-
-  /**
-   * The parent shape
-   *
-   * @name Base#parent
-   * @type Shape
-   */
-  parentRefs.bind(this, 'parent');
-
-  /**
-   * @name Base#label
-   * @type Label
-   */
-  labelRefs.bind(this, 'label');
-
-  /**
-   * The list of outgoing connections
-   *
-   * @name Base#outgoing
-   * @type Array<Connection>
-   */
-  outgoingRefs.bind(this, 'outgoing');
-
-  /**
-   * The list of incoming connections
-   *
-   * @name Base#incoming
-   * @type Array<Connection>
-   */
-  incomingRefs.bind(this, 'incoming');
-}
-
-
-/**
- * A graphical object
- *
- * @class
- * @constructor
- *
- * @extends Base
- */
-function Shape() {
-  Base.call(this);
-
-  /**
-   * The list of children
-   *
-   * @name Shape#children
-   * @type Array<Base>
-   */
-  parentRefs.bind(this, 'children');
-
-  /**
-   * @name Shape#host
-   * @type Shape
-   */
-  attacherRefs.bind(this, 'host');
-
-  /**
-   * @name Shape#attachers
-   * @type Shape
-   */
-  attacherRefs.bind(this, 'attachers');
-}
-
-inherits(Shape, Base);
-
-
-/**
- * A root graphical object
- *
- * @class
- * @constructor
- *
- * @extends Shape
- */
-function Root() {
-  Shape.call(this);
-}
-
-inherits(Root, Shape);
-
-
-/**
- * A label for an element
- *
- * @class
- * @constructor
- *
- * @extends Shape
- */
-function Label() {
-  Shape.call(this);
-
-  /**
-   * The labeled element
-   *
-   * @name Label#labelTarget
-   * @type Base
-   */
-  labelRefs.bind(this, 'labelTarget');
-}
-
-inherits(Label, Shape);
-
-
-/**
- * A connection between two elements
- *
- * @class
- * @constructor
- *
- * @extends Base
- */
-function Connection() {
-  Base.call(this);
-
-  /**
-   * The element this connection originates from
-   *
-   * @name Connection#source
-   * @type Base
-   */
-  outgoingRefs.bind(this, 'source');
-
-  /**
-   * The element this connection points to
-   *
-   * @name Connection#target
-   * @type Base
-   */
-  incomingRefs.bind(this, 'target');
-}
-
-inherits(Connection, Base);
-
-
-var types = {
-  connection: Connection,
-  shape: Shape,
-  label: Label,
-  root: Root
-};
-
-/**
- * Creates a new model element of the specified type
- *
- * @method create
- *
- * @example
- *
- * var shape1 = Model.create('shape', { x: 10, y: 10, width: 100, height: 100 });
- * var shape2 = Model.create('shape', { x: 210, y: 210, width: 100, height: 100 });
- *
- * var connection = Model.create('connection', { waypoints: [ { x: 110, y: 55 }, {x: 210, y: 55 } ] });
- *
- * @param  {String} type lower-cased model name
- * @param  {Object} attrs attributes to initialize the new model instance with
- *
- * @return {Base} the new model instance
- */
-module.exports.create = function(type, attrs) {
-  var Type = types[type];
-  if (!Type) {
-    throw new Error('unknown type: <' + type + '>');
-  }
-  return assign(new Type(), attrs);
-};
-
-
-module.exports.Base = Base;
-module.exports.Root = Root;
-module.exports.Shape = Shape;
-module.exports.Connection = Connection;
-module.exports.Label = Label;
-
-},{"214":214,"318":318,"336":336}],184:[function(_dereq_,module,exports){
-'use strict';
-
-var Cursor = _dereq_(191),
-    ClickTrap = _dereq_(189),
-    substract = _dereq_(196).substract,
-    domEvent = _dereq_(333),
-    domClosest = _dereq_(330),
-    EventUtil = _dereq_(193);
-
-
-function length(point) {
-  return Math.sqrt(Math.pow(point.x, 2) + Math.pow(point.y, 2));
-}
-
-
-var THRESHOLD = 15;
-
-
-function MoveCanvas(eventBus, canvas) {
-
-  var container = canvas._container,
-      context;
-
-
-  function handleMove(event) {
-
-    var start = context.start,
-        position = EventUtil.toPoint(event),
-        delta = substract(position, start);
-
-    if (!context.dragging && length(delta) > THRESHOLD) {
-      context.dragging = true;
-
-      // prevent mouse click in this
-      // interaction sequence
-      ClickTrap.install();
-
-      Cursor.set('grab');
-    }
-
-    if (context.dragging) {
-
-      var lastPosition = context.last || context.start;
-
-      delta = substract(position, lastPosition);
-
-      canvas.scroll({
-        dx: delta.x,
-        dy: delta.y
-      });
-
-      context.last = position;
-    }
-
-    // prevent select
-    event.preventDefault();
-  }
-
-
-  function handleEnd(event) {
-    domEvent.unbind(document, 'mousemove', handleMove);
-    domEvent.unbind(document, 'mouseup', handleEnd);
-
-    context = null;
-
-    Cursor.unset();
-  }
-
-  function handleStart(event) {
-    // event is already handled by '.djs-draggable'
-    if (domClosest(event.target, '.djs-draggable')) {
-      return;
-    }
-
-
-    // reject non-left left mouse button or modifier key
-    if (event.button || event.ctrlKey || event.shiftKey || event.altKey) {
-      return;
-    }
-
-    context = {
-      start: EventUtil.toPoint(event)
-    };
-
-    domEvent.bind(document, 'mousemove', handleMove);
-    domEvent.bind(document, 'mouseup', handleEnd);
-  }
-
-  domEvent.bind(container, 'mousedown', handleStart);
-}
-
-
-MoveCanvas.$inject = [ 'eventBus', 'canvas' ];
-
-module.exports = MoveCanvas;
-
-},{"189":189,"191":191,"193":193,"196":196,"330":330,"333":333}],185:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'moveCanvas' ],
-  moveCanvas: [ 'type', _dereq_(184) ]
-};
-},{"184":184}],186:[function(_dereq_,module,exports){
-'use strict';
-
-var domEvent = _dereq_(333),
-    domClosest = _dereq_(330);
-
-var hasPrimaryModifier = _dereq_(197).hasPrimaryModifier,
-    hasSecondaryModifier = _dereq_(197).hasSecondaryModifier;
-
-var isMac = _dereq_(198).isMac;
-
-var getStepRange = _dereq_(187).getStepRange,
-    cap = _dereq_(187).cap;
-
-var log10 = _dereq_(196).log10;
-
-var bind = _dereq_(224);
-
-var RANGE = { min: 0.2, max: 4 },
-    NUM_STEPS = 10;
-
-
-/**
- * An implementation of zooming and scrolling within the
- * {@link Canvas} via the mouse wheel.
- *
- * Mouse wheel zooming / scrolling may be disabled using
- * the {@link toggle(enabled)} method.
- *
- * Additionally users can define the initial enabled state
- * by passing `{ zoomScroll: { enabled: false } }` at diagram
- * initialization.
- *
- * @param {EventBus} eventBus
- * @param {Canvas} canvas
- * @param {Object} config
- */
-function ZoomScroll(eventBus, canvas, config) {
-
-  this._enabled = false;
-
-  this._canvas = canvas;
-  this._container = canvas._container;
-
-  this._handleWheel = bind(this._handleWheel, this);
-
-  var newEnabled = !config || config.enabled !== false;
-
-  var self = this;
-
-  eventBus.on('canvas.init', function(e) {
-    self._init(newEnabled);
-  });
-}
-
-ZoomScroll.$inject = [ 'eventBus', 'canvas', 'config.zoomScroll' ];
-
-module.exports = ZoomScroll;
-
-ZoomScroll.prototype.scroll = function scroll(delta) {
-  this._canvas.scroll(delta);
-};
-
-
-ZoomScroll.prototype.reset = function reset() {
-  this._canvas.zoom('fit-viewport');
-};
-
-
-ZoomScroll.prototype.zoom = function zoom(direction, position) {
-  var canvas = this._canvas;
-  var currentZoom = canvas.zoom(false);
-
-  var factor = Math.pow(1 + Math.abs(direction) , direction > 0 ? 1 : -1);
-
-  canvas.zoom(cap(RANGE, currentZoom * factor), position);
-};
-
-
-ZoomScroll.prototype._handleWheel = function handleWheel(event) {
-  // event is already handled by '.djs-scrollable'
-  if (domClosest(event.target, '.djs-scrollable', true)) {
-    return;
-  }
-
-  var element = this._container;
-
-  event.preventDefault();
-
-  // mouse-event: SELECTION_KEY
-  // mouse-event: AND_KEY
-  var isVerticalScroll = hasPrimaryModifier(event),
-      isHorizontalScroll = hasSecondaryModifier(event);
-
-  var factor;
-
-  if (isVerticalScroll || isHorizontalScroll) {
-
-    if (isMac) {
-      factor = event.deltaMode === 0 ? 1.25 : 50;
-    } else {
-      factor = event.deltaMode === 0 ? 1/40 : 1/2;
-    }
-
-    var delta = {};
-
-    if (isHorizontalScroll) {
-      delta.dx = (factor * (event.deltaX || event.deltaY));
-    } else {
-      delta.dy = (factor * event.deltaY);
-    }
-    this.scroll(delta);
-  } else {
-    factor = (event.deltaMode === 0 ? 1/40 : 1/2);
-
-    var elementRect = element.getBoundingClientRect();
-
-    var offset =  {
-      x: event.clientX - elementRect.left,
-      y: event.clientY - elementRect.top
-    };
-
-    // zoom in relative to diagram {x,y} coordinates
-    this.zoom(event.deltaY * factor / (-5), offset);
-  }
-};
-
-/**
- * Zoom along fixed zoom steps
- *
- * @param {Integer} direction zoom direction (1 for zooming in, -1 for out)
- */
-ZoomScroll.prototype.stepZoom = function stepZoom(direction, position) {
-
-  var canvas = this._canvas,
-      stepRange = getStepRange(RANGE, NUM_STEPS);
-
-  direction = direction > 0 ? 1 : -1;
-
-  var currentLinearZoomLevel = log10(canvas.zoom());
-
-  // snap to a proximate zoom step
-  var newLinearZoomLevel = Math.round(currentLinearZoomLevel / stepRange) * stepRange;
-
-  // increase or decrease one zoom step in the given direction
-  newLinearZoomLevel += stepRange * direction;
-
-  // calculate the absolute logarithmic zoom level based on the linear zoom level
-  // (e.g. 2 for an absolute x2 zoom)
-  var newLogZoomLevel = Math.pow(10, newLinearZoomLevel);
-
-  canvas.zoom(cap(RANGE, newLogZoomLevel), position);
-};
-
-
-/**
- * Toggle the zoom scroll ability via mouse wheel.
- *
- * @param  {Boolean} [newEnabled] new enabled state
- */
-ZoomScroll.prototype.toggle = function toggle(newEnabled) {
-
-  var element = this._container;
-  var handleWheel = this._handleWheel;
-
-  var oldEnabled = this._enabled;
-
-  if (typeof newEnabled === 'undefined') {
-    newEnabled = !oldEnabled;
-  }
-
-  // only react on actual changes
-  if (oldEnabled !== newEnabled) {
-
-    // add or remove wheel listener based on
-    // changed enabled state
-    domEvent[newEnabled ? 'bind' : 'unbind'](element, 'wheel', handleWheel, false);
-  }
-
-  this._enabled = newEnabled;
-
-  return newEnabled;
-};
-
-
-ZoomScroll.prototype._init = function(newEnabled) {
-  this.toggle(newEnabled);
-};
-
-},{"187":187,"196":196,"197":197,"198":198,"224":224,"330":330,"333":333}],187:[function(_dereq_,module,exports){
-'use strict';
-
-
-var log10 = _dereq_(196).log10;
-
-/**
- * Get the linear range between two zoom steps based on the
- * total number of zoom steps (defined as NUM_STEPS)
- */
-module.exports.getStepRange = function(range, steps) {
-
-  var minLinearRange = log10(range.min),
-      maxLinearRange = log10(range.max);
-
-  var absoluteLinearRange = Math.abs(minLinearRange) + Math.abs(maxLinearRange);
-
-  return absoluteLinearRange / steps;
-};
-
-module.exports.cap = function(range, scale) {
-  return Math.max(range.min, Math.min(range.max, scale));
-};
-
-},{"196":196}],188:[function(_dereq_,module,exports){
-module.exports = {
-  __init__: [ 'zoomScroll' ],
-  zoomScroll: [ 'type', _dereq_(186) ]
-};
-},{"186":186}],189:[function(_dereq_,module,exports){
-'use strict';
-
-var domEvent = _dereq_(333),
-    stopEvent = _dereq_(193).stopEvent;
-
-function trap(event) {
-  stopEvent(event);
-
-  toggle(false);
-}
-
-function toggle(active) {
-  domEvent[active ? 'bind' : 'unbind'](document.body, 'click', trap, true);
-}
-
-/**
- * Installs a click trap that prevents a ghost click following a dragging operation.
- *
- * @return {Function} a function to immediately remove the installed trap.
- */
-function install() {
-
-  toggle(true);
-
-  return function() {
-    toggle(false);
-  };
-}
-
-module.exports.install = install;
-},{"193":193,"333":333}],190:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * Failsafe remove an element from a collection
- *
- * @param  {Array<Object>} [collection]
- * @param  {Object} [element]
- *
- * @return {Number} the previous index of the element
- */
-module.exports.remove = function(collection, element) {
-
-  if (!collection || !element) {
-    return -1;
-  }
-
-  var idx = collection.indexOf(element);
-
-  if (idx !== -1) {
-    collection.splice(idx, 1);
-  }
-
-  return idx;
-};
-
-/**
- * Fail save add an element to the given connection, ensuring
- * it does not yet exist.
- *
- * @param {Array<Object>} collection
- * @param {Object} element
- * @param {Number} idx
- */
-module.exports.add = function(collection, element, idx) {
-
-  if (!collection || !element) {
-    return;
-  }
-
-  if (typeof idx !== 'number') {
-    idx = -1;
-  }
-
-  var currentIdx = collection.indexOf(element);
-
-  if (currentIdx !== -1) {
-
-    if (currentIdx === idx) {
-      // nothing to do, position has not changed
-      return;
-    } else {
-
-      if (idx !== -1) {
-        // remove from current position
-        collection.splice(currentIdx, 1);
-      } else {
-        // already exists in collection
-        return;
-      }
-    }
-  }
-
-  if (idx !== -1) {
-    // insert at specified position
-    collection.splice(idx, 0, element);
-  } else {
-    // push to end
-    collection.push(element);
-  }
-};
-
-
-/**
- * Fail save get the index of an element in a collection.
- *
- * @param {Array<Object>} collection
- * @param {Object} element
- *
- * @return {Number} the index or -1 if collection or element do
- *                  not exist or the element is not contained.
- */
-module.exports.indexOf = function(collection, element) {
-
-  if (!collection || !element) {
-    return -1;
-  }
-
-  return collection.indexOf(element);
-};
-
-},{}],191:[function(_dereq_,module,exports){
-'use strict';
-
-var domClasses = _dereq_(328);
-
-var CURSOR_CLS_PATTERN = /^djs-cursor-.*$/;
-
-
-module.exports.set = function(mode) {
-  var classes = domClasses(document.body);
-
-  classes.removeMatching(CURSOR_CLS_PATTERN);
-
-  if (mode) {
-    classes.add('djs-cursor-' + mode);
-  }
-};
-
-module.exports.unset = function() {
-  this.set(null);
-};
-
-module.exports.has = function(mode) {
-  var classes = domClasses(document.body);
-
-  return classes.has('djs-cursor-' + mode);
-};
-
-},{"328":328}],192:[function(_dereq_,module,exports){
-'use strict';
-
-var isArray = _dereq_(309),
-    isNumber = _dereq_(312),
-    groupBy = _dereq_(221),
-    forEach = _dereq_(220);
-
-/**
- * Adds an element to a collection and returns true if the
- * element was added.
- *
- * @param {Array<Object>} elements
- * @param {Object} e
- * @param {Boolean} unique
- */
-function add(elements, e, unique) {
-  var canAdd = !unique || elements.indexOf(e) === -1;
-
-  if (canAdd) {
-    elements.push(e);
-  }
-
-  return canAdd;
-}
-
-/**
- * Iterate over each element in a collection, calling the iterator function `fn`
- * with (element, index, recursionDepth).
- *
- * Recurse into all elements that are returned by `fn`.
- *
- * @param  {Object|Array<Object>} elements
- * @param  {Function} fn iterator function called with (element, index, recursionDepth)
- * @param  {Number} [depth] maximum recursion depth
- */
-function eachElement(elements, fn, depth) {
-
-  depth = depth || 0;
-
-  if (!isArray(elements)) {
-    elements = [ elements ];
-  }
-
-  forEach(elements, function(s, i) {
-    var filter = fn(s, i, depth);
-
-    if (isArray(filter) && filter.length) {
-      eachElement(filter, fn, depth + 1);
-    }
-  });
-}
-
-/**
- * Collects self + child elements up to a given depth from a list of elements.
- *
- * @param  {djs.model.Base|Array<djs.model.Base>} elements the elements to select the children from
- * @param  {Boolean} unique whether to return a unique result set (no duplicates)
- * @param  {Number} maxDepth the depth to search through or -1 for infinite
- *
- * @return {Array<djs.model.Base>} found elements
- */
-function selfAndChildren(elements, unique, maxDepth) {
-  var result = [],
-      processedChildren = [];
-
-  eachElement(elements, function(element, i, depth) {
-    add(result, element, unique);
-
-    var children = element.children;
-
-    // max traversal depth not reached yet
-    if (maxDepth === -1 || depth < maxDepth) {
-
-      // children exist && children not yet processed
-      if (children && add(processedChildren, children, unique)) {
-        return children;
-      }
-    }
-  });
-
-  return result;
-}
-
-/**
- * Return self + direct children for a number of elements
- *
- * @param  {Array<djs.model.Base>} elements to query
- * @param  {Boolean} allowDuplicates to allow duplicates in the result set
- *
- * @return {Array<djs.model.Base>} the collected elements
- */
-function selfAndDirectChildren(elements, allowDuplicates) {
-  return selfAndChildren(elements, !allowDuplicates, 1);
-}
-
-/**
- * Return self + ALL children for a number of elements
- *
- * @param  {Array<djs.model.Base>} elements to query
- * @param  {Boolean} allowDuplicates to allow duplicates in the result set
- *
- * @return {Array<djs.model.Base>} the collected elements
- */
-function selfAndAllChildren(elements, allowDuplicates) {
-  return selfAndChildren(elements, !allowDuplicates, -1);
-}
-
-/**
- * Gets the the closure for all selected elements,
- * their connections and their attachment's connections
- *
- * @param {Array<djs.model.Base>} elements
- * @return {Object} enclosure
- */
-function getClosure(elements) {
-
-  // original elements passed to this function
-  var topLevel = groupBy(elements, function(e) { return e.id; });
-
-  var allShapes = {},
-      allConnections = {},
-      enclosedElements = {},
-      enclosedConnections = {};
-
-  function handleConnection(c) {
-    if (topLevel[c.source.id] && topLevel[c.target.id]) {
-      topLevel[c.id] = c;
-    }
-
-    // not enclosed as a child, but maybe logically
-    // (connecting two moved elements?)
-    if (allShapes[c.source.id] && allShapes[c.target.id]) {
-      enclosedConnections[c.id] = enclosedElements[c.id] = c;
-    }
-
-    allConnections[c.id] = c;
-  }
-
-  function handleElement(element) {
-
-    enclosedElements[element.id] = element;
-
-    if (element.waypoints) {
-      // remember connection
-      enclosedConnections[element.id] = allConnections[element.id] = element;
-    } else {
-      // remember shape
-      allShapes[element.id] = element;
-
-      // remember all connections
-      forEach(element.incoming, handleConnection);
-
-      forEach(element.outgoing, handleConnection);
-
-      // recurse into children
-      return element.children;
-    }
-  }
-
-  eachElement(elements, handleElement);
-
-  return {
-    allShapes: allShapes,
-    allConnections: allConnections,
-    topLevel: topLevel,
-    enclosedConnections: enclosedConnections,
-    enclosedElements: enclosedElements
-  };
-}
-
-/**
- * Returns the surrounding bbox for all elements in
- * the array or the element primitive.
- *
- * @param {Array<djs.model.Shape>|djs.model.Shape} elements
- * @param {Boolean} stopRecursion
- */
-function getBBox(elements, stopRecursion) {
-
-  stopRecursion = !!stopRecursion;
-  if (!isArray(elements)) {
-    elements = [elements];
-  }
-
-  var minX,
-      minY,
-      maxX,
-      maxY;
-
-  forEach(elements, function(element) {
-
-    // If element is a connection the bbox must be computed first
-    var bbox = element;
-    if (element.waypoints && !stopRecursion) {
-      bbox = getBBox(element.waypoints, true);
-    }
-
-    var x = bbox.x,
-        y = bbox.y,
-        height = bbox.height || 0,
-        width  = bbox.width  || 0;
-
-    if (x < minX || minX === undefined) {
-      minX = x;
-    }
-    if (y < minY || minY === undefined) {
-      minY = y;
-    }
-
-    if ((x + width) > maxX || maxX === undefined) {
-      maxX = x + width;
-    }
-    if ((y + height) > maxY || maxY === undefined) {
-      maxY = y + height;
-    }
-  });
-
-  return {
-    x: minX,
-    y: minY,
-    height: maxY - minY,
-    width: maxX - minX
-  };
-}
-
-
-/**
- * Returns all elements that are enclosed from the bounding box.
- *
- *   * If bbox.(width|height) is not specified the method returns
- *     all elements with element.x/y > bbox.x/y
- *   * If only bbox.x or bbox.y is specified, method return all elements with
- *     e.x > bbox.x or e.y > bbox.y
- *
- * @param {Array<djs.model.Shape>} elements List of Elements to search through
- * @param {djs.model.Shape} bbox the enclosing bbox.
- *
- * @return {Array<djs.model.Shape>} enclosed elements
- */
-function getEnclosedElements(elements, bbox) {
-
-  var filteredElements = {};
-
-  forEach(elements, function(element) {
-
-    var e = element;
-
-    if (e.waypoints) {
-      e = getBBox(e);
-    }
-
-    if (!isNumber(bbox.y) && (e.x > bbox.x)) {
-      filteredElements[element.id] = element;
-    }
-    if (!isNumber(bbox.x) && (e.y > bbox.y)) {
-      filteredElements[element.id] = element;
-    }
-    if (e.x > bbox.x && e.y > bbox.y) {
-      if (isNumber(bbox.width) && isNumber(bbox.height) &&
-          e.width  + e.x < bbox.width  + bbox.x &&
-          e.height + e.y < bbox.height + bbox.y) {
-
-        filteredElements[element.id] = element;
-      } else if (!isNumber(bbox.width) || !isNumber(bbox.height)) {
-        filteredElements[element.id] = element;
-      }
-    }
-  });
-
-  return filteredElements;
-}
-
-
-module.exports.add = add;
-module.exports.eachElement = eachElement;
-module.exports.selfAndDirectChildren = selfAndDirectChildren;
-module.exports.selfAndAllChildren = selfAndAllChildren;
-module.exports.getBBox = getBBox;
-module.exports.getEnclosedElements = getEnclosedElements;
-
-module.exports.getClosure = getClosure;
-
-
-function getElementType(element) {
-
-  if ('waypoints' in element) {
-    return 'connection';
-  }
-
-  if ('x' in element) {
-    return 'shape';
-  }
-
-  return 'root';
-}
-
-module.exports.getType = getElementType;
-},{"220":220,"221":221,"309":309,"312":312}],193:[function(_dereq_,module,exports){
-'use strict';
-
-function __preventDefault(event) {
-  return event && event.preventDefault();
-}
-
-function __stopPropagation(event, immediate) {
-  if (!event) {
-    return;
-  }
-
-  if (event.stopPropagation) {
-    event.stopPropagation();
-  }
-
-  if (immediate && event.stopImmediatePropagation) {
-    event.stopImmediatePropagation();
-  }
-}
-
-
-function getOriginal(event) {
-  return event.originalEvent || event.srcEvent;
-}
-
-module.exports.getOriginal = getOriginal;
-
-
-function stopEvent(event, immediate) {
-  stopPropagation(event, immediate);
-  preventDefault(event);
-}
-
-module.exports.stopEvent = stopEvent;
-
-
-function preventDefault(event) {
-  __preventDefault(event);
-  __preventDefault(getOriginal(event));
-}
-
-module.exports.preventDefault = preventDefault;
-
-
-function stopPropagation(event, immediate) {
-  __stopPropagation(event, immediate);
-  __stopPropagation(getOriginal(event), immediate);
-}
-
-module.exports.stopPropagation = stopPropagation;
-
-
-function toPoint(event) {
-
-  if (event.pointers && event.pointers.length) {
-    event = event.pointers[0];
-  }
-
-  if (event.touches && event.touches.length) {
-    event = event.touches[0];
-  }
-
-  return event ? {
-    x: event.clientX,
-    y: event.clientY
-  } : null;
-}
-
-module.exports.toPoint = toPoint;
-
-},{}],194:[function(_dereq_,module,exports){
-'use strict';
-
-var domQuery = _dereq_(334);
-
-/**
- * SVGs for elements are generated by the {@link GraphicsFactory}.
- *
- * This utility gives quick access to the important semantic
- * parts of an element.
- */
-
-/**
- * Returns the visual part of a diagram element
- *
- * @param {Snap<SVGElement>} gfx
- *
- * @return {Snap<SVGElement>}
- */
-function getVisual(gfx) {
-  return domQuery('.djs-visual', gfx);
-}
-
-/**
- * Returns the children for a given diagram element.
- *
- * @param {Snap<SVGElement>} gfx
- * @return {Snap<SVGElement>}
- */
-function getChildren(gfx) {
-  return gfx.parentNode.childNodes[1];
-}
-
-module.exports.getVisual = getVisual;
-module.exports.getChildren = getChildren;
-
-},{"334":334}],195:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * Util that provides unique IDs.
- *
- * @class djs.util.IdGenerator
- * @constructor
- * @memberOf djs.util
- *
- * The ids can be customized via a given prefix and contain a random value to avoid collisions.
- *
- * @param {String} prefix a prefix to prepend to generated ids (for better readability)
- */
-function IdGenerator(prefix) {
-
-  this._counter = 0;
-  this._prefix = (prefix ? prefix + '-' : '') + Math.floor(Math.random() * 1000000000) + '-';
-}
-
-module.exports = IdGenerator;
-
-/**
- * Returns a next unique ID.
- *
- * @method djs.util.IdGenerator#next
- *
- * @returns {String} the id
- */
-IdGenerator.prototype.next = function() {
-  return this._prefix + (++this._counter);
-};
-
-},{}],196:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * Get the logarithm of x with base 10
- * @param  {Integer} value
- */
-function log10(x) {
-  return Math.log(x) / Math.log(10);
-}
-
-module.exports.log10 = log10;
-
-
-function substract(p1, p2) {
-  return {
-    x: p1.x - p2.x,
-    y: p1.y - p2.y
-  };
-}
-
-module.exports.substract = substract;
-
-},{}],197:[function(_dereq_,module,exports){
-'use strict';
-
-var getOriginalEvent = _dereq_(193).getOriginal;
-
-var isMac = _dereq_(198).isMac;
-
-
-function isPrimaryButton(event) {
-  // button === 0 -> left áka primary mouse button
-  return !(getOriginalEvent(event) || event).button;
-}
-
-module.exports.isPrimaryButton = isPrimaryButton;
-
-module.exports.isMac = isMac;
-
-module.exports.hasPrimaryModifier = function(event) {
-  var originalEvent = getOriginalEvent(event) || event;
-
-  if (!isPrimaryButton(event)) {
-    return false;
-  }
-
-  // Use alt as primary modifier key for mac OS
-  if (isMac()) {
-    return originalEvent.metaKey;
-  } else {
-    return originalEvent.ctrlKey;
-  }
-};
-
-
-module.exports.hasSecondaryModifier = function(event) {
-  var originalEvent = getOriginalEvent(event) || event;
-
-  return isPrimaryButton(event) && originalEvent.shiftKey;
-};
-
-},{"193":193,"198":198}],198:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports.isMac = function isMac() {
-  return (/mac/i).test(navigator.platform);
-};
-},{}],199:[function(_dereq_,module,exports){
-'use strict';
-
-var svgAttr = _dereq_(341),
-    svgCreate = _dereq_(343);
-
-
-module.exports.componentsToPath = function(elements) {
-  return elements.join(',').replace(/,?([A-z]),?/g, '$1');
-};
-
-function toSVGPoints(points) {
-  var result = '';
-
-  for (var i = 0, p; (p = points[i]); i++) {
-    result += p.x + ',' + p.y + ' ';
-  }
-
-  return result;
-}
-
-module.exports.toSVGPoints = toSVGPoints;
-
-module.exports.createLine = function(points, attrs) {
-
-  var line = svgCreate('polyline');
-  svgAttr(line, { points: toSVGPoints(points) });
-
-  if (attrs) {
-    svgAttr(line, attrs);
-  }
-
-  return line;
-};
-
-module.exports.updateLine = function(gfx, points) {
-  svgAttr(gfx, { points: toSVGPoints(points) });
-
-  return gfx;
-};
-
-},{"341":341,"343":343}],200:[function(_dereq_,module,exports){
-'use strict';
-
-var svgTransform = _dereq_(346);
-
-var createTransform = _dereq_(344).createTransform;
-
-
-/**
- * @param {<SVGElement>} element
- * @param {Number} x
- * @param {Number} y
- * @param {Number} angle
- * @param {Number} amount
- */
-module.exports.transform = function(gfx, x, y, angle, amount) {
-  var translate = createTransform();
-  translate.setTranslate(x, y);
-
-  var rotate = createTransform();
-  rotate.setRotate(angle, 0, 0);
-
-  var scale = createTransform();
-  scale.setScale(amount || 1, amount || 1);
-
-  svgTransform(gfx, [ translate, rotate, scale ]);
-};
-
-
-/**
- * @param {SVGElement} element
- * @param {Number} x
- * @param {Number} y
- */
-module.exports.translate = function(gfx, x, y) {
-  var translate = createTransform();
-  translate.setTranslate(x, y);
-
-  svgTransform(gfx, translate);
-};
-
-
-/**
- * @param {SVGElement} element
- * @param {Number} angle
- */
-module.exports.rotate = function(gfx, angle) {
-  var rotate = createTransform();
-  rotate.setRotate(angle, 0, 0);
-
-  svgTransform(gfx, rotate);
-};
-
-
-/**
- * @param {SVGElement} element
- * @param {Number} amount
- */
-module.exports.scale = function(gfx, amount) {
-  var scale = createTransform();
-  scale.setScale(amount, amount);
-
-  svgTransform(gfx, scale);
-};
-
-},{"344":344,"346":346}],201:[function(_dereq_,module,exports){
-'use strict';
-
-var isObject = _dereq_(313),
-    assign = _dereq_(318),
-    pick = _dereq_(323),
-    forEach = _dereq_(220),
-    reduce = _dereq_(222),
-    merge = _dereq_(321);
-
-var svgAppend = _dereq_(339),
-    svgAttr = _dereq_(341),
-    svgCreate = _dereq_(343),
-    svgRemove = _dereq_(345);
-
-var DEFAULT_BOX_PADDING = 0;
-
-var DEFAULT_LABEL_SIZE = {
-  width: 150,
-  height: 50
-};
-
-
-function parseAlign(align) {
-
-  var parts = align.split('-');
-
-  return {
-    horizontal: parts[0] || 'center',
-    vertical: parts[1] || 'top'
-  };
-}
-
-function parsePadding(padding) {
-
-  if (isObject(padding)) {
-    return assign({ top: 0, left: 0, right: 0, bottom: 0 }, padding);
-  } else {
-    return {
-      top: padding,
-      left: padding,
-      right: padding,
-      bottom: padding
-    };
-  }
-}
-
-function getTextBBox(text, fakeText) {
-
-  fakeText.textContent = text;
-
-  try {
-    var bbox,
-        emptyLine = text === '';
-
-    // add dummy text, when line is empty to determine correct height
-    fakeText.textContent = emptyLine ? 'dummy' : text;
-
-    bbox = pick(fakeText.getBBox(), [ 'width', 'height' ]);
-
-    if (emptyLine) {
-      // correct width
-      bbox.width = 0;
-    }
-
-    return bbox;
-  } catch (e) {
-    return { width: 0, height: 0 };
-  }
-}
-
-
-/**
- * Layout the next line and return the layouted element.
- *
- * Alters the lines passed.
- *
- * @param  {Array<String>} lines
- * @return {Object} the line descriptor, an object { width, height, text }
- */
-function layoutNext(lines, maxWidth, fakeText) {
-
-  var originalLine = lines.shift(),
-      fitLine = originalLine;
-
-  var textBBox;
-
-  for (;;) {
-    textBBox = getTextBBox(fitLine, fakeText);
-
-    textBBox.width = fitLine ? textBBox.width : 0;
-
-    // try to fit
-    if (fitLine === ' ' || fitLine === '' || textBBox.width < Math.round(maxWidth) || fitLine.length < 4) {
-      return fit(lines, fitLine, originalLine, textBBox);
-    }
-
-    fitLine = shortenLine(fitLine, textBBox.width, maxWidth);
-  }
-}
-
-function fit(lines, fitLine, originalLine, textBBox) {
-  if (fitLine.length < originalLine.length) {
-    var nextLine = lines[0] || '',
-        remainder = originalLine.slice(fitLine.length).trim();
-
-    if (/-\s*$/.test(remainder)) {
-      nextLine = remainder + nextLine.replace(/^\s+/, '');
-    } else {
-      nextLine = remainder + ' ' + nextLine;
-    }
-
-    lines[0] = nextLine;
-  }
-  return { width: textBBox.width, height: textBBox.height, text: fitLine };
-}
-
-
-/**
- * Shortens a line based on spacing and hyphens.
- * Returns the shortened result on success.
- *
- * @param  {String} line
- * @param  {Number} maxLength the maximum characters of the string
- * @return {String} the shortened string
- */
-function semanticShorten(line, maxLength) {
-  var parts = line.split(/(\s|-)/g),
-      part,
-      shortenedParts = [],
-      length = 0;
-
-  // try to shorten via spaces + hyphens
-  if (parts.length > 1) {
-    while ((part = parts.shift())) {
-      if (part.length + length < maxLength) {
-        shortenedParts.push(part);
-        length += part.length;
-      } else {
-        // remove previous part, too if hyphen does not fit anymore
-        if (part === '-') {
-          shortenedParts.pop();
-        }
-
-        break;
-      }
-    }
-  }
-
-  return shortenedParts.join('');
-}
-
-
-function shortenLine(line, width, maxWidth) {
-  var length = Math.max(line.length * (maxWidth / width), 1);
-
-  // try to shorten semantically (i.e. based on spaces and hyphens)
-  var shortenedLine = semanticShorten(line, length);
-
-  if (!shortenedLine) {
-
-    // force shorten by cutting the long word
-    shortenedLine = line.slice(0, Math.max(Math.round(length - 1), 1));
-  }
-
-  return shortenedLine;
-}
-
-
-/**
- * Creates a new label utility
- *
- * @param {Object} config
- * @param {Dimensions} config.size
- * @param {Number} config.padding
- * @param {Object} config.style
- * @param {String} config.align
- */
-function Text(config) {
-
-  this._config = assign({}, {
-    size: DEFAULT_LABEL_SIZE,
-    padding: DEFAULT_BOX_PADDING,
-    style: {},
-    align: 'center-top'
-  }, config || {});
-}
-
-
-/**
- * Create a label in the parent node.
- *
- * @method Text#createText
- *
- * @param {SVGElement} parent the parent to draw the label on
- * @param {String} text the text to render on the label
- * @param {Object} options
- * @param {String} options.align how to align in the bounding box.
- *                             Any of { 'center-middle', 'center-top' }, defaults to 'center-top'.
- * @param {String} options.style style to be applied to the text
- *
- * @return {SVGText} the text element created
- */
-Text.prototype.createText = function(parent, text, options) {
-
-  var box = merge({}, this._config.size, options.box || {}),
-      style = merge({}, this._config.style, options.style || {}),
-      align = parseAlign(options.align || this._config.align),
-      padding = parsePadding(options.padding !== undefined ? options.padding : this._config.padding);
-
-  var lines = text.split(/\r?\n/g),
-      layouted = [];
-
-  var maxWidth = box.width - padding.left - padding.right;
-
-  // FF regression: ensure text is shown during rendering
-  // by attaching it directly to the body
-  var fakeText = svgCreate('text');
-  svgAttr(fakeText, { x: 0, y: 0 });
-  svgAttr(fakeText, style);
-
-  svgAppend(parent, fakeText);
-
-  while (lines.length) {
-    layouted.push(layoutNext(lines, maxWidth, fakeText));
-  }
-
-  var totalHeight = reduce(layouted, function(sum, line, idx) {
-    return sum + line.height;
-  }, 0);
-
-  // the y position of the next line
-  var y, x;
-
-  switch (align.vertical) {
-  case 'middle':
-    y = (box.height - totalHeight) / 2 - layouted[0].height / 4;
-    break;
-
-  default:
-    y = padding.top;
-  }
-
-  var textElement = svgCreate('text');
-
-  svgAttr(textElement, style);
-
-  svgAppend(parent, textElement);
-
-  forEach(layouted, function(line) {
-    y += line.height;
-
-    switch (align.horizontal) {
-    case 'left':
-      x = padding.left;
-      break;
-
-    case 'right':
-      x = (maxWidth - padding.right - line.width);
-      break;
-
-    default:
-        // aka center
-      x = Math.max(((maxWidth - line.width) / 2 + padding.left), 0);
-    }
-
-    var tspan = svgCreate('tspan');
-    svgAttr(tspan, { x: x, y: y });
-
-    tspan.textContent = line.text;
-
-    svgAppend(textElement, tspan);
-  });
-
-  // remove fake text
-  svgRemove(fakeText);
-
-  return textElement;
-};
-
-
-module.exports = Text;
-
-},{"220":220,"222":222,"313":313,"318":318,"321":321,"323":323,"339":339,"341":341,"343":343,"345":345}],202:[function(_dereq_,module,exports){
-/**
- * Module dependencies.
- */
-
-try {
-  var index = _dereq_(206);
-} catch (err) {
-  var index = _dereq_(206);
-}
-
-/**
- * Whitespace regexp.
- */
-
-var re = /\s+/;
-
-/**
- * toString reference.
- */
-
-var toString = Object.prototype.toString;
-
-/**
- * Wrap `el` in a `ClassList`.
- *
- * @param {Element} el
- * @return {ClassList}
- * @api public
- */
-
-module.exports = function(el){
-  return new ClassList(el);
-};
-
-/**
- * Initialize a new ClassList for `el`.
- *
- * @param {Element} el
- * @api private
- */
-
-function ClassList(el) {
-  if (!el || !el.nodeType) {
-    throw new Error('A DOM element reference is required');
-  }
-  this.el = el;
-  this.list = el.classList;
-}
-
-/**
- * Add class `name` if not already present.
- *
- * @param {String} name
- * @return {ClassList}
- * @api public
- */
-
-ClassList.prototype.add = function(name){
-  // classList
-  if (this.list) {
-    this.list.add(name);
-    return this;
-  }
-
-  // fallback
-  var arr = this.array();
-  var i = index(arr, name);
-  if (!~i) arr.push(name);
-  this.el.className = arr.join(' ');
-  return this;
-};
-
-/**
- * Remove class `name` when present, or
- * pass a regular expression to remove
- * any which match.
- *
- * @param {String|RegExp} name
- * @return {ClassList}
- * @api public
- */
-
-ClassList.prototype.remove = function(name){
-  if ('[object RegExp]' == toString.call(name)) {
-    return this.removeMatching(name);
-  }
-
-  // classList
-  if (this.list) {
-    this.list.remove(name);
-    return this;
-  }
-
-  // fallback
-  var arr = this.array();
-  var i = index(arr, name);
-  if (~i) arr.splice(i, 1);
-  this.el.className = arr.join(' ');
-  return this;
-};
-
-/**
- * Remove all classes matching `re`.
- *
- * @param {RegExp} re
- * @return {ClassList}
- * @api private
- */
-
-ClassList.prototype.removeMatching = function(re){
-  var arr = this.array();
-  for (var i = 0; i < arr.length; i++) {
-    if (re.test(arr[i])) {
-      this.remove(arr[i]);
-    }
-  }
-  return this;
-};
-
-/**
- * Toggle class `name`, can force state via `force`.
- *
- * For browsers that support classList, but do not support `force` yet,
- * the mistake will be detected and corrected.
- *
- * @param {String} name
- * @param {Boolean} force
- * @return {ClassList}
- * @api public
- */
-
-ClassList.prototype.toggle = function(name, force){
-  // classList
-  if (this.list) {
-    if ("undefined" !== typeof force) {
-      if (force !== this.list.toggle(name, force)) {
-        this.list.toggle(name); // toggle again to correct
-      }
-    } else {
-      this.list.toggle(name);
-    }
-    return this;
-  }
-
-  // fallback
-  if ("undefined" !== typeof force) {
-    if (!force) {
-      this.remove(name);
-    } else {
-      this.add(name);
-    }
-  } else {
-    if (this.has(name)) {
-      this.remove(name);
-    } else {
-      this.add(name);
-    }
-  }
-
-  return this;
-};
-
-/**
- * Return an array of classes.
- *
- * @return {Array}
- * @api public
- */
-
-ClassList.prototype.array = function(){
-  var className = this.el.getAttribute('class') || '';
-  var str = className.replace(/^\s+|\s+$/g, '');
-  var arr = str.split(re);
-  if ('' === arr[0]) arr.shift();
-  return arr;
-};
-
-/**
- * Check if class `name` is present.
- *
- * @param {String} name
- * @return {ClassList}
- * @api public
- */
-
-ClassList.prototype.has =
-ClassList.prototype.contains = function(name){
-  return this.list
-    ? this.list.contains(name)
-    : !! ~index(this.array(), name);
-};
-
-},{"206":206}],203:[function(_dereq_,module,exports){
-arguments[4][23][0].apply(exports,arguments)
-},{"207":207,"23":23}],204:[function(_dereq_,module,exports){
-arguments[4][24][0].apply(exports,arguments)
-},{"203":203,"205":205,"24":24}],205:[function(_dereq_,module,exports){
-arguments[4][25][0].apply(exports,arguments)
-},{"25":25}],206:[function(_dereq_,module,exports){
-module.exports = function(arr, obj){
-  if (arr.indexOf) return arr.indexOf(obj);
-  for (var i = 0; i < arr.length; ++i) {
-    if (arr[i] === obj) return i;
-  }
-  return -1;
-};
-},{}],207:[function(_dereq_,module,exports){
-arguments[4][26][0].apply(exports,arguments)
-},{"208":208,"26":26}],208:[function(_dereq_,module,exports){
-arguments[4][27][0].apply(exports,arguments)
-},{"27":27}],209:[function(_dereq_,module,exports){
-
-var isArray = function(obj) {
-  return Object.prototype.toString.call(obj) === '[object Array]';
-};
-
-var annotate = function() {
-  var args = Array.prototype.slice.call(arguments);
-  
-  if (args.length === 1 && isArray(args[0])) {
-    args = args[0];
-  }
-
-  var fn = args.pop();
-
-  fn.$inject = args;
-
-  return fn;
-};
-
-
-// Current limitations:
-// - can't put into "function arg" comments
-// function /* (no parenthesis like this) */ (){}
-// function abc( /* xx (no parenthesis like this) */ a, b) {}
-//
-// Just put the comment before function or inside:
-// /* (((this is fine))) */ function(a, b) {}
-// function abc(a) { /* (((this is fine))) */}
-
-var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
-var FN_ARG = /\/\*([^\*]*)\*\//m;
-
-var parse = function(fn) {
-  if (typeof fn !== 'function') {
-    throw new Error('Cannot annotate "' + fn + '". Expected a function!');
-  }
-
-  var match = fn.toString().match(FN_ARGS);
-  return match[1] && match[1].split(',').map(function(arg) {
-    match = arg.match(FN_ARG);
-    return match ? match[1].trim() : arg.trim();
-  }) || [];
-};
-
-
-exports.annotate = annotate;
-exports.parse = parse;
-exports.isArray = isArray;
-
-},{}],210:[function(_dereq_,module,exports){
-module.exports = {
-  annotate: _dereq_(209).annotate,
-  Module: _dereq_(212),
-  Injector: _dereq_(211)
-};
-
-},{"209":209,"211":211,"212":212}],211:[function(_dereq_,module,exports){
-var Module = _dereq_(212);
-var autoAnnotate = _dereq_(209).parse;
-var annotate = _dereq_(209).annotate;
-var isArray = _dereq_(209).isArray;
-
-
-var Injector = function(modules, parent) {
-  parent = parent || {
-    get: function(name, strict) {
-      currentlyResolving.push(name);
-
-      if (strict === false) {
-        return null;
-      } else {
-        throw error('No provider for "' + name + '"!');
-      }
-    }
-  };
-
-  var currentlyResolving = [];
-  var providers = this._providers = Object.create(parent._providers || null);
-  var instances = this._instances = Object.create(null);
-
-  var self = instances.injector = this;
-
-  var error = function(msg) {
-    var stack = currentlyResolving.join(' -> ');
-    currentlyResolving.length = 0;
-    return new Error(stack ? msg + ' (Resolving: ' + stack + ')' : msg);
-  };
-
-  /**
-   * Return a named service.
-   *
-   * @param {String} name
-   * @param {Boolean} [strict=true] if false, resolve missing services to null
-   *
-   * @return {Object}
-   */
-  var get = function(name, strict) {
-    if (!providers[name] && name.indexOf('.') !== -1) {
-      var parts = name.split('.');
-      var pivot = get(parts.shift());
-
-      while(parts.length) {
-        pivot = pivot[parts.shift()];
-      }
-
-      return pivot;
-    }
-
-    if (Object.hasOwnProperty.call(instances, name)) {
-      return instances[name];
-    }
-
-    if (Object.hasOwnProperty.call(providers, name)) {
-      if (currentlyResolving.indexOf(name) !== -1) {
-        currentlyResolving.push(name);
-        throw error('Cannot resolve circular dependency!');
-      }
-
-      currentlyResolving.push(name);
-      instances[name] = providers[name][0](providers[name][1]);
-      currentlyResolving.pop();
-
-      return instances[name];
-    }
-
-    return parent.get(name, strict);
-  };
-
-  var instantiate = function(Type) {
-    var instance = Object.create(Type.prototype);
-    var returned = invoke(Type, instance);
-
-    return typeof returned === 'object' ? returned : instance;
-  };
-
-  var invoke = function(fn, context) {
-    if (typeof fn !== 'function') {
-      if (isArray(fn)) {
-        fn = annotate(fn.slice());
-      } else {
-        throw new Error('Cannot invoke "' + fn + '". Expected a function!');
-      }
-    }
-
-    var inject = fn.$inject && fn.$inject || autoAnnotate(fn);
-    var dependencies = inject.map(function(dep) {
-      return get(dep);
-    });
-
-    // TODO(vojta): optimize without apply
-    return fn.apply(context, dependencies);
-  };
-
-
-  var createPrivateInjectorFactory = function(privateChildInjector) {
-    return annotate(function(key) {
-      return privateChildInjector.get(key);
-    });
-  };
-
-  var createChild = function(modules, forceNewInstances) {
-    if (forceNewInstances && forceNewInstances.length) {
-      var fromParentModule = Object.create(null);
-      var matchedScopes = Object.create(null);
-
-      var privateInjectorsCache = [];
-      var privateChildInjectors = [];
-      var privateChildFactories = [];
-
-      var provider;
-      var cacheIdx;
-      var privateChildInjector;
-      var privateChildInjectorFactory;
-      for (var name in providers) {
-        provider = providers[name];
-
-        if (forceNewInstances.indexOf(name) !== -1) {
-          if (provider[2] === 'private') {
-            cacheIdx = privateInjectorsCache.indexOf(provider[3]);
-            if (cacheIdx === -1) {
-              privateChildInjector = provider[3].createChild([], forceNewInstances);
-              privateChildInjectorFactory = createPrivateInjectorFactory(privateChildInjector);
-              privateInjectorsCache.push(provider[3]);
-              privateChildInjectors.push(privateChildInjector);
-              privateChildFactories.push(privateChildInjectorFactory);
-              fromParentModule[name] = [privateChildInjectorFactory, name, 'private', privateChildInjector];
-            } else {
-              fromParentModule[name] = [privateChildFactories[cacheIdx], name, 'private', privateChildInjectors[cacheIdx]];
-            }
-          } else {
-            fromParentModule[name] = [provider[2], provider[1]];
-          }
-          matchedScopes[name] = true;
-        }
-
-        if ((provider[2] === 'factory' || provider[2] === 'type') && provider[1].$scope) {
-          /*jshint -W083 */
-          forceNewInstances.forEach(function(scope) {
-            if (provider[1].$scope.indexOf(scope) !== -1) {
-              fromParentModule[name] = [provider[2], provider[1]];
-              matchedScopes[scope] = true;
-            }
-          });
-        }
-      }
-
-      forceNewInstances.forEach(function(scope) {
-        if (!matchedScopes[scope]) {
-          throw new Error('No provider for "' + scope + '". Cannot use provider from the parent!');
-        }
-      });
-
-      modules.unshift(fromParentModule);
-    }
-
-    return new Injector(modules, self);
-  };
-
-  var factoryMap = {
-    factory: invoke,
-    type: instantiate,
-    value: function(value) {
-      return value;
-    }
-  };
-
-  modules.forEach(function(module) {
-
-    function arrayUnwrap(type, value) {
-      if (type !== 'value' && isArray(value)) {
-        value = annotate(value.slice());
-      }
-
-      return value;
-    }
-
-    // TODO(vojta): handle wrong inputs (modules)
-    if (module instanceof Module) {
-      module.forEach(function(provider) {
-        var name = provider[0];
-        var type = provider[1];
-        var value = provider[2];
-
-        providers[name] = [factoryMap[type], arrayUnwrap(type, value), type];
-      });
-    } else if (typeof module === 'object') {
-      if (module.__exports__) {
-        var clonedModule = Object.keys(module).reduce(function(m, key) {
-          if (key.substring(0, 2) !== '__') {
-            m[key] = module[key];
-          }
-          return m;
-        }, Object.create(null));
-
-        var privateInjector = new Injector((module.__modules__ || []).concat([clonedModule]), self);
-        var getFromPrivateInjector = annotate(function(key) {
-          return privateInjector.get(key);
-        });
-        module.__exports__.forEach(function(key) {
-          providers[key] = [getFromPrivateInjector, key, 'private', privateInjector];
-        });
-      } else {
-        Object.keys(module).forEach(function(name) {
-          if (module[name][2] === 'private') {
-            providers[name] = module[name];
-            return;
-          }
-
-          var type = module[name][0];
-          var value = module[name][1];
-
-          providers[name] = [factoryMap[type], arrayUnwrap(type, value), type];
-        });
-      }
-    }
-  });
-
-  // public API
-  this.get = get;
-  this.invoke = invoke;
-  this.instantiate = instantiate;
-  this.createChild = createChild;
-};
-
-module.exports = Injector;
-
-},{"209":209,"212":212}],212:[function(_dereq_,module,exports){
-var Module = function() {
-  var providers = [];
-
-  this.factory = function(name, factory) {
-    providers.push([name, 'factory', factory]);
-    return this;
-  };
-
-  this.value = function(name, value) {
-    providers.push([name, 'value', value]);
-    return this;
-  };
-
-  this.type = function(name, type) {
-    providers.push([name, 'type', type]);
-    return this;
-  };
-
-  this.forEach = function(iterator) {
-    providers.forEach(iterator);
-  };
-};
-
-module.exports = Module;
-
-},{}],213:[function(_dereq_,module,exports){
-arguments[4][28][0].apply(exports,arguments)
-},{"28":28}],214:[function(_dereq_,module,exports){
-arguments[4][29][0].apply(exports,arguments)
-},{"29":29}],215:[function(_dereq_,module,exports){
-arguments[4][30][0].apply(exports,arguments)
-},{"30":30}],216:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(227),
-    LodashWrapper = _dereq_(228),
-    baseLodash = _dereq_(254),
-    isArray = _dereq_(309),
-    isObjectLike = _dereq_(294),
-    wrapperClone = _dereq_(307);
-
-/** Used for native method references. */
-var objectProto = Object.prototype;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/**
- * Creates a `lodash` object which wraps `value` to enable implicit chaining.
- * Methods that operate on and return arrays, collections, and functions can
- * be chained together. Methods that retrieve a single value or may return a
- * primitive value will automatically end the chain returning the unwrapped
- * value. Explicit chaining may be enabled using `_.chain`. The execution of
- * chained methods is lazy, that is, execution is deferred until `_#value`
- * is implicitly or explicitly called.
- *
- * Lazy evaluation allows several methods to support shortcut fusion. Shortcut
- * fusion is an optimization strategy which merge iteratee calls; this can help
- * to avoid the creation of intermediate data structures and greatly reduce the
- * number of iteratee executions.
- *
- * Chaining is supported in custom builds as long as the `_#value` method is
- * directly or indirectly included in the build.
- *
- * In addition to lodash methods, wrappers have `Array` and `String` methods.
- *
- * The wrapper `Array` methods are:
- * `concat`, `join`, `pop`, `push`, `reverse`, `shift`, `slice`, `sort`,
- * `splice`, and `unshift`
- *
- * The wrapper `String` methods are:
- * `replace` and `split`
- *
- * The wrapper methods that support shortcut fusion are:
- * `compact`, `drop`, `dropRight`, `dropRightWhile`, `dropWhile`, `filter`,
- * `first`, `initial`, `last`, `map`, `pluck`, `reject`, `rest`, `reverse`,
- * `slice`, `take`, `takeRight`, `takeRightWhile`, `takeWhile`, `toArray`,
- * and `where`
- *
- * The chainable wrapper methods are:
- * `after`, `ary`, `assign`, `at`, `before`, `bind`, `bindAll`, `bindKey`,
- * `callback`, `chain`, `chunk`, `commit`, `compact`, `concat`, `constant`,
- * `countBy`, `create`, `curry`, `debounce`, `defaults`, `defaultsDeep`,
- * `defer`, `delay`, `difference`, `drop`, `dropRight`, `dropRightWhile`,
- * `dropWhile`, `fill`, `filter`, `flatten`, `flattenDeep`, `flow`, `flowRight`,
- * `forEach`, `forEachRight`, `forIn`, `forInRight`, `forOwn`, `forOwnRight`,
- * `functions`, `groupBy`, `indexBy`, `initial`, `intersection`, `invert`,
- * `invoke`, `keys`, `keysIn`, `map`, `mapKeys`, `mapValues`, `matches`,
- * `matchesProperty`, `memoize`, `merge`, `method`, `methodOf`, `mixin`,
- * `modArgs`, `negate`, `omit`, `once`, `pairs`, `partial`, `partialRight`,
- * `partition`, `pick`, `plant`, `pluck`, `property`, `propertyOf`, `pull`,
- * `pullAt`, `push`, `range`, `rearg`, `reject`, `remove`, `rest`, `restParam`,
- * `reverse`, `set`, `shuffle`, `slice`, `sort`, `sortBy`, `sortByAll`,
- * `sortByOrder`, `splice`, `spread`, `take`, `takeRight`, `takeRightWhile`,
- * `takeWhile`, `tap`, `throttle`, `thru`, `times`, `toArray`, `toPlainObject`,
- * `transform`, `union`, `uniq`, `unshift`, `unzip`, `unzipWith`, `values`,
- * `valuesIn`, `where`, `without`, `wrap`, `xor`, `zip`, `zipObject`, `zipWith`
- *
- * The wrapper methods that are **not** chainable by default are:
- * `add`, `attempt`, `camelCase`, `capitalize`, `ceil`, `clone`, `cloneDeep`,
- * `deburr`, `endsWith`, `escape`, `escapeRegExp`, `every`, `find`, `findIndex`,
- * `findKey`, `findLast`, `findLastIndex`, `findLastKey`, `findWhere`, `first`,
- * `floor`, `get`, `gt`, `gte`, `has`, `identity`, `includes`, `indexOf`,
- * `inRange`, `isArguments`, `isArray`, `isBoolean`, `isDate`, `isElement`,
- * `isEmpty`, `isEqual`, `isError`, `isFinite` `isFunction`, `isMatch`,
- * `isNative`, `isNaN`, `isNull`, `isNumber`, `isObject`, `isPlainObject`,
- * `isRegExp`, `isString`, `isUndefined`, `isTypedArray`, `join`, `kebabCase`,
- * `last`, `lastIndexOf`, `lt`, `lte`, `max`, `min`, `noConflict`, `noop`,
- * `now`, `pad`, `padLeft`, `padRight`, `parseInt`, `pop`, `random`, `reduce`,
- * `reduceRight`, `repeat`, `result`, `round`, `runInContext`, `shift`, `size`,
- * `snakeCase`, `some`, `sortedIndex`, `sortedLastIndex`, `startCase`,
- * `startsWith`, `sum`, `template`, `trim`, `trimLeft`, `trimRight`, `trunc`,
- * `unescape`, `uniqueId`, `value`, and `words`
- *
- * The wrapper method `sample` will return a wrapped value when `n` is provided,
- * otherwise an unwrapped value is returned.
- *
- * @name _
- * @constructor
- * @category Chain
- * @param {*} value The value to wrap in a `lodash` instance.
- * @returns {Object} Returns the new `lodash` wrapper instance.
- * @example
- *
- * var wrapped = _([1, 2, 3]);
- *
- * // returns an unwrapped value
- * wrapped.reduce(function(total, n) {
- *   return total + n;
- * });
- * // => 6
- *
- * // returns a wrapped value
- * var squares = wrapped.map(function(n) {
- *   return n * n;
- * });
- *
- * _.isArray(squares);
- * // => false
- *
- * _.isArray(squares.value());
- * // => true
- */
-function lodash(value) {
-  if (isObjectLike(value) && !isArray(value) && !(value instanceof LazyWrapper)) {
-    if (value instanceof LodashWrapper) {
-      return value;
-    }
-    if (hasOwnProperty.call(value, '__chain__') && hasOwnProperty.call(value, '__wrapped__')) {
-      return wrapperClone(value);
-    }
-  }
-  return new LodashWrapper(value);
-}
-
-// Ensure wrappers are instances of `baseLodash`.
-lodash.prototype = baseLodash.prototype;
-
-module.exports = lodash;
-
-},{"227":227,"228":228,"254":254,"294":294,"307":307,"309":309}],217:[function(_dereq_,module,exports){
-arguments[4][31][0].apply(exports,arguments)
-},{"231":231,"238":238,"242":242,"290":290,"309":309,"31":31}],218:[function(_dereq_,module,exports){
-arguments[4][32][0].apply(exports,arguments)
-},{"232":232,"238":238,"243":243,"309":309,"32":32}],219:[function(_dereq_,module,exports){
-arguments[4][33][0].apply(exports,arguments)
-},{"241":241,"274":274,"33":33}],220:[function(_dereq_,module,exports){
-arguments[4][34][0].apply(exports,arguments)
-},{"230":230,"241":241,"275":275,"34":34}],221:[function(_dereq_,module,exports){
-var createAggregator = _dereq_(268);
-
-/** Used for native method references. */
-var objectProto = Object.prototype;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/**
- * Creates an object composed of keys generated from the results of running
- * each element of `collection` through `iteratee`. The corresponding value
- * of each key is an array of the elements responsible for generating the key.
- * The `iteratee` is bound to `thisArg` and invoked with three arguments:
- * (value, index|key, collection).
- *
- * If a property name is provided for `iteratee` the created `_.property`
- * style callback returns the property value of the given element.
- *
- * If a value is also provided for `thisArg` the created `_.matchesProperty`
- * style callback returns `true` for elements that have a matching property
- * value, else `false`.
- *
- * If an object is provided for `iteratee` the created `_.matches` style
- * callback returns `true` for elements that have the properties of the given
- * object, else `false`.
- *
- * @static
- * @memberOf _
- * @category Collection
- * @param {Array|Object|string} collection The collection to iterate over.
- * @param {Function|Object|string} [iteratee=_.identity] The function invoked
- *  per iteration.
- * @param {*} [thisArg] The `this` binding of `iteratee`.
- * @returns {Object} Returns the composed aggregate object.
- * @example
- *
- * _.groupBy([4.2, 6.1, 6.4], function(n) {
- *   return Math.floor(n);
- * });
- * // => { '4': [4.2], '6': [6.1, 6.4] }
- *
- * _.groupBy([4.2, 6.1, 6.4], function(n) {
- *   return this.floor(n);
- * }, Math);
- * // => { '4': [4.2], '6': [6.1, 6.4] }
- *
- * // using the `_.property` callback shorthand
- * _.groupBy(['one', 'two', 'three'], 'length');
- * // => { '3': ['one', 'two'], '5': ['three'] }
- */
-var groupBy = createAggregator(function(result, value, key) {
-  if (hasOwnProperty.call(result, key)) {
-    result[key].push(value);
-  } else {
-    result[key] = [value];
-  }
-});
-
-module.exports = groupBy;
-
-},{"268":268}],222:[function(_dereq_,module,exports){
-arguments[4][37][0].apply(exports,arguments)
-},{"234":234,"241":241,"278":278,"37":37}],223:[function(_dereq_,module,exports){
-var getNative = _dereq_(287);
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeNow = getNative(Date, 'now');
-
-/**
- * Gets the number of milliseconds that have elapsed since the Unix epoch
- * (1 January 1970 00:00:00 UTC).
- *
- * @static
- * @memberOf _
- * @category Date
- * @example
- *
- * _.defer(function(stamp) {
- *   console.log(_.now() - stamp);
- * }, _.now());
- * // => logs the number of milliseconds it took for the deferred function to be invoked
- */
-var now = nativeNow || function() {
-  return new Date().getTime();
-};
-
-module.exports = now;
-
-},{"287":287}],224:[function(_dereq_,module,exports){
-var createWrapper = _dereq_(279),
-    replaceHolders = _dereq_(302),
-    restParam = _dereq_(226);
-
-/** Used to compose bitmasks for wrapper metadata. */
-var BIND_FLAG = 1,
-    PARTIAL_FLAG = 32;
-
-/**
- * Creates a function that invokes `func` with the `this` binding of `thisArg`
- * and prepends any additional `_.bind` arguments to those provided to the
- * bound function.
- *
- * The `_.bind.placeholder` value, which defaults to `_` in monolithic builds,
- * may be used as a placeholder for partially applied arguments.
- *
- * **Note:** Unlike native `Function#bind` this method does not set the "length"
- * property of bound functions.
- *
- * @static
- * @memberOf _
- * @category Function
- * @param {Function} func The function to bind.
- * @param {*} thisArg The `this` binding of `func`.
- * @param {...*} [partials] The arguments to be partially applied.
- * @returns {Function} Returns the new bound function.
- * @example
- *
- * var greet = function(greeting, punctuation) {
- *   return greeting + ' ' + this.user + punctuation;
- * };
- *
- * var object = { 'user': 'fred' };
- *
- * var bound = _.bind(greet, object, 'hi');
- * bound('!');
- * // => 'hi fred!'
- *
- * // using placeholders
- * var bound = _.bind(greet, object, _, '!');
- * bound('hi');
- * // => 'hi fred!'
- */
-var bind = restParam(function(func, thisArg, partials) {
-  var bitmask = BIND_FLAG;
-  if (partials.length) {
-    var holders = replaceHolders(partials, bind.placeholder);
-    bitmask |= PARTIAL_FLAG;
-  }
-  return createWrapper(func, bitmask, thisArg, partials, holders);
-});
-
-// Assign default placeholders.
-bind.placeholder = {};
-
-module.exports = bind;
-
-},{"226":226,"279":279,"302":302}],225:[function(_dereq_,module,exports){
-var isObject = _dereq_(313),
-    now = _dereq_(223);
-
-/** Used as the `TypeError` message for "Functions" methods. */
-var FUNC_ERROR_TEXT = 'Expected a function';
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMax = Math.max;
-
-/**
- * Creates a debounced function that delays invoking `func` until after `wait`
- * milliseconds have elapsed since the last time the debounced function was
- * invoked. The debounced function comes with a `cancel` method to cancel
- * delayed invocations. Provide an options object to indicate that `func`
- * should be invoked on the leading and/or trailing edge of the `wait` timeout.
- * Subsequent calls to the debounced function return the result of the last
- * `func` invocation.
- *
- * **Note:** If `leading` and `trailing` options are `true`, `func` is invoked
- * on the trailing edge of the timeout only if the the debounced function is
- * invoked more than once during the `wait` timeout.
- *
- * See [David Corbacho's article](http://drupalmotion.com/article/debounce-and-throttle-visual-explanation)
- * for details over the differences between `_.debounce` and `_.throttle`.
- *
- * @static
- * @memberOf _
- * @category Function
- * @param {Function} func The function to debounce.
- * @param {number} [wait=0] The number of milliseconds to delay.
- * @param {Object} [options] The options object.
- * @param {boolean} [options.leading=false] Specify invoking on the leading
- *  edge of the timeout.
- * @param {number} [options.maxWait] The maximum time `func` is allowed to be
- *  delayed before it's invoked.
- * @param {boolean} [options.trailing=true] Specify invoking on the trailing
- *  edge of the timeout.
- * @returns {Function} Returns the new debounced function.
- * @example
- *
- * // avoid costly calculations while the window size is in flux
- * jQuery(window).on('resize', _.debounce(calculateLayout, 150));
- *
- * // invoke `sendMail` when the click event is fired, debouncing subsequent calls
- * jQuery('#postbox').on('click', _.debounce(sendMail, 300, {
- *   'leading': true,
- *   'trailing': false
- * }));
- *
- * // ensure `batchLog` is invoked once after 1 second of debounced calls
- * var source = new EventSource('/stream');
- * jQuery(source).on('message', _.debounce(batchLog, 250, {
- *   'maxWait': 1000
- * }));
- *
- * // cancel a debounced call
- * var todoChanges = _.debounce(batchLog, 1000);
- * Object.observe(models.todo, todoChanges);
- *
- * Object.observe(models, function(changes) {
- *   if (_.find(changes, { 'user': 'todo', 'type': 'delete'})) {
- *     todoChanges.cancel();
- *   }
- * }, ['delete']);
- *
- * // ...at some point `models.todo` is changed
- * models.todo.completed = true;
- *
- * // ...before 1 second has passed `models.todo` is deleted
- * // which cancels the debounced `todoChanges` call
- * delete models.todo;
- */
-function debounce(func, wait, options) {
-  var args,
-      maxTimeoutId,
-      result,
-      stamp,
-      thisArg,
-      timeoutId,
-      trailingCall,
-      lastCalled = 0,
-      maxWait = false,
-      trailing = true;
-
-  if (typeof func != 'function') {
-    throw new TypeError(FUNC_ERROR_TEXT);
-  }
-  wait = wait < 0 ? 0 : (+wait || 0);
-  if (options === true) {
-    var leading = true;
-    trailing = false;
-  } else if (isObject(options)) {
-    leading = !!options.leading;
-    maxWait = 'maxWait' in options && nativeMax(+options.maxWait || 0, wait);
-    trailing = 'trailing' in options ? !!options.trailing : trailing;
-  }
-
-  function cancel() {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-    if (maxTimeoutId) {
-      clearTimeout(maxTimeoutId);
-    }
-    lastCalled = 0;
-    maxTimeoutId = timeoutId = trailingCall = undefined;
-  }
-
-  function complete(isCalled, id) {
-    if (id) {
-      clearTimeout(id);
-    }
-    maxTimeoutId = timeoutId = trailingCall = undefined;
-    if (isCalled) {
-      lastCalled = now();
-      result = func.apply(thisArg, args);
-      if (!timeoutId && !maxTimeoutId) {
-        args = thisArg = undefined;
-      }
-    }
-  }
-
-  function delayed() {
-    var remaining = wait - (now() - stamp);
-    if (remaining <= 0 || remaining > wait) {
-      complete(trailingCall, maxTimeoutId);
-    } else {
-      timeoutId = setTimeout(delayed, remaining);
-    }
-  }
-
-  function maxDelayed() {
-    complete(trailing, timeoutId);
-  }
-
-  function debounced() {
-    args = arguments;
-    stamp = now();
-    thisArg = this;
-    trailingCall = trailing && (timeoutId || !leading);
-
-    if (maxWait === false) {
-      var leadingCall = leading && !timeoutId;
-    } else {
-      if (!maxTimeoutId && !leading) {
-        lastCalled = stamp;
-      }
-      var remaining = maxWait - (stamp - lastCalled),
-          isCalled = remaining <= 0 || remaining > maxWait;
-
-      if (isCalled) {
-        if (maxTimeoutId) {
-          maxTimeoutId = clearTimeout(maxTimeoutId);
-        }
-        lastCalled = stamp;
-        result = func.apply(thisArg, args);
-      }
-      else if (!maxTimeoutId) {
-        maxTimeoutId = setTimeout(maxDelayed, remaining);
-      }
-    }
-    if (isCalled && timeoutId) {
-      timeoutId = clearTimeout(timeoutId);
-    }
-    else if (!timeoutId && wait !== maxWait) {
-      timeoutId = setTimeout(delayed, wait);
-    }
-    if (leadingCall) {
-      isCalled = true;
-      result = func.apply(thisArg, args);
-    }
-    if (isCalled && !timeoutId && !maxTimeoutId) {
-      args = thisArg = undefined;
-    }
-    return result;
-  }
-  debounced.cancel = cancel;
-  return debounced;
-}
-
-module.exports = debounce;
-
-},{"223":223,"313":313}],226:[function(_dereq_,module,exports){
-arguments[4][40][0].apply(exports,arguments)
-},{"40":40}],227:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(240),
-    baseLodash = _dereq_(254);
-
-/** Used as references for `-Infinity` and `Infinity`. */
-var POSITIVE_INFINITY = Number.POSITIVE_INFINITY;
-
-/**
- * Creates a lazy wrapper object which wraps `value` to enable lazy evaluation.
- *
- * @private
- * @param {*} value The value to wrap.
- */
-function LazyWrapper(value) {
-  this.__wrapped__ = value;
-  this.__actions__ = [];
-  this.__dir__ = 1;
-  this.__filtered__ = false;
-  this.__iteratees__ = [];
-  this.__takeCount__ = POSITIVE_INFINITY;
-  this.__views__ = [];
-}
-
-LazyWrapper.prototype = baseCreate(baseLodash.prototype);
-LazyWrapper.prototype.constructor = LazyWrapper;
-
-module.exports = LazyWrapper;
-
-},{"240":240,"254":254}],228:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(240),
-    baseLodash = _dereq_(254);
-
-/**
- * The base constructor for creating `lodash` wrapper objects.
- *
- * @private
- * @param {*} value The value to wrap.
- * @param {boolean} [chainAll] Enable chaining for all wrapper methods.
- * @param {Array} [actions=[]] Actions to peform to resolve the unwrapped value.
- */
-function LodashWrapper(value, chainAll, actions) {
-  this.__wrapped__ = value;
-  this.__actions__ = actions || [];
-  this.__chain__ = !!chainAll;
-}
-
-LodashWrapper.prototype = baseCreate(baseLodash.prototype);
-LodashWrapper.prototype.constructor = LodashWrapper;
-
-module.exports = LodashWrapper;
-
-},{"240":240,"254":254}],229:[function(_dereq_,module,exports){
-/**
- * Copies the values of `source` to `array`.
- *
- * @private
- * @param {Array} source The array to copy values from.
- * @param {Array} [array=[]] The array to copy values to.
- * @returns {Array} Returns `array`.
- */
-function arrayCopy(source, array) {
-  var index = -1,
-      length = source.length;
-
-  array || (array = Array(length));
-  while (++index < length) {
-    array[index] = source[index];
-  }
-  return array;
-}
-
-module.exports = arrayCopy;
-
-},{}],230:[function(_dereq_,module,exports){
-arguments[4][42][0].apply(exports,arguments)
-},{"42":42}],231:[function(_dereq_,module,exports){
-arguments[4][43][0].apply(exports,arguments)
-},{"43":43}],232:[function(_dereq_,module,exports){
-arguments[4][44][0].apply(exports,arguments)
-},{"44":44}],233:[function(_dereq_,module,exports){
-arguments[4][46][0].apply(exports,arguments)
-},{"46":46}],234:[function(_dereq_,module,exports){
-arguments[4][47][0].apply(exports,arguments)
-},{"47":47}],235:[function(_dereq_,module,exports){
-arguments[4][48][0].apply(exports,arguments)
-},{"48":48}],236:[function(_dereq_,module,exports){
-arguments[4][49][0].apply(exports,arguments)
-},{"319":319,"49":49}],237:[function(_dereq_,module,exports){
-arguments[4][50][0].apply(exports,arguments)
-},{"239":239,"319":319,"50":50}],238:[function(_dereq_,module,exports){
-arguments[4][51][0].apply(exports,arguments)
-},{"255":255,"256":256,"265":265,"324":324,"326":326,"51":51}],239:[function(_dereq_,module,exports){
-arguments[4][52][0].apply(exports,arguments)
-},{"52":52}],240:[function(_dereq_,module,exports){
-var isObject = _dereq_(313);
-
-/**
- * The base implementation of `_.create` without support for assigning
- * properties to the created object.
- *
- * @private
- * @param {Object} prototype The object to inherit from.
- * @returns {Object} Returns the new object.
- */
-var baseCreate = (function() {
-  function object() {}
-  return function(prototype) {
-    if (isObject(prototype)) {
-      object.prototype = prototype;
-      var result = new object;
-      object.prototype = undefined;
-    }
-    return result || {};
-  };
-}());
-
-module.exports = baseCreate;
-
-},{"313":313}],241:[function(_dereq_,module,exports){
-arguments[4][55][0].apply(exports,arguments)
-},{"249":249,"270":270,"55":55}],242:[function(_dereq_,module,exports){
-arguments[4][56][0].apply(exports,arguments)
-},{"241":241,"56":56}],243:[function(_dereq_,module,exports){
-arguments[4][57][0].apply(exports,arguments)
-},{"241":241,"57":57}],244:[function(_dereq_,module,exports){
-arguments[4][58][0].apply(exports,arguments)
-},{"58":58}],245:[function(_dereq_,module,exports){
-arguments[4][59][0].apply(exports,arguments)
-},{"59":59}],246:[function(_dereq_,module,exports){
-arguments[4][60][0].apply(exports,arguments)
-},{"233":233,"288":288,"294":294,"308":308,"309":309,"60":60}],247:[function(_dereq_,module,exports){
-arguments[4][61][0].apply(exports,arguments)
-},{"271":271,"61":61}],248:[function(_dereq_,module,exports){
-arguments[4][62][0].apply(exports,arguments)
-},{"247":247,"320":320,"62":62}],249:[function(_dereq_,module,exports){
-arguments[4][63][0].apply(exports,arguments)
-},{"247":247,"319":319,"63":63}],250:[function(_dereq_,module,exports){
-arguments[4][64][0].apply(exports,arguments)
-},{"305":305,"64":64}],251:[function(_dereq_,module,exports){
-arguments[4][66][0].apply(exports,arguments)
-},{"252":252,"294":294,"313":313,"66":66}],252:[function(_dereq_,module,exports){
-arguments[4][67][0].apply(exports,arguments)
-},{"280":280,"281":281,"282":282,"309":309,"316":316,"67":67}],253:[function(_dereq_,module,exports){
-arguments[4][68][0].apply(exports,arguments)
-},{"251":251,"305":305,"68":68}],254:[function(_dereq_,module,exports){
-/**
- * The function whose prototype all chaining wrappers inherit from.
- *
- * @private
- */
-function baseLodash() {
-  // No operation performed.
-}
-
-module.exports = baseLodash;
-
-},{}],255:[function(_dereq_,module,exports){
-arguments[4][70][0].apply(exports,arguments)
-},{"253":253,"286":286,"305":305,"70":70}],256:[function(_dereq_,module,exports){
-arguments[4][71][0].apply(exports,arguments)
-},{"215":215,"250":250,"251":251,"263":263,"291":291,"295":295,"305":305,"306":306,"309":309,"71":71}],257:[function(_dereq_,module,exports){
-var arrayEach = _dereq_(230),
-    baseMergeDeep = _dereq_(258),
-    isArray = _dereq_(309),
-    isArrayLike = _dereq_(288),
-    isObject = _dereq_(313),
-    isObjectLike = _dereq_(294),
-    isTypedArray = _dereq_(316),
-    keys = _dereq_(319);
-
-/**
- * The base implementation of `_.merge` without support for argument juggling,
- * multiple sources, and `this` binding `customizer` functions.
- *
- * @private
- * @param {Object} object The destination object.
- * @param {Object} source The source object.
- * @param {Function} [customizer] The function to customize merged values.
- * @param {Array} [stackA=[]] Tracks traversed source objects.
- * @param {Array} [stackB=[]] Associates values with source counterparts.
- * @returns {Object} Returns `object`.
- */
-function baseMerge(object, source, customizer, stackA, stackB) {
-  if (!isObject(object)) {
-    return object;
-  }
-  var isSrcArr = isArrayLike(source) && (isArray(source) || isTypedArray(source)),
-      props = isSrcArr ? undefined : keys(source);
-
-  arrayEach(props || source, function(srcValue, key) {
-    if (props) {
-      key = srcValue;
-      srcValue = source[key];
-    }
-    if (isObjectLike(srcValue)) {
-      stackA || (stackA = []);
-      stackB || (stackB = []);
-      baseMergeDeep(object, source, key, baseMerge, customizer, stackA, stackB);
-    }
-    else {
-      var value = object[key],
-          result = customizer ? customizer(value, srcValue, key, object, source) : undefined,
-          isCommon = result === undefined;
-
-      if (isCommon) {
-        result = srcValue;
-      }
-      if ((result !== undefined || (isSrcArr && !(key in object))) &&
-          (isCommon || (result === result ? (result !== value) : (value === value)))) {
-        object[key] = result;
-      }
-    }
-  });
-  return object;
-}
-
-module.exports = baseMerge;
-
-},{"230":230,"258":258,"288":288,"294":294,"309":309,"313":313,"316":316,"319":319}],258:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(229),
-    isArguments = _dereq_(308),
-    isArray = _dereq_(309),
-    isArrayLike = _dereq_(288),
-    isPlainObject = _dereq_(314),
-    isTypedArray = _dereq_(316),
-    toPlainObject = _dereq_(317);
-
-/**
- * A specialized version of `baseMerge` for arrays and objects which performs
- * deep merges and tracks traversed objects enabling objects with circular
- * references to be merged.
- *
- * @private
- * @param {Object} object The destination object.
- * @param {Object} source The source object.
- * @param {string} key The key of the value to merge.
- * @param {Function} mergeFunc The function to merge values.
- * @param {Function} [customizer] The function to customize merged values.
- * @param {Array} [stackA=[]] Tracks traversed source objects.
- * @param {Array} [stackB=[]] Associates values with source counterparts.
- * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
- */
-function baseMergeDeep(object, source, key, mergeFunc, customizer, stackA, stackB) {
-  var length = stackA.length,
-      srcValue = source[key];
-
-  while (length--) {
-    if (stackA[length] == srcValue) {
-      object[key] = stackB[length];
-      return;
-    }
-  }
-  var value = object[key],
-      result = customizer ? customizer(value, srcValue, key, object, source) : undefined,
-      isCommon = result === undefined;
-
-  if (isCommon) {
-    result = srcValue;
-    if (isArrayLike(srcValue) && (isArray(srcValue) || isTypedArray(srcValue))) {
-      result = isArray(value)
-        ? value
-        : (isArrayLike(value) ? arrayCopy(value) : []);
-    }
-    else if (isPlainObject(srcValue) || isArguments(srcValue)) {
-      result = isArguments(value)
-        ? toPlainObject(value)
-        : (isPlainObject(value) ? value : {});
-    }
-    else {
-      isCommon = false;
-    }
-  }
-  // Add the source value to the stack of traversed objects and associate
-  // it with its merged value.
-  stackA.push(srcValue);
-  stackB.push(result);
-
-  if (isCommon) {
-    // Recursively merge objects and arrays (susceptible to call stack limits).
-    object[key] = mergeFunc(result, srcValue, customizer, stackA, stackB);
-  } else if (result === result ? (result !== value) : (value === value)) {
-    object[key] = result;
-  }
-}
-
-module.exports = baseMergeDeep;
-
-},{"229":229,"288":288,"308":308,"309":309,"314":314,"316":316,"317":317}],259:[function(_dereq_,module,exports){
-arguments[4][72][0].apply(exports,arguments)
-},{"72":72}],260:[function(_dereq_,module,exports){
-arguments[4][73][0].apply(exports,arguments)
-},{"250":250,"306":306,"73":73}],261:[function(_dereq_,module,exports){
-arguments[4][74][0].apply(exports,arguments)
-},{"74":74}],262:[function(_dereq_,module,exports){
-var identity = _dereq_(324),
-    metaMap = _dereq_(297);
-
-/**
- * The base implementation of `setData` without support for hot loop detection.
- *
- * @private
- * @param {Function} func The function to associate metadata with.
- * @param {*} data The metadata.
- * @returns {Function} Returns `func`.
- */
-var baseSetData = !metaMap ? identity : function(func, data) {
-  metaMap.set(func, data);
-  return func;
-};
-
-module.exports = baseSetData;
-
-},{"297":297,"324":324}],263:[function(_dereq_,module,exports){
-arguments[4][75][0].apply(exports,arguments)
-},{"75":75}],264:[function(_dereq_,module,exports){
-arguments[4][77][0].apply(exports,arguments)
-},{"77":77}],265:[function(_dereq_,module,exports){
-arguments[4][79][0].apply(exports,arguments)
-},{"324":324,"79":79}],266:[function(_dereq_,module,exports){
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMax = Math.max;
-
-/**
- * Creates an array that is the composition of partially applied arguments,
- * placeholders, and provided arguments into a single array of arguments.
- *
- * @private
- * @param {Array|Object} args The provided arguments.
- * @param {Array} partials The arguments to prepend to those provided.
- * @param {Array} holders The `partials` placeholder indexes.
- * @returns {Array} Returns the new array of composed arguments.
- */
-function composeArgs(args, partials, holders) {
-  var holdersLength = holders.length,
-      argsIndex = -1,
-      argsLength = nativeMax(args.length - holdersLength, 0),
-      leftIndex = -1,
-      leftLength = partials.length,
-      result = Array(leftLength + argsLength);
-
-  while (++leftIndex < leftLength) {
-    result[leftIndex] = partials[leftIndex];
-  }
-  while (++argsIndex < holdersLength) {
-    result[holders[argsIndex]] = args[argsIndex];
-  }
-  while (argsLength--) {
-    result[leftIndex++] = args[argsIndex++];
-  }
-  return result;
-}
-
-module.exports = composeArgs;
-
-},{}],267:[function(_dereq_,module,exports){
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMax = Math.max;
-
-/**
- * This function is like `composeArgs` except that the arguments composition
- * is tailored for `_.partialRight`.
- *
- * @private
- * @param {Array|Object} args The provided arguments.
- * @param {Array} partials The arguments to append to those provided.
- * @param {Array} holders The `partials` placeholder indexes.
- * @returns {Array} Returns the new array of composed arguments.
- */
-function composeArgsRight(args, partials, holders) {
-  var holdersIndex = -1,
-      holdersLength = holders.length,
-      argsIndex = -1,
-      argsLength = nativeMax(args.length - holdersLength, 0),
-      rightIndex = -1,
-      rightLength = partials.length,
-      result = Array(argsLength + rightLength);
-
-  while (++argsIndex < argsLength) {
-    result[argsIndex] = args[argsIndex];
-  }
-  var offset = argsIndex;
-  while (++rightIndex < rightLength) {
-    result[offset + rightIndex] = partials[rightIndex];
-  }
-  while (++holdersIndex < holdersLength) {
-    result[offset + holders[holdersIndex]] = args[argsIndex++];
-  }
-  return result;
-}
-
-module.exports = composeArgsRight;
-
-},{}],268:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(238),
-    baseEach = _dereq_(241),
-    isArray = _dereq_(309);
-
-/**
- * Creates a `_.countBy`, `_.groupBy`, `_.indexBy`, or `_.partition` function.
- *
- * @private
- * @param {Function} setter The function to set keys and values of the accumulator object.
- * @param {Function} [initializer] The function to initialize the accumulator object.
- * @returns {Function} Returns the new aggregator function.
- */
-function createAggregator(setter, initializer) {
-  return function(collection, iteratee, thisArg) {
-    var result = initializer ? initializer() : {};
-    iteratee = baseCallback(iteratee, thisArg, 3);
-
-    if (isArray(collection)) {
-      var index = -1,
-          length = collection.length;
-
-      while (++index < length) {
-        var value = collection[index];
-        setter(result, value, iteratee(value, index, collection), collection);
-      }
-    } else {
-      baseEach(collection, function(value, key, collection) {
-        setter(result, value, iteratee(value, key, collection), collection);
-      });
-    }
-    return result;
-  };
-}
-
-module.exports = createAggregator;
-
-},{"238":238,"241":241,"309":309}],269:[function(_dereq_,module,exports){
-arguments[4][82][0].apply(exports,arguments)
-},{"226":226,"265":265,"290":290,"82":82}],270:[function(_dereq_,module,exports){
-arguments[4][83][0].apply(exports,arguments)
-},{"285":285,"293":293,"305":305,"83":83}],271:[function(_dereq_,module,exports){
-arguments[4][84][0].apply(exports,arguments)
-},{"305":305,"84":84}],272:[function(_dereq_,module,exports){
-(function (global){
-var createCtorWrapper = _dereq_(273);
-
-/**
- * Creates a function that wraps `func` and invokes it with the `this`
- * binding of `thisArg`.
- *
- * @private
- * @param {Function} func The function to bind.
- * @param {*} [thisArg] The `this` binding of `func`.
- * @returns {Function} Returns the new bound function.
- */
-function createBindWrapper(func, thisArg) {
-  var Ctor = createCtorWrapper(func);
-
-  function wrapper() {
-    var fn = (this && this !== global && this instanceof wrapper) ? Ctor : func;
-    return fn.apply(thisArg, arguments);
-  }
-  return wrapper;
-}
-
-module.exports = createBindWrapper;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-
-},{"273":273}],273:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(240),
-    isObject = _dereq_(313);
-
-/**
- * Creates a function that produces an instance of `Ctor` regardless of
- * whether it was invoked as part of a `new` expression or by `call` or `apply`.
- *
- * @private
- * @param {Function} Ctor The constructor to wrap.
- * @returns {Function} Returns the new wrapped function.
- */
-function createCtorWrapper(Ctor) {
-  return function() {
-    // Use a `switch` statement to work with class constructors.
-    // See http://ecma-international.org/ecma-262/6.0/#sec-ecmascript-function-objects-call-thisargument-argumentslist
-    // for more details.
-    var args = arguments;
-    switch (args.length) {
-      case 0: return new Ctor;
-      case 1: return new Ctor(args[0]);
-      case 2: return new Ctor(args[0], args[1]);
-      case 3: return new Ctor(args[0], args[1], args[2]);
-      case 4: return new Ctor(args[0], args[1], args[2], args[3]);
-      case 5: return new Ctor(args[0], args[1], args[2], args[3], args[4]);
-      case 6: return new Ctor(args[0], args[1], args[2], args[3], args[4], args[5]);
-      case 7: return new Ctor(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
-    }
-    var thisBinding = baseCreate(Ctor.prototype),
-        result = Ctor.apply(thisBinding, args);
-
-    // Mimic the constructor's `return` behavior.
-    // See https://es5.github.io/#x13.2.2 for more details.
-    return isObject(result) ? result : thisBinding;
-  };
-}
-
-module.exports = createCtorWrapper;
-
-},{"240":240,"313":313}],274:[function(_dereq_,module,exports){
-arguments[4][86][0].apply(exports,arguments)
-},{"238":238,"244":244,"245":245,"309":309,"86":86}],275:[function(_dereq_,module,exports){
-arguments[4][87][0].apply(exports,arguments)
-},{"265":265,"309":309,"87":87}],276:[function(_dereq_,module,exports){
-(function (global){
-var arrayCopy = _dereq_(229),
-    composeArgs = _dereq_(266),
-    composeArgsRight = _dereq_(267),
-    createCtorWrapper = _dereq_(273),
-    isLaziable = _dereq_(292),
-    reorder = _dereq_(301),
-    replaceHolders = _dereq_(302),
-    setData = _dereq_(303);
-
-/** Used to compose bitmasks for wrapper metadata. */
-var BIND_FLAG = 1,
-    BIND_KEY_FLAG = 2,
-    CURRY_BOUND_FLAG = 4,
-    CURRY_FLAG = 8,
-    CURRY_RIGHT_FLAG = 16,
-    PARTIAL_FLAG = 32,
-    PARTIAL_RIGHT_FLAG = 64,
-    ARY_FLAG = 128;
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMax = Math.max;
-
-/**
- * Creates a function that wraps `func` and invokes it with optional `this`
- * binding of, partial application, and currying.
- *
- * @private
- * @param {Function|string} func The function or method name to reference.
- * @param {number} bitmask The bitmask of flags. See `createWrapper` for more details.
- * @param {*} [thisArg] The `this` binding of `func`.
- * @param {Array} [partials] The arguments to prepend to those provided to the new function.
- * @param {Array} [holders] The `partials` placeholder indexes.
- * @param {Array} [partialsRight] The arguments to append to those provided to the new function.
- * @param {Array} [holdersRight] The `partialsRight` placeholder indexes.
- * @param {Array} [argPos] The argument positions of the new function.
- * @param {number} [ary] The arity cap of `func`.
- * @param {number} [arity] The arity of `func`.
- * @returns {Function} Returns the new wrapped function.
- */
-function createHybridWrapper(func, bitmask, thisArg, partials, holders, partialsRight, holdersRight, argPos, ary, arity) {
-  var isAry = bitmask & ARY_FLAG,
-      isBind = bitmask & BIND_FLAG,
-      isBindKey = bitmask & BIND_KEY_FLAG,
-      isCurry = bitmask & CURRY_FLAG,
-      isCurryBound = bitmask & CURRY_BOUND_FLAG,
-      isCurryRight = bitmask & CURRY_RIGHT_FLAG,
-      Ctor = isBindKey ? undefined : createCtorWrapper(func);
-
-  function wrapper() {
-    // Avoid `arguments` object use disqualifying optimizations by
-    // converting it to an array before providing it to other functions.
-    var length = arguments.length,
-        index = length,
-        args = Array(length);
-
-    while (index--) {
-      args[index] = arguments[index];
-    }
-    if (partials) {
-      args = composeArgs(args, partials, holders);
-    }
-    if (partialsRight) {
-      args = composeArgsRight(args, partialsRight, holdersRight);
-    }
-    if (isCurry || isCurryRight) {
-      var placeholder = wrapper.placeholder,
-          argsHolders = replaceHolders(args, placeholder);
-
-      length -= argsHolders.length;
-      if (length < arity) {
-        var newArgPos = argPos ? arrayCopy(argPos) : undefined,
-            newArity = nativeMax(arity - length, 0),
-            newsHolders = isCurry ? argsHolders : undefined,
-            newHoldersRight = isCurry ? undefined : argsHolders,
-            newPartials = isCurry ? args : undefined,
-            newPartialsRight = isCurry ? undefined : args;
-
-        bitmask |= (isCurry ? PARTIAL_FLAG : PARTIAL_RIGHT_FLAG);
-        bitmask &= ~(isCurry ? PARTIAL_RIGHT_FLAG : PARTIAL_FLAG);
-
-        if (!isCurryBound) {
-          bitmask &= ~(BIND_FLAG | BIND_KEY_FLAG);
-        }
-        var newData = [func, bitmask, thisArg, newPartials, newsHolders, newPartialsRight, newHoldersRight, newArgPos, ary, newArity],
-            result = createHybridWrapper.apply(undefined, newData);
-
-        if (isLaziable(func)) {
-          setData(result, newData);
-        }
-        result.placeholder = placeholder;
-        return result;
-      }
-    }
-    var thisBinding = isBind ? thisArg : this,
-        fn = isBindKey ? thisBinding[func] : func;
-
-    if (argPos) {
-      args = reorder(args, argPos);
-    }
-    if (isAry && ary < args.length) {
-      args.length = ary;
-    }
-    if (this && this !== global && this instanceof wrapper) {
-      fn = Ctor || createCtorWrapper(func);
-    }
-    return fn.apply(thisBinding, args);
-  }
-  return wrapper;
-}
-
-module.exports = createHybridWrapper;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-
-},{"229":229,"266":266,"267":267,"273":273,"292":292,"301":301,"302":302,"303":303}],277:[function(_dereq_,module,exports){
-(function (global){
-var createCtorWrapper = _dereq_(273);
-
-/** Used to compose bitmasks for wrapper metadata. */
-var BIND_FLAG = 1;
-
-/**
- * Creates a function that wraps `func` and invokes it with the optional `this`
- * binding of `thisArg` and the `partials` prepended to those provided to
- * the wrapper.
- *
- * @private
- * @param {Function} func The function to partially apply arguments to.
- * @param {number} bitmask The bitmask of flags. See `createWrapper` for more details.
- * @param {*} thisArg The `this` binding of `func`.
- * @param {Array} partials The arguments to prepend to those provided to the new function.
- * @returns {Function} Returns the new bound function.
- */
-function createPartialWrapper(func, bitmask, thisArg, partials) {
-  var isBind = bitmask & BIND_FLAG,
-      Ctor = createCtorWrapper(func);
-
-  function wrapper() {
-    // Avoid `arguments` object use disqualifying optimizations by
-    // converting it to an array before providing it `func`.
-    var argsIndex = -1,
-        argsLength = arguments.length,
-        leftIndex = -1,
-        leftLength = partials.length,
-        args = Array(leftLength + argsLength);
-
-    while (++leftIndex < leftLength) {
-      args[leftIndex] = partials[leftIndex];
-    }
-    while (argsLength--) {
-      args[leftIndex++] = arguments[++argsIndex];
-    }
-    var fn = (this && this !== global && this instanceof wrapper) ? Ctor : func;
-    return fn.apply(isBind ? thisArg : this, args);
-  }
-  return wrapper;
-}
-
-module.exports = createPartialWrapper;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-
-},{"273":273}],278:[function(_dereq_,module,exports){
-arguments[4][88][0].apply(exports,arguments)
-},{"238":238,"261":261,"309":309,"88":88}],279:[function(_dereq_,module,exports){
-var baseSetData = _dereq_(262),
-    createBindWrapper = _dereq_(272),
-    createHybridWrapper = _dereq_(276),
-    createPartialWrapper = _dereq_(277),
-    getData = _dereq_(283),
-    mergeData = _dereq_(296),
-    setData = _dereq_(303);
-
-/** Used to compose bitmasks for wrapper metadata. */
-var BIND_FLAG = 1,
-    BIND_KEY_FLAG = 2,
-    PARTIAL_FLAG = 32,
-    PARTIAL_RIGHT_FLAG = 64;
-
-/** Used as the `TypeError` message for "Functions" methods. */
-var FUNC_ERROR_TEXT = 'Expected a function';
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMax = Math.max;
-
-/**
- * Creates a function that either curries or invokes `func` with optional
- * `this` binding and partially applied arguments.
- *
- * @private
- * @param {Function|string} func The function or method name to reference.
- * @param {number} bitmask The bitmask of flags.
- *  The bitmask may be composed of the following flags:
- *     1 - `_.bind`
- *     2 - `_.bindKey`
- *     4 - `_.curry` or `_.curryRight` of a bound function
- *     8 - `_.curry`
- *    16 - `_.curryRight`
- *    32 - `_.partial`
- *    64 - `_.partialRight`
- *   128 - `_.rearg`
- *   256 - `_.ary`
- * @param {*} [thisArg] The `this` binding of `func`.
- * @param {Array} [partials] The arguments to be partially applied.
- * @param {Array} [holders] The `partials` placeholder indexes.
- * @param {Array} [argPos] The argument positions of the new function.
- * @param {number} [ary] The arity cap of `func`.
- * @param {number} [arity] The arity of `func`.
- * @returns {Function} Returns the new wrapped function.
- */
-function createWrapper(func, bitmask, thisArg, partials, holders, argPos, ary, arity) {
-  var isBindKey = bitmask & BIND_KEY_FLAG;
-  if (!isBindKey && typeof func != 'function') {
-    throw new TypeError(FUNC_ERROR_TEXT);
-  }
-  var length = partials ? partials.length : 0;
-  if (!length) {
-    bitmask &= ~(PARTIAL_FLAG | PARTIAL_RIGHT_FLAG);
-    partials = holders = undefined;
-  }
-  length -= (holders ? holders.length : 0);
-  if (bitmask & PARTIAL_RIGHT_FLAG) {
-    var partialsRight = partials,
-        holdersRight = holders;
-
-    partials = holders = undefined;
-  }
-  var data = isBindKey ? undefined : getData(func),
-      newData = [func, bitmask, thisArg, partials, holders, partialsRight, holdersRight, argPos, ary, arity];
-
-  if (data) {
-    mergeData(newData, data);
-    bitmask = newData[1];
-    arity = newData[9];
-  }
-  newData[9] = arity == null
-    ? (isBindKey ? 0 : func.length)
-    : (nativeMax(arity - length, 0) || 0);
-
-  if (bitmask == BIND_FLAG) {
-    var result = createBindWrapper(newData[0], newData[2]);
-  } else if ((bitmask == PARTIAL_FLAG || bitmask == (BIND_FLAG | PARTIAL_FLAG)) && !newData[4].length) {
-    result = createPartialWrapper.apply(undefined, newData);
-  } else {
-    result = createHybridWrapper.apply(undefined, newData);
-  }
-  var setter = data ? baseSetData : setData;
-  return setter(result, newData);
-}
-
-module.exports = createWrapper;
-
-},{"262":262,"272":272,"276":276,"277":277,"283":283,"296":296,"303":303}],280:[function(_dereq_,module,exports){
-arguments[4][89][0].apply(exports,arguments)
-},{"235":235,"89":89}],281:[function(_dereq_,module,exports){
-arguments[4][90][0].apply(exports,arguments)
-},{"90":90}],282:[function(_dereq_,module,exports){
-arguments[4][91][0].apply(exports,arguments)
-},{"319":319,"91":91}],283:[function(_dereq_,module,exports){
-var metaMap = _dereq_(297),
-    noop = _dereq_(325);
-
-/**
- * Gets metadata for `func`.
- *
- * @private
- * @param {Function} func The function to query.
- * @returns {*} Returns the metadata for `func`.
- */
-var getData = !metaMap ? noop : function(func) {
-  return metaMap.get(func);
-};
-
-module.exports = getData;
-
-},{"297":297,"325":325}],284:[function(_dereq_,module,exports){
-var realNames = _dereq_(300);
-
-/**
- * Gets the name of `func`.
- *
- * @private
- * @param {Function} func The function to query.
- * @returns {string} Returns the function name.
- */
-function getFuncName(func) {
-  var result = (func.name + ''),
-      array = realNames[result],
-      length = array ? array.length : 0;
-
-  while (length--) {
-    var data = array[length],
-        otherFunc = data.func;
-    if (otherFunc == null || otherFunc == func) {
-      return data.name;
-    }
-  }
-  return result;
-}
-
-module.exports = getFuncName;
-
-},{"300":300}],285:[function(_dereq_,module,exports){
-arguments[4][92][0].apply(exports,arguments)
-},{"259":259,"92":92}],286:[function(_dereq_,module,exports){
-arguments[4][93][0].apply(exports,arguments)
-},{"295":295,"322":322,"93":93}],287:[function(_dereq_,module,exports){
-arguments[4][94][0].apply(exports,arguments)
-},{"311":311,"94":94}],288:[function(_dereq_,module,exports){
-arguments[4][96][0].apply(exports,arguments)
-},{"285":285,"293":293,"96":96}],289:[function(_dereq_,module,exports){
-arguments[4][97][0].apply(exports,arguments)
-},{"97":97}],290:[function(_dereq_,module,exports){
-arguments[4][98][0].apply(exports,arguments)
-},{"288":288,"289":289,"313":313,"98":98}],291:[function(_dereq_,module,exports){
-arguments[4][99][0].apply(exports,arguments)
-},{"305":305,"309":309,"99":99}],292:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(227),
-    getData = _dereq_(283),
-    getFuncName = _dereq_(284),
-    lodash = _dereq_(216);
-
-/**
- * Checks if `func` has a lazy counterpart.
- *
- * @private
- * @param {Function} func The function to check.
- * @returns {boolean} Returns `true` if `func` has a lazy counterpart, else `false`.
- */
-function isLaziable(func) {
-  var funcName = getFuncName(func),
-      other = lodash[funcName];
-
-  if (typeof other != 'function' || !(funcName in LazyWrapper.prototype)) {
-    return false;
-  }
-  if (func === other) {
-    return true;
-  }
-  var data = getData(other);
-  return !!data && func === data[0];
-}
-
-module.exports = isLaziable;
-
-},{"216":216,"227":227,"283":283,"284":284}],293:[function(_dereq_,module,exports){
-arguments[4][100][0].apply(exports,arguments)
-},{"100":100}],294:[function(_dereq_,module,exports){
-arguments[4][101][0].apply(exports,arguments)
-},{"101":101}],295:[function(_dereq_,module,exports){
-arguments[4][102][0].apply(exports,arguments)
-},{"102":102,"313":313}],296:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(229),
-    composeArgs = _dereq_(266),
-    composeArgsRight = _dereq_(267),
-    replaceHolders = _dereq_(302);
-
-/** Used to compose bitmasks for wrapper metadata. */
-var BIND_FLAG = 1,
-    CURRY_BOUND_FLAG = 4,
-    CURRY_FLAG = 8,
-    ARY_FLAG = 128,
-    REARG_FLAG = 256;
-
-/** Used as the internal argument placeholder. */
-var PLACEHOLDER = '__lodash_placeholder__';
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMin = Math.min;
-
-/**
- * Merges the function metadata of `source` into `data`.
- *
- * Merging metadata reduces the number of wrappers required to invoke a function.
- * This is possible because methods like `_.bind`, `_.curry`, and `_.partial`
- * may be applied regardless of execution order. Methods like `_.ary` and `_.rearg`
- * augment function arguments, making the order in which they are executed important,
- * preventing the merging of metadata. However, we make an exception for a safe
- * common case where curried functions have `_.ary` and or `_.rearg` applied.
- *
- * @private
- * @param {Array} data The destination metadata.
- * @param {Array} source The source metadata.
- * @returns {Array} Returns `data`.
- */
-function mergeData(data, source) {
-  var bitmask = data[1],
-      srcBitmask = source[1],
-      newBitmask = bitmask | srcBitmask,
-      isCommon = newBitmask < ARY_FLAG;
-
-  var isCombo =
-    (srcBitmask == ARY_FLAG && bitmask == CURRY_FLAG) ||
-    (srcBitmask == ARY_FLAG && bitmask == REARG_FLAG && data[7].length <= source[8]) ||
-    (srcBitmask == (ARY_FLAG | REARG_FLAG) && bitmask == CURRY_FLAG);
-
-  // Exit early if metadata can't be merged.
-  if (!(isCommon || isCombo)) {
-    return data;
-  }
-  // Use source `thisArg` if available.
-  if (srcBitmask & BIND_FLAG) {
-    data[2] = source[2];
-    // Set when currying a bound function.
-    newBitmask |= (bitmask & BIND_FLAG) ? 0 : CURRY_BOUND_FLAG;
-  }
-  // Compose partial arguments.
-  var value = source[3];
-  if (value) {
-    var partials = data[3];
-    data[3] = partials ? composeArgs(partials, value, source[4]) : arrayCopy(value);
-    data[4] = partials ? replaceHolders(data[3], PLACEHOLDER) : arrayCopy(source[4]);
-  }
-  // Compose partial right arguments.
-  value = source[5];
-  if (value) {
-    partials = data[5];
-    data[5] = partials ? composeArgsRight(partials, value, source[6]) : arrayCopy(value);
-    data[6] = partials ? replaceHolders(data[5], PLACEHOLDER) : arrayCopy(source[6]);
-  }
-  // Use source `argPos` if available.
-  value = source[7];
-  if (value) {
-    data[7] = arrayCopy(value);
-  }
-  // Use source `ary` if it's smaller.
-  if (srcBitmask & ARY_FLAG) {
-    data[8] = data[8] == null ? source[8] : nativeMin(data[8], source[8]);
-  }
-  // Use source `arity` if one is not provided.
-  if (data[9] == null) {
-    data[9] = source[9];
-  }
-  // Use source `func` and merge bitmasks.
-  data[0] = source[0];
-  data[1] = newBitmask;
-
-  return data;
-}
-
-module.exports = mergeData;
-
-},{"229":229,"266":266,"267":267,"302":302}],297:[function(_dereq_,module,exports){
-(function (global){
-var getNative = _dereq_(287);
-
-/** Native method references. */
-var WeakMap = getNative(global, 'WeakMap');
-
-/** Used to store function metadata. */
-var metaMap = WeakMap && new WeakMap;
-
-module.exports = metaMap;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-
-},{"287":287}],298:[function(_dereq_,module,exports){
-arguments[4][103][0].apply(exports,arguments)
-},{"103":103,"305":305}],299:[function(_dereq_,module,exports){
-arguments[4][104][0].apply(exports,arguments)
-},{"104":104,"248":248}],300:[function(_dereq_,module,exports){
-/** Used to lookup unminified function names. */
-var realNames = {};
-
-module.exports = realNames;
-
-},{}],301:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(229),
-    isIndex = _dereq_(289);
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMin = Math.min;
-
-/**
- * Reorder `array` according to the specified indexes where the element at
- * the first index is assigned as the first element, the element at
- * the second index is assigned as the second element, and so on.
- *
- * @private
- * @param {Array} array The array to reorder.
- * @param {Array} indexes The arranged array indexes.
- * @returns {Array} Returns `array`.
- */
-function reorder(array, indexes) {
-  var arrLength = array.length,
-      length = nativeMin(indexes.length, arrLength),
-      oldArray = arrayCopy(array);
-
-  while (length--) {
-    var index = indexes[length];
-    array[length] = isIndex(index, arrLength) ? oldArray[index] : undefined;
-  }
-  return array;
-}
-
-module.exports = reorder;
-
-},{"229":229,"289":289}],302:[function(_dereq_,module,exports){
-/** Used as the internal argument placeholder. */
-var PLACEHOLDER = '__lodash_placeholder__';
-
-/**
- * Replaces all `placeholder` elements in `array` with an internal placeholder
- * and returns an array of their indexes.
- *
- * @private
- * @param {Array} array The array to modify.
- * @param {*} placeholder The placeholder to replace.
- * @returns {Array} Returns the new array of placeholder indexes.
- */
-function replaceHolders(array, placeholder) {
-  var index = -1,
-      length = array.length,
-      resIndex = -1,
-      result = [];
-
-  while (++index < length) {
-    if (array[index] === placeholder) {
-      array[index] = PLACEHOLDER;
-      result[++resIndex] = index;
-    }
-  }
-  return result;
-}
-
-module.exports = replaceHolders;
-
-},{}],303:[function(_dereq_,module,exports){
-var baseSetData = _dereq_(262),
-    now = _dereq_(223);
-
-/** Used to detect when a function becomes hot. */
-var HOT_COUNT = 150,
-    HOT_SPAN = 16;
-
-/**
- * Sets metadata for `func`.
- *
- * **Note:** If this function becomes hot, i.e. is invoked a lot in a short
- * period of time, it will trip its breaker and transition to an identity function
- * to avoid garbage collection pauses in V8. See [V8 issue 2070](https://code.google.com/p/v8/issues/detail?id=2070)
- * for more details.
- *
- * @private
- * @param {Function} func The function to associate metadata with.
- * @param {*} data The metadata.
- * @returns {Function} Returns `func`.
- */
-var setData = (function() {
-  var count = 0,
-      lastCalled = 0;
-
-  return function(key, value) {
-    var stamp = now(),
-        remaining = HOT_SPAN - (stamp - lastCalled);
-
-    lastCalled = stamp;
-    if (remaining > 0) {
-      if (++count >= HOT_COUNT) {
-        return key;
-      }
-    } else {
-      count = 0;
-    }
-    return baseSetData(key, value);
-  };
-}());
-
-module.exports = setData;
-
-},{"223":223,"262":262}],304:[function(_dereq_,module,exports){
-arguments[4][105][0].apply(exports,arguments)
-},{"105":105,"289":289,"293":293,"308":308,"309":309,"320":320}],305:[function(_dereq_,module,exports){
-arguments[4][106][0].apply(exports,arguments)
-},{"106":106,"313":313}],306:[function(_dereq_,module,exports){
-arguments[4][107][0].apply(exports,arguments)
-},{"107":107,"264":264,"309":309}],307:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(227),
-    LodashWrapper = _dereq_(228),
-    arrayCopy = _dereq_(229);
-
-/**
- * Creates a clone of `wrapper`.
- *
- * @private
- * @param {Object} wrapper The wrapper to clone.
- * @returns {Object} Returns the cloned wrapper.
- */
-function wrapperClone(wrapper) {
-  return wrapper instanceof LazyWrapper
-    ? wrapper.clone()
-    : new LodashWrapper(wrapper.__wrapped__, wrapper.__chain__, arrayCopy(wrapper.__actions__));
-}
-
-module.exports = wrapperClone;
-
-},{"227":227,"228":228,"229":229}],308:[function(_dereq_,module,exports){
-arguments[4][108][0].apply(exports,arguments)
-},{"108":108,"288":288,"294":294}],309:[function(_dereq_,module,exports){
-arguments[4][109][0].apply(exports,arguments)
-},{"109":109,"287":287,"293":293,"294":294}],310:[function(_dereq_,module,exports){
-arguments[4][110][0].apply(exports,arguments)
-},{"110":110,"313":313}],311:[function(_dereq_,module,exports){
-arguments[4][111][0].apply(exports,arguments)
-},{"111":111,"294":294,"310":310}],312:[function(_dereq_,module,exports){
-arguments[4][112][0].apply(exports,arguments)
-},{"112":112,"294":294}],313:[function(_dereq_,module,exports){
-arguments[4][113][0].apply(exports,arguments)
-},{"113":113}],314:[function(_dereq_,module,exports){
-var baseForIn = _dereq_(248),
-    isArguments = _dereq_(308),
-    isObjectLike = _dereq_(294);
-
-/** `Object#toString` result references. */
-var objectTag = '[object Object]';
-
-/** Used for native method references. */
-var objectProto = Object.prototype;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/**
- * Used to resolve the [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
- * of values.
- */
-var objToString = objectProto.toString;
-
-/**
- * Checks if `value` is a plain object, that is, an object created by the
- * `Object` constructor or one with a `[[Prototype]]` of `null`.
- *
- * **Note:** This method assumes objects created by the `Object` constructor
- * have no inherited enumerable properties.
- *
- * @static
- * @memberOf _
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a plain object, else `false`.
- * @example
- *
- * function Foo() {
- *   this.a = 1;
- * }
- *
- * _.isPlainObject(new Foo);
- * // => false
- *
- * _.isPlainObject([1, 2, 3]);
- * // => false
- *
- * _.isPlainObject({ 'x': 0, 'y': 0 });
- * // => true
- *
- * _.isPlainObject(Object.create(null));
- * // => true
- */
-function isPlainObject(value) {
-  var Ctor;
-
-  // Exit early for non `Object` objects.
-  if (!(isObjectLike(value) && objToString.call(value) == objectTag && !isArguments(value)) ||
-      (!hasOwnProperty.call(value, 'constructor') && (Ctor = value.constructor, typeof Ctor == 'function' && !(Ctor instanceof Ctor)))) {
-    return false;
-  }
-  // IE < 9 iterates inherited properties before own properties. If the first
-  // iterated property is an object's own property then there are no inherited
-  // enumerable properties.
-  var result;
-  // In most environments an object's own properties are iterated before
-  // its inherited properties. If the last iterated property is an object's
-  // own property then there are no inherited enumerable properties.
-  baseForIn(value, function(subValue, key) {
-    result = key;
-  });
-  return result === undefined || hasOwnProperty.call(value, result);
-}
-
-module.exports = isPlainObject;
-
-},{"248":248,"294":294,"308":308}],315:[function(_dereq_,module,exports){
-arguments[4][114][0].apply(exports,arguments)
-},{"114":114,"294":294}],316:[function(_dereq_,module,exports){
-arguments[4][115][0].apply(exports,arguments)
-},{"115":115,"293":293,"294":294}],317:[function(_dereq_,module,exports){
-var baseCopy = _dereq_(239),
-    keysIn = _dereq_(320);
-
-/**
- * Converts `value` to a plain object flattening inherited enumerable
- * properties of `value` to own properties of the plain object.
- *
- * @static
- * @memberOf _
- * @category Lang
- * @param {*} value The value to convert.
- * @returns {Object} Returns the converted plain object.
- * @example
- *
- * function Foo() {
- *   this.b = 2;
- * }
- *
- * Foo.prototype.c = 3;
- *
- * _.assign({ 'a': 1 }, new Foo);
- * // => { 'a': 1, 'b': 2 }
- *
- * _.assign({ 'a': 1 }, _.toPlainObject(new Foo));
- * // => { 'a': 1, 'b': 2, 'c': 3 }
- */
-function toPlainObject(value) {
-  return baseCopy(value, keysIn(value));
-}
-
-module.exports = toPlainObject;
-
-},{"239":239,"320":320}],318:[function(_dereq_,module,exports){
-arguments[4][116][0].apply(exports,arguments)
-},{"116":116,"236":236,"237":237,"269":269}],319:[function(_dereq_,module,exports){
-arguments[4][117][0].apply(exports,arguments)
-},{"117":117,"287":287,"288":288,"304":304,"313":313}],320:[function(_dereq_,module,exports){
-arguments[4][118][0].apply(exports,arguments)
-},{"118":118,"289":289,"293":293,"308":308,"309":309,"313":313}],321:[function(_dereq_,module,exports){
-var baseMerge = _dereq_(257),
-    createAssigner = _dereq_(269);
-
-/**
- * Recursively merges own enumerable properties of the source object(s), that
- * don't resolve to `undefined` into the destination object. Subsequent sources
- * overwrite property assignments of previous sources. If `customizer` is
- * provided it's invoked to produce the merged values of the destination and
- * source properties. If `customizer` returns `undefined` merging is handled
- * by the method instead. The `customizer` is bound to `thisArg` and invoked
- * with five arguments: (objectValue, sourceValue, key, object, source).
- *
- * @static
- * @memberOf _
- * @category Object
- * @param {Object} object The destination object.
- * @param {...Object} [sources] The source objects.
- * @param {Function} [customizer] The function to customize assigned values.
- * @param {*} [thisArg] The `this` binding of `customizer`.
- * @returns {Object} Returns `object`.
- * @example
- *
- * var users = {
- *   'data': [{ 'user': 'barney' }, { 'user': 'fred' }]
- * };
- *
- * var ages = {
- *   'data': [{ 'age': 36 }, { 'age': 40 }]
- * };
- *
- * _.merge(users, ages);
- * // => { 'data': [{ 'user': 'barney', 'age': 36 }, { 'user': 'fred', 'age': 40 }] }
- *
- * // using a customizer callback
- * var object = {
- *   'fruits': ['apple'],
- *   'vegetables': ['beet']
- * };
- *
- * var other = {
- *   'fruits': ['banana'],
- *   'vegetables': ['carrot']
- * };
- *
- * _.merge(object, other, function(a, b) {
- *   if (_.isArray(a)) {
- *     return a.concat(b);
- *   }
- * });
- * // => { 'fruits': ['apple', 'banana'], 'vegetables': ['beet', 'carrot'] }
- */
-var merge = createAssigner(baseMerge);
-
-module.exports = merge;
-
-},{"257":257,"269":269}],322:[function(_dereq_,module,exports){
-arguments[4][120][0].apply(exports,arguments)
-},{"120":120,"305":305,"319":319}],323:[function(_dereq_,module,exports){
-arguments[4][121][0].apply(exports,arguments)
-},{"121":121,"226":226,"246":246,"265":265,"298":298,"299":299}],324:[function(_dereq_,module,exports){
-arguments[4][123][0].apply(exports,arguments)
-},{"123":123}],325:[function(_dereq_,module,exports){
-/**
- * A no-operation function that returns `undefined` regardless of the
- * arguments it receives.
- *
- * @static
- * @memberOf _
- * @category Utility
- * @example
- *
- * var object = { 'user': 'fred' };
- *
- * _.noop(object) === undefined;
- * // => true
- */
-function noop() {
-  // No operation performed.
-}
-
-module.exports = noop;
-
-},{}],326:[function(_dereq_,module,exports){
-arguments[4][124][0].apply(exports,arguments)
-},{"124":124,"259":259,"260":260,"291":291}],327:[function(_dereq_,module,exports){
-/**
- * Set attribute `name` to `val`, or get attr `name`.
- *
- * @param {Element} el
- * @param {String} name
- * @param {String} [val]
- * @api public
- */
-
-module.exports = function(el, name, val) {
-  // get
-  if (arguments.length == 2) {
-    return el.getAttribute(name);
-  }
-
-  // remove
-  if (val === null) {
-    return el.removeAttribute(name);
-  }
-
-  // set
-  el.setAttribute(name, val);
-
-  return el;
-};
-},{}],328:[function(_dereq_,module,exports){
-module.exports = _dereq_(202);
-},{"202":202}],329:[function(_dereq_,module,exports){
-module.exports = function(el) {
-
-  var c;
-
-  while (el.childNodes.length) {
-    c = el.childNodes[0];
-    el.removeChild(c);
-  }
-
-  return el;
-};
-},{}],330:[function(_dereq_,module,exports){
-module.exports = _dereq_(203);
-},{"203":203}],331:[function(_dereq_,module,exports){
-arguments[4][125][0].apply(exports,arguments)
-},{"125":125,"204":204}],332:[function(_dereq_,module,exports){
-arguments[4][126][0].apply(exports,arguments)
-},{"126":126,"213":213}],333:[function(_dereq_,module,exports){
-arguments[4][127][0].apply(exports,arguments)
-},{"127":127,"205":205}],334:[function(_dereq_,module,exports){
-arguments[4][128][0].apply(exports,arguments)
-},{"128":128,"208":208}],335:[function(_dereq_,module,exports){
-arguments[4][129][0].apply(exports,arguments)
-},{"129":129}],336:[function(_dereq_,module,exports){
-arguments[4][142][0].apply(exports,arguments)
-},{"142":142,"337":337,"338":338}],337:[function(_dereq_,module,exports){
-arguments[4][143][0].apply(exports,arguments)
-},{"143":143}],338:[function(_dereq_,module,exports){
-arguments[4][144][0].apply(exports,arguments)
-},{"144":144,"337":337}],339:[function(_dereq_,module,exports){
-arguments[4][147][0].apply(exports,arguments)
-},{"147":147,"340":340}],340:[function(_dereq_,module,exports){
-arguments[4][148][0].apply(exports,arguments)
-},{"148":148,"347":347}],341:[function(_dereq_,module,exports){
-arguments[4][149][0].apply(exports,arguments)
-},{"149":149}],342:[function(_dereq_,module,exports){
-arguments[4][150][0].apply(exports,arguments)
-},{"150":150}],343:[function(_dereq_,module,exports){
-arguments[4][152][0].apply(exports,arguments)
-},{"152":152,"341":341,"348":348,"349":349}],344:[function(_dereq_,module,exports){
-/**
- * Geometry helpers
- */
-
-module.exports = { createPoint: createPoint, createMatrix: createMatrix, createTransform: createTransform };
-
-
-var create = _dereq_(343);
-
-// fake node used to instantiate svg geometry elements
-var node = create('svg');
-
-function extend(object, props) {
-  var i, k, keys = Object.keys(props);
-
-  for (i = 0; !!(k = keys[i]); i++) {
-    object[k] = props[k];
-  }
-
-  return object;
-}
-
-
-function createPoint(x, y) {
-  var point = node.createSVGPoint();
-
-  switch (arguments.length) {
-    case 0:
-      return point;
-    case 2:
-      x = {
-        x: x,
-        y: y
-      };
-      break;
-  }
-
-  return extend(point, x);
-}
-
-function createMatrix(a, b, c, d, e, f) {
-  var matrix = node.createSVGMatrix();
-
-  switch (arguments.length) {
-    case 0:
-      return matrix;
-    case 6:
-      a = {
-        a: a,
-        b: b,
-        c: c,
-        d: d,
-        e: e,
-        f: f
-      };
-      break;
-  }
-
-  return extend(matrix, a);
-}
-
-function createTransform(matrix) {
-  if (matrix) {
-    return node.createSVGTransformFromMatrix(matrix);
-  } else {
-    return node.createSVGTransform();
-  }
-}
-},{"343":343}],345:[function(_dereq_,module,exports){
-arguments[4][154][0].apply(exports,arguments)
-},{"154":154}],346:[function(_dereq_,module,exports){
-/**
- * transform accessor utility
- */
-
-module.exports = transform;
-
-function wrapMatrix(transformList, transform) {
-  if (transform instanceof SVGMatrix) {
-    return transformList.createSVGTransformFromMatrix(transform);
-  } else {
-    return transform;
-  }
-}
-
-function setTransforms(transformList, transforms) {
-  var i, t;
-
-  transformList.clear();
-
-  for (i = 0; !!(t = transforms[i]); i++) {
-    transformList.appendItem(wrapMatrix(transformList, t));
-  }
-
-  transformList.consolidate();
-}
-
-function transform(node, transforms) {
-  var transformList = node.transform.baseVal;
-
-  if (arguments.length === 1) {
-    return transformList.consolidate();
-  } else {
-    if (transforms.length) {
-      setTransforms(transformList, transforms);
-    } else {
-      transformList.initialize(wrapMatrix(transformList, transforms));
-    }
-  }
-}
-},{}],347:[function(_dereq_,module,exports){
-arguments[4][155][0].apply(exports,arguments)
-},{"155":155}],348:[function(_dereq_,module,exports){
-arguments[4][156][0].apply(exports,arguments)
-},{"156":156}],349:[function(_dereq_,module,exports){
-arguments[4][157][0].apply(exports,arguments)
-},{"157":157,"348":348}]},{},[1])(1)
+},{}]},{},[1])(1)
 });
 //# sourceMappingURL=bpmn-navigated-viewer.js.map
