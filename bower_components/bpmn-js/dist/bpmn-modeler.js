@@ -1,5 +1,5 @@
 /*!
- * bpmn-js - bpmn-modeler v0.20.1
+ * bpmn-js - bpmn-modeler v0.20.2
 
  * Copyright 2014, 2015 camunda Services GmbH and other contributors
  *
@@ -8,7 +8,7 @@
  *
  * Source Code: https://github.com/bpmn-io/bpmn-js
  *
- * Date: 2017-03-02
+ * Date: 2017-03-07
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.BpmnJS = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
@@ -6696,6 +6696,13 @@ var hasExternalLabel = LabelUtil.hasExternalLabel,
 
 var CommandInterceptor = _dereq_(118);
 
+var TextUtil = _dereq_(279);
+
+var DEFAULT_LABEL_DIMENSIONS = {
+  width: 90,
+  height: 20
+};
+
 
 /**
  * A component that makes sure that external labels are added
@@ -6710,6 +6717,8 @@ function LabelSupport(eventBus, modeling, bpmnFactory) {
 
   CommandInterceptor.call(this, eventBus);
 
+  var textUtil = new TextUtil();
+
 
   ///// create external labels on shape creation
 
@@ -6719,17 +6728,26 @@ function LabelSupport(eventBus, modeling, bpmnFactory) {
     var element = context.shape || context.connection,
         businessObject = element.businessObject;
 
-    var position;
-
-    if (hasExternalLabel(businessObject)) {
-      position = getExternalLabelMid(element);
-
-      modeling.createLabel(element, position, {
-        id: businessObject.id + '_label',
-        hidden: !businessObject.name,
-        businessObject: businessObject
-      });
+    if (!hasExternalLabel(businessObject)) {
+      return;
     }
+
+    var labelCenter = getExternalLabelMid(element);
+
+    // we don't care about x and y
+    var labelDimensions = getLayoutedBounds(
+      DEFAULT_LABEL_DIMENSIONS,
+      businessObject.name || '',
+      textUtil
+    );
+
+    modeling.createLabel(element, labelCenter, {
+      id: businessObject.id + '_label',
+      hidden: !businessObject.name,
+      businessObject: businessObject,
+      width: labelDimensions.width,
+      height: labelDimensions.height
+    });
   });
 
 
@@ -6855,7 +6873,36 @@ LabelSupport.$inject = [ 'eventBus', 'modeling', 'bpmnFactory' ];
 
 module.exports = LabelSupport;
 
-},{"118":118,"288":288,"430":430,"54":54,"93":93,"94":94}],42:[function(_dereq_,module,exports){
+
+// TODO(nikku): repeating code (search for <getLayoutedBounds>)
+
+var EXTERNAL_LABEL_STYLE = {
+  fontFamily: 'Arial, sans-serif',
+  fontSize: '11px'
+};
+
+function getLayoutedBounds(bounds, text, textUtil) {
+
+  var layoutedLabelDimensions = textUtil.getDimensions(text, {
+    box: {
+      width: 90,
+      height: 30,
+      x: bounds.width / 2 + bounds.x,
+      y: bounds.height / 2 + bounds.y
+    },
+    style: EXTERNAL_LABEL_STYLE
+  });
+
+  // resize label shape to fit label text
+  return {
+    x: Math.round(bounds.x + bounds.width / 2 - layoutedLabelDimensions.width / 2),
+    y: Math.round(bounds.y),
+    width: Math.ceil(layoutedLabelDimensions.width),
+    height: Math.ceil(layoutedLabelDimensions.height)
+  };
+}
+
+},{"118":118,"279":279,"288":288,"430":430,"54":54,"93":93,"94":94}],42:[function(_dereq_,module,exports){
 'use strict';
 
 var is = _dereq_(94).is;
