@@ -1,5 +1,5 @@
 /*!
- * bpmn-js - bpmn-viewer v0.20.2
+ * bpmn-js - bpmn-viewer v0.20.5
 
  * Copyright 2014, 2015 camunda Services GmbH and other contributors
  *
@@ -8,7 +8,7 @@
  *
  * Source Code: https://github.com/bpmn-io/bpmn-js
  *
- * Date: 2017-03-07
+ * Date: 2017-03-23
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.BpmnJS = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 /**
@@ -2352,8 +2352,9 @@ function isThrowEvent(event) {
 }
 
 function isCollection(element) {
-  return element.isCollection ||
-        (element.elementObjectRef && element.elementObjectRef.isCollection);
+  var dataObject = element.dataObjectRef;
+
+  return element.isCollection || (dataObject && dataObject.isCollection);
 }
 
 function getDi(element) {
@@ -12655,11 +12656,6 @@ module.exports.updateLine = function(gfx, points) {
 },{"225":225,"228":228}],63:[function(_dereq_,module,exports){
 'use strict';
 
-var svgTransform = _dereq_(232);
-
-var createTransform = _dereq_(229).createTransform;
-
-
 /**
  * @param {<SVGElement>} element
  * @param {Number} x
@@ -12668,16 +12664,23 @@ var createTransform = _dereq_(229).createTransform;
  * @param {Number} amount
  */
 module.exports.transform = function(gfx, x, y, angle, amount) {
-  var translate = createTransform();
-  translate.setTranslate(x, y);
+  var transform = '';
 
-  var rotate = createTransform();
-  rotate.setRotate(angle, 0, 0);
+  if (x !== 0 || y !== 0) {
+    transform += 'translate(' + x + ' ' + y + ') ';
+  }
 
-  var scale = createTransform();
-  scale.setScale(amount || 1, amount || 1);
+  if (angle !== 0) {
+    transform += 'rotate(' + angle + ') ';
+  }
 
-  svgTransform(gfx, [ translate, rotate, scale ]);
+  if (amount) {
+    transform += 'scale(' + amount + ' ' + amount + ')';
+  }
+
+  transform = transform.trim();
+
+  gfx.setAttribute('transform', transform);
 };
 
 
@@ -12687,10 +12690,7 @@ module.exports.transform = function(gfx, x, y, angle, amount) {
  * @param {Number} y
  */
 module.exports.translate = function(gfx, x, y) {
-  var translate = createTransform();
-  translate.setTranslate(x, y);
-
-  svgTransform(gfx, translate);
+  gfx.setAttribute('transform', 'translate(' + x + ' ' + y + ')');
 };
 
 
@@ -12699,10 +12699,7 @@ module.exports.translate = function(gfx, x, y) {
  * @param {Number} angle
  */
 module.exports.rotate = function(gfx, angle) {
-  var rotate = createTransform();
-  rotate.setRotate(angle, 0, 0);
-
-  svgTransform(gfx, rotate);
+  gfx.setAttribute('transform', 'rotate(' + angle + ')');
 };
 
 
@@ -12711,13 +12708,10 @@ module.exports.rotate = function(gfx, angle) {
  * @param {Number} amount
  */
 module.exports.scale = function(gfx, amount) {
-  var scale = createTransform();
-  scale.setScale(amount, amount);
-
-  svgTransform(gfx, scale);
+  gfx.setAttribute('transform', 'scale(' + amount + ' ' + amount + ')');
 };
 
-},{"229":229,"232":232}],64:[function(_dereq_,module,exports){
+},{}],64:[function(_dereq_,module,exports){
 'use strict';
 
 var isObject = _dereq_(183),
