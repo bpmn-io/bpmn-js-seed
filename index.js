@@ -4,7 +4,7 @@
  * This is an example script that loads an embedded diagram file <diagramXML>
  * and opens it using the bpmn-js viewer.
  */
-(function(BpmnViewer, $) {
+(function(BpmnViewer) {
 
   // create viewer
   var bpmnViewer = new BpmnViewer({
@@ -53,4 +53,4 @@
   // import xml
   importXML(diagramXML);
 
-})(window.BpmnJS, window.jQuery);
+})(window.BpmnJS);

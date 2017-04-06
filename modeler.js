@@ -4,7 +4,7 @@
  * This is an example script that loads an embedded diagram file <diagramXML>
  * and opens it using the bpmn-js modeler.
  */
-(function(BpmnModeler, $) {
+(function(BpmnModeler) {
 
   // create modeler
   var bpmnModeler = new BpmnModeler({
@@ -59,4 +59,4 @@
   // import xml
   importXML(diagramXML);
 
-})(window.BpmnJS, window.jQuery);
+})(window.BpmnJS);
