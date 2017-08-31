@@ -1,5 +1,5 @@
 /*!
- * bpmn-js - bpmn-modeler v0.21.0
+ * bpmn-js - bpmn-modeler v0.22.0
 
  * Copyright 2014, 2015 camunda Services GmbH and other contributors
  *
@@ -8,7 +8,7 @@
  *
  * Source Code: https://github.com/bpmn-io/bpmn-js
  *
- * Date: 2017-07-31
+ * Date: 2017-08-31
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.BpmnJS = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
@@ -27771,6 +27771,13 @@ function stopPropagation(e) {
   e.stopPropagation();
 }
 
+function isTextNode(node) {
+  return node.nodeType === Node.TEXT_NODE;
+}
+
+function toArray(nodeList) {
+  return [].slice.call(nodeList);
+}
 
 /**
  * Initializes a container for a content editable div.
@@ -27802,6 +27809,7 @@ function TextBox(options) {
   this.resizeHandler = options.resizeHandler || function() {};
 
   this.autoResize = bind(this.autoResize, this);
+  this.handlePaste = bind(this.handlePaste, this);
 }
 
 module.exports = TextBox;
@@ -27831,7 +27839,7 @@ TextBox.prototype.create = function(bounds, style, value, options) {
       content = this.content,
       container = this.container;
 
-  options = options || {};
+  options = this.options = options || {};
 
   style = this.style = style || {};
 
@@ -27900,9 +27908,7 @@ TextBox.prototype.create = function(bounds, style, value, options) {
 
   domEvent.bind(content, 'keydown', this.keyHandler);
   domEvent.bind(content, 'mousedown', stopPropagation);
-  domEvent.bind(content, 'paste', function(e) {
-    self._handlePaste(e, style);
-  });
+  domEvent.bind(content, 'paste', self.handlePaste);
 
   if (options.autoResize) {
     domEvent.bind(content, 'input', this.autoResize);
@@ -27914,7 +27920,8 @@ TextBox.prototype.create = function(bounds, style, value, options) {
 
   container.appendChild(parent);
 
-  this.setCursor();
+  // set selection to end of text
+  this.setSelection(content.lastChild, content.lastChild && content.lastChild.length);
 
   return parent;
 };
@@ -27922,19 +27929,97 @@ TextBox.prototype.create = function(bounds, style, value, options) {
 /**
  * Intercept paste events to remove formatting from pasted text.
  */
-TextBox.prototype._handlePaste = function(e, style) {
+TextBox.prototype.handlePaste = function(e) {
+  var self = this;
+
+  var options = this.options,
+      style = this.style;
+
   e.preventDefault();
 
-  var text = e.clipboardData.getData('text/plain');
+  var text;
 
-  this.content.innerText = text;
+  if (e.clipboardData) {
 
-  this.setCursor();
+    // Chrome, Firefox, Safari
+    text = e.clipboardData.getData('text/plain');
+  } else {
 
-  var hasResized = this.autoResize(style);
+    // Internet Explorer
+    text = window.clipboardData.getData('Text');
+  }
 
-  if (hasResized) {
-    this.resizeHandler(hasResized);
+  // insertHTML command not supported by Internet Explorer
+  var success = document.execCommand('insertHTML', false, text);
+
+  if (!success) {
+
+    // Internet Explorer
+    var range = this.getSelection(),
+        startContainer = range.startContainer,
+        endContainer = range.endContainer,
+        startOffset = range.startOffset,
+        endOffset = range.endOffset,
+        commonAncestorContainer = range.commonAncestorContainer;
+
+    var childNodesArray = toArray(commonAncestorContainer.childNodes);
+
+    var container,
+        offset;
+
+    if (isTextNode(commonAncestorContainer)) {
+      var containerTextContent = startContainer.textContent;
+
+      startContainer.textContent =
+        containerTextContent.substring(0, startOffset)
+        + text
+        + containerTextContent.substring(endOffset);
+
+      container = startContainer;
+      offset = startOffset + text.length;
+
+    } else if (startContainer === this.content && endContainer === this.content) {
+      var textNode = document.createTextNode(text);
+
+      this.content.insertBefore(textNode, childNodesArray[startOffset]);
+
+      container = textNode;
+      offset = textNode.textContent.length;
+    } else {
+      var startContainerChildIndex = childNodesArray.indexOf(startContainer),
+          endContainerChildIndex = childNodesArray.indexOf(endContainer);
+
+      childNodesArray.forEach(function(childNode, index) {
+
+        if (index === startContainerChildIndex) {
+          childNode.textContent =
+            startContainer.textContent.substring(0, startOffset) +
+            text +
+            endContainer.textContent.substring(endOffset);
+        } else if (index > startContainerChildIndex && index <= endContainerChildIndex) {
+          domRemove(childNode);
+        }
+      });
+
+      container = startContainer;
+      offset = startOffset + text.length;
+    }
+
+    if (container && offset !== undefined) {
+
+      // is necessary in Internet Explorer
+      setTimeout(function() {
+        self.setSelection(container, offset);
+      });
+    }
+  }
+
+  if (options.autoResize) {
+    var hasResized = this.autoResize(style);
+
+    if (hasResized) {
+      this.resizeHandler(hasResized);
+    }
   }
 };
 
@@ -28065,6 +28150,7 @@ TextBox.prototype.destroy = function() {
   domEvent.unbind(content, 'keydown', this.keyHandler);
   domEvent.unbind(content, 'mousedown', stopPropagation);
   domEvent.unbind(content, 'input', this.autoResize);
+  domEvent.unbind(content, 'paste', this.handlePaste);
 
   if (resizeHandle) {
     resizeHandle.removeAttribute('style');
@@ -28081,36 +28167,28 @@ TextBox.prototype.getValue = function() {
 };
 
 
-/**
- * Set the cursor to the end of the text
- */
-TextBox.prototype.setCursor = function() {
+TextBox.prototype.getSelection = function() {
+  var selection = window.getSelection(),
+      range = selection.getRangeAt(0);
 
-  this.content.focus();
+  return range;
+};
 
-  // scroll to the bottom
-  this.content.scrollTop = this.content.scrollHeight;
 
-  if (typeof window.getSelection != 'undefined' && typeof document.createRange != 'undefined') {
+TextBox.prototype.setSelection = function(container, offset) {
+  var range = document.createRange();
 
-    var range = document.createRange();
-
+  if (container === null) {
     range.selectNodeContents(this.content);
-    range.collapse(false);
-
-    var selection = window.getSelection();
-
-    selection.removeAllRanges();
-    selection.addRange(range);
-
-  } else if (typeof document.body.createTextRange != 'undefined') {
-
-    var textRange = document.body.createTextRange();
-
-    textRange.moveToElementText(this.content);
-    textRange.collapse(false);
-    textRange.select();
+  } else {
+    range.setStart(container, offset);
+    range.setEnd(container, offset);
   }
+
+  var selection = window.getSelection();
+
+  selection.removeAllRanges();
+  selection.addRange(range);
 };
 
 },{"275":275,"354":354,"358":358,"362":362,"363":363,"365":365,"367":367}],257:[function(_dereq_,module,exports){
@@ -48612,6 +48690,8 @@ var bind = _dereq_(573);
 var RANGE = { min: 0.2, max: 4 },
     NUM_STEPS = 10;
 
+var THRESHOLD = 0.1;
+
 
 /**
  * An implementation of zooming and scrolling within the
@@ -48639,6 +48719,8 @@ function ZoomScroll(eventBus, canvas, config) {
 
   var newEnabled = !config || config.enabled !== false;
 
+  this.totalDirection = 0;
+
   var self = this;
 
   eventBus.on('canvas.init', function(e) {
@@ -48662,11 +48744,38 @@ ZoomScroll.prototype.reset = function reset() {
 
 ZoomScroll.prototype.zoom = function zoom(direction, position) {
   var canvas = this._canvas;
-  var currentZoom = canvas.zoom(false);
 
-  var factor = Math.pow(1 + Math.abs(direction) , direction > 0 ? 1 : -1);
+  var stepRange = getStepRange(RANGE, NUM_STEPS * 2);
 
-  canvas.zoom(cap(RANGE, currentZoom * factor), position);
+  // add until threshold reached
+  this.totalDirection += direction;
+
+  if (Math.abs(this.totalDirection) > THRESHOLD) {
+    direction = direction > 0 ? 1 : -1;
+  
+    var currentLinearZoomLevel = log10(canvas.zoom());
+
+    // snap to a proximate zoom step
+    var newLinearZoomLevel = Math.round(currentLinearZoomLevel / stepRange) * stepRange;
+
+    // increase or decrease one zoom step in the given direction
+    newLinearZoomLevel += stepRange * direction;
+
+    // calculate the absolute logarithmic zoom level based on the linear zoom level
+    // (e.g. 2 for an absolute x2 zoom)
+    var newLogZoomLevel = Math.pow(10, newLinearZoomLevel);
+
+    if (newLinearZoomLevel === 0) {
+      console.log('%c' + newLinearZoomLevel, 'font-size: 24px');
+    } else {
+      console.log(newLinearZoomLevel);
+    }
+
+    canvas.zoom(cap(RANGE, newLogZoomLevel), position);
+
+    // reset
+    this.totalDirection = 0;
+  }
 };
 
 
@@ -48741,6 +48850,8 @@ ZoomScroll.prototype.stepZoom = function stepZoom(direction, position) {
   // calculate the absolute logarithmic zoom level based on the linear zoom level
   // (e.g. 2 for an absolute x2 zoom)
   var newLogZoomLevel = Math.pow(10, newLinearZoomLevel);
+
+  console.log(newLinearZoomLevel);
 
   canvas.zoom(cap(RANGE, newLogZoomLevel), position);
 };

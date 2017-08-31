@@ -1,5 +1,5 @@
 /*!
- * bpmn-js - bpmn-navigated-viewer v0.21.0
+ * bpmn-js - bpmn-navigated-viewer v0.22.0
 
  * Copyright 2014, 2015 camunda Services GmbH and other contributors
  *
@@ -8,7 +8,7 @@
  *
  * Source Code: https://github.com/bpmn-io/bpmn-js
  *
- * Date: 2017-07-31
+ * Date: 2017-08-31
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.BpmnJS = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
@@ -20180,6 +20180,8 @@ var bind = _dereq_(222);
 var RANGE = { min: 0.2, max: 4 },
     NUM_STEPS = 10;
 
+var THRESHOLD = 0.1;
+
 
 /**
  * An implementation of zooming and scrolling within the
@@ -20207,6 +20209,8 @@ function ZoomScroll(eventBus, canvas, config) {
 
   var newEnabled = !config || config.enabled !== false;
 
+  this.totalDirection = 0;
+
   var self = this;
 
   eventBus.on('canvas.init', function(e) {
@@ -20230,11 +20234,38 @@ ZoomScroll.prototype.reset = function reset() {
 
 ZoomScroll.prototype.zoom = function zoom(direction, position) {
   var canvas = this._canvas;
-  var currentZoom = canvas.zoom(false);
 
-  var factor = Math.pow(1 + Math.abs(direction) , direction > 0 ? 1 : -1);
+  var stepRange = getStepRange(RANGE, NUM_STEPS * 2);
 
-  canvas.zoom(cap(RANGE, currentZoom * factor), position);
+  // add until threshold reached
+  this.totalDirection += direction;
+
+  if (Math.abs(this.totalDirection) > THRESHOLD) {
+    direction = direction > 0 ? 1 : -1;
+  
+    var currentLinearZoomLevel = log10(canvas.zoom());
+
+    // snap to a proximate zoom step
+    var newLinearZoomLevel = Math.round(currentLinearZoomLevel / stepRange) * stepRange;
+
+    // increase or decrease one zoom step in the given direction
+    newLinearZoomLevel += stepRange * direction;
+
+    // calculate the absolute logarithmic zoom level based on the linear zoom level
+    // (e.g. 2 for an absolute x2 zoom)
+    var newLogZoomLevel = Math.pow(10, newLinearZoomLevel);
+
+    if (newLinearZoomLevel === 0) {
+      console.log('%c' + newLinearZoomLevel, 'font-size: 24px');
+    } else {
+      console.log(newLinearZoomLevel);
+    }
+
+    canvas.zoom(cap(RANGE, newLogZoomLevel), position);
+
+    // reset
+    this.totalDirection = 0;
+  }
 };
 
 
@@ -20309,6 +20340,8 @@ ZoomScroll.prototype.stepZoom = function stepZoom(direction, position) {
   // calculate the absolute logarithmic zoom level based on the linear zoom level
   // (e.g. 2 for an absolute x2 zoom)
   var newLogZoomLevel = Math.pow(10, newLinearZoomLevel);
+
+  console.log(newLinearZoomLevel);
 
   canvas.zoom(cap(RANGE, newLogZoomLevel), position);
 };
