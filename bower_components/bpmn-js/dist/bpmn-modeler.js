@@ -1,14 +1,14 @@
 /*!
- * bpmn-js - bpmn-modeler v0.22.1
+ * bpmn-js - bpmn-modeler v0.23.0
 
- * Copyright 2014, 2015 camunda Services GmbH and other contributors
+ * Copyright 2014 - 2017 camunda Services GmbH and other contributors
  *
  * Released under the bpmn.io license
  * http://bpmn.io/license
  *
  * Source Code: https://github.com/bpmn-io/bpmn-js
  *
- * Date: 2017-09-01
+ * Date: 2017-10-26
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.BpmnJS = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
@@ -485,7 +485,7 @@ Viewer.prototype.saveSVG = function(options, done) {
       defsNode = domQuery('defs', canvas._svg);
 
   var contents = innerSVG(contentNode),
-      defs = (defsNode && defsNode.outerHTML) || '';
+      defs = defsNode ? '<defs>' + innerSVG(defsNode) + '</defs>' : '';
 
   var bbox = contentNode.getBBox();
 
@@ -794,6 +794,9 @@ var rotate = _dereq_(279).rotate,
     transform = _dereq_(279).transform,
     translate = _dereq_(279).translate;
 
+var Ids = _dereq_(288),
+    RENDERER_IDS = new Ids();
+
 var TASK_BORDER_RADIUS = 10;
 var INNER_OUTER_DIST = 3;
 
@@ -806,6 +809,8 @@ var LABEL_STYLE = {
 function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
 
   BaseRenderer.call(this, eventBus, priority);
+
+  var rendererId = RENDERER_IDS.next();
 
   var textUtil = new TextUtil({
     style: LABEL_STYLE,
@@ -864,7 +869,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
   }
 
   function marker(type, fill, stroke) {
-    var id = type + '-' + fill + '-' + stroke;
+    var id = type + '-' + fill + '-' + stroke + '-' + rendererId;
 
     if (!markers[id]) {
       createMarker(type, fill, stroke);
@@ -874,7 +879,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
   }
 
   function createMarker(type, fill, stroke) {
-    var id = type + '-' + fill + '-' + stroke;
+    var id = type + '-' + fill + '-' + stroke + '-' + rendererId;
 
     if (type === 'sequenceflow-end') {
       var sequenceflowEnd = svgCreate('path');
@@ -2697,7 +2702,7 @@ function getStrokeColor(element, defaultColor) {
   return bo.di.get('stroke') || defaultColor || 'black';
 }
 
-},{"128":128,"278":278,"279":279,"280":280,"289":289,"300":300,"303":303,"309":309,"426":426,"431":431,"452":452,"471":471,"473":473,"474":474,"477":477,"93":93,"95":95}],6:[function(_dereq_,module,exports){
+},{"128":128,"278":278,"279":279,"280":280,"288":288,"289":289,"300":300,"303":303,"309":309,"426":426,"431":431,"452":452,"471":471,"473":473,"474":474,"477":477,"93":93,"95":95}],6:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -20433,7 +20438,8 @@ var isNumber = _dereq_(425),
     assign = _dereq_(431),
     forEach = _dereq_(303),
     every = _dereq_(300),
-    debounce = _dereq_(313);
+    debounce = _dereq_(313),
+    reduce = _dereq_(306);
 
 var Collections = _dereq_(263),
     Elements = _dereq_(266);
@@ -20486,11 +20492,13 @@ function createContainer(options) {
   return parent;
 }
 
-function createGroup(parent, cls) {
+function createGroup(parent, cls, childIndex) {
   var group = svgCreate('g');
   svgClasses(group).add(cls);
 
-  svgAppend(parent, group);
+  var index = childIndex !== undefined ? childIndex : parent.childNodes.length - 1;
+
+  parent.insertBefore(group, parent.childNodes[index]);
 
   return group;
 }
@@ -20574,8 +20582,8 @@ Canvas.prototype._init = function(config) {
      * @event canvas.init
      *
      * @type {Object}
-     * @property {Snap<SVGSVGElement>} svg the created svg element
-     * @property {Snap<SVGGroup>} viewport the direct parent of diagram elements and shapes
+     * @property {SVGElement} svg the created svg element
+     * @property {SVGElement} viewport the direct parent of diagram elements and shapes
      */
     eventBus.fire('canvas.init', {
       svg: svg,
@@ -20636,34 +20644,76 @@ Canvas.prototype._clear = function() {
  * Returns the default layer on which
  * all elements are drawn.
  *
- * @returns {Snap<SVGGroup>}
+ * @returns {SVGElement}
  */
 Canvas.prototype.getDefaultLayer = function() {
-  return this.getLayer(BASE_LAYER);
+  return this.getLayer(BASE_LAYER, 0);
 };
 
 /**
  * Returns a layer that is used to draw elements
  * or annotations on it.
  *
- * @param  {String} name
+ * Non-existing layers retrieved through this method
+ * will be created. During creation, the optional index
+ * may be used to create layers below or above existing layers.
+ * A layer with a certain index is always created above all
+ * existing layers with the same index.
  *
- * @returns {Snap<SVGGroup>}
+ * @param {String} name
+ * @param {Number} index
+ *
+ * @returns {SVGElement}
  */
-Canvas.prototype.getLayer = function(name) {
+Canvas.prototype.getLayer = function(name, index) {
 
   if (!name) {
     throw new Error('must specify a name');
   }
 
   var layer = this._layers[name];
+
   if (!layer) {
-    layer = this._layers[name] = createGroup(this._viewport, 'layer-' + name);
+    layer = this._layers[name] = this._createLayer(name, index);
   }
 
-  return layer;
+  // throw an error if layer creation / retrival is
+  // requested on different index
+  if (typeof index !== 'undefined' && layer.index !== index) {
+    throw new Error('layer <' + name + '> already created at index <' + index + '>');
+  }
+
+  return layer.group;
 };
 
+/**
+ * Creates a given layer and returns it.
+ *
+ * @param {String} name
+ * @param {Number} [index=0]
+ *
+ * @return {Object} layer descriptor with { index, group: SVGGroup }
+ */
+Canvas.prototype._createLayer = function(name, index) {
+
+  if (!index) {
+    index = 0;
+  }
+
+  var childIndex = reduce(this._layers, function(childIndex, layer) {
+    if (index >= layer.index) {
+      childIndex++;
+    }
+
+    return childIndex;
+  }, 0);
+
+  return {
+    group: createGroup(this._viewport, 'layer-' + name, childIndex),
+    index: index
+  };
+
+};
 
 /**
  * Returns the html element that encloses the
@@ -21417,7 +21467,7 @@ Canvas.prototype.resized = function() {
   this._eventBus.fire('canvas.resized');
 };
 
-},{"263":263,"266":266,"300":300,"303":303,"313":313,"425":425,"431":431,"471":471,"473":473,"474":474,"477":477,"478":478,"481":481}],123:[function(_dereq_,module,exports){
+},{"263":263,"266":266,"300":300,"303":303,"306":306,"313":313,"425":425,"431":431,"471":471,"473":473,"474":474,"477":477,"478":478,"481":481}],123:[function(_dereq_,module,exports){
 'use strict';
 
 var Model = _dereq_(254);
@@ -31711,6 +31761,19 @@ function setVisible(el, visible) {
   el.style.display = visible === false ? 'none' : '';
 }
 
+function setTransform(el, transform) {
+
+  el.style['transform-origin'] = 'top left';
+
+  [ '', '-ms-', '-webkit-' ].forEach(function(prefix) {
+    el.style[prefix + 'transform'] = transform;
+  });
+}
+
+function isDef(o) {
+  return typeof o !== 'undefined';
+}
+
 /**
  * A service that allows users to attach overlays to diagram elements.
  *
@@ -31753,11 +31816,29 @@ function setVisible(el, visible) {
  * var id = overlays.add(...);
  * overlays.remove(id);
  *
+ *
+ * You may configure overlay defaults during tool by providing a `config` module
+ * with `overlays.defaults` as an entry:
+ *
+ * {
+ *   overlays: {
+ *     defaults: {
+ *       show: {
+ *         minZoom: 0.7,
+ *         maxZoom: 5.0
+ *       },
+ *       scale: {
+ *         min: 1
+ *       }
+ *     }
+ * }
+ *
+ * @param {Object} config
  * @param {EventBus} eventBus
  * @param {Canvas} canvas
  * @param {ElementRegistry} elementRegistry
  */
-function Overlays(eventBus, canvas, elementRegistry) {
+function Overlays(config, eventBus, canvas, elementRegistry) {
 
   this._eventBus = eventBus;
   this._canvas = canvas;
@@ -31765,12 +31846,13 @@ function Overlays(eventBus, canvas, elementRegistry) {
 
   this._ids = ids;
 
-  this._overlayDefaults = {
-    show: {
-      minZoom: 0.7,
-      maxZoom: 5.0
-    }
-  };
+  this._overlayDefaults = assign({
+    // no show constraints
+    show: null,
+
+    // always scale
+    scale: true
+  }, config && config.defaults);
 
   /**
    * Mapping overlayId -> overlay
@@ -31789,7 +31871,12 @@ function Overlays(eventBus, canvas, elementRegistry) {
 }
 
 
-Overlays.$inject = [ 'eventBus', 'canvas', 'elementRegistry' ];
+Overlays.$inject = [
+  'config.overlays',
+  'eventBus',
+  'canvas',
+  'elementRegistry'
+];
 
 module.exports = Overlays;
 
@@ -31864,6 +31951,10 @@ Overlays.prototype.get = function(search) {
  * @param {Number}                  [overlay.position.top]       relative to element bbox top attachment
  * @param {Number}                  [overlay.position.bottom]    relative to element bbox bottom attachment
  * @param {Number}                  [overlay.position.right]     relative to element bbox right attachment
+ * @param {Boolean|Object}          [overlay.scale=true]         false to preserve the same size regardless of
+ *                                                               diagram zoom
+ * @param {Number}                  [overlay.scale.min]
+ * @param {Number}                  [overlay.scale.max]
  *
  * @return {String}                 id that may be used to reference the overlay for update or removal
  */
@@ -32029,6 +32120,7 @@ Overlays.prototype._updateOverlay = function(overlay) {
   setPosition(htmlContainer, left || 0, top || 0);
 };
 
+
 Overlays.prototype._createOverlayContainer = function(element) {
   var html = domify('<div class="djs-overlays" style="position: absolute" />');
 
@@ -32049,14 +32141,20 @@ Overlays.prototype._createOverlayContainer = function(element) {
 
 
 Overlays.prototype._updateRoot = function(viewbox) {
-  var a = viewbox.scale || 1;
-  var d = viewbox.scale || 1;
+  var scale = viewbox.scale || 1;
 
-  var matrix = 'matrix(' + a + ',0,0,' + d + ',' + (-1 * viewbox.x * a) + ',' + (-1 * viewbox.y * d) + ')';
+  var matrix = 'matrix(' +
+  [
+    scale,
+    0,
+    0,
+    scale,
+    -1 * viewbox.x * scale,
+    -1 * viewbox.y * scale
+  ].join(',') +
+  ')';
 
-  this._overlayRoot.style.transform = matrix;
-  this._overlayRoot.style['-ms-transform'] = matrix;
-  this._overlayRoot.style['-webkit-transform'] = matrix;
+  setTransform(this._overlayRoot, matrix);
 };
 
 
@@ -32072,9 +32170,6 @@ Overlays.prototype._getOverlayContainer = function(element, raw) {
 
   return container;
 };
-
-
-
 
 
 Overlays.prototype._addOverlay = function(overlay) {
@@ -32117,20 +32212,63 @@ Overlays.prototype._addOverlay = function(overlay) {
   this._updateOverlayVisibilty(overlay, this._canvas.viewbox());
 };
 
+
 Overlays.prototype._updateOverlayVisibilty = function(overlay, viewbox) {
   var show = overlay.show,
+      minZoom = show && show.minZoom,
+      maxZoom = show && show.maxZoom,
       htmlContainer = overlay.htmlContainer,
       visible = true;
 
   if (show) {
-    if (show.minZoom > viewbox.scale ||
-        show.maxZoom < viewbox.scale) {
+    if (
+      (isDef(minZoom) && minZoom > viewbox.scale) ||
+      (isDef(minZoom) && maxZoom < viewbox.scale)
+    ) {
       visible = false;
     }
 
     setVisible(htmlContainer, visible);
   }
+
+  this._updateOverlayScale(overlay, viewbox);
 };
+
+
+Overlays.prototype._updateOverlayScale = function(overlay, viewbox) {
+  var shouldScale = overlay.scale,
+      minScale,
+      maxScale,
+      htmlContainer = overlay.htmlContainer;
+
+  var scale, transform = '';
+
+  if (shouldScale !== true) {
+
+    if (shouldScale === false) {
+      minScale = 1;
+      maxScale = 1;
+    } else {
+      minScale = shouldScale.min;
+      maxScale = shouldScale.max;
+    }
+
+    if (isDef(minScale) && viewbox.scale < minScale) {
+      scale = (1 / viewbox.scale || 1) * minScale;
+    }
+
+    if (isDef(maxScale) && viewbox.scale > maxScale) {
+      scale = (1 / viewbox.scale || 1) * maxScale;
+    }
+  }
+
+  if (isDef(scale)) {
+    transform = 'scale(' + scale + ',' + scale + ')';
+  }
+
+  setTransform(htmlContainer, transform);
+};
+
 
 Overlays.prototype._updateOverlaysVisibilty = function(viewbox) {
 
@@ -38160,7 +38298,7 @@ var hasPrimaryModifier = _dereq_(274).hasPrimaryModifier,
 
 var isMac = _dereq_(275).isMac;
 
-var getStepRange = _dereq_(259).getStepRange,
+var getStepSize = _dereq_(259).getStepSize,
     cap = _dereq_(259).cap;
 
 var log10 = _dereq_(273).log10;
@@ -38169,6 +38307,8 @@ var bind = _dereq_(312);
 
 var RANGE = { min: 0.2, max: 4 },
     NUM_STEPS = 10;
+
+var DELTA_THRESHOLD = 0.1;
 
 
 /**
@@ -38197,6 +38337,8 @@ function ZoomScroll(eventBus, canvas, config) {
 
   var newEnabled = !config || config.enabled !== false;
 
+  this.totalDelta = 0;
+
   var self = this;
 
   eventBus.on('canvas.init', function(e) {
@@ -38217,14 +38359,26 @@ ZoomScroll.prototype.reset = function reset() {
   this._canvas.zoom('fit-viewport');
 };
 
+/**
+ * Zoom depending on delta.
+ * 
+ * @param {number} delta - Zoom delta.
+ * @param {Object} position - Zoom position.
+ */
+ZoomScroll.prototype.zoom = function zoom(delta, position) {
 
-ZoomScroll.prototype.zoom = function zoom(direction, position) {
-  var canvas = this._canvas;
-  var currentZoom = canvas.zoom(false);
+  // zoom with half the step size of stepZoom
+  var stepSize = getStepSize(RANGE, NUM_STEPS * 2);
 
-  var factor = Math.pow(1 + Math.abs(direction) , direction > 0 ? 1 : -1);
+  // add until threshold reached
+  this.totalDelta += delta;
 
-  canvas.zoom(cap(RANGE, currentZoom * factor), position);
+  if (Math.abs(this.totalDelta) > DELTA_THRESHOLD) {
+    this._zoom(delta, position, stepSize);
+
+    // reset
+    this.totalDelta = 0;
+  }
 };
 
 
@@ -38277,24 +38431,38 @@ ZoomScroll.prototype._handleWheel = function handleWheel(event) {
 };
 
 /**
- * Zoom along fixed zoom steps
+ * Zoom with fixed step size.
  *
- * @param {Integer} direction zoom direction (1 for zooming in, -1 for out)
+ * @param {number} delta - Zoom delta (1 for zooming in, -1 for out).
+ * @param {Object} position - Zoom position.
  */
-ZoomScroll.prototype.stepZoom = function stepZoom(direction, position) {
+ZoomScroll.prototype.stepZoom = function stepZoom(delta, position) {
 
-  var canvas = this._canvas,
-      stepRange = getStepRange(RANGE, NUM_STEPS);
+  var stepSize = getStepSize(RANGE, NUM_STEPS);
 
-  direction = direction > 0 ? 1 : -1;
+  this._zoom(delta, position, stepSize);
+};
+
+
+/**
+ * Zoom in/out given a step size.
+ * 
+ * @param {number} delta - Zoom delta. Can be positive or negative.
+ * @param {Object} position - Zoom position.
+ * @param {number} stepSize - Step size.
+ */
+ZoomScroll.prototype._zoom = function(delta, position, stepSize) {
+  var canvas = this._canvas;
+
+  var direction = delta > 0 ? 1 : -1;
 
   var currentLinearZoomLevel = log10(canvas.zoom());
 
   // snap to a proximate zoom step
-  var newLinearZoomLevel = Math.round(currentLinearZoomLevel / stepRange) * stepRange;
+  var newLinearZoomLevel = Math.round(currentLinearZoomLevel / stepSize) * stepSize;
 
   // increase or decrease one zoom step in the given direction
-  newLinearZoomLevel += stepRange * direction;
+  newLinearZoomLevel += stepSize * direction;
 
   // calculate the absolute logarithmic zoom level based on the linear zoom level
   // (e.g. 2 for an absolute x2 zoom)
@@ -38345,10 +38513,13 @@ ZoomScroll.prototype._init = function(newEnabled) {
 var log10 = _dereq_(273).log10;
 
 /**
- * Get the linear range between two zoom steps based on the
- * total number of zoom steps (defined as NUM_STEPS)
+ * Get step size for given range and number of steps.
+ * 
+ * @param {Object} range - Range.
+ * @param {number} range.min - Range minimum.
+ * @param {number} range.max - Range maximum.
  */
-module.exports.getStepRange = function(range, steps) {
+module.exports.getStepSize = function(range, steps) {
 
   var minLinearRange = log10(range.min),
       maxLinearRange = log10(range.max);
@@ -38762,7 +38933,7 @@ function getClosure(elements) {
 
   function handleConnection(c) {
     if (topLevel[c.source.id] && topLevel[c.target.id]) {
-      topLevel[c.id] = c;
+      topLevel[c.id] = [ c ];
     }
 
     // not enclosed as a child, but maybe logically
@@ -41127,7 +41298,7 @@ function Text(config) {
  * @param {String} text
  * @param {Object} options
  *
- * @return {SVGText}
+ * @return {SVGElement}
  */
 Text.prototype.createText = function(text, options) {
   return this.layoutText(text, options).element;
@@ -51191,7 +51362,7 @@ XMLReader.prototype.fromXML = function(xml, options, done) {
 
     var i, r;
 
-    for (i = 0; !!(r = references[i]); i++) {
+    for (i = 0; (r = references[i]); i++) {
       var element = r.element;
       var reference = elementsById[r.id];
       var property = getModdleDescriptor(element).propertiesByName[r.property];
@@ -51322,6 +51493,18 @@ var XML_PREAMBLE = '<?xml version="1.0" encoding="UTF-8"?>\n',
     DEFAULT_NS_MAP = common.DEFAULT_NS_MAP,
     XSI_TYPE = common.XSI_TYPE;
 
+
+function inherits(ctor, superCtor) {
+  ctor.super_ = superCtor;
+  ctor.prototype = Object.create(superCtor.prototype, {
+    constructor: {
+      value: ctor,
+      enumerable: false,
+      writable: true,
+      configurable: true
+    }
+  });
+}
 
 function nsName(ns) {
   if (isString(ns)) {
@@ -51471,7 +51654,7 @@ function ValueSerializer(ns) {
   this.ns = ns;
 }
 
-ValueSerializer.prototype = new BodySerializer();
+inherits(ValueSerializer, BodySerializer);
 
 ValueSerializer.prototype.serializeTo = function(writer) {
 
@@ -51482,7 +51665,7 @@ ValueSerializer.prototype.serializeTo = function(writer) {
   this.serializeValue(writer);
 
   writer
-    .append( '</' + nsName(this.ns) + '>')
+    .append('</' + nsName(this.ns) + '>')
     .appendNewLine();
 };
 
@@ -51839,8 +52022,8 @@ ElementSerializer.prototype.serializeAttributes = function(writer) {
 };
 
 ElementSerializer.prototype.serializeTo = function(writer) {
-  var hasBody = this.body.length,
-      indent = !(this.body.length === 1 && this.body[0] instanceof BodySerializer);
+  var firstBody = this.body[0],
+      indent = firstBody && firstBody.constructor !== BodySerializer;
 
   writer
     .appendIndent()
@@ -51848,9 +52031,9 @@ ElementSerializer.prototype.serializeTo = function(writer) {
 
   this.serializeAttributes(writer);
 
-  writer.append(hasBody ? '>' : ' />');
+  writer.append(firstBody ? '>' : ' />');
 
-  if (hasBody) {
+  if (firstBody) {
 
     if (indent) {
       writer
@@ -51881,7 +52064,7 @@ function TypeSerializer(parent, ns) {
   ElementSerializer.call(this, parent, ns);
 }
 
-TypeSerializer.prototype = new ElementSerializer();
+inherits(TypeSerializer, ElementSerializer);
 
 TypeSerializer.prototype.build = function(element) {
   var descriptor = element.$descriptor;
@@ -55183,8 +55366,6 @@ function create(name, attrs) {
  * Geometry helpers
  */
 
-module.exports = { createPoint: createPoint, createMatrix: createMatrix, createTransform: createTransform };
-
 
 var create = _dereq_(477);
 
@@ -55247,6 +55428,11 @@ function createTransform(matrix) {
     return node.createSVGTransform();
   }
 }
+
+
+module.exports.createTransform = createTransform;
+module.exports.createMatrix = createMatrix;
+module.exports.createPoint = createPoint;
 },{"477":477}],479:[function(_dereq_,module,exports){
 /**
  * innerHTML like functionality for SVG elements.
@@ -55314,7 +55500,12 @@ function innerSVG(element, svg) {
 module.exports = remove;
 
 function remove(element) {
-  element.parentNode.removeChild(element);
+  var parent = element.parentNode;
+
+  if (parent) {
+    parent.removeChild(element);
+  }
+
   return element;
 }
 },{}],481:[function(_dereq_,module,exports){
