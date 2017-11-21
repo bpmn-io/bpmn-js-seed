@@ -1,5 +1,5 @@
 /*!
- * bpmn-js - bpmn-modeler v0.24.0
+ * bpmn-js - bpmn-modeler v0.25.0
 
  * Copyright 2014 - 2017 camunda Services GmbH and other contributors
  *
@@ -8,7 +8,7 @@
  *
  * Source Code: https://github.com/bpmn-io/bpmn-js
  *
- * Date: 2017-11-15
+ * Date: 2017-11-21
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.BpmnJS = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
@@ -125,7 +125,7 @@ function Modeler(options) {
   }, this);
 
   this.on('diagram.destroy', function() {
-    this.moddle.ids.clear();
+    this.get('moddle').ids.clear();
   }, this);
 }
 
@@ -266,7 +266,7 @@ var domify = _dereq_(449),
     domQuery = _dereq_(452),
     domRemove = _dereq_(453);
 
-var innerSVG = _dereq_(479);
+var innerSVG = _dereq_(480);
 
 var Diagram = _dereq_(117),
     BpmnModdle = _dereq_(99);
@@ -359,17 +359,17 @@ function Viewer(options) {
 
   options = assign({}, DEFAULT_OPTIONS, options);
 
-  this.moddle = this._createModdle(options);
+  this._moddle = this._createModdle(options);
 
-  this.container = this._createContainer(options);
+  this._container = this._createContainer(options);
 
   /* <project-logo> */
 
-  addProjectLogo(this.container);
+  addProjectLogo(this._container);
 
   /* </project-logo> */
 
-  this._init(this.container, this.moddle, options);
+  this._init(this._container, this._moddle, options);
 }
 
 inherits(Viewer, Diagram);
@@ -409,7 +409,7 @@ Viewer.prototype.importXML = function(xml, done) {
   // allow xml manipulation
   xml = this._emit('import.parse.start', { xml: xml }) || xml;
 
-  this.moddle.fromXML(xml, 'bpmn:Definitions', function(err, definitions, context) {
+  this._moddle.fromXML(xml, 'bpmn:Definitions', function(err, definitions, context) {
 
     // hook in post parse listeners +
     // allow definitions manipulation
@@ -456,13 +456,13 @@ Viewer.prototype.saveXML = function(options, done) {
     options = {};
   }
 
-  var definitions = this.definitions;
+  var definitions = this._definitions;
 
   if (!definitions) {
     return done(new Error('no definitions loaded'));
   }
 
-  this.moddle.toXML(definitions, options, done);
+  this._moddle.toXML(definitions, options, done);
 };
 
 /**
@@ -548,13 +548,13 @@ Viewer.prototype.importDefinitions = function(definitions, done) {
   // that may be raised during model parsing
   try {
 
-    if (this.definitions) {
+    if (this._definitions) {
       // clear existing rendered diagram
       this.clear();
     }
 
     // update definitions
-    this.definitions = definitions;
+    this._definitions = definitions;
 
     // perform graphical import
     Importer.importBpmnDiagram(this, definitions, done);
@@ -579,7 +579,7 @@ Viewer.prototype.destroy = function() {
   Diagram.prototype.destroy.call(this);
 
   // dom detach
-  domRemove(this.container);
+  domRemove(this._container);
 };
 
 /**
@@ -625,9 +625,7 @@ Viewer.prototype.attachTo = function(parentNode) {
     parentNode = domQuery(parentNode);
   }
 
-  var container = this._container;
-
-  parentNode.appendChild(container);
+  parentNode.appendChild(this._container);
 
   this._emit('attach', {});
 };
@@ -648,7 +646,6 @@ Viewer.prototype.detach = function() {
 
 Viewer.prototype._init = function(container, moddle, options) {
 
-  this._container = container;
   var baseModules = options.modules || this.getModules(),
       additionalModules = options.additionalModules || [],
       staticModules = [
@@ -754,7 +751,7 @@ function addProjectLogo(container) {
 
 /* </project-logo> */
 
-},{"117":117,"211":211,"233":233,"248":248,"289":289,"4":4,"425":425,"431":431,"436":436,"449":449,"450":450,"452":452,"453":453,"479":479,"90":90,"96":96,"99":99}],4:[function(_dereq_,module,exports){
+},{"117":117,"211":211,"233":233,"248":248,"289":289,"4":4,"425":425,"431":431,"436":436,"449":449,"450":450,"452":452,"453":453,"480":480,"90":90,"96":96,"99":99}],4:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
     _dereq_(7),
@@ -785,10 +782,10 @@ var componentsToPath = RenderUtil.componentsToPath,
 
 var domQuery = _dereq_(452);
 
-var svgAppend = _dereq_(471),
-    svgAttr = _dereq_(473),
-    svgCreate = _dereq_(477),
-    svgClasses = _dereq_(474);
+var svgAppend = _dereq_(472),
+    svgAttr = _dereq_(474),
+    svgCreate = _dereq_(478),
+    svgClasses = _dereq_(475);
 
 var rotate = _dereq_(279).rotate,
     transform = _dereq_(279).transform,
@@ -2707,7 +2704,7 @@ function getStrokeColor(element, defaultColor) {
   return bo.di.get('stroke') || defaultColor || 'black';
 }
 
-},{"128":128,"278":278,"279":279,"280":280,"288":288,"289":289,"300":300,"303":303,"309":309,"426":426,"431":431,"452":452,"471":471,"473":473,"474":474,"477":477,"93":93,"95":95}],6:[function(_dereq_,module,exports){
+},{"128":128,"278":278,"279":279,"280":280,"288":288,"289":289,"300":300,"303":303,"309":309,"426":426,"431":431,"452":452,"472":472,"474":474,"475":475,"478":478,"93":93,"95":95}],6:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -4185,10 +4182,10 @@ module.exports = {
 };
 
 },{"172":172,"21":21}],23:[function(_dereq_,module,exports){
-var svgAppend = _dereq_(471),
-    svgAttr = _dereq_(473),
-    svgCreate = _dereq_(477),
-    svgRemove = _dereq_(480);
+var svgAppend = _dereq_(472),
+    svgAttr = _dereq_(474),
+    svgCreate = _dereq_(478),
+    svgRemove = _dereq_(481);
 
 var getBusinessObject = _dereq_(95).getBusinessObject,
     is = _dereq_(95).is;
@@ -4308,7 +4305,7 @@ LabelEditingPreview.$inject = [ 'eventBus', 'canvas', 'elementRegistry', 'pathMa
 
 module.exports = LabelEditingPreview;
 
-},{"279":279,"471":471,"473":473,"477":477,"480":480,"95":95}],24:[function(_dereq_,module,exports){
+},{"279":279,"472":472,"474":474,"478":478,"481":481,"95":95}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var assign = _dereq_(431);
@@ -10778,7 +10775,7 @@ var assign = _dereq_(431),
 
 var domQuery = _dereq_(452);
 
-var svgAttr = _dereq_(473);
+var svgAttr = _dereq_(474);
 
 var LOW_PRIORITY = 250;
 
@@ -10881,7 +10878,7 @@ inherits(BpmnReplacePreview, CommandInterceptor);
 
 module.exports = BpmnReplacePreview;
 
-},{"119":119,"289":289,"303":303,"431":431,"452":452,"473":473}],77:[function(_dereq_,module,exports){
+},{"119":119,"289":289,"303":303,"431":431,"452":452,"474":474}],77:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [ _dereq_(217) ],
   __init__: [ 'bpmnReplacePreview' ],
@@ -20449,13 +20446,13 @@ var isNumber = _dereq_(425),
 var Collections = _dereq_(263),
     Elements = _dereq_(266);
 
-var svgAppend = _dereq_(471),
-    svgAttr = _dereq_(473),
-    svgClasses = _dereq_(474),
-    svgCreate = _dereq_(477),
-    svgTransform = _dereq_(481);
+var svgAppend = _dereq_(472),
+    svgAttr = _dereq_(474),
+    svgClasses = _dereq_(475),
+    svgCreate = _dereq_(478),
+    svgTransform = _dereq_(482);
 
-var createMatrix = _dereq_(478).createMatrix;
+var createMatrix = _dereq_(479).createMatrix;
 
 
 function round(number, resolution) {
@@ -21472,7 +21469,7 @@ Canvas.prototype.resized = function() {
   this._eventBus.fire('canvas.resized');
 };
 
-},{"263":263,"266":266,"300":300,"303":303,"306":306,"313":313,"425":425,"431":431,"471":471,"473":473,"474":474,"477":477,"478":478,"481":481}],123:[function(_dereq_,module,exports){
+},{"263":263,"266":266,"300":300,"303":303,"306":306,"313":313,"425":425,"431":431,"472":472,"474":474,"475":475,"478":478,"479":479,"482":482}],123:[function(_dereq_,module,exports){
 'use strict';
 
 var Model = _dereq_(254);
@@ -21528,7 +21525,7 @@ ElementFactory.prototype.create = function(type, attrs) {
 
 var ELEMENT_ID = 'data-element-id';
 
-var svgAttr = _dereq_(473);
+var svgAttr = _dereq_(474);
 
 
 /**
@@ -21734,7 +21731,7 @@ ElementRegistry.prototype._validateId = function(id) {
   }
 };
 
-},{"473":473}],125:[function(_dereq_,module,exports){
+},{"474":474}],125:[function(_dereq_,module,exports){
 'use strict';
 
 var isFunction = _dereq_(423),
@@ -22204,11 +22201,11 @@ var translate = _dereq_(279).translate;
 
 var domClear = _dereq_(446);
 
-var svgAppend = _dereq_(471),
-    svgAttr = _dereq_(473),
-    svgClasses = _dereq_(474),
-    svgCreate = _dereq_(477),
-    svgRemove = _dereq_(480);
+var svgAppend = _dereq_(472),
+    svgAttr = _dereq_(474),
+    svgClasses = _dereq_(475),
+    svgCreate = _dereq_(478),
+    svgRemove = _dereq_(481);
 
 
 /**
@@ -22409,7 +22406,7 @@ function prependTo(newNode, parentNode) {
   parentNode.insertBefore(newNode, parentNode.firstChild);
 }
 
-},{"269":269,"279":279,"303":303,"306":306,"446":446,"471":471,"473":473,"474":474,"477":477,"480":480}],127:[function(_dereq_,module,exports){
+},{"269":269,"279":279,"303":303,"306":306,"446":446,"472":472,"474":474,"475":475,"478":478,"481":481}],127:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [ _dereq_(131) ],
   __init__: [ 'canvas' ],
@@ -22522,9 +22519,9 @@ var renderUtil = _dereq_(278);
 var componentsToPath = renderUtil.componentsToPath,
     createLine = renderUtil.createLine;
 
-var svgAppend = _dereq_(471),
-    svgAttr = _dereq_(473),
-    svgCreate = _dereq_(477);
+var svgAppend = _dereq_(472),
+    svgAttr = _dereq_(474),
+    svgCreate = _dereq_(478);
 
 // apply default renderer with lowest possible priority
 // so that it only kicks in if noone else could render
@@ -22615,7 +22612,7 @@ DefaultRenderer.$inject = [ 'eventBus', 'styles' ];
 
 module.exports = DefaultRenderer;
 
-},{"128":128,"278":278,"289":289,"471":471,"473":473,"477":477}],130:[function(_dereq_,module,exports){
+},{"128":128,"278":278,"289":289,"472":472,"474":474,"478":478}],130:[function(_dereq_,module,exports){
 'use strict';
 
 var isArray = _dereq_(422),
@@ -23593,8 +23590,8 @@ var COMMAND_BENDPOINT_UPDATE = 'connection.updateWaypoints',
 
 var round = Math.round;
 
-var svgClasses = _dereq_(474),
-    svgRemove = _dereq_(480);
+var svgClasses = _dereq_(475),
+    svgRemove = _dereq_(481);
 
 var translate = _dereq_(279).translate;
 
@@ -23705,9 +23702,29 @@ function BendpointMove(injector, eventBus, canvas, dragging, graphicsFactory, ru
   });
 
   eventBus.on('bendpoint.move.hover', function(e) {
+    var context = e.context;
+    
+    context.hover = e.hover;
 
-    e.context.hover = e.hover;
-    canvas.addMarker(e.hover, MARKER_CONNECT_HOVER);
+    if (e.hover) {
+      canvas.addMarker(e.hover, MARKER_CONNECT_HOVER);
+
+      // asks whether reconnect / bendpoint move / bendpoint add
+      // is allowed at the given position
+      var allowed = context.allowed = rules.allowed(context.type, context);
+
+      if (allowed) {
+        canvas.removeMarker(context.hover, MARKER_NOT_OK);
+        canvas.addMarker(context.hover, MARKER_OK);
+
+        context.target = context.hover;
+      } else if (allowed === false) {
+        canvas.removeMarker(context.hover, MARKER_OK);
+        canvas.addMarker(context.hover, MARKER_NOT_OK);
+
+        context.target = null;
+      }
+    }
   });
 
   eventBus.on([
@@ -23747,28 +23764,6 @@ function BendpointMove(injector, eventBus, canvas, dragging, graphicsFactory, ru
       }
 
       connection.waypoints = connectionDocking.getCroppedWaypoints(connection, source, target);
-    }
-
-    // asks whether reconnect / bendpoint move / bendpoint add
-    // is allowed at the given position
-    var allowed = context.allowed = rules.allowed(context.type, context);
-
-    if (allowed) {
-
-      if (context.hover) {
-        canvas.removeMarker(context.hover, MARKER_NOT_OK);
-        canvas.addMarker(context.hover, MARKER_OK);
-
-        context.target = context.hover;
-      }
-    } else
-    if (allowed === false) {
-      if (context.hover) {
-        canvas.removeMarker(context.hover, MARKER_OK);
-        canvas.addMarker(context.hover, MARKER_NOT_OK);
-
-        context.target = null;
-      }
     }
 
     // add dragger gfx
@@ -23846,7 +23841,7 @@ BendpointMove.$inject = [ 'injector', 'eventBus', 'canvas', 'dragging', 'graphic
 
 module.exports = BendpointMove;
 
-},{"142":142,"268":268,"279":279,"474":474,"480":480}],141:[function(_dereq_,module,exports){
+},{"142":142,"268":268,"279":279,"475":475,"481":481}],141:[function(_dereq_,module,exports){
 'use strict';
 
 var assign = _dereq_(431),
@@ -24055,10 +24050,10 @@ var Events = _dereq_(267),
 var BENDPOINT_CLS = module.exports.BENDPOINT_CLS = 'djs-bendpoint';
 var SEGMENT_DRAGGER_CLS = module.exports.SEGMENT_DRAGGER_CLS = 'djs-segment-dragger';
 
-var svgAppend = _dereq_(471),
-    svgAttr = _dereq_(473),
-    svgClasses = _dereq_(474),
-    svgCreate = _dereq_(477);
+var svgAppend = _dereq_(472),
+    svgAttr = _dereq_(474),
+    svgClasses = _dereq_(475),
+    svgCreate = _dereq_(478);
 
 var rotate = _dereq_(279).rotate,
     translate = _dereq_(279).translate;
@@ -24177,7 +24172,7 @@ module.exports.addSegmentDragger = function(parentGfx, segmentStart, segmentEnd)
   return groupGfx;
 };
 
-},{"267":267,"268":268,"279":279,"471":471,"473":473,"474":474,"477":477}],143:[function(_dereq_,module,exports){
+},{"267":267,"268":268,"279":279,"472":472,"474":474,"475":475,"478":478}],143:[function(_dereq_,module,exports){
 'use strict';
 
 var forEach = _dereq_(303);
@@ -24194,11 +24189,11 @@ var BENDPOINT_CLS = BendpointUtil.BENDPOINT_CLS,
 
 var getApproxIntersection = _dereq_(272).getApproxIntersection;
 
-var svgAppend = _dereq_(471),
-    svgAttr = _dereq_(473),
-    svgClasses = _dereq_(474),
-    svgCreate = _dereq_(477),
-    svgRemove = _dereq_(480);
+var svgAppend = _dereq_(472),
+    svgAttr = _dereq_(474),
+    svgClasses = _dereq_(475),
+    svgCreate = _dereq_(478),
+    svgRemove = _dereq_(481);
 
 var translate = _dereq_(279).translate;
 
@@ -24464,7 +24459,7 @@ Bendpoints.$inject = [
 
 module.exports = Bendpoints;
 
-},{"142":142,"268":268,"272":272,"279":279,"303":303,"450":450,"452":452,"471":471,"473":473,"474":474,"477":477,"480":480}],144:[function(_dereq_,module,exports){
+},{"142":142,"268":268,"272":272,"279":279,"303":303,"450":450,"452":452,"472":472,"474":474,"475":475,"478":478,"481":481}],144:[function(_dereq_,module,exports){
 'use strict';
 
 var Geometry = _dereq_(268),
@@ -24474,8 +24469,8 @@ var Geometry = _dereq_(268),
 var MARKER_CONNECT_HOVER = 'connect-hover',
     MARKER_CONNECT_UPDATING = 'djs-updating';
 
-var svgClasses = _dereq_(474),
-    svgRemove = _dereq_(480);
+var svgClasses = _dereq_(475),
+    svgRemove = _dereq_(481);
 
 var translate = _dereq_(279).translate;
 
@@ -24867,7 +24862,7 @@ ConnectionSegmentMove.$inject = [
 
 module.exports = ConnectionSegmentMove;
 
-},{"142":142,"252":252,"268":268,"279":279,"474":474,"480":480}],145:[function(_dereq_,module,exports){
+},{"142":142,"252":252,"268":268,"279":279,"475":475,"481":481}],145:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [ _dereq_(162), _dereq_(227) ],
   __init__: [ 'bendpoints', 'bendpointSnapping' ],
@@ -24988,10 +24983,10 @@ var LayoutUtil = _dereq_(252);
 var MARKER_OK = 'connect-ok',
     MARKER_NOT_OK = 'connect-not-ok';
 
-var svgAppend = _dereq_(471),
-    svgAttr = _dereq_(473),
-    svgCreate = _dereq_(477),
-    svgRemove = _dereq_(480);
+var svgAppend = _dereq_(472),
+    svgAttr = _dereq_(474),
+    svgCreate = _dereq_(478),
+    svgRemove = _dereq_(481);
 
 
 function Connect(eventBus, dragging, modeling, rules, canvas, graphicsFactory) {
@@ -25164,7 +25159,7 @@ Connect.$inject = [ 'eventBus', 'dragging', 'modeling', 'rules', 'canvas', 'grap
 
 module.exports = Connect;
 
-},{"252":252,"471":471,"473":473,"477":477,"480":480}],151:[function(_dereq_,module,exports){
+},{"252":252,"472":472,"474":474,"478":478,"481":481}],151:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
     _dereq_(233),
@@ -25968,11 +25963,11 @@ var MARKER_OK = 'drop-ok',
     MARKER_ATTACH = 'attach-ok',
     MARKER_NEW_PARENT = 'new-parent';
 
-var svgAppend = _dereq_(471),
-    svgAttr = _dereq_(473),
-    svgClasses = _dereq_(474),
-    svgCreate = _dereq_(477),
-    svgRemove = _dereq_(480);
+var svgAppend = _dereq_(472),
+    svgAttr = _dereq_(474),
+    svgClasses = _dereq_(475),
+    svgCreate = _dereq_(478),
+    svgRemove = _dereq_(481);
 
 var translate = _dereq_(279).translate;
 
@@ -26159,7 +26154,7 @@ Create.$inject = [ 'eventBus', 'dragging', 'rules', 'modeling', 'canvas', 'style
 
 module.exports = Create;
 
-},{"279":279,"471":471,"473":473,"474":474,"477":477,"480":480}],157:[function(_dereq_,module,exports){
+},{"279":279,"472":472,"474":474,"475":475,"478":478,"481":481}],157:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
     _dereq_(162),
@@ -27501,9 +27496,9 @@ var forEach = _dereq_(303),
 
 var isPrimaryButton = _dereq_(274).isPrimaryButton;
 
-var svgAppend = _dereq_(471),
-    svgAttr = _dereq_(473),
-    svgCreate = _dereq_(477);
+var svgAppend = _dereq_(472),
+    svgAttr = _dereq_(474),
+    svgCreate = _dereq_(478);
 
 var domQuery = _dereq_(452);
 
@@ -27793,7 +27788,7 @@ module.exports = InteractionEvents;
  * @property {Event} originalEvent
  */
 
-},{"274":274,"278":278,"303":303,"448":448,"452":452,"471":471,"473":473,"477":477}],170:[function(_dereq_,module,exports){
+},{"274":274,"278":278,"303":303,"448":448,"452":452,"472":472,"474":474,"478":478}],170:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'interactionEvents' ],
   interactionEvents: [ 'type', _dereq_(169) ]
@@ -28241,10 +28236,10 @@ var getEnclosedElements = _dereq_(266).getEnclosedElements;
 
 var hasSecondaryModifier = _dereq_(274).hasSecondaryModifier;
 
-var svgAppend = _dereq_(471),
-    svgAttr = _dereq_(473),
-    svgCreate = _dereq_(477),
-    svgRemove = _dereq_(480);
+var svgAppend = _dereq_(472),
+    svgAttr = _dereq_(474),
+    svgCreate = _dereq_(478),
+    svgRemove = _dereq_(481);
 
 var LASSO_TOOL_CURSOR = 'crosshair';
 
@@ -28486,7 +28481,7 @@ function toBBox(event) {
   return bbox;
 }
 
-},{"266":266,"274":274,"440":440,"471":471,"473":473,"477":477,"480":480}],176:[function(_dereq_,module,exports){
+},{"266":266,"274":274,"440":440,"472":472,"474":474,"478":478,"481":481}],176:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -31273,10 +31268,10 @@ var flatten = _dereq_(291),
 
 var Elements = _dereq_(266);
 
-var svgAppend = _dereq_(471),
-    svgAttr = _dereq_(473),
-    svgClear = _dereq_(475),
-    svgCreate = _dereq_(477);
+var svgAppend = _dereq_(472),
+    svgAttr = _dereq_(474),
+    svgClear = _dereq_(476),
+    svgCreate = _dereq_(478);
 
 var translate = _dereq_(279).translate;
 
@@ -31480,7 +31475,7 @@ function isConnection(element) {
   return element.waypoints;
 }
 
-},{"266":266,"279":279,"291":291,"301":301,"302":302,"303":303,"304":304,"305":305,"308":308,"471":471,"473":473,"475":475,"477":477}],206:[function(_dereq_,module,exports){
+},{"266":266,"279":279,"291":291,"301":301,"302":302,"303":303,"304":304,"305":305,"308":308,"472":472,"474":474,"476":476,"478":478}],206:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
     _dereq_(170),
@@ -31602,9 +31597,9 @@ var getBBox = _dereq_(266).getBBox;
 
 var LOW_PRIORITY = 500;
 
-var svgAppend = _dereq_(471),
-    svgAttr = _dereq_(473),
-    svgCreate = _dereq_(477);
+var svgAppend = _dereq_(472),
+    svgAttr = _dereq_(474),
+    svgCreate = _dereq_(478);
 
 var domQuery = _dereq_(452);
 
@@ -31718,7 +31713,7 @@ Outline.$inject = ['eventBus', 'styles', 'elementRegistry'];
 
 module.exports = Outline;
 
-},{"266":266,"431":431,"452":452,"471":471,"473":473,"477":477}],209:[function(_dereq_,module,exports){
+},{"266":266,"431":431,"452":452,"472":472,"474":474,"478":478}],209:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -33168,10 +33163,10 @@ module.exports = {
 
 var forEach = _dereq_(303);
 
-var svgAppend = _dereq_(471),
-    svgAttr = _dereq_(473),
-    svgClone = _dereq_(476),
-    svgCreate = _dereq_(477);
+var svgAppend = _dereq_(472),
+    svgAttr = _dereq_(474),
+    svgClone = _dereq_(477),
+    svgCreate = _dereq_(478);
 
 /**
  * Adds support for previews of moving/resizing elements.
@@ -33283,7 +33278,7 @@ function isConnection(element) {
   return element.waypoints;
 }
 
-},{"303":303,"471":471,"473":473,"476":476,"477":477}],217:[function(_dereq_,module,exports){
+},{"303":303,"472":472,"474":474,"477":477,"478":478}],217:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -33550,11 +33545,11 @@ var HANDLE_OFFSET = -2,
 
 var CLS_RESIZER   = 'djs-resizer';
 
-var svgAppend = _dereq_(471),
-    svgAttr = _dereq_(473),
-    svgClasses = _dereq_(474),
-    svgClear = _dereq_(475),
-    svgCreate = _dereq_(477);
+var svgAppend = _dereq_(472),
+    svgAttr = _dereq_(474),
+    svgClasses = _dereq_(475),
+    svgClear = _dereq_(476),
+    svgCreate = _dereq_(478);
 
 var domEvent = _dereq_(450);
 
@@ -33714,7 +33709,7 @@ ResizeHandles.$inject = [ 'eventBus', 'canvas', 'selection', 'resize' ];
 
 module.exports = ResizeHandles;
 
-},{"252":252,"274":274,"279":279,"303":303,"450":450,"471":471,"473":473,"474":474,"475":475,"477":477}],222:[function(_dereq_,module,exports){
+},{"252":252,"274":274,"279":279,"303":303,"450":450,"472":472,"474":474,"475":475,"476":476,"478":478}],222:[function(_dereq_,module,exports){
 'use strict';
 
 var MARKER_RESIZING = 'djs-resizing',
@@ -33722,10 +33717,10 @@ var MARKER_RESIZING = 'djs-resizing',
 
 var LOW_PRIORITY = 500;
 
-var svgAttr = _dereq_(473),
-    svgRemove = _dereq_(480);
+var svgAttr = _dereq_(474),
+    svgRemove = _dereq_(481);
 
-var svgClasses = _dereq_(474);
+var svgClasses = _dereq_(475);
 
 
 /**
@@ -33785,7 +33780,7 @@ ResizePreview.$inject = [ 'eventBus', 'elementRegistry', 'canvas', 'styles', 'pr
 
 module.exports = ResizePreview;
 
-},{"473":473,"474":474,"480":480}],223:[function(_dereq_,module,exports){
+},{"474":474,"475":475,"481":481}],223:[function(_dereq_,module,exports){
 'use strict';
 
 var filter = _dereq_(301);
@@ -35359,10 +35354,10 @@ var HIGHER_PRIORITY = 1250;
 var isSnapped = SnapUtil.isSnapped,
     setSnapped = SnapUtil.setSnapped;
 
-var svgAppend = _dereq_(471),
-    svgAttr = _dereq_(473),
-    svgClasses = _dereq_(474),
-    svgCreate = _dereq_(477);
+var svgAppend = _dereq_(472),
+    svgAttr = _dereq_(474),
+    svgClasses = _dereq_(475),
+    svgCreate = _dereq_(478);
 
 
 /**
@@ -35592,7 +35587,7 @@ Snapping.prototype.getSiblings = function(element, target) {
   });
 };
 
-},{"234":234,"235":235,"301":301,"303":303,"313":313,"471":471,"473":473,"474":474,"477":477}],237:[function(_dereq_,module,exports){
+},{"234":234,"235":235,"301":301,"303":303,"313":313,"472":472,"474":474,"475":475,"478":478}],237:[function(_dereq_,module,exports){
 'use strict';
 
 var SpaceUtil = _dereq_(239);
@@ -35888,11 +35883,11 @@ var MARKER_DRAGGING = 'djs-dragging',
 
 var LOW_PRIORITY = 250;
 
-var svgAppend = _dereq_(471),
-    svgAttr = _dereq_(473),
-    svgClasses = _dereq_(474),
-    svgCreate = _dereq_(477),
-    svgRemove = _dereq_(480);
+var svgAppend = _dereq_(472),
+    svgAttr = _dereq_(474),
+    svgClasses = _dereq_(475),
+    svgCreate = _dereq_(478),
+    svgRemove = _dereq_(481);
 
 var translate = _dereq_(279).translate;
 
@@ -36150,7 +36145,7 @@ function isConnection(element) {
   return element.waypoints;
 }
 
-},{"279":279,"303":303,"471":471,"473":473,"474":474,"477":477,"480":480}],239:[function(_dereq_,module,exports){
+},{"279":279,"303":303,"472":472,"474":474,"475":475,"478":478,"481":481}],239:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -36734,9 +36729,9 @@ module.exports = {
 },{"243":243}],245:[function(_dereq_,module,exports){
 'use strict';
 
-var svgAppend = _dereq_(471),
-    svgAttr = _dereq_(473),
-    svgCreate = _dereq_(477);
+var svgAppend = _dereq_(472),
+    svgAttr = _dereq_(474),
+    svgCreate = _dereq_(478);
 
 
 function TouchFix(canvas, eventBus) {
@@ -36790,7 +36785,7 @@ TouchFix.prototype.addBBoxMarker = function(svg) {
   svgAppend(svg, rect2);
 };
 
-},{"471":471,"473":473,"477":477}],246:[function(_dereq_,module,exports){
+},{"472":472,"474":474,"478":478}],246:[function(_dereq_,module,exports){
 'use strict';
 
 var forEach = _dereq_(303),
@@ -37535,7 +37530,7 @@ var INTERSECTION_THRESHOLD = 20,
  *
  * @return {Array<Point>}
  */
-module.exports.getBendpoints = function(a, b, directions) {
+function getBendpoints(a, b, directions) {
 
   directions = directions || 'h:h';
 
@@ -37571,7 +37566,9 @@ module.exports.getBendpoints = function(a, b, directions) {
       'unknown directions: <' + directions + '>: ' +
       'directions must be specified as {a direction}:{b direction} (direction in h|v)');
   }
-};
+}
+
+module.exports.getBendpoints = getBendpoints;
 
 
 /**
@@ -37586,19 +37583,21 @@ module.exports.getBendpoints = function(a, b, directions) {
  *
  * @return {Array<Point>}
  */
-module.exports.connectPoints = function(a, b, directions) {
+function connectPoints(a, b, directions) {
 
   var points = [];
 
   if (!pointsAligned(a, b)) {
-    points = this.getBendpoints(a, b, directions);
+    points = getBendpoints(a, b, directions);
   }
 
   points.unshift(a);
   points.push(b);
 
   return points;
-};
+}
+
+module.exports.connectPoints = connectPoints;
 
 
 /**
@@ -37617,7 +37616,7 @@ module.exports.connectPoints = function(a, b, directions) {
  *
  * @return {Array<Point>} connection points
  */
-module.exports.connectRectangles = function(source, target, start, end, hints) {
+function connectRectangles(source, target, start, end, hints) {
 
   var preferredLayouts = hints && hints.preferredLayouts || [];
 
@@ -37673,8 +37672,11 @@ module.exports.connectRectangles = function(source, target, start, end, hints) {
     }
   }
 
-  return this.connectPoints(start, end, directions);
-};
+  return connectPoints(start, end, directions);
+}
+
+module.exports.connectRectangles = connectRectangles;
+
 
 /**
  * Repair the connection between two rectangles, of which one has been updated.
@@ -37691,7 +37693,7 @@ module.exports.connectRectangles = function(source, target, start, end, hints) {
  *
  * @return {Array<Point>} repaired waypoints
  */
-module.exports.repairConnection = function(source, target, start, end, waypoints, hints) {
+function repairConnection(source, target, start, end, waypoints, hints) {
 
   if (isArray(start)) {
     waypoints = start;
@@ -37705,25 +37707,25 @@ module.exports.repairConnection = function(source, target, start, end, waypoints
   waypoints = waypoints || [];
 
   var preferredLayouts = hints.preferredLayouts,
-      layoutStraight = preferredLayouts.indexOf('straight') !== -1,
+      preferStraight = preferredLayouts.indexOf('straight') !== -1,
       repairedWaypoints;
 
   // just layout non-existing or simple connections
   // attempt to render straight lines, if required
 
-  if (layoutStraight) {
+  if (preferStraight) {
     // attempt to layout a straight line
-    repairedWaypoints = this.layoutStraight(source, target, start, end, hints);
+    repairedWaypoints = layoutStraight(source, target, start, end, hints);
   }
 
   if (!repairedWaypoints) {
     // check if we layout from start or end
     if (hints.connectionEnd) {
-      repairedWaypoints = this._repairConnectionSide(target, source, end, waypoints.slice().reverse());
+      repairedWaypoints = _repairConnectionSide(target, source, end, waypoints.slice().reverse());
       repairedWaypoints = repairedWaypoints && repairedWaypoints.reverse();
     } else
     if (hints.connectionStart) {
-      repairedWaypoints = this._repairConnectionSide(source, target, start, waypoints);
+      repairedWaypoints = _repairConnectionSide(source, target, start, waypoints);
     } else
     // or whether nothing seems to have changed
     if (waypoints && waypoints.length) {
@@ -37733,11 +37735,13 @@ module.exports.repairConnection = function(source, target, start, end, waypoints
 
   // simply reconnect if nothing else worked
   if (!repairedWaypoints) {
-    repairedWaypoints = this.connectRectangles(source, target, start, end, hints);
+    repairedWaypoints = connectRectangles(source, target, start, end, hints);
   }
 
   return repairedWaypoints;
-};
+}
+
+module.exports.repairConnection = repairConnection;
 
 
 function inRange(a, start, end) {
@@ -37764,7 +37768,7 @@ function isInRange(axis, a, b) {
  *
  * @return {Array<Point>} waypoints if straight layout worked
  */
-module.exports.layoutStraight = function(source, target, start, end, hints) {
+function layoutStraight(source, target, start, end, hints) {
   var axis = {},
       primaryAxis,
       orientation;
@@ -37832,7 +37836,10 @@ module.exports.layoutStraight = function(source, target, start, end, hints) {
     ];
   }
 
-};
+}
+
+module.exports.layoutStraight = layoutStraight;
+
 
 /**
  * Repair a connection from one side that moved.
@@ -37844,7 +37851,7 @@ module.exports.layoutStraight = function(source, target, start, end, hints) {
  *
  * @return {Array<Point>} the repaired points between the two rectangles
  */
-module.exports._repairConnectionSide = function(moved, other, newDocking, points) {
+function _repairConnectionSide(moved, other, newDocking, points) {
 
   function needsRelayout(moved, other, points) {
 
@@ -37924,11 +37931,13 @@ module.exports._repairConnectionSide = function(moved, other, newDocking, points
   slicedPoints = removeOverlapping(newPoints, moved, other);
 
   if (slicedPoints !== newPoints) {
-    return this._repairConnectionSide(moved, other, newDocking, slicedPoints);
+    return _repairConnectionSide(moved, other, newDocking, slicedPoints);
   }
 
   return newPoints;
-};
+}
+
+module.exports._repairConnectionSide = _repairConnectionSide;
 
 /**
  * Returns the manhattan directions connecting two rectangles
@@ -40993,8 +41002,8 @@ module.exports.saveClear = function(collection, removeFn) {
 },{}],278:[function(_dereq_,module,exports){
 'use strict';
 
-var svgAttr = _dereq_(473),
-    svgCreate = _dereq_(477);
+var svgAttr = _dereq_(474),
+    svgCreate = _dereq_(478);
 
 
 module.exports.componentsToPath = function(elements) {
@@ -41031,12 +41040,12 @@ module.exports.updateLine = function(gfx, points) {
   return gfx;
 };
 
-},{"473":473,"477":477}],279:[function(_dereq_,module,exports){
+},{"474":474,"478":478}],279:[function(_dereq_,module,exports){
 'use strict';
 
-var svgTransform = _dereq_(481);
+var svgTransform = _dereq_(482);
 
-var createTransform = _dereq_(478).createTransform;
+var createTransform = _dereq_(479).createTransform;
 
 
 /**
@@ -41096,7 +41105,7 @@ module.exports.scale = function(gfx, amount) {
   svgTransform(gfx, scale);
 };
 
-},{"478":478,"481":481}],280:[function(_dereq_,module,exports){
+},{"479":479,"482":482}],280:[function(_dereq_,module,exports){
 'use strict';
 
 var isObject = _dereq_(426),
@@ -41106,10 +41115,10 @@ var isObject = _dereq_(426),
     reduce = _dereq_(306),
     merge = _dereq_(435);
 
-var svgAppend = _dereq_(471),
-    svgAttr = _dereq_(473),
-    svgCreate = _dereq_(477),
-    svgRemove = _dereq_(480);
+var svgAppend = _dereq_(472),
+    svgAttr = _dereq_(474),
+    svgCreate = _dereq_(478),
+    svgRemove = _dereq_(481);
 
 var DEFAULT_BOX_PADDING = 0;
 
@@ -41430,7 +41439,7 @@ Text.prototype.layoutText = function(text, options) {
 
 module.exports = Text;
 
-},{"303":303,"306":306,"426":426,"431":431,"435":435,"438":438,"471":471,"473":473,"477":477,"480":480}],281:[function(_dereq_,module,exports){
+},{"303":303,"306":306,"426":426,"431":431,"435":435,"438":438,"472":472,"474":474,"478":478,"481":481}],281:[function(_dereq_,module,exports){
 
 var isArray = function(obj) {
   return Object.prototype.toString.call(obj) === '[object Array]';
@@ -50733,8 +50742,8 @@ var forEach = _dereq_(303),
     assign = _dereq_(431),
     defer = _dereq_(314);
 
-var Stack = _dereq_(470),
-    SaxParser = _dereq_(469),
+var Stack = _dereq_(471),
+    SaxParser = _dereq_(470),
     Moddle = _dereq_(457),
     parseNameNs = _dereq_(462).parseName,
     Types = _dereq_(465),
@@ -51533,7 +51542,7 @@ XMLReader.prototype.handler = function(name) {
 
 module.exports = XMLReader;
 module.exports.ElementHandler = ElementHandler;
-},{"302":302,"303":303,"314":314,"431":431,"454":454,"457":457,"462":462,"465":465,"469":469,"470":470}],456:[function(_dereq_,module,exports){
+},{"302":302,"303":303,"314":314,"431":431,"454":454,"457":457,"462":462,"465":465,"470":470,"471":471}],456:[function(_dereq_,module,exports){
 'use strict';
 
 var map = _dereq_(305),
@@ -53497,19 +53506,16 @@ module.exports = Refs;
 },{"467":467}],469:[function(_dereq_,module,exports){
 'use strict';
 
-module['exports'] = Saxen;
+module['exports'] = decodeEntities;
 
-function hasProperty(o, prop) {
-  return Object.prototype.hasOwnProperty.call(o, prop);
-}
 
 var fromCharCode = String.fromCharCode;
 
-var XSI_URI = 'http://www.w3.org/2001/XMLSchema-instance';
-var XSI_PREFIX = 'xsi';
-var XSI_TYPE = 'xsi:type';
+var hasOwnProperty = Object.prototype.hasOwnProperty;
 
-var SPECIAL_CHARS_MAPPING = {
+var ENTITY_PATTERN = /&#(\d+);|&#x([0-9a-f]+);|&(\w+);/ig;
+
+var ENTITY_MAPPING = {
   'amp': '&',
   'apos': '\'',
   'gt': '>',
@@ -53518,31 +53524,17 @@ var SPECIAL_CHARS_MAPPING = {
 };
 
 // map UPPERCASE variants of supported special chars
-Object.keys(SPECIAL_CHARS_MAPPING).forEach(function(k) {
-  SPECIAL_CHARS_MAPPING[k.toUpperCase()] = SPECIAL_CHARS_MAPPING[k];
+Object.keys(ENTITY_MAPPING).forEach(function(k) {
+  ENTITY_MAPPING[k.toUpperCase()] = ENTITY_MAPPING[k];
 });
 
-function error(msg) {
-  return new Error(msg);
-}
-
-function missingNamespaceForPrefix(prefix) {
-  return 'missing namespace for prefix <' + prefix + '>';
-}
-
-function getter(getFn) {
-  return {
-    'get': getFn,
-    'enumerable': true
-  };
-}
 
 function replaceEntities(_, d, x, z) {
 
   // reserved names, i.e. &nbsp;
   if (z) {
-    if (hasProperty(SPECIAL_CHARS_MAPPING, z)) {
-      return SPECIAL_CHARS_MAPPING[z];
+    if (hasOwnProperty.call(ENTITY_MAPPING, z)) {
+      return ENTITY_MAPPING[z];
     } else {
       // fall back to original value
       return '&' + z + ';';
@@ -53558,14 +53550,47 @@ function replaceEntities(_, d, x, z) {
   return fromCharCode(parseInt(x, 16));
 }
 
-function decodeEntities(s) {
-  s = ('' + s);
 
+/**
+ * A basic entity decoder that can decode a minimal
+ * sub-set of reserved names (&amp;) as well as
+ * hex (&#xaaf;) and decimal (&#1231;) encoded characters.
+ *
+ * @param {string} str
+ *
+ * @return {string} decoded string
+ */
+function decodeEntities(s) {
   if (s.length > 3 && s.indexOf('&') !== -1) {
-    return s.replace(/&#(\d+);|&#x([0-9a-f]+);|&(\w+);/ig, replaceEntities);
+    return s.replace(ENTITY_PATTERN, replaceEntities);
   }
 
   return s;
+}
+},{}],470:[function(_dereq_,module,exports){
+'use strict';
+
+module['exports'] = Saxen;
+
+var decodeEntities = _dereq_(469);
+
+var XSI_URI = 'http://www.w3.org/2001/XMLSchema-instance';
+var XSI_PREFIX = 'xsi';
+var XSI_TYPE = 'xsi:type';
+
+function error(msg) {
+  return new Error(msg);
+}
+
+function missingNamespaceForPrefix(prefix) {
+  return 'missing namespace for prefix <' + prefix + '>';
+}
+
+function getter(getFn) {
+  return {
+    'get': getFn,
+    'enumerable': true
+  };
 }
 
 function cloneNsMatrix(nsMatrix) {
@@ -53598,8 +53623,6 @@ function noopGetContext() {
   return { 'line': 0, 'column': 0 };
 }
 
-function nullFunc() {}
-
 function throwFunc(err) {
   throw err;
 }
@@ -53619,12 +53642,12 @@ function Saxen(options) {
 
   var proxy = options && options['proxy'];
 
-  var onText = nullFunc,
-      onOpenTag = nullFunc,
-      onCloseTag = nullFunc,
-      onCDATA = nullFunc,
+  var onText,
+      onOpenTag,
+      onCloseTag,
+      onCDATA,
       onError = throwFunc,
-      onWarning = nullFunc,
+      onWarning,
       onComment,
       onQuestion,
       onAttention;
@@ -53690,6 +53713,11 @@ function Saxen(options) {
    * @param  {string|Error} err
    */
   function handleWarning(err) {
+
+    if (!onWarning) {
+      return;
+    }
+
     if (!(err instanceof Error)) {
       err = error(err);
     }
@@ -53718,7 +53746,6 @@ function Saxen(options) {
     case 'error': onError = cb; break;
     case 'warn': onWarning = cb; break;
     case 'cdata': onCDATA = cb; break;
-
     case 'attention': onAttention = cb; break; // <!XXXXX zzzz="eeee">
     case 'question': onQuestion = cb; break; // <? ....  ?>
     case 'comment': onComment = cb; break;
@@ -53800,11 +53827,10 @@ function Saxen(options) {
   /**
    * Parse string, invoking configured listeners on element.
    *
-   * @param  {string} str
+   * @param  {string} xml
    */
-  function parse(str) {
-    var xml = ('' + str),
-        nsMatrixStack = isNamespace ? [] : null,
+  function parse(xml) {
+    var nsMatrixStack = isNamespace ? [] : null,
         nsMatrix = isNamespace ? buildNsMatrix(nsUriToPrefix) : null,
         _nsMatrix,
         nodeStack = [],
@@ -54174,9 +54200,11 @@ function Saxen(options) {
       }
 
       if (j !== i) {
-        onText(xml.substring(j, i), decodeEntities);
-        if (parseStop) {
-          return;
+        if (onText) {
+          onText(xml.substring(j, i), decodeEntities);
+          if (parseStop) {
+            return;
+          }
         }
       }
 
@@ -54191,9 +54219,11 @@ function Saxen(options) {
             return handleError('unclosed cdata');
           }
 
-          onCDATA(xml.substring(i + 9, j), false);
-          if (parseStop) {
-            return;
+          if (onCDATA) {
+            onCDATA(xml.substring(i + 9, j));
+            if (parseStop) {
+              return;
+            }
           }
 
           j += 3;
@@ -54390,23 +54420,28 @@ function Saxen(options) {
         attrsStart = q;
         attrsString = x;
 
-        if (proxy) {
-          onOpenTag(elementProxy, decodeEntities, tagEnd, getContext);
-        } else {
-          onOpenTag(elementName, getAttrs, decodeEntities, tagEnd, getContext);
-        }
+        if (onOpenTag) {
+          if (proxy) {
+            onOpenTag(elementProxy, decodeEntities, tagEnd, getContext);
+          } else {
+            onOpenTag(elementName, getAttrs, decodeEntities, tagEnd, getContext);
+          }
 
-        if (parseStop) {
-          return;
+          if (parseStop) {
+            return;
+          }
         }
 
       }
 
       if (tagEnd) {
-        onCloseTag(proxy ? elementProxy : elementName, decodeEntities, tagStart, getContext);
 
-        if (parseStop) {
-          return;
+        if (onCloseTag) {
+          onCloseTag(proxy ? elementProxy : elementName, decodeEntities, tagStart, getContext);
+
+          if (parseStop) {
+            return;
+          }
         }
 
         // restore old namespace
@@ -54424,7 +54459,7 @@ function Saxen(options) {
   } /** end parse */
 
 }
-},{}],470:[function(_dereq_,module,exports){
+},{"469":469}],471:[function(_dereq_,module,exports){
 /**
  * Tiny stack for browser or server
  *
@@ -54541,14 +54576,14 @@ else {
 }
 } )( this );
 
-},{}],471:[function(_dereq_,module,exports){
+},{}],472:[function(_dereq_,module,exports){
 /**
  * append utility
  */
 
 module.exports = append;
 
-var appendTo = _dereq_(472);
+var appendTo = _dereq_(473);
 
 /**
  * Append a node to an element
@@ -54562,13 +54597,13 @@ function append(element, node) {
   appendTo(node, element);
   return element;
 }
-},{"472":472}],472:[function(_dereq_,module,exports){
+},{"473":473}],473:[function(_dereq_,module,exports){
 /**
  * appendTo utility
  */
 module.exports = appendTo;
 
-var ensureImported = _dereq_(482);
+var ensureImported = _dereq_(483);
 
 /**
  * Append a node to a target element and return the appended node.
@@ -54582,7 +54617,7 @@ function appendTo(element, target) {
   target.appendChild(ensureImported(element, target));
   return element;
 }
-},{"482":482}],473:[function(_dereq_,module,exports){
+},{"483":483}],474:[function(_dereq_,module,exports){
 /**
  * attribute accessor utility
  */
@@ -54715,7 +54750,7 @@ function attr(node, name, value) {
   return node;
 }
 
-},{}],474:[function(_dereq_,module,exports){
+},{}],475:[function(_dereq_,module,exports){
 /**
  * Clear utility
  */
@@ -54922,7 +54957,7 @@ ClassList.prototype.contains = function(name) {
   );
 };
 
-},{}],475:[function(_dereq_,module,exports){
+},{}],476:[function(_dereq_,module,exports){
 /**
  * Clear utility
  */
@@ -54930,7 +54965,7 @@ ClassList.prototype.contains = function(name) {
 module.exports = clear;
 
 
-var remove = _dereq_(480);
+var remove = _dereq_(481);
 
 /**
  * Removes all children from the given element
@@ -54947,13 +54982,13 @@ function clear(element) {
 
   return element;
 }
-},{"480":480}],476:[function(_dereq_,module,exports){
+},{"481":481}],477:[function(_dereq_,module,exports){
 module.exports = clone;
 
 function clone(element) {
   return element.cloneNode(true);
 }
-},{}],477:[function(_dereq_,module,exports){
+},{}],478:[function(_dereq_,module,exports){
 /**
  * Create utility for SVG elements
  */
@@ -54961,9 +54996,9 @@ function clone(element) {
 module.exports = create;
 
 
-var attr = _dereq_(473);
-var parse = _dereq_(484);
-var ns = _dereq_(483);
+var attr = _dereq_(474);
+var parse = _dereq_(485);
+var ns = _dereq_(484);
 
 
 /**
@@ -54990,13 +55025,13 @@ function create(name, attrs) {
 
   return element;
 }
-},{"473":473,"483":483,"484":484}],478:[function(_dereq_,module,exports){
+},{"474":474,"484":484,"485":485}],479:[function(_dereq_,module,exports){
 /**
  * Geometry helpers
  */
 
 
-var create = _dereq_(477);
+var create = _dereq_(478);
 
 // fake node used to instantiate svg geometry elements
 var node = create('svg');
@@ -55062,7 +55097,7 @@ function createTransform(matrix) {
 module.exports.createTransform = createTransform;
 module.exports.createMatrix = createMatrix;
 module.exports.createPoint = createPoint;
-},{"477":477}],479:[function(_dereq_,module,exports){
+},{"478":478}],480:[function(_dereq_,module,exports){
 /**
  * innerHTML like functionality for SVG elements.
  * based on innerSVG (https://code.google.com/p/innersvg)
@@ -55071,10 +55106,10 @@ module.exports.createPoint = createPoint;
 module.exports = innerSVG;
 
 
-var clear = _dereq_(475);
-var appendTo = _dereq_(472);
-var parse = _dereq_(484);
-var serialize = _dereq_(485);
+var clear = _dereq_(476);
+var appendTo = _dereq_(473);
+var parse = _dereq_(485);
+var serialize = _dereq_(486);
 
 
 function set(element, svg) {
@@ -55125,7 +55160,7 @@ function innerSVG(element, svg) {
     return get(element);
   }
 }
-},{"472":472,"475":475,"484":484,"485":485}],480:[function(_dereq_,module,exports){
+},{"473":473,"476":476,"485":485,"486":486}],481:[function(_dereq_,module,exports){
 module.exports = remove;
 
 function remove(element) {
@@ -55137,7 +55172,7 @@ function remove(element) {
 
   return element;
 }
-},{}],481:[function(_dereq_,module,exports){
+},{}],482:[function(_dereq_,module,exports){
 /**
  * transform accessor utility
  */
@@ -55177,7 +55212,7 @@ function transform(node, transforms) {
     }
   }
 }
-},{}],482:[function(_dereq_,module,exports){
+},{}],483:[function(_dereq_,module,exports){
 module.exports = ensureImported;
 
 function ensureImported(element, target) {
@@ -55193,13 +55228,13 @@ function ensureImported(element, target) {
 
   return element;
 }
-},{}],483:[function(_dereq_,module,exports){
+},{}],484:[function(_dereq_,module,exports){
 var ns = {
   svg: 'http://www.w3.org/2000/svg'
 };
 
 module.exports = ns;
-},{}],484:[function(_dereq_,module,exports){
+},{}],485:[function(_dereq_,module,exports){
 /**
  * DOM parsing utility
  */
@@ -55207,7 +55242,7 @@ module.exports = ns;
 module.exports = parse;
 
 
-var ns = _dereq_(483);
+var ns = _dereq_(484);
 
 var SVG_START = '<svg xmlns="' + ns.svg + '"';
 
@@ -55236,7 +55271,7 @@ function parseDocument(svg) {
 
   return parser.parseFromString(svg, 'text/xml');
 }
-},{"483":483}],485:[function(_dereq_,module,exports){
+},{"484":484}],486:[function(_dereq_,module,exports){
 /**
  * Serialization util
  */
@@ -55316,4 +55351,4 @@ function serialize(node, output) {
 }
 },{}]},{},[1])(1)
 });
-//# sourceMappingURL=bpmn-modeler.js.map
+//# sourceMappingURL=./bpmn-modeler.js.map
