@@ -1,6 +1,6 @@
 {
   "name": "bpmn-js",
-  "version": "0.25.0",
+  "version": "0.25.1",
   "authors": [
     "bpmn.io"
   ],
@@ -17,14 +17,14 @@
     "test/*"
   ],
   "homepage": "http://bpmn.io",
-  "_release": "0.25.0",
+  "_release": "0.25.1",
   "_resolution": {
     "type": "version",
-    "tag": "v0.25.0",
-    "commit": "95b07e5eb4acd58ad4f948e32f9826b0c64b12e5"
+    "tag": "v0.25.1",
+    "commit": "12824ecf34bff40509b523712cedbd0b0eac1501"
   },
   "_source": "https://github.com/bpmn-io/bower-bpmn-js.git",
-  "_target": "v0.25.0",
+  "_target": "v0.25.1",
   "_originalSource": "bpmn-js",
   "_direct": true
 }
