@@ -1,5 +1,5 @@
 /*!
- * bpmn-js - bpmn-viewer v0.25.1
+ * bpmn-js - bpmn-viewer v0.26.1
 
  * Copyright 2014 - 2017 camunda Services GmbH and other contributors
  *
@@ -8,7 +8,7 @@
  *
  * Source Code: https://github.com/bpmn-io/bpmn-js
  *
- * Date: 2017-11-23
+ * Date: 2017-12-22
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.BpmnJS = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 /**
@@ -19,23 +19,23 @@
  */
 'use strict';
 
-var assign = _dereq_(190),
-    omit = _dereq_(194),
-    isNumber = _dereq_(184);
+var assign = _dereq_(189),
+    omit = _dereq_(193),
+    isNumber = _dereq_(183);
 
-var domify = _dereq_(204),
-    domQuery = _dereq_(206),
-    domRemove = _dereq_(207);
+var domify = _dereq_(203),
+    domQuery = _dereq_(205),
+    domRemove = _dereq_(206);
 
-var innerSVG = _dereq_(233);
+var innerSVG = _dereq_(232);
 
-var Diagram = _dereq_(30),
-    BpmnModdle = _dereq_(15);
+var Diagram = _dereq_(28),
+    BpmnModdle = _dereq_(16);
 
 
-var inherits = _dereq_(72);
+var inherits = _dereq_(71);
 
-var Importer = _dereq_(8);
+var importBpmnDiagram = _dereq_(9).importBpmnDiagram;
 
 
 function checkValidationError(err) {
@@ -240,27 +240,33 @@ Viewer.prototype.saveSVG = function(options, done) {
     options = {};
   }
 
-  var canvas = this.get('canvas');
+  var svg, err;
 
-  var contentNode = canvas.getDefaultLayer(),
-      defsNode = domQuery('defs', canvas._svg);
+  try {
+    var canvas = this.get('canvas');
 
-  var contents = innerSVG(contentNode),
-      defs = defsNode ? '<defs>' + innerSVG(defsNode) + '</defs>' : '';
+    var contentNode = canvas.getDefaultLayer(),
+        defsNode = domQuery('defs', canvas._svg);
 
-  var bbox = contentNode.getBBox();
+    var contents = innerSVG(contentNode),
+        defs = defsNode ? '<defs>' + innerSVG(defsNode) + '</defs>' : '';
 
-  var svg =
-    '<?xml version="1.0" encoding="utf-8"?>\n' +
-    '<!-- created with bpmn-js / http://bpmn.io -->\n' +
-    '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n' +
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ' +
-         'width="' + bbox.width + '" height="' + bbox.height + '" ' +
-         'viewBox="' + bbox.x + ' ' + bbox.y + ' ' + bbox.width + ' ' + bbox.height + '" version="1.1">' +
-      defs + contents +
-    '</svg>';
+    var bbox = contentNode.getBBox();
 
-  done(null, svg);
+    svg =
+      '<?xml version="1.0" encoding="utf-8"?>\n' +
+      '<!-- created with bpmn-js / http://bpmn.io -->\n' +
+      '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n' +
+      '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ' +
+           'width="' + bbox.width + '" height="' + bbox.height + '" ' +
+           'viewBox="' + bbox.x + ' ' + bbox.y + ' ' + bbox.width + ' ' + bbox.height + '" version="1.1">' +
+        defs + contents +
+      '</svg>';
+  } catch (e) {
+    err = e;
+  }
+
+  done(err, svg);
 };
 
 /**
@@ -305,10 +311,8 @@ Viewer.prototype.saveSVG = function(options, done) {
 
 Viewer.prototype.importDefinitions = function(definitions, done) {
 
-  // use try/catch to not swallow synchronous exceptions
-  // that may be raised during model parsing
+  // catch synchronous exceptions during #clear()
   try {
-
     if (this._definitions) {
       // clear existing rendered diagram
       this.clear();
@@ -316,14 +320,12 @@ Viewer.prototype.importDefinitions = function(definitions, done) {
 
     // update definitions
     this._definitions = definitions;
-
-    // perform graphical import
-    Importer.importBpmnDiagram(this, definitions, done);
   } catch (e) {
-
-    // handle synchronous errors
-    done(e);
+    return done(e);
   }
+
+  // perform graphical import
+  return importBpmnDiagram(this, definitions, done);
 };
 
 Viewer.prototype.getModules = function() {
@@ -389,6 +391,8 @@ Viewer.prototype.attachTo = function(parentNode) {
   parentNode.appendChild(this._container);
 
   this._emit('attach', {});
+
+  this.get('canvas').resized();
 };
 
 Viewer.prototype.getDefinitions = function() {
@@ -470,9 +474,9 @@ Viewer.prototype._createModdle = function(options) {
 // modules the viewer is composed of
 Viewer.prototype._modules = [
   _dereq_(2),
-  _dereq_(52),
-  _dereq_(51),
-  _dereq_(47)
+  _dereq_(50),
+  _dereq_(49),
+  _dereq_(45)
 ];
 
 // default moddle extensions the viewer is composed of
@@ -480,8 +484,8 @@ Viewer.prototype._moddleExtensions = {};
 
 /* <project-logo> */
 
-var PoweredBy = _dereq_(14),
-    domEvent = _dereq_(205);
+var PoweredBy = _dereq_(15),
+    domEvent = _dereq_(204);
 
 /**
  * Adds the project logo to the diagram container as
@@ -516,47 +520,219 @@ function addProjectLogo(container) {
 
 /* </project-logo> */
 
-},{"14":14,"15":15,"184":184,"190":190,"194":194,"2":2,"204":204,"205":205,"206":206,"207":207,"233":233,"30":30,"47":47,"51":51,"52":52,"72":72,"8":8}],2:[function(_dereq_,module,exports){
+},{"15":15,"16":16,"183":183,"189":189,"193":193,"2":2,"203":203,"204":204,"205":205,"206":206,"232":232,"28":28,"45":45,"49":49,"50":50,"71":71,"9":9}],2:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(5),
-    _dereq_(10)
+    _dereq_(6),
+    _dereq_(11)
   ]
 };
-},{"10":10,"5":5}],3:[function(_dereq_,module,exports){
+},{"11":11,"6":6}],3:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(72),
-    isObject = _dereq_(185),
-    assign = _dereq_(190),
-    forEach = _dereq_(78),
-    every = _dereq_(75),
-    some = _dereq_(82);
+var every = _dereq_(74),
+    some = _dereq_(81);
 
-var BaseRenderer = _dereq_(38),
-    TextUtil = _dereq_(64),
-    DiUtil = _dereq_(11);
+var componentsToPath = _dereq_(60).componentsToPath;
 
-var getBusinessObject = _dereq_(13).getBusinessObject,
-    is = _dereq_(13).is;
 
-var RenderUtil = _dereq_(62);
+///////// element utils /////////////////////////////
 
-var componentsToPath = RenderUtil.componentsToPath,
-    createLine = RenderUtil.createLine;
+/**
+ * Checks if eventDefinition of the given element matches with semantic type.
+ *
+ * @return {boolean} true if element is of the given semantic type
+ */
+function isTypedEvent(event, eventDefinitionType, filter) {
 
-var domQuery = _dereq_(206);
+  function matches(definition, filter) {
+    return every(filter, function(val, key) {
 
-var svgAppend = _dereq_(226),
-    svgAttr = _dereq_(228),
-    svgCreate = _dereq_(231),
-    svgClasses = _dereq_(229);
+      // we want a == conversion here, to be able to catch
+      // undefined == false and friends
+      /* jshint -W116 */
+      return definition[key] == val;
+    });
+  }
 
-var rotate = _dereq_(63).rotate,
-    transform = _dereq_(63).transform,
-    translate = _dereq_(63).translate;
+  return some(event.eventDefinitions, function(definition) {
+    return definition.$type === eventDefinitionType && matches(event, filter);
+  });
+}
 
-var Ids = _dereq_(71),
+module.exports.isTypedEvent = isTypedEvent;
+
+function isThrowEvent(event) {
+  return (event.$type === 'bpmn:IntermediateThrowEvent') || (event.$type === 'bpmn:EndEvent');
+}
+
+module.exports.isThrowEvent = isThrowEvent;
+
+function isCollection(element) {
+  var dataObject = element.dataObjectRef;
+
+  return element.isCollection || (dataObject && dataObject.isCollection);
+}
+
+module.exports.isCollection = isCollection;
+
+function getDi(element) {
+  return element.businessObject.di;
+}
+
+module.exports.getDi = getDi;
+
+function getSemantic(element) {
+  return element.businessObject;
+}
+
+module.exports.getSemantic = getSemantic;
+
+
+/////// color access ////////////////////////////////////////
+
+function getFillColor(element, defaultColor) {
+  return getDi(element).get('bioc:fill') || defaultColor || 'white';
+}
+
+module.exports.getFillColor = getFillColor;
+
+function getStrokeColor(element, defaultColor) {
+  return getDi(element).get('bioc:stroke') || defaultColor || 'black';
+}
+
+module.exports.getStrokeColor = getStrokeColor;
+
+
+/////// cropping path customizations /////////////////////////
+
+function getCirclePath(shape) {
+
+  var cx = shape.x + shape.width / 2,
+      cy = shape.y + shape.height / 2,
+      radius = shape.width / 2;
+
+  var circlePath = [
+    ['M', cx, cy],
+    ['m', 0, -radius],
+    ['a', radius, radius, 0, 1, 1, 0, 2 * radius],
+    ['a', radius, radius, 0, 1, 1, 0, -2 * radius],
+    ['z']
+  ];
+
+  return componentsToPath(circlePath);
+}
+
+module.exports.getCirclePath = getCirclePath;
+
+function getRoundRectPath(shape, borderRadius) {
+
+  var x = shape.x,
+      y = shape.y,
+      width = shape.width,
+      height = shape.height;
+
+  var roundRectPath = [
+    ['M', x + borderRadius, y],
+    ['l', width - borderRadius * 2, 0],
+    ['a', borderRadius, borderRadius, 0, 0, 1, borderRadius, borderRadius],
+    ['l', 0, height - borderRadius * 2],
+    ['a', borderRadius, borderRadius, 0, 0, 1, -borderRadius, borderRadius],
+    ['l', borderRadius * 2 - width, 0],
+    ['a', borderRadius, borderRadius, 0, 0, 1, -borderRadius, -borderRadius],
+    ['l', 0, borderRadius * 2 - height],
+    ['a', borderRadius, borderRadius, 0, 0, 1, borderRadius, -borderRadius],
+    ['z']
+  ];
+
+  return componentsToPath(roundRectPath);
+}
+
+module.exports.getRoundRectPath = getRoundRectPath;
+
+function getDiamondPath(shape) {
+
+  var width = shape.width,
+      height = shape.height,
+      x = shape.x,
+      y = shape.y,
+      halfWidth = width / 2,
+      halfHeight = height / 2;
+
+  var diamondPath = [
+    ['M', x + halfWidth, y],
+    ['l', halfWidth, halfHeight],
+    ['l', -halfWidth, halfHeight],
+    ['l', -halfWidth, -halfHeight],
+    ['z']
+  ];
+
+  return componentsToPath(diamondPath);
+}
+
+module.exports.getDiamondPath = getDiamondPath;
+
+function getRectPath(shape) {
+  var x = shape.x,
+      y = shape.y,
+      width = shape.width,
+      height = shape.height;
+
+  var rectPath = [
+    ['M', x, y],
+    ['l', width, 0],
+    ['l', 0, height],
+    ['l', -width, 0],
+    ['z']
+  ];
+
+  return componentsToPath(rectPath);
+}
+
+module.exports.getRectPath = getRectPath;
+},{"60":60,"74":74,"81":81}],4:[function(_dereq_,module,exports){
+'use strict';
+
+var inherits = _dereq_(71),
+    isObject = _dereq_(184),
+    assign = _dereq_(189),
+    forEach = _dereq_(77);
+
+var BaseRenderer = _dereq_(36),
+    TextUtil = _dereq_(62),
+    DiUtil = _dereq_(12);
+
+var is = _dereq_(14).is;
+
+var createLine = _dereq_(60).createLine;
+
+var BpmnRenderUtil = _dereq_(3);
+
+var isTypedEvent = BpmnRenderUtil.isTypedEvent,
+    isThrowEvent = BpmnRenderUtil.isThrowEvent,
+    isCollection = BpmnRenderUtil.isCollection,
+    getDi = BpmnRenderUtil.getDi,
+    getSemantic = BpmnRenderUtil.getSemantic;
+
+var getCirclePath = BpmnRenderUtil.getCirclePath,
+    getRoundRectPath = BpmnRenderUtil.getRoundRectPath,
+    getDiamondPath = BpmnRenderUtil.getDiamondPath,
+    getRectPath = BpmnRenderUtil.getRectPath,
+    getFillColor = BpmnRenderUtil.getFillColor,
+    getStrokeColor = BpmnRenderUtil.getStrokeColor;
+
+var domQuery = _dereq_(205);
+
+var svgAppend = _dereq_(225),
+    svgAttr = _dereq_(227),
+    svgCreate = _dereq_(230),
+    svgClasses = _dereq_(228);
+
+var rotate = _dereq_(61).rotate,
+    transform = _dereq_(61).transform,
+    translate = _dereq_(61).translate;
+
+var Ids = _dereq_(69),
     RENDERER_IDS = new Ids();
 
 var TASK_BORDER_RADIUS = 10;
@@ -566,6 +742,9 @@ var LABEL_STYLE = {
   fontFamily: 'Arial, sans-serif',
   fontSize: 12
 };
+
+var DEFAULT_FILL_OPACITY = .95,
+    HIGH_FILL_OPACITY = .35;
 
 
 function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
@@ -1004,6 +1183,11 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
 
   var handlers = this.handlers = {
     'bpmn:Event': function(parentGfx, element, attrs) {
+
+      if (!('fillOpacity' in attrs)) {
+        attrs.fillOpacity = DEFAULT_FILL_OPACITY;
+      }
+
       return drawCircle(parentGfx, element.width, element.height, attrs);
     },
     'bpmn:StartEvent': function(parentGfx, element) {
@@ -1318,6 +1502,13 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
     'bpmn:IntermediateThrowEvent': as('bpmn:IntermediateEvent'),
 
     'bpmn:Activity': function(parentGfx, element, attrs) {
+
+      attrs = attrs || {};
+
+      if (!('fillOpacity' in attrs)) {
+        attrs.fillOpacity = DEFAULT_FILL_OPACITY;
+      }
+
       return drawRect(parentGfx, element.width, element.height, TASK_BORDER_RADIUS, attrs);
     },
 
@@ -1552,7 +1743,6 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
     },
     'bpmn:SubProcess': function(parentGfx, element, attrs) {
       attrs = assign({
-        fillOpacity: 0.95,
         fill: getFillColor(element),
         stroke: getStrokeColor(element)
       }, attrs);
@@ -1601,7 +1791,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
     'bpmn:Participant': function(parentGfx, element) {
 
       var attrs = {
-        fillOpacity: 0.95,
+        fillOpacity: DEFAULT_FILL_OPACITY,
         fill: getFillColor(element),
         stroke: getStrokeColor(element)
       };
@@ -1641,6 +1831,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
     'bpmn:Lane': function(parentGfx, element, attrs) {
       var rect = drawRect(parentGfx, element.width, element.height, 0, assign({
         fill: getFillColor(element),
+        fillOpacity: HIGH_FILL_OPACITY,
         stroke: getStrokeColor(element)
       }, attrs));
 
@@ -1654,12 +1845,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
       return rect;
     },
     'bpmn:InclusiveGateway': function(parentGfx, element) {
-      var attrs = {
-        fill: getFillColor(element),
-        stroke: getStrokeColor(element)
-      };
-
-      var diamond = drawDiamond(parentGfx, element.width, element.height, attrs);
+      var diamond = renderer('bpmn:Gateway')(parentGfx, element);
 
       /* circle path */
       drawCircle(parentGfx, element.width, element.height, element.height * 0.24, {
@@ -1671,12 +1857,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
       return diamond;
     },
     'bpmn:ExclusiveGateway': function(parentGfx, element) {
-      var attrs = {
-        fill: getFillColor(element),
-        stroke: getStrokeColor(element)
-      };
-
-      var diamond = drawDiamond(parentGfx, element.width, element.height, attrs);
+      var diamond = renderer('bpmn:Gateway')(parentGfx, element);
 
       var pathData = pathMap.getScaledPath('GATEWAY_EXCLUSIVE', {
         xScaleFactor: 0.4,
@@ -1700,12 +1881,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
       return diamond;
     },
     'bpmn:ComplexGateway': function(parentGfx, element) {
-      var attrs = {
-        fill: getFillColor(element),
-        stroke: getStrokeColor(element)
-      };
-
-      var diamond = drawDiamond(parentGfx, element.width, element.height, attrs);
+      var diamond = renderer('bpmn:Gateway')(parentGfx, element);
 
       var pathData = pathMap.getScaledPath('GATEWAY_COMPLEX', {
         xScaleFactor: 0.5,
@@ -1727,12 +1903,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
       return diamond;
     },
     'bpmn:ParallelGateway': function(parentGfx, element) {
-      var attrs = {
-        fill: getFillColor(element),
-        stroke: getStrokeColor(element)
-      };
-
-      var diamond = drawDiamond(parentGfx, element.width, element.height, attrs);
+      var diamond = renderer('bpmn:Gateway')(parentGfx, element);
 
       var pathData = pathMap.getScaledPath('GATEWAY_PARALLEL', {
         xScaleFactor: 0.6,
@@ -1757,12 +1928,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
 
       var semantic = getSemantic(element);
 
-      var attrs = {
-        fill: getFillColor(element),
-        stroke: getStrokeColor(element)
-      };
-
-      var diamond = drawDiamond(parentGfx, element.width, element.height, attrs);
+      var diamond = renderer('bpmn:Gateway')(parentGfx, element);
 
       /* outer circle path */ drawCircle(parentGfx, element.width, element.height, element.height * 0.20, {
         strokeWidth: 1,
@@ -1831,7 +1997,13 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
       return diamond;
     },
     'bpmn:Gateway': function(parentGfx, element) {
-      return drawDiamond(parentGfx, element.width, element.height);
+      var attrs = {
+        fill: getFillColor(element),
+        fillOpacity: DEFAULT_FILL_OPACITY,
+        stroke: getStrokeColor(element)
+      };
+
+      return drawDiamond(parentGfx, element.width, element.height, attrs);
     },
     'bpmn:SequenceFlow': function(parentGfx, element) {
       var pathData = createPathFromConnection(element);
@@ -1848,21 +2020,26 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
       var path = drawPath(parentGfx, pathData, attrs);
 
       var sequenceFlow = getSemantic(element);
-      var source = element.source.businessObject;
 
-      // conditional flow marker
-      if (sequenceFlow.conditionExpression && source.$instanceOf('bpmn:Activity')) {
-        svgAttr(path, {
-          markerStart: marker('conditional-flow-marker', fill, stroke)
-        });
-      }
+      var source;
 
-      // default marker
-      if (source.default && (source.$instanceOf('bpmn:Gateway') || source.$instanceOf('bpmn:Activity')) &&
-          source.default === sequenceFlow) {
-        svgAttr(path, {
-          markerStart: marker('conditional-default-flow-marker', fill, stroke)
-        });
+      if (element.source) {
+        source = element.source.businessObject;
+
+        // conditional flow marker
+        if (sequenceFlow.conditionExpression && source.$instanceOf('bpmn:Activity')) {
+          svgAttr(path, {
+            markerStart: marker('conditional-flow-marker', fill, stroke)
+          });
+        }
+
+        // default marker
+        if (source.default && (source.$instanceOf('bpmn:Gateway') || source.$instanceOf('bpmn:Activity')) &&
+            source.default === sequenceFlow) {
+          svgAttr(path, {
+            markerStart: marker('conditional-default-flow-marker', fill, stroke)
+          });
+        }
       }
 
       return path;
@@ -1969,6 +2146,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
 
       var elementObject = drawPath(parentGfx, pathData, {
         fill: getFillColor(element),
+        fillOpacity: DEFAULT_FILL_OPACITY,
         stroke: getStrokeColor(element)
       });
 
@@ -2020,6 +2198,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
       var elementStore = drawPath(parentGfx, DATA_STORE_PATH, {
         strokeWidth: 2,
         fill: getFillColor(element),
+        fillOpacity: DEFAULT_FILL_OPACITY,
         stroke: getStrokeColor(element)
       });
 
@@ -2033,7 +2212,8 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
       var attrs = {
         strokeWidth: 1,
         fill: getFillColor(element),
-        stroke: getStrokeColor(element)
+        stroke: getStrokeColor(element),
+        fillOpacity: 1
       };
 
       if (!cancel) {
@@ -2333,143 +2513,7 @@ BpmnRenderer.prototype.getShapePath = function(element) {
   return getRectPath(element);
 };
 
-
-///////// helper functions /////////////////////////////
-
-/**
- * Checks if eventDefinition of the given element matches with semantic type.
- *
- * @return {boolean} true if element is of the given semantic type
- */
-function isTypedEvent(event, eventDefinitionType, filter) {
-
-  function matches(definition, filter) {
-    return every(filter, function(val, key) {
-
-      // we want a == conversion here, to be able to catch
-      // undefined == false and friends
-      /* jshint -W116 */
-      return definition[key] == val;
-    });
-  }
-
-  return some(event.eventDefinitions, function(definition) {
-    return definition.$type === eventDefinitionType && matches(event, filter);
-  });
-}
-
-function isThrowEvent(event) {
-  return (event.$type === 'bpmn:IntermediateThrowEvent') || (event.$type === 'bpmn:EndEvent');
-}
-
-function isCollection(element) {
-  var dataObject = element.dataObjectRef;
-
-  return element.isCollection || (dataObject && dataObject.isCollection);
-}
-
-function getDi(element) {
-  return element.businessObject.di;
-}
-
-function getSemantic(element) {
-  return element.businessObject;
-}
-
-
-
-/////// cropping path customizations /////////////////////////
-
-function getCirclePath(shape) {
-
-  var cx = shape.x + shape.width / 2,
-      cy = shape.y + shape.height / 2,
-      radius = shape.width / 2;
-
-  var circlePath = [
-    ['M', cx, cy],
-    ['m', 0, -radius],
-    ['a', radius, radius, 0, 1, 1, 0, 2 * radius],
-    ['a', radius, radius, 0, 1, 1, 0, -2 * radius],
-    ['z']
-  ];
-
-  return componentsToPath(circlePath);
-}
-
-function getRoundRectPath(shape, borderRadius) {
-
-  var x = shape.x,
-      y = shape.y,
-      width = shape.width,
-      height = shape.height;
-
-  var roundRectPath = [
-    ['M', x + borderRadius, y],
-    ['l', width - borderRadius * 2, 0],
-    ['a', borderRadius, borderRadius, 0, 0, 1, borderRadius, borderRadius],
-    ['l', 0, height - borderRadius * 2],
-    ['a', borderRadius, borderRadius, 0, 0, 1, -borderRadius, borderRadius],
-    ['l', borderRadius * 2 - width, 0],
-    ['a', borderRadius, borderRadius, 0, 0, 1, -borderRadius, -borderRadius],
-    ['l', 0, borderRadius * 2 - height],
-    ['a', borderRadius, borderRadius, 0, 0, 1, borderRadius, -borderRadius],
-    ['z']
-  ];
-
-  return componentsToPath(roundRectPath);
-}
-
-function getDiamondPath(shape) {
-
-  var width = shape.width,
-      height = shape.height,
-      x = shape.x,
-      y = shape.y,
-      halfWidth = width / 2,
-      halfHeight = height / 2;
-
-  var diamondPath = [
-    ['M', x + halfWidth, y],
-    ['l', halfWidth, halfHeight],
-    ['l', -halfWidth, halfHeight],
-    ['l', -halfWidth, -halfHeight],
-    ['z']
-  ];
-
-  return componentsToPath(diamondPath);
-}
-
-function getRectPath(shape) {
-  var x = shape.x,
-      y = shape.y,
-      width = shape.width,
-      height = shape.height;
-
-  var rectPath = [
-    ['M', x, y],
-    ['l', width, 0],
-    ['l', 0, height],
-    ['l', -width, 0],
-    ['z']
-  ];
-
-  return componentsToPath(rectPath);
-}
-
-function getFillColor(element, defaultColor) {
-  var bo = getBusinessObject(element);
-
-  return bo.di.get('fill') || defaultColor || 'white';
-}
-
-function getStrokeColor(element, defaultColor) {
-  var bo = getBusinessObject(element);
-
-  return bo.di.get('stroke') || defaultColor || 'black';
-}
-
-},{"11":11,"13":13,"185":185,"190":190,"206":206,"226":226,"228":228,"229":229,"231":231,"38":38,"62":62,"63":63,"64":64,"71":71,"72":72,"75":75,"78":78,"82":82}],4:[function(_dereq_,module,exports){
+},{"12":12,"14":14,"184":184,"189":189,"205":205,"225":225,"227":227,"228":228,"230":230,"3":3,"36":36,"60":60,"61":61,"62":62,"69":69,"71":71,"77":77}],5:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -2949,29 +2993,29 @@ function format(str, obj) {
   });
 }
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'bpmnRenderer' ],
-  bpmnRenderer: [ 'type', _dereq_(3) ],
-  pathMap: [ 'type', _dereq_(4) ]
+  bpmnRenderer: [ 'type', _dereq_(4) ],
+  pathMap: [ 'type', _dereq_(5) ]
 };
 
-},{"3":3,"4":4}],6:[function(_dereq_,module,exports){
+},{"4":4,"5":5}],7:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(190),
-    map = _dereq_(80);
+var assign = _dereq_(189),
+    map = _dereq_(79);
 
-var LabelUtil = _dereq_(12);
+var LabelUtil = _dereq_(13);
 
-var TextUtil = _dereq_(64);
+var TextUtil = _dereq_(62);
 
-var is = _dereq_(13).is;
+var is = _dereq_(14).is;
 
 var hasExternalLabel = LabelUtil.hasExternalLabel,
     getExternalLabelBounds = LabelUtil.getExternalLabelBounds,
-    isExpanded = _dereq_(11).isExpanded,
-    elementToString = _dereq_(9).elementToString;
+    isExpanded = _dereq_(12).isExpanded,
+    elementToString = _dereq_(10).elementToString;
 
 
 function elementData(semantic, attrs) {
@@ -3032,6 +3076,8 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
       translate = this._translate,
       hidden;
 
+  var parentIndex;
+
   // ROOT ELEMENT
   // handle the special case that we deal with a
   // invisible root element (process or collaboration)
@@ -3064,7 +3110,12 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
       this._attachBoundary(semantic, element);
     }
 
-    this._canvas.addShape(element, parentElement);
+    // insert lanes behind other flow nodes (cf. #727)
+    if (is(semantic, 'bpmn:Lane')) {
+      parentIndex = 0;
+    }
+
+    this._canvas.addShape(element, parentElement, parentIndex);
   }
 
   // CONNECTION
@@ -3091,7 +3142,12 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
       parentElement = null;
     }
 
-    this._canvas.addConnection(element, parentElement);
+    // insert sequence flows behind other flow nodes (cf. #727)
+    if (is(semantic, 'bpmn:SequenceFlow')) {
+      parentIndex = 0;
+    }
+
+    this._canvas.addConnection(element, parentElement, parentIndex);
   } else {
     throw new Error(translate('unknown di {di} for element {semantic}', {
       di: elementToString(di),
@@ -3260,16 +3316,16 @@ function getLayoutedBounds(bounds, text, textUtil) {
     height: Math.ceil(layoutedLabelDimensions.height)
   };
 }
-},{"11":11,"12":12,"13":13,"190":190,"64":64,"80":80,"9":9}],7:[function(_dereq_,module,exports){
+},{"10":10,"12":12,"13":13,"14":14,"189":189,"62":62,"79":79}],8:[function(_dereq_,module,exports){
 'use strict';
 
-var filter = _dereq_(76),
-    find = _dereq_(77),
-    forEach = _dereq_(78);
+var filter = _dereq_(75),
+    find = _dereq_(76),
+    forEach = _dereq_(77);
 
-var Refs = _dereq_(220);
+var Refs = _dereq_(219);
 
-var elementToString = _dereq_(9).elementToString;
+var elementToString = _dereq_(10).elementToString;
 
 var diRefs = new Refs({ name: 'bpmnElement', enumerable: true }, { name: 'di' });
 
@@ -3492,7 +3548,15 @@ function BpmnTreeWalker(handler, translate) {
   }
 
   function handleDeferred(deferred) {
-    forEach(deferred, function(d) { d(); });
+
+    var fn;
+
+    // drain deferred until empty
+    while (deferred.length) {
+      fn = deferred.shift();
+
+      fn();
+    }
   }
 
   function handleProcess(process, context) {
@@ -3611,13 +3675,17 @@ function BpmnTreeWalker(handler, translate) {
   }
 
   function handleLane(lane, context) {
-    var newContext = visitIfDi(lane, context);
 
-    if (lane.childLaneSet) {
-      handleLaneSet(lane.childLaneSet, newContext || context);
-    }
+    deferred.push(function() {
 
-    wireFlowNodeRefs(lane);
+      var newContext = visitIfDi(lane, context);
+
+      if (lane.childLaneSet) {
+        handleLaneSet(lane.childLaneSet, newContext || context);
+      }
+
+      wireFlowNodeRefs(lane);
+    });
   }
 
   function handleLaneSet(laneSet, context) {
@@ -3629,11 +3697,11 @@ function BpmnTreeWalker(handler, translate) {
   }
 
   function handleFlowElementsContainer(container, context) {
+    handleFlowElements(container.flowElements, context);
+
     if (container.laneSets) {
       handleLaneSets(container.laneSets, context);
     }
-
-    handleFlowElements(container.flowElements, context);
   }
 
   function handleFlowElements(flowElements, context) {
@@ -3707,10 +3775,10 @@ function BpmnTreeWalker(handler, translate) {
 }
 
 module.exports = BpmnTreeWalker;
-},{"220":220,"76":76,"77":77,"78":78,"9":9}],8:[function(_dereq_,module,exports){
+},{"10":10,"219":219,"75":75,"76":76,"77":77}],9:[function(_dereq_,module,exports){
 'use strict';
 
-var BpmnTreeWalker = _dereq_(7);
+var BpmnTreeWalker = _dereq_(8);
 
 
 /**
@@ -3724,9 +3792,9 @@ var BpmnTreeWalker = _dereq_(7);
  */
 function importBpmnDiagram(diagram, definitions, done) {
 
-  var importer = diagram.get('bpmnImporter'),
-      eventBus = diagram.get('eventBus'),
-      translate = diagram.get('translate');
+  var importer,
+      eventBus,
+      translate;
 
   var error,
       warnings = [];
@@ -3761,24 +3829,28 @@ function importBpmnDiagram(diagram, definitions, done) {
     walker.handleDefinitions(definitions);
   }
 
-  eventBus.fire('import.render.start', { definitions: definitions });
-
   try {
+    importer = diagram.get('bpmnImporter');
+    eventBus = diagram.get('eventBus');
+    translate = diagram.get('translate');
+
+    eventBus.fire('import.render.start', { definitions: definitions });
+
     render(definitions);
+
+    eventBus.fire('import.render.complete', {
+      error: error,
+      warnings: warnings
+    });
   } catch (e) {
     error = e;
   }
-
-  eventBus.fire('import.render.complete', {
-    error: error,
-    warnings: warnings
-  });
 
   done(error, warnings);
 }
 
 module.exports.importBpmnDiagram = importBpmnDiagram;
-},{"7":7}],9:[function(_dereq_,module,exports){
+},{"8":8}],10:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports.elementToString = function(e) {
@@ -3788,20 +3860,20 @@ module.exports.elementToString = function(e) {
 
   return '<' + e.$type + (e.id ? ' id="' + e.id : '') + '" />';
 };
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(52)
+    _dereq_(50)
   ],
-  bpmnImporter: [ 'type', _dereq_(6) ]
+  bpmnImporter: [ 'type', _dereq_(7) ]
 };
-},{"52":52,"6":6}],11:[function(_dereq_,module,exports){
+},{"50":50,"7":7}],12:[function(_dereq_,module,exports){
 'use strict';
 
-var is = _dereq_(13).is,
-    getBusinessObject = _dereq_(13).getBusinessObject;
+var is = _dereq_(14).is,
+    getBusinessObject = _dereq_(14).getBusinessObject;
 
-var forEach = _dereq_(78);
+var forEach = _dereq_(77);
 
 module.exports.isExpanded = function(element) {
 
@@ -3857,12 +3929,12 @@ module.exports.hasCompensateEventDefinition = function(element) {
   return hasEventDefinition(element, 'bpmn:CompensateEventDefinition');
 };
 
-},{"13":13,"78":78}],12:[function(_dereq_,module,exports){
+},{"14":14,"77":77}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(190);
+var assign = _dereq_(189);
 
-var is = _dereq_(13).is;
+var is = _dereq_(14).is;
 
 var DEFAULT_LABEL_SIZE = module.exports.DEFAULT_LABEL_SIZE = {
   width: 90,
@@ -3998,7 +4070,7 @@ module.exports.getExternalLabelBounds = function(semantic, element) {
   }, size);
 };
 
-},{"13":13,"190":190}],13:[function(_dereq_,module,exports){
+},{"14":14,"189":189}],14:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -4031,7 +4103,7 @@ function getBusinessObject(element) {
 
 module.exports.getBusinessObject = getBusinessObject;
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 /**
  * This file must not be changed or exchanged.
  *
@@ -4040,9 +4112,9 @@ module.exports.getBusinessObject = getBusinessObject;
 
 'use strict';
 
-var domify = _dereq_(204);
+var domify = _dereq_(203);
 
-var domDelegate = _dereq_(203);
+var domDelegate = _dereq_(202);
 
 /* jshint -W101 */
 
@@ -4115,18 +4187,18 @@ function open() {
 }
 
 module.exports.open = open;
-},{"203":203,"204":204}],15:[function(_dereq_,module,exports){
-module.exports = _dereq_(17);
-},{"17":17}],16:[function(_dereq_,module,exports){
+},{"202":202,"203":203}],16:[function(_dereq_,module,exports){
+module.exports = _dereq_(18);
+},{"18":18}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var isString = _dereq_(187),
-    isFunction = _dereq_(182),
-    assign = _dereq_(190);
+var isString = _dereq_(186),
+    isFunction = _dereq_(181),
+    assign = _dereq_(189);
 
-var Moddle = _dereq_(211),
-    XmlReader = _dereq_(209),
-    XmlWriter = _dereq_(210);
+var Moddle = _dereq_(210),
+    XmlReader = _dereq_(208),
+    XmlWriter = _dereq_(209);
 
 /**
  * A sub class of {@link Moddle} with support for import and export of BPMN 2.0 xml files.
@@ -4190,34 +4262,39 @@ BpmnModdle.prototype.toXML = function(element, options, done) {
   }
 
   var writer = new XmlWriter(options);
+
+  var result;
+  var err;
+
   try {
-    var result = writer.toXML(element);
-    done(null, result);
+    result = writer.toXML(element);
   } catch (e) {
-    done(e);
+    err = e;
   }
+
+  return done(err, result);
 };
 
-},{"182":182,"187":187,"190":190,"209":209,"210":210,"211":211}],17:[function(_dereq_,module,exports){
+},{"181":181,"186":186,"189":189,"208":208,"209":209,"210":210}],18:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(190);
+var assign = _dereq_(189);
 
-var BpmnModdle = _dereq_(16);
+var BpmnModdle = _dereq_(17);
 
 var packages = {
-  bpmn: _dereq_(19),
-  bpmndi: _dereq_(20),
-  dc: _dereq_(21),
-  di: _dereq_(22),
-  bioc: _dereq_(18)
+  bpmn: _dereq_(20),
+  bpmndi: _dereq_(21),
+  dc: _dereq_(22),
+  di: _dereq_(23),
+  bioc: _dereq_(19)
 };
 
 module.exports = function(additionalPackages, options) {
   return new BpmnModdle(assign({}, packages, additionalPackages), options);
 };
 
-},{"16":16,"18":18,"19":19,"190":190,"20":20,"21":21,"22":22}],18:[function(_dereq_,module,exports){
+},{"17":17,"189":189,"19":19,"20":20,"21":21,"22":22,"23":23}],19:[function(_dereq_,module,exports){
 module.exports={
   "name": "bpmn.io colors for BPMN",
   "uri": "http://bpmn.io/schema/bpmn/biocolor/1.0",
@@ -4260,7 +4337,7 @@ module.exports={
   "associations": []
 }
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 module.exports={
   "name": "BPMN20",
   "uri": "http://www.omg.org/spec/BPMN/20100524/MODEL",
@@ -5031,7 +5108,8 @@ module.exports={
         {
           "name": "waitForCompletion",
           "isAttr": true,
-          "type": "Boolean"
+          "type": "Boolean",
+          "default": true
         },
         {
           "name": "activityRef",
@@ -7214,7 +7292,7 @@ module.exports={
     "typePrefix": "t"
   }
 }
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 module.exports={
   "name": "BPMNDI",
   "uri": "http://www.omg.org/spec/BPMN/20100524/DI",
@@ -7408,7 +7486,7 @@ module.exports={
   "associations": [],
   "prefix": "bpmndi"
 }
-},{}],21:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 module.exports={
   "name": "DC",
   "uri": "http://www.omg.org/spec/DD/20100524/DC",
@@ -7508,7 +7586,7 @@ module.exports={
   "prefix": "dc",
   "associations": []
 }
-},{}],22:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 module.exports={
   "name": "DI",
   "uri": "http://www.omg.org/spec/DD/20100524/DI",
@@ -7747,274 +7825,60 @@ module.exports={
     "tagAlias": "lowerCase"
   }
 }
-},{}],23:[function(_dereq_,module,exports){
-/**
- * Module dependencies.
- */
+},{}],24:[function(_dereq_,module,exports){
+var matches = _dereq_(25)
 
-try {
-  var index = _dereq_(27);
-} catch (err) {
-  var index = _dereq_(27);
-}
+module.exports = function (element, selector, checkYoSelf) {
+  var parent = checkYoSelf ? element : element.parentNode
 
-/**
- * Whitespace regexp.
- */
-
-var re = /\s+/;
-
-/**
- * toString reference.
- */
-
-var toString = Object.prototype.toString;
-
-/**
- * Wrap `el` in a `ClassList`.
- *
- * @param {Element} el
- * @return {ClassList}
- * @api public
- */
-
-module.exports = function(el){
-  return new ClassList(el);
-};
-
-/**
- * Initialize a new ClassList for `el`.
- *
- * @param {Element} el
- * @api private
- */
-
-function ClassList(el) {
-  if (!el || !el.nodeType) {
-    throw new Error('A DOM element reference is required');
-  }
-  this.el = el;
-  this.list = el.classList;
-}
-
-/**
- * Add class `name` if not already present.
- *
- * @param {String} name
- * @return {ClassList}
- * @api public
- */
-
-ClassList.prototype.add = function(name){
-  // classList
-  if (this.list) {
-    this.list.add(name);
-    return this;
-  }
-
-  // fallback
-  var arr = this.array();
-  var i = index(arr, name);
-  if (!~i) arr.push(name);
-  this.el.className = arr.join(' ');
-  return this;
-};
-
-/**
- * Remove class `name` when present, or
- * pass a regular expression to remove
- * any which match.
- *
- * @param {String|RegExp} name
- * @return {ClassList}
- * @api public
- */
-
-ClassList.prototype.remove = function(name){
-  if ('[object RegExp]' == toString.call(name)) {
-    return this.removeMatching(name);
-  }
-
-  // classList
-  if (this.list) {
-    this.list.remove(name);
-    return this;
-  }
-
-  // fallback
-  var arr = this.array();
-  var i = index(arr, name);
-  if (~i) arr.splice(i, 1);
-  this.el.className = arr.join(' ');
-  return this;
-};
-
-/**
- * Remove all classes matching `re`.
- *
- * @param {RegExp} re
- * @return {ClassList}
- * @api private
- */
-
-ClassList.prototype.removeMatching = function(re){
-  var arr = this.array();
-  for (var i = 0; i < arr.length; i++) {
-    if (re.test(arr[i])) {
-      this.remove(arr[i]);
-    }
-  }
-  return this;
-};
-
-/**
- * Toggle class `name`, can force state via `force`.
- *
- * For browsers that support classList, but do not support `force` yet,
- * the mistake will be detected and corrected.
- *
- * @param {String} name
- * @param {Boolean} force
- * @return {ClassList}
- * @api public
- */
-
-ClassList.prototype.toggle = function(name, force){
-  // classList
-  if (this.list) {
-    if ("undefined" !== typeof force) {
-      if (force !== this.list.toggle(name, force)) {
-        this.list.toggle(name); // toggle again to correct
-      }
-    } else {
-      this.list.toggle(name);
-    }
-    return this;
-  }
-
-  // fallback
-  if ("undefined" !== typeof force) {
-    if (!force) {
-      this.remove(name);
-    } else {
-      this.add(name);
-    }
-  } else {
-    if (this.has(name)) {
-      this.remove(name);
-    } else {
-      this.add(name);
-    }
-  }
-
-  return this;
-};
-
-/**
- * Return an array of classes.
- *
- * @return {Array}
- * @api public
- */
-
-ClassList.prototype.array = function(){
-  var className = this.el.getAttribute('class') || '';
-  var str = className.replace(/^\s+|\s+$/g, '');
-  var arr = str.split(re);
-  if ('' === arr[0]) arr.shift();
-  return arr;
-};
-
-/**
- * Check if class `name` is present.
- *
- * @param {String} name
- * @return {ClassList}
- * @api public
- */
-
-ClassList.prototype.has =
-ClassList.prototype.contains = function(name){
-  return this.list
-    ? this.list.contains(name)
-    : !! ~index(this.array(), name);
-};
-
-},{"27":27}],24:[function(_dereq_,module,exports){
-var matches = _dereq_(28)
-
-module.exports = function (element, selector, checkYoSelf, root) {
-  element = checkYoSelf ? {parentNode: element} : element
-
-  root = root || document
-
-  // Make sure `element !== document` and `element != null`
-  // otherwise we get an illegal invocation
-  while ((element = element.parentNode) && element !== document) {
-    if (matches(element, selector))
-      return element
-    // After `matches` on the edge case that
-    // the selector matches the root
-    // (when the root is not the document)
-    if (element === root)
-      return
+  while (parent && parent !== document) {
+    if (matches(parent, selector)) return parent;
+    parent = parent.parentNode
   }
 }
 
-},{"28":28}],25:[function(_dereq_,module,exports){
+},{"25":25}],25:[function(_dereq_,module,exports){
+
 /**
- * Module dependencies.
+ * Element prototype.
  */
 
-try {
-  var closest = _dereq_(24);
-} catch(err) {
-  var closest = _dereq_(24);
-}
-
-try {
-  var event = _dereq_(26);
-} catch(err) {
-  var event = _dereq_(26);
-}
+var proto = Element.prototype;
 
 /**
- * Delegate event `type` to `selector`
- * and invoke `fn(e)`. A callback function
- * is returned which may be passed to `.unbind()`.
+ * Vendor function.
+ */
+
+var vendor = proto.matchesSelector
+  || proto.webkitMatchesSelector
+  || proto.mozMatchesSelector
+  || proto.msMatchesSelector
+  || proto.oMatchesSelector;
+
+/**
+ * Expose `match()`.
+ */
+
+module.exports = match;
+
+/**
+ * Match `el` to `selector`.
  *
  * @param {Element} el
  * @param {String} selector
- * @param {String} type
- * @param {Function} fn
- * @param {Boolean} capture
- * @return {Function}
+ * @return {Boolean}
  * @api public
  */
 
-exports.bind = function(el, selector, type, fn, capture){
-  return event.bind(el, type, function(e){
-    var target = e.target || e.srcElement;
-    e.delegateTarget = closest(target, selector, true, el);
-    if (e.delegateTarget) fn.call(el, e);
-  }, capture);
-};
-
-/**
- * Unbind event `type`'s callback `fn`.
- *
- * @param {Element} el
- * @param {String} type
- * @param {Function} fn
- * @param {Boolean} capture
- * @api public
- */
-
-exports.unbind = function(el, type, fn, capture){
-  event.unbind(el, type, fn, capture);
-};
-
-},{"24":24,"26":26}],26:[function(_dereq_,module,exports){
+function match(el, selector) {
+  if (vendor) return vendor.call(el, selector);
+  var nodes = el.parentNode.querySelectorAll(selector);
+  for (var i = 0; i < nodes.length; ++i) {
+    if (nodes[i] == el) return true;
+  }
+  return false;
+}
+},{}],26:[function(_dereq_,module,exports){
 var bind = window.addEventListener ? 'addEventListener' : 'attachEvent',
     unbind = window.removeEventListener ? 'removeEventListener' : 'detachEvent',
     prefix = bind !== 'addEventListener' ? 'on' : '';
@@ -8051,94 +7915,63 @@ exports.unbind = function(el, type, fn, capture){
   return fn;
 };
 },{}],27:[function(_dereq_,module,exports){
-module.exports = function(arr, obj){
-  if (arr.indexOf) return arr.indexOf(obj);
-  for (var i = 0; i < arr.length; ++i) {
-    if (arr[i] === obj) return i;
-  }
-  return -1;
-};
-},{}],28:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
-try {
-  var query = _dereq_(29);
-} catch (err) {
-  var query = _dereq_(29);
-}
+var closest = _dereq_(24)
+  , event = _dereq_(26);
 
 /**
- * Element prototype.
- */
-
-var proto = Element.prototype;
-
-/**
- * Vendor function.
- */
-
-var vendor = proto.matches
-  || proto.webkitMatchesSelector
-  || proto.mozMatchesSelector
-  || proto.msMatchesSelector
-  || proto.oMatchesSelector;
-
-/**
- * Expose `match()`.
- */
-
-module.exports = match;
-
-/**
- * Match `el` to `selector`.
+ * Delegate event `type` to `selector`
+ * and invoke `fn(e)`. A callback function
+ * is returned which may be passed to `.unbind()`.
  *
  * @param {Element} el
  * @param {String} selector
- * @return {Boolean}
+ * @param {String} type
+ * @param {Function} fn
+ * @param {Boolean} capture
+ * @return {Function}
  * @api public
  */
 
-function match(el, selector) {
-  if (!el || el.nodeType !== 1) return false;
-  if (vendor) return vendor.call(el, selector);
-  var nodes = query.all(selector, el.parentNode);
-  for (var i = 0; i < nodes.length; ++i) {
-    if (nodes[i] == el) return true;
-  }
-  return false;
-}
+// Some events don't bubble, so we want to bind to the capture phase instead
+// when delegating.
+var forceCaptureEvents = ['focus', 'blur'];
 
+exports.bind = function(el, selector, type, fn, capture){
+  if (forceCaptureEvents.indexOf(type) !== -1) capture = true;
+
+  return event.bind(el, type, function(e){
+    var target = e.target || e.srcElement;
+    e.delegateTarget = closest(target, selector, true, el);
+    if (e.delegateTarget) fn.call(el, e);
+  }, capture);
+};
+
+/**
+ * Unbind event `type`'s callback `fn`.
+ *
+ * @param {Element} el
+ * @param {String} type
+ * @param {Function} fn
+ * @param {Boolean} capture
+ * @api public
+ */
+
+exports.unbind = function(el, type, fn, capture){
+  if (forceCaptureEvents.indexOf(type) !== -1) capture = true;
+
+  event.unbind(el, type, fn, capture);
+};
+
+},{"24":24,"26":26}],28:[function(_dereq_,module,exports){
+module.exports = _dereq_(29);
 },{"29":29}],29:[function(_dereq_,module,exports){
-function one(selector, el) {
-  return el.querySelector(selector);
-}
-
-exports = module.exports = function(selector, el){
-  el = el || document;
-  return one(selector, el);
-};
-
-exports.all = function(selector, el){
-  el = el || document;
-  return el.querySelectorAll(selector);
-};
-
-exports.engine = function(obj){
-  if (!obj.one) throw new Error('.one callback required');
-  if (!obj.all) throw new Error('.all callback required');
-  one = obj.one;
-  exports.all = obj.all;
-  return exports;
-};
-
-},{}],30:[function(_dereq_,module,exports){
-module.exports = _dereq_(31);
-},{"31":31}],31:[function(_dereq_,module,exports){
 'use strict';
 
-var di = _dereq_(66);
+var di = _dereq_(64);
 
 
 /**
@@ -8215,7 +8048,7 @@ function createInjector(options) {
     'config': ['value', options]
   };
 
-  var coreModule = _dereq_(37);
+  var coreModule = _dereq_(35);
 
   var modules = [ configModule, coreModule ].concat(options.modules || []);
 
@@ -8337,26 +8170,26 @@ Diagram.prototype.clear = function() {
   this.get('eventBus').fire('diagram.clear');
 };
 
-},{"37":37,"66":66}],32:[function(_dereq_,module,exports){
+},{"35":35,"64":64}],30:[function(_dereq_,module,exports){
 'use strict';
 
-var isNumber = _dereq_(184),
-    assign = _dereq_(190),
-    forEach = _dereq_(78),
-    every = _dereq_(75),
-    debounce = _dereq_(85),
-    reduce = _dereq_(81);
+var isNumber = _dereq_(183),
+    assign = _dereq_(189),
+    forEach = _dereq_(77),
+    every = _dereq_(74),
+    debounce = _dereq_(84),
+    reduce = _dereq_(80);
 
-var Collections = _dereq_(55),
-    Elements = _dereq_(56);
+var Collections = _dereq_(53),
+    Elements = _dereq_(54);
 
-var svgAppend = _dereq_(226),
-    svgAttr = _dereq_(228),
-    svgClasses = _dereq_(229),
-    svgCreate = _dereq_(231),
-    svgTransform = _dereq_(235);
+var svgAppend = _dereq_(225),
+    svgAttr = _dereq_(227),
+    svgClasses = _dereq_(228),
+    svgCreate = _dereq_(230),
+    svgTransform = _dereq_(234);
 
-var createMatrix = _dereq_(232).createMatrix;
+var createMatrix = _dereq_(231).createMatrix;
 
 
 function round(number, resolution) {
@@ -8495,10 +8328,6 @@ Canvas.prototype._init = function(config) {
       svg: svg,
       viewport: viewport
     });
-
-    // fire this in order for certain components to check
-    // if they need to be adjusted due the canvas size
-    this.resized();
 
   }, this);
 
@@ -8863,7 +8692,7 @@ Canvas.prototype._addElement = function(type, element, parent, parentIndex) {
   this._setParent(element, parent, parentIndex);
 
   // create graphics
-  var gfx = graphicsFactory.create(type, element);
+  var gfx = graphicsFactory.create(type, element, parentIndex);
 
   this._elementRegistry.add(element, gfx);
 
@@ -9292,9 +9121,9 @@ Canvas.prototype._setZoom = function(scale, center) {
 
     // create scale matrix
     scaleMatrix = matrix
-                    .translate(originalPoint.x, originalPoint.y)
-                    .scale(1 / currentScale * scale)
-                    .translate(-originalPoint.x, -originalPoint.y);
+      .translate(originalPoint.x, originalPoint.y)
+      .scale(1 / currentScale * scale)
+      .translate(-originalPoint.x, -originalPoint.y);
 
     newMatrix = currentMatrix.multiply(scaleMatrix);
   } else {
@@ -9373,12 +9202,12 @@ Canvas.prototype.resized = function() {
   this._eventBus.fire('canvas.resized');
 };
 
-},{"184":184,"190":190,"226":226,"228":228,"229":229,"231":231,"232":232,"235":235,"55":55,"56":56,"75":75,"78":78,"81":81,"85":85}],33:[function(_dereq_,module,exports){
+},{"183":183,"189":189,"225":225,"227":227,"228":228,"230":230,"231":231,"234":234,"53":53,"54":54,"74":74,"77":77,"80":80,"84":84}],31:[function(_dereq_,module,exports){
 'use strict';
 
-var Model = _dereq_(54);
+var Model = _dereq_(52);
 
-var assign = _dereq_(190);
+var assign = _dereq_(189);
 
 /**
  * A factory for diagram-js shapes
@@ -9424,12 +9253,12 @@ ElementFactory.prototype.create = function(type, attrs) {
 
   return Model.create(type, attrs);
 };
-},{"190":190,"54":54}],34:[function(_dereq_,module,exports){
+},{"189":189,"52":52}],32:[function(_dereq_,module,exports){
 'use strict';
 
 var ELEMENT_ID = 'data-element-id';
 
-var svgAttr = _dereq_(228);
+var svgAttr = _dereq_(227);
 
 
 /**
@@ -9635,14 +9464,14 @@ ElementRegistry.prototype._validateId = function(id) {
   }
 };
 
-},{"228":228}],35:[function(_dereq_,module,exports){
+},{"227":227}],33:[function(_dereq_,module,exports){
 'use strict';
 
-var isFunction = _dereq_(182),
-    isArray = _dereq_(181),
-    isNumber = _dereq_(184),
-    bind = _dereq_(84),
-    assign = _dereq_(190);
+var isFunction = _dereq_(181),
+    isArray = _dereq_(180),
+    isNumber = _dereq_(183),
+    bind = _dereq_(83),
+    assign = _dereq_(189);
 
 var FN_REF = '__fn';
 
@@ -10093,23 +9922,23 @@ function invokeFunction(fn, args) {
   return fn.apply(null, args);
 }
 
-},{"181":181,"182":182,"184":184,"190":190,"84":84}],36:[function(_dereq_,module,exports){
+},{"180":180,"181":181,"183":183,"189":189,"83":83}],34:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(78),
-    reduce = _dereq_(81);
+var forEach = _dereq_(77),
+    reduce = _dereq_(80);
 
-var GraphicsUtil = _dereq_(58);
+var GraphicsUtil = _dereq_(56);
 
-var translate = _dereq_(63).translate;
+var translate = _dereq_(61).translate;
 
-var domClear = _dereq_(202);
+var domClear = _dereq_(201);
 
-var svgAppend = _dereq_(226),
-    svgAttr = _dereq_(228),
-    svgClasses = _dereq_(229),
-    svgCreate = _dereq_(231),
-    svgRemove = _dereq_(234);
+var svgAppend = _dereq_(225),
+    svgAttr = _dereq_(227),
+    svgClasses = _dereq_(228),
+    svgCreate = _dereq_(230),
+    svgRemove = _dereq_(233);
 
 
 /**
@@ -10184,12 +10013,18 @@ GraphicsFactory.prototype._clear = function(gfx) {
  *
  * @param {Object} parent
  * @param {String} type the type of the element, i.e. shape | connection
+ * @param {Number} [parentIndex] position to create container in parent
  */
-GraphicsFactory.prototype._createContainer = function(type, parentGfx) {
+GraphicsFactory.prototype._createContainer = function(type, childrenGfx, parentIndex) {
   var outerGfx = svgCreate('g');
   svgClasses(outerGfx).add('djs-group');
 
-  svgAppend(parentGfx, outerGfx);
+  // insert node at position
+  if (typeof parentIndex !== 'undefined') {
+    prependTo(outerGfx, childrenGfx, childrenGfx.childNodes[parentIndex]);
+  } else {
+    svgAppend(childrenGfx, outerGfx);
+  }
 
   var gfx = svgCreate('g');
   svgClasses(gfx).add('djs-element');
@@ -10206,9 +10041,9 @@ GraphicsFactory.prototype._createContainer = function(type, parentGfx) {
   return gfx;
 };
 
-GraphicsFactory.prototype.create = function(type, element) {
+GraphicsFactory.prototype.create = function(type, element, parentIndex) {
   var childrenGfx = this._getChildren(element.parent);
-  return this._createContainer(type, childrenGfx);
+  return this._createContainer(type, childrenGfx, parentIndex);
 };
 
 GraphicsFactory.prototype.updateContainments = function(elements) {
@@ -10230,12 +10065,13 @@ GraphicsFactory.prototype.updateContainments = function(elements) {
   // in the correct order (as indicated in our model)
   forEach(parents, function(parent) {
 
-    var childGfx = self._getChildren(parent),
-        children = parent.children;
+    var children = parent.children;
 
     if (!children) {
       return;
     }
+
+    var childGfx = self._getChildren(parent);
 
     forEach(children.slice().reverse(), function(c) {
       var gfx = elementRegistry.getGraphics(c);
@@ -10306,21 +10142,21 @@ GraphicsFactory.prototype.remove = function(element) {
 
 ////////// helpers ///////////
 
-function prependTo(newNode, parentNode) {
-  parentNode.insertBefore(newNode, parentNode.firstChild);
+function prependTo(newNode, parentNode, siblingNode) {
+  parentNode.insertBefore(newNode, siblingNode || parentNode.firstChild);
 }
 
-},{"202":202,"226":226,"228":228,"229":229,"231":231,"234":234,"58":58,"63":63,"78":78,"81":81}],37:[function(_dereq_,module,exports){
+},{"201":201,"225":225,"227":227,"228":228,"230":230,"233":233,"56":56,"61":61,"77":77,"80":80}],35:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(41) ],
+  __depends__: [ _dereq_(39) ],
   __init__: [ 'canvas' ],
-  canvas: [ 'type', _dereq_(32) ],
-  elementRegistry: [ 'type', _dereq_(34) ],
-  elementFactory: [ 'type', _dereq_(33) ],
-  eventBus: [ 'type', _dereq_(35) ],
-  graphicsFactory: [ 'type', _dereq_(36) ]
+  canvas: [ 'type', _dereq_(30) ],
+  elementRegistry: [ 'type', _dereq_(32) ],
+  elementFactory: [ 'type', _dereq_(31) ],
+  eventBus: [ 'type', _dereq_(33) ],
+  graphicsFactory: [ 'type', _dereq_(34) ]
 };
-},{"32":32,"33":33,"34":34,"35":35,"36":36,"41":41}],38:[function(_dereq_,module,exports){
+},{"30":30,"31":31,"32":32,"33":33,"34":34,"39":39}],36:[function(_dereq_,module,exports){
 'use strict';
 
 var DEFAULT_RENDER_PRIORITY = 1000;
@@ -10411,21 +10247,21 @@ BaseRenderer.prototype.getConnectionPath = function() {};
 
 module.exports = BaseRenderer;
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(72);
+var inherits = _dereq_(71);
 
-var BaseRenderer = _dereq_(38);
+var BaseRenderer = _dereq_(36);
 
-var renderUtil = _dereq_(62);
+var renderUtil = _dereq_(60);
 
 var componentsToPath = renderUtil.componentsToPath,
     createLine = renderUtil.createLine;
 
-var svgAppend = _dereq_(226),
-    svgAttr = _dereq_(228),
-    svgCreate = _dereq_(231);
+var svgAppend = _dereq_(225),
+    svgAttr = _dereq_(227),
+    svgCreate = _dereq_(230);
 
 // apply default renderer with lowest possible priority
 // so that it only kicks in if noone else could render
@@ -10516,12 +10352,12 @@ DefaultRenderer.$inject = [ 'eventBus', 'styles' ];
 
 module.exports = DefaultRenderer;
 
-},{"226":226,"228":228,"231":231,"38":38,"62":62,"72":72}],40:[function(_dereq_,module,exports){
+},{"225":225,"227":227,"230":230,"36":36,"60":60,"71":71}],38:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(181),
-    assign = _dereq_(190),
-    reduce = _dereq_(81);
+var isArray = _dereq_(180),
+    assign = _dereq_(189),
+    reduce = _dereq_(80);
 
 
 /**
@@ -10593,28 +10429,28 @@ function Styles() {
 
 module.exports = Styles;
 
-},{"181":181,"190":190,"81":81}],41:[function(_dereq_,module,exports){
+},{"180":180,"189":189,"80":80}],39:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'defaultRenderer' ],
-  defaultRenderer: [ 'type', _dereq_(39) ],
-  styles: [ 'type', _dereq_(40) ]
+  defaultRenderer: [ 'type', _dereq_(37) ],
+  styles: [ 'type', _dereq_(38) ]
 };
 
-},{"39":39,"40":40}],42:[function(_dereq_,module,exports){
+},{"37":37,"38":38}],40:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(78),
-    domDelegate = _dereq_(203);
+var forEach = _dereq_(77),
+    domDelegate = _dereq_(202);
 
-var isPrimaryButton = _dereq_(60).isPrimaryButton;
+var isPrimaryButton = _dereq_(58).isPrimaryButton;
 
-var svgAppend = _dereq_(226),
-    svgAttr = _dereq_(228),
-    svgCreate = _dereq_(231);
+var svgAppend = _dereq_(225),
+    svgAttr = _dereq_(227),
+    svgCreate = _dereq_(230);
 
-var domQuery = _dereq_(206);
+var domQuery = _dereq_(205);
 
-var renderUtil = _dereq_(62);
+var renderUtil = _dereq_(60);
 
 var createLine = renderUtil.createLine,
     updateLine = renderUtil.updateLine;
@@ -10900,25 +10736,25 @@ module.exports = InteractionEvents;
  * @property {Event} originalEvent
  */
 
-},{"203":203,"206":206,"226":226,"228":228,"231":231,"60":60,"62":62,"78":78}],43:[function(_dereq_,module,exports){
+},{"202":202,"205":205,"225":225,"227":227,"230":230,"58":58,"60":60,"77":77}],41:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'interactionEvents' ],
-  interactionEvents: [ 'type', _dereq_(42) ]
+  interactionEvents: [ 'type', _dereq_(40) ]
 };
-},{"42":42}],44:[function(_dereq_,module,exports){
+},{"40":40}],42:[function(_dereq_,module,exports){
 'use strict';
 
-var getBBox = _dereq_(56).getBBox;
+var getBBox = _dereq_(54).getBBox;
 
 var LOW_PRIORITY = 500;
 
-var svgAppend = _dereq_(226),
-    svgAttr = _dereq_(228),
-    svgCreate = _dereq_(231);
+var svgAppend = _dereq_(225),
+    svgAttr = _dereq_(227),
+    svgCreate = _dereq_(230);
 
-var domQuery = _dereq_(206);
+var domQuery = _dereq_(205);
 
-var assign = _dereq_(190);
+var assign = _dereq_(189);
 
 
 /**
@@ -11028,34 +10864,34 @@ Outline.$inject = ['eventBus', 'styles', 'elementRegistry'];
 
 module.exports = Outline;
 
-},{"190":190,"206":206,"226":226,"228":228,"231":231,"56":56}],45:[function(_dereq_,module,exports){
+},{"189":189,"205":205,"225":225,"227":227,"230":230,"54":54}],43:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'outline' ],
-  outline: [ 'type', _dereq_(44) ]
+  outline: [ 'type', _dereq_(42) ]
 };
-},{"44":44}],46:[function(_dereq_,module,exports){
+},{"42":42}],44:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(181),
-    isString = _dereq_(187),
-    isObject = _dereq_(185),
-    assign = _dereq_(190),
-    forEach = _dereq_(78),
-    find = _dereq_(77),
-    filter = _dereq_(76);
+var isArray = _dereq_(180),
+    isString = _dereq_(186),
+    isObject = _dereq_(184),
+    assign = _dereq_(189),
+    forEach = _dereq_(77),
+    find = _dereq_(76),
+    filter = _dereq_(75);
 
-var domify = _dereq_(204),
-    domClasses = _dereq_(201),
-    domAttr = _dereq_(200),
-    domRemove = _dereq_(207),
-    domClear = _dereq_(202);
+var domify = _dereq_(203),
+    domClasses = _dereq_(200),
+    domAttr = _dereq_(199),
+    domRemove = _dereq_(206),
+    domClear = _dereq_(201);
 
-var getBBox = _dereq_(56).getBBox;
+var getBBox = _dereq_(54).getBBox;
 
 // document wide unique overlay ids
-var ids = new (_dereq_(59))('ov');
+var ids = new (_dereq_(57))('ov');
 
 var LOW_PRIORITY = 500;
 
@@ -11674,16 +11510,16 @@ Overlays.prototype._init = function() {
   eventBus.on('diagram.clear', this.clear, this);
 };
 
-},{"181":181,"185":185,"187":187,"190":190,"200":200,"201":201,"202":202,"204":204,"207":207,"56":56,"59":59,"76":76,"77":77,"78":78}],47:[function(_dereq_,module,exports){
+},{"180":180,"184":184,"186":186,"189":189,"199":199,"200":200,"201":201,"203":203,"206":206,"54":54,"57":57,"75":75,"76":76,"77":77}],45:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'overlays' ],
-  overlays: [ 'type', _dereq_(46) ]
+  overlays: [ 'type', _dereq_(44) ]
 };
-},{"46":46}],48:[function(_dereq_,module,exports){
+},{"44":44}],46:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(181),
-    forEach = _dereq_(78);
+var isArray = _dereq_(180),
+    forEach = _dereq_(77);
 
 
 /**
@@ -11778,12 +11614,12 @@ Selection.prototype.select = function(elements, add) {
   this._eventBus.fire('selection.changed', { oldSelection: oldSelection, newSelection: selectedElements });
 };
 
-},{"181":181,"78":78}],49:[function(_dereq_,module,exports){
+},{"180":180,"77":77}],47:[function(_dereq_,module,exports){
 'use strict';
 
-var hasPrimaryModifier = _dereq_(60).hasPrimaryModifier;
+var hasPrimaryModifier = _dereq_(58).hasPrimaryModifier;
 
-var find = _dereq_(77);
+var find = _dereq_(76);
 
 
 function SelectionBehavior(eventBus, selection, canvas, elementRegistry) {
@@ -11858,10 +11694,10 @@ function SelectionBehavior(eventBus, selection, canvas, elementRegistry) {
 SelectionBehavior.$inject = [ 'eventBus', 'selection', 'canvas', 'elementRegistry' ];
 module.exports = SelectionBehavior;
 
-},{"60":60,"77":77}],50:[function(_dereq_,module,exports){
+},{"58":58,"76":76}],48:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(78);
+var forEach = _dereq_(77);
 
 var MARKER_HOVER = 'hover',
     MARKER_SELECTED = 'selected';
@@ -11935,23 +11771,23 @@ SelectionVisuals.$inject = [
 
 module.exports = SelectionVisuals;
 
-},{"78":78}],51:[function(_dereq_,module,exports){
+},{"77":77}],49:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'selectionVisuals', 'selectionBehavior' ],
   __depends__: [
-    _dereq_(43),
-    _dereq_(45)
+    _dereq_(41),
+    _dereq_(43)
   ],
-  selection: [ 'type', _dereq_(48) ],
-  selectionVisuals: [ 'type', _dereq_(50) ],
-  selectionBehavior: [ 'type', _dereq_(49) ]
+  selection: [ 'type', _dereq_(46) ],
+  selectionVisuals: [ 'type', _dereq_(48) ],
+  selectionBehavior: [ 'type', _dereq_(47) ]
 };
 
-},{"43":43,"45":45,"48":48,"49":49,"50":50}],52:[function(_dereq_,module,exports){
+},{"41":41,"43":43,"46":46,"47":47,"48":48}],50:[function(_dereq_,module,exports){
 module.exports = {
-  translate: [ 'value', _dereq_(53) ]
+  translate: [ 'value', _dereq_(51) ]
 };
-},{"53":53}],53:[function(_dereq_,module,exports){
+},{"51":51}],51:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -11980,13 +11816,13 @@ module.exports = function translate(template, replacements) {
     return replacements[key] || '{' + key + '}';
   });
 };
-},{}],54:[function(_dereq_,module,exports){
+},{}],52:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(190),
-    inherits = _dereq_(72);
+var assign = _dereq_(189),
+    inherits = _dereq_(71);
 
-var Refs = _dereq_(220);
+var Refs = _dereq_(219);
 
 var parentRefs = new Refs({ name: 'children', enumerable: true, collection: true }, { name: 'parent' }),
     labelRefs = new Refs({ name: 'label', enumerable: true }, { name: 'labelTarget' }),
@@ -12196,7 +12032,7 @@ module.exports.Shape = Shape;
 module.exports.Connection = Connection;
 module.exports.Label = Label;
 
-},{"190":190,"220":220,"72":72}],55:[function(_dereq_,module,exports){
+},{"189":189,"219":219,"71":71}],53:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -12287,13 +12123,13 @@ module.exports.indexOf = function(collection, element) {
   return collection.indexOf(element);
 };
 
-},{}],56:[function(_dereq_,module,exports){
+},{}],54:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(181),
-    isNumber = _dereq_(184),
-    groupBy = _dereq_(79),
-    forEach = _dereq_(78);
+var isArray = _dereq_(180),
+    isNumber = _dereq_(183),
+    groupBy = _dereq_(78),
+    forEach = _dereq_(77);
 
 /**
  * Adds an element to a collection and returns true if the
@@ -12585,25 +12421,15 @@ function getElementType(element) {
 }
 
 module.exports.getType = getElementType;
-},{"181":181,"184":184,"78":78,"79":79}],57:[function(_dereq_,module,exports){
+},{"180":180,"183":183,"77":77,"78":78}],55:[function(_dereq_,module,exports){
 'use strict';
 
-function __preventDefault(event) {
-  return event && event.preventDefault();
-}
-
-function __stopPropagation(event, immediate) {
-  if (!event) {
+function __stopPropagation(event) {
+  if (!event || typeof event.stopPropagation !== 'function') {
     return;
   }
 
-  if (event.stopPropagation) {
-    event.stopPropagation();
-  }
-
-  if (immediate && event.stopImmediatePropagation) {
-    event.stopImmediatePropagation();
-  }
+  event.stopPropagation();
 }
 
 
@@ -12612,22 +12438,6 @@ function getOriginal(event) {
 }
 
 module.exports.getOriginal = getOriginal;
-
-
-function stopEvent(event, immediate) {
-  stopPropagation(event, immediate);
-  preventDefault(event);
-}
-
-module.exports.stopEvent = stopEvent;
-
-
-function preventDefault(event) {
-  __preventDefault(event);
-  __preventDefault(getOriginal(event));
-}
-
-module.exports.preventDefault = preventDefault;
 
 
 function stopPropagation(event, immediate) {
@@ -12656,10 +12466,10 @@ function toPoint(event) {
 
 module.exports.toPoint = toPoint;
 
-},{}],58:[function(_dereq_,module,exports){
+},{}],56:[function(_dereq_,module,exports){
 'use strict';
 
-var domQuery = _dereq_(206);
+var domQuery = _dereq_(205);
 
 /**
  * SVGs for elements are generated by the {@link GraphicsFactory}.
@@ -12692,7 +12502,7 @@ function getChildren(gfx) {
 module.exports.getVisual = getVisual;
 module.exports.getChildren = getChildren;
 
-},{"206":206}],59:[function(_dereq_,module,exports){
+},{"205":205}],57:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -12725,12 +12535,12 @@ IdGenerator.prototype.next = function() {
   return this._prefix + (++this._counter);
 };
 
-},{}],60:[function(_dereq_,module,exports){
+},{}],58:[function(_dereq_,module,exports){
 'use strict';
 
-var getOriginalEvent = _dereq_(57).getOriginal;
+var getOriginalEvent = _dereq_(55).getOriginal;
 
-var isMac = _dereq_(61).isMac;
+var isMac = _dereq_(59).isMac;
 
 
 function isPrimaryButton(event) {
@@ -12764,17 +12574,17 @@ module.exports.hasSecondaryModifier = function(event) {
   return isPrimaryButton(event) && originalEvent.shiftKey;
 };
 
-},{"57":57,"61":61}],61:[function(_dereq_,module,exports){
+},{"55":55,"59":59}],59:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports.isMac = function isMac() {
   return (/mac/i).test(navigator.platform);
 };
-},{}],62:[function(_dereq_,module,exports){
+},{}],60:[function(_dereq_,module,exports){
 'use strict';
 
-var svgAttr = _dereq_(228),
-    svgCreate = _dereq_(231);
+var svgAttr = _dereq_(227),
+    svgCreate = _dereq_(230);
 
 
 module.exports.componentsToPath = function(elements) {
@@ -12811,12 +12621,12 @@ module.exports.updateLine = function(gfx, points) {
   return gfx;
 };
 
-},{"228":228,"231":231}],63:[function(_dereq_,module,exports){
+},{"227":227,"230":230}],61:[function(_dereq_,module,exports){
 'use strict';
 
-var svgTransform = _dereq_(235);
+var svgTransform = _dereq_(234);
 
-var createTransform = _dereq_(232).createTransform;
+var createTransform = _dereq_(231).createTransform;
 
 
 /**
@@ -12876,20 +12686,20 @@ module.exports.scale = function(gfx, amount) {
   svgTransform(gfx, scale);
 };
 
-},{"232":232,"235":235}],64:[function(_dereq_,module,exports){
+},{"231":231,"234":234}],62:[function(_dereq_,module,exports){
 'use strict';
 
-var isObject = _dereq_(185),
-    assign = _dereq_(190),
-    pick = _dereq_(196),
-    forEach = _dereq_(78),
-    reduce = _dereq_(81),
-    merge = _dereq_(193);
+var isObject = _dereq_(184),
+    assign = _dereq_(189),
+    pick = _dereq_(195),
+    forEach = _dereq_(77),
+    reduce = _dereq_(80),
+    merge = _dereq_(192);
 
-var svgAppend = _dereq_(226),
-    svgAttr = _dereq_(228),
-    svgCreate = _dereq_(231),
-    svgRemove = _dereq_(234);
+var svgAppend = _dereq_(225),
+    svgAttr = _dereq_(227),
+    svgCreate = _dereq_(230),
+    svgRemove = _dereq_(233);
 
 var DEFAULT_BOX_PADDING = 0;
 
@@ -13210,7 +13020,7 @@ Text.prototype.layoutText = function(text, options) {
 
 module.exports = Text;
 
-},{"185":185,"190":190,"193":193,"196":196,"226":226,"228":228,"231":231,"234":234,"78":78,"81":81}],65:[function(_dereq_,module,exports){
+},{"184":184,"189":189,"192":192,"195":195,"225":225,"227":227,"230":230,"233":233,"77":77,"80":80}],63:[function(_dereq_,module,exports){
 
 var isArray = function(obj) {
   return Object.prototype.toString.call(obj) === '[object Array]';
@@ -13260,18 +13070,18 @@ exports.annotate = annotate;
 exports.parse = parse;
 exports.isArray = isArray;
 
-},{}],66:[function(_dereq_,module,exports){
+},{}],64:[function(_dereq_,module,exports){
 module.exports = {
-  annotate: _dereq_(65).annotate,
-  Module: _dereq_(68),
-  Injector: _dereq_(67)
+  annotate: _dereq_(63).annotate,
+  Module: _dereq_(66),
+  Injector: _dereq_(65)
 };
 
-},{"65":65,"67":67,"68":68}],67:[function(_dereq_,module,exports){
-var Module = _dereq_(68);
-var autoAnnotate = _dereq_(65).parse;
-var annotate = _dereq_(65).annotate;
-var isArray = _dereq_(65).isArray;
+},{"63":63,"65":65,"66":66}],65:[function(_dereq_,module,exports){
+var Module = _dereq_(66);
+var autoAnnotate = _dereq_(63).parse;
+var annotate = _dereq_(63).annotate;
+var isArray = _dereq_(63).isArray;
 
 
 var Injector = function(modules, parent) {
@@ -13497,7 +13307,7 @@ var Injector = function(modules, parent) {
 
 module.exports = Injector;
 
-},{"65":65,"68":68}],68:[function(_dereq_,module,exports){
+},{"63":63,"66":66}],66:[function(_dereq_,module,exports){
 var Module = function() {
   var providers = [];
 
@@ -13523,7 +13333,7 @@ var Module = function() {
 
 module.exports = Module;
 
-},{}],69:[function(_dereq_,module,exports){
+},{}],67:[function(_dereq_,module,exports){
 
 /**
  * Expose `parse`.
@@ -13637,7 +13447,7 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],70:[function(_dereq_,module,exports){
+},{}],68:[function(_dereq_,module,exports){
 var hat = module.exports = function (bits, base) {
     if (!base) base = 16;
     if (bits === undefined) bits = 128;
@@ -13701,10 +13511,10 @@ hat.rack = function (bits, base, expandBy) {
     return fn;
 };
 
-},{}],71:[function(_dereq_,module,exports){
+},{}],69:[function(_dereq_,module,exports){
 'use strict';
 
-var hat = _dereq_(70);
+var hat = _dereq_(68);
 
 
 /**
@@ -13800,7 +13610,18 @@ Ids.prototype.clear = function() {
     this.unclaim(id);
   }
 };
-},{"70":70}],72:[function(_dereq_,module,exports){
+},{"68":68}],70:[function(_dereq_,module,exports){
+
+var indexOf = [].indexOf;
+
+module.exports = function(arr, obj){
+  if (indexOf) return arr.indexOf(obj);
+  for (var i = 0; i < arr.length; ++i) {
+    if (arr[i] === obj) return i;
+  }
+  return -1;
+};
+},{}],71:[function(_dereq_,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -13825,7 +13646,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],73:[function(_dereq_,module,exports){
+},{}],72:[function(_dereq_,module,exports){
 /**
  * Gets the last element of `array`.
  *
@@ -13846,13 +13667,13 @@ function last(array) {
 
 module.exports = last;
 
-},{}],74:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(88),
-    LodashWrapper = _dereq_(89),
-    baseLodash = _dereq_(120),
-    isArray = _dereq_(181),
-    isObjectLike = _dereq_(166),
-    wrapperClone = _dereq_(179);
+},{}],73:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(87),
+    LodashWrapper = _dereq_(88),
+    baseLodash = _dereq_(119),
+    isArray = _dereq_(180),
+    isObjectLike = _dereq_(165),
+    wrapperClone = _dereq_(178);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -13973,12 +13794,12 @@ lodash.prototype = baseLodash.prototype;
 
 module.exports = lodash;
 
-},{"120":120,"166":166,"179":179,"181":181,"88":88,"89":89}],75:[function(_dereq_,module,exports){
-var arrayEvery = _dereq_(93),
-    baseCallback = _dereq_(101),
-    baseEvery = _dereq_(107),
-    isArray = _dereq_(181),
-    isIterateeCall = _dereq_(162);
+},{"119":119,"165":165,"178":178,"180":180,"87":87,"88":88}],74:[function(_dereq_,module,exports){
+var arrayEvery = _dereq_(92),
+    baseCallback = _dereq_(100),
+    baseEvery = _dereq_(106),
+    isArray = _dereq_(180),
+    isIterateeCall = _dereq_(161);
 
 /**
  * Checks if `predicate` returns truthy for **all** elements of `collection`.
@@ -14041,11 +13862,11 @@ function every(collection, predicate, thisArg) {
 
 module.exports = every;
 
-},{"101":101,"107":107,"162":162,"181":181,"93":93}],76:[function(_dereq_,module,exports){
-var arrayFilter = _dereq_(94),
-    baseCallback = _dereq_(101),
-    baseFilter = _dereq_(108),
-    isArray = _dereq_(181);
+},{"100":100,"106":106,"161":161,"180":180,"92":92}],75:[function(_dereq_,module,exports){
+var arrayFilter = _dereq_(93),
+    baseCallback = _dereq_(100),
+    baseFilter = _dereq_(107),
+    isArray = _dereq_(180);
 
 /**
  * Iterates over elements of `collection`, returning an array of all elements
@@ -14104,9 +13925,9 @@ function filter(collection, predicate, thisArg) {
 
 module.exports = filter;
 
-},{"101":101,"108":108,"181":181,"94":94}],77:[function(_dereq_,module,exports){
-var baseEach = _dereq_(106),
-    createFind = _dereq_(145);
+},{"100":100,"107":107,"180":180,"93":93}],76:[function(_dereq_,module,exports){
+var baseEach = _dereq_(105),
+    createFind = _dereq_(144);
 
 /**
  * Iterates over elements of `collection`, returning the first element
@@ -14162,10 +13983,10 @@ var find = createFind(baseEach);
 
 module.exports = find;
 
-},{"106":106,"145":145}],78:[function(_dereq_,module,exports){
-var arrayEach = _dereq_(92),
-    baseEach = _dereq_(106),
-    createForEach = _dereq_(146);
+},{"105":105,"144":144}],77:[function(_dereq_,module,exports){
+var arrayEach = _dereq_(91),
+    baseEach = _dereq_(105),
+    createForEach = _dereq_(145);
 
 /**
  * Iterates over elements of `collection` invoking `iteratee` for each element.
@@ -14201,8 +14022,8 @@ var forEach = createForEach(arrayEach, baseEach);
 
 module.exports = forEach;
 
-},{"106":106,"146":146,"92":92}],79:[function(_dereq_,module,exports){
-var createAggregator = _dereq_(138);
+},{"105":105,"145":145,"91":91}],78:[function(_dereq_,module,exports){
+var createAggregator = _dereq_(137);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -14262,11 +14083,11 @@ var groupBy = createAggregator(function(result, value, key) {
 
 module.exports = groupBy;
 
-},{"138":138}],80:[function(_dereq_,module,exports){
-var arrayMap = _dereq_(95),
-    baseCallback = _dereq_(101),
-    baseMap = _dereq_(121),
-    isArray = _dereq_(181);
+},{"137":137}],79:[function(_dereq_,module,exports){
+var arrayMap = _dereq_(94),
+    baseCallback = _dereq_(100),
+    baseMap = _dereq_(120),
+    isArray = _dereq_(180);
 
 /**
  * Creates an array of values by running each element in `collection` through
@@ -14332,10 +14153,10 @@ function map(collection, iteratee, thisArg) {
 
 module.exports = map;
 
-},{"101":101,"121":121,"181":181,"95":95}],81:[function(_dereq_,module,exports){
-var arrayReduce = _dereq_(97),
-    baseEach = _dereq_(106),
-    createReduce = _dereq_(149);
+},{"100":100,"120":120,"180":180,"94":94}],80:[function(_dereq_,module,exports){
+var arrayReduce = _dereq_(96),
+    baseEach = _dereq_(105),
+    createReduce = _dereq_(148);
 
 /**
  * Reduces `collection` to a value which is the accumulated result of running
@@ -14378,12 +14199,12 @@ var reduce = createReduce(arrayReduce, baseEach);
 
 module.exports = reduce;
 
-},{"106":106,"149":149,"97":97}],82:[function(_dereq_,module,exports){
-var arraySome = _dereq_(98),
-    baseCallback = _dereq_(101),
-    baseSome = _dereq_(131),
-    isArray = _dereq_(181),
-    isIterateeCall = _dereq_(162);
+},{"105":105,"148":148,"96":96}],81:[function(_dereq_,module,exports){
+var arraySome = _dereq_(97),
+    baseCallback = _dereq_(100),
+    baseSome = _dereq_(130),
+    isArray = _dereq_(180),
+    isIterateeCall = _dereq_(161);
 
 /**
  * Checks if `predicate` returns truthy for **any** element of `collection`.
@@ -14447,8 +14268,8 @@ function some(collection, predicate, thisArg) {
 
 module.exports = some;
 
-},{"101":101,"131":131,"162":162,"181":181,"98":98}],83:[function(_dereq_,module,exports){
-var getNative = _dereq_(158);
+},{"100":100,"130":130,"161":161,"180":180,"97":97}],82:[function(_dereq_,module,exports){
+var getNative = _dereq_(157);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeNow = getNative(Date, 'now');
@@ -14473,10 +14294,10 @@ var now = nativeNow || function() {
 
 module.exports = now;
 
-},{"158":158}],84:[function(_dereq_,module,exports){
-var createWrapper = _dereq_(150),
-    replaceHolders = _dereq_(174),
-    restParam = _dereq_(87);
+},{"157":157}],83:[function(_dereq_,module,exports){
+var createWrapper = _dereq_(149),
+    replaceHolders = _dereq_(173),
+    restParam = _dereq_(86);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -14531,9 +14352,9 @@ bind.placeholder = {};
 
 module.exports = bind;
 
-},{"150":150,"174":174,"87":87}],85:[function(_dereq_,module,exports){
-var isObject = _dereq_(185),
-    now = _dereq_(83);
+},{"149":149,"173":173,"86":86}],84:[function(_dereq_,module,exports){
+var isObject = _dereq_(184),
+    now = _dereq_(82);
 
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
@@ -14714,9 +14535,9 @@ function debounce(func, wait, options) {
 
 module.exports = debounce;
 
-},{"185":185,"83":83}],86:[function(_dereq_,module,exports){
-var baseDelay = _dereq_(104),
-    restParam = _dereq_(87);
+},{"184":184,"82":82}],85:[function(_dereq_,module,exports){
+var baseDelay = _dereq_(103),
+    restParam = _dereq_(86);
 
 /**
  * Defers invoking the `func` until the current call stack has cleared. Any
@@ -14741,7 +14562,7 @@ var defer = restParam(function(func, args) {
 
 module.exports = defer;
 
-},{"104":104,"87":87}],87:[function(_dereq_,module,exports){
+},{"103":103,"86":86}],86:[function(_dereq_,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -14801,9 +14622,9 @@ function restParam(func, start) {
 
 module.exports = restParam;
 
-},{}],88:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(103),
-    baseLodash = _dereq_(120);
+},{}],87:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(102),
+    baseLodash = _dereq_(119);
 
 /** Used as references for `-Infinity` and `Infinity`. */
 var POSITIVE_INFINITY = Number.POSITIVE_INFINITY;
@@ -14829,9 +14650,9 @@ LazyWrapper.prototype.constructor = LazyWrapper;
 
 module.exports = LazyWrapper;
 
-},{"103":103,"120":120}],89:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(103),
-    baseLodash = _dereq_(120);
+},{"102":102,"119":119}],88:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(102),
+    baseLodash = _dereq_(119);
 
 /**
  * The base constructor for creating `lodash` wrapper objects.
@@ -14852,10 +14673,10 @@ LodashWrapper.prototype.constructor = LodashWrapper;
 
 module.exports = LodashWrapper;
 
-},{"103":103,"120":120}],90:[function(_dereq_,module,exports){
+},{"102":102,"119":119}],89:[function(_dereq_,module,exports){
 (function (global){
-var cachePush = _dereq_(135),
-    getNative = _dereq_(158);
+var cachePush = _dereq_(134),
+    getNative = _dereq_(157);
 
 /** Native method references. */
 var Set = getNative(global, 'Set');
@@ -14886,7 +14707,7 @@ module.exports = SetCache;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"135":135,"158":158}],91:[function(_dereq_,module,exports){
+},{"134":134,"157":157}],90:[function(_dereq_,module,exports){
 /**
  * Copies the values of `source` to `array`.
  *
@@ -14908,7 +14729,7 @@ function arrayCopy(source, array) {
 
 module.exports = arrayCopy;
 
-},{}],92:[function(_dereq_,module,exports){
+},{}],91:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.forEach` for arrays without support for callback
  * shorthands and `this` binding.
@@ -14932,7 +14753,7 @@ function arrayEach(array, iteratee) {
 
 module.exports = arrayEach;
 
-},{}],93:[function(_dereq_,module,exports){
+},{}],92:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.every` for arrays without support for callback
  * shorthands and `this` binding.
@@ -14957,7 +14778,7 @@ function arrayEvery(array, predicate) {
 
 module.exports = arrayEvery;
 
-},{}],94:[function(_dereq_,module,exports){
+},{}],93:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.filter` for arrays without support for callback
  * shorthands and `this` binding.
@@ -14984,7 +14805,7 @@ function arrayFilter(array, predicate) {
 
 module.exports = arrayFilter;
 
-},{}],95:[function(_dereq_,module,exports){
+},{}],94:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.map` for arrays without support for callback
  * shorthands and `this` binding.
@@ -15007,7 +14828,7 @@ function arrayMap(array, iteratee) {
 
 module.exports = arrayMap;
 
-},{}],96:[function(_dereq_,module,exports){
+},{}],95:[function(_dereq_,module,exports){
 /**
  * Appends the elements of `values` to `array`.
  *
@@ -15029,7 +14850,7 @@ function arrayPush(array, values) {
 
 module.exports = arrayPush;
 
-},{}],97:[function(_dereq_,module,exports){
+},{}],96:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.reduce` for arrays without support for callback
  * shorthands and `this` binding.
@@ -15057,7 +14878,7 @@ function arrayReduce(array, iteratee, accumulator, initFromArray) {
 
 module.exports = arrayReduce;
 
-},{}],98:[function(_dereq_,module,exports){
+},{}],97:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.some` for arrays without support for callback
  * shorthands and `this` binding.
@@ -15082,8 +14903,8 @@ function arraySome(array, predicate) {
 
 module.exports = arraySome;
 
-},{}],99:[function(_dereq_,module,exports){
-var keys = _dereq_(191);
+},{}],98:[function(_dereq_,module,exports){
+var keys = _dereq_(190);
 
 /**
  * A specialized version of `_.assign` for customizing assigned values without
@@ -15116,9 +14937,9 @@ function assignWith(object, source, customizer) {
 
 module.exports = assignWith;
 
-},{"191":191}],100:[function(_dereq_,module,exports){
-var baseCopy = _dereq_(102),
-    keys = _dereq_(191);
+},{"190":190}],99:[function(_dereq_,module,exports){
+var baseCopy = _dereq_(101),
+    keys = _dereq_(190);
 
 /**
  * The base implementation of `_.assign` without support for argument juggling,
@@ -15137,12 +14958,12 @@ function baseAssign(object, source) {
 
 module.exports = baseAssign;
 
-},{"102":102,"191":191}],101:[function(_dereq_,module,exports){
-var baseMatches = _dereq_(122),
-    baseMatchesProperty = _dereq_(123),
-    bindCallback = _dereq_(133),
-    identity = _dereq_(197),
-    property = _dereq_(199);
+},{"101":101,"190":190}],100:[function(_dereq_,module,exports){
+var baseMatches = _dereq_(121),
+    baseMatchesProperty = _dereq_(122),
+    bindCallback = _dereq_(132),
+    identity = _dereq_(196),
+    property = _dereq_(198);
 
 /**
  * The base implementation of `_.callback` which supports specifying the
@@ -15174,7 +14995,7 @@ function baseCallback(func, thisArg, argCount) {
 
 module.exports = baseCallback;
 
-},{"122":122,"123":123,"133":133,"197":197,"199":199}],102:[function(_dereq_,module,exports){
+},{"121":121,"122":122,"132":132,"196":196,"198":198}],101:[function(_dereq_,module,exports){
 /**
  * Copies properties of `source` to `object`.
  *
@@ -15199,8 +15020,8 @@ function baseCopy(source, props, object) {
 
 module.exports = baseCopy;
 
-},{}],103:[function(_dereq_,module,exports){
-var isObject = _dereq_(185);
+},{}],102:[function(_dereq_,module,exports){
+var isObject = _dereq_(184);
 
 /**
  * The base implementation of `_.create` without support for assigning
@@ -15224,7 +15045,7 @@ var baseCreate = (function() {
 
 module.exports = baseCreate;
 
-},{"185":185}],104:[function(_dereq_,module,exports){
+},{"184":184}],103:[function(_dereq_,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -15247,10 +15068,10 @@ function baseDelay(func, wait, args) {
 
 module.exports = baseDelay;
 
-},{}],105:[function(_dereq_,module,exports){
-var baseIndexOf = _dereq_(116),
-    cacheIndexOf = _dereq_(134),
-    createCache = _dereq_(143);
+},{}],104:[function(_dereq_,module,exports){
+var baseIndexOf = _dereq_(115),
+    cacheIndexOf = _dereq_(133),
+    createCache = _dereq_(142);
 
 /** Used as the size to enable large array optimizations. */
 var LARGE_ARRAY_SIZE = 200;
@@ -15304,9 +15125,9 @@ function baseDifference(array, values) {
 
 module.exports = baseDifference;
 
-},{"116":116,"134":134,"143":143}],106:[function(_dereq_,module,exports){
-var baseForOwn = _dereq_(114),
-    createBaseEach = _dereq_(140);
+},{"115":115,"133":133,"142":142}],105:[function(_dereq_,module,exports){
+var baseForOwn = _dereq_(113),
+    createBaseEach = _dereq_(139);
 
 /**
  * The base implementation of `_.forEach` without support for callback
@@ -15321,8 +15142,8 @@ var baseEach = createBaseEach(baseForOwn);
 
 module.exports = baseEach;
 
-},{"114":114,"140":140}],107:[function(_dereq_,module,exports){
-var baseEach = _dereq_(106);
+},{"113":113,"139":139}],106:[function(_dereq_,module,exports){
+var baseEach = _dereq_(105);
 
 /**
  * The base implementation of `_.every` without support for callback
@@ -15345,8 +15166,8 @@ function baseEvery(collection, predicate) {
 
 module.exports = baseEvery;
 
-},{"106":106}],108:[function(_dereq_,module,exports){
-var baseEach = _dereq_(106);
+},{"105":105}],107:[function(_dereq_,module,exports){
+var baseEach = _dereq_(105);
 
 /**
  * The base implementation of `_.filter` without support for callback
@@ -15369,7 +15190,7 @@ function baseFilter(collection, predicate) {
 
 module.exports = baseFilter;
 
-},{"106":106}],109:[function(_dereq_,module,exports){
+},{"105":105}],108:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.find`, `_.findLast`, `_.findKey`, and `_.findLastKey`,
  * without support for callback shorthands and `this` binding, which iterates
@@ -15396,7 +15217,7 @@ function baseFind(collection, predicate, eachFunc, retKey) {
 
 module.exports = baseFind;
 
-},{}],110:[function(_dereq_,module,exports){
+},{}],109:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.findIndex` and `_.findLastIndex` without
  * support for callback shorthands and `this` binding.
@@ -15421,12 +15242,12 @@ function baseFindIndex(array, predicate, fromRight) {
 
 module.exports = baseFindIndex;
 
-},{}],111:[function(_dereq_,module,exports){
-var arrayPush = _dereq_(96),
-    isArguments = _dereq_(180),
-    isArray = _dereq_(181),
-    isArrayLike = _dereq_(160),
-    isObjectLike = _dereq_(166);
+},{}],110:[function(_dereq_,module,exports){
+var arrayPush = _dereq_(95),
+    isArguments = _dereq_(179),
+    isArray = _dereq_(180),
+    isArrayLike = _dereq_(159),
+    isObjectLike = _dereq_(165);
 
 /**
  * The base implementation of `_.flatten` with added support for restricting
@@ -15464,8 +15285,8 @@ function baseFlatten(array, isDeep, isStrict, result) {
 
 module.exports = baseFlatten;
 
-},{"160":160,"166":166,"180":180,"181":181,"96":96}],112:[function(_dereq_,module,exports){
-var createBaseFor = _dereq_(141);
+},{"159":159,"165":165,"179":179,"180":180,"95":95}],111:[function(_dereq_,module,exports){
+var createBaseFor = _dereq_(140);
 
 /**
  * The base implementation of `baseForIn` and `baseForOwn` which iterates
@@ -15483,9 +15304,9 @@ var baseFor = createBaseFor();
 
 module.exports = baseFor;
 
-},{"141":141}],113:[function(_dereq_,module,exports){
-var baseFor = _dereq_(112),
-    keysIn = _dereq_(192);
+},{"140":140}],112:[function(_dereq_,module,exports){
+var baseFor = _dereq_(111),
+    keysIn = _dereq_(191);
 
 /**
  * The base implementation of `_.forIn` without support for callback
@@ -15502,9 +15323,9 @@ function baseForIn(object, iteratee) {
 
 module.exports = baseForIn;
 
-},{"112":112,"192":192}],114:[function(_dereq_,module,exports){
-var baseFor = _dereq_(112),
-    keys = _dereq_(191);
+},{"111":111,"191":191}],113:[function(_dereq_,module,exports){
+var baseFor = _dereq_(111),
+    keys = _dereq_(190);
 
 /**
  * The base implementation of `_.forOwn` without support for callback
@@ -15521,8 +15342,8 @@ function baseForOwn(object, iteratee) {
 
 module.exports = baseForOwn;
 
-},{"112":112,"191":191}],115:[function(_dereq_,module,exports){
-var toObject = _dereq_(177);
+},{"111":111,"190":190}],114:[function(_dereq_,module,exports){
+var toObject = _dereq_(176);
 
 /**
  * The base implementation of `get` without support for string paths
@@ -15552,8 +15373,8 @@ function baseGet(object, path, pathKey) {
 
 module.exports = baseGet;
 
-},{"177":177}],116:[function(_dereq_,module,exports){
-var indexOfNaN = _dereq_(159);
+},{"176":176}],115:[function(_dereq_,module,exports){
+var indexOfNaN = _dereq_(158);
 
 /**
  * The base implementation of `_.indexOf` without support for binary searches.
@@ -15581,10 +15402,10 @@ function baseIndexOf(array, value, fromIndex) {
 
 module.exports = baseIndexOf;
 
-},{"159":159}],117:[function(_dereq_,module,exports){
-var baseIsEqualDeep = _dereq_(118),
-    isObject = _dereq_(185),
-    isObjectLike = _dereq_(166);
+},{"158":158}],116:[function(_dereq_,module,exports){
+var baseIsEqualDeep = _dereq_(117),
+    isObject = _dereq_(184),
+    isObjectLike = _dereq_(165);
 
 /**
  * The base implementation of `_.isEqual` without support for `this` binding
@@ -15611,12 +15432,12 @@ function baseIsEqual(value, other, customizer, isLoose, stackA, stackB) {
 
 module.exports = baseIsEqual;
 
-},{"118":118,"166":166,"185":185}],118:[function(_dereq_,module,exports){
-var equalArrays = _dereq_(151),
-    equalByTag = _dereq_(152),
-    equalObjects = _dereq_(153),
-    isArray = _dereq_(181),
-    isTypedArray = _dereq_(188);
+},{"117":117,"165":165,"184":184}],117:[function(_dereq_,module,exports){
+var equalArrays = _dereq_(150),
+    equalByTag = _dereq_(151),
+    equalObjects = _dereq_(152),
+    isArray = _dereq_(180),
+    isTypedArray = _dereq_(187);
 
 /** `Object#toString` result references. */
 var argsTag = '[object Arguments]',
@@ -15715,9 +15536,9 @@ function baseIsEqualDeep(object, other, equalFunc, customizer, isLoose, stackA, 
 
 module.exports = baseIsEqualDeep;
 
-},{"151":151,"152":152,"153":153,"181":181,"188":188}],119:[function(_dereq_,module,exports){
-var baseIsEqual = _dereq_(117),
-    toObject = _dereq_(177);
+},{"150":150,"151":151,"152":152,"180":180,"187":187}],118:[function(_dereq_,module,exports){
+var baseIsEqual = _dereq_(116),
+    toObject = _dereq_(176);
 
 /**
  * The base implementation of `_.isMatch` without support for callback
@@ -15769,7 +15590,7 @@ function baseIsMatch(object, matchData, customizer) {
 
 module.exports = baseIsMatch;
 
-},{"117":117,"177":177}],120:[function(_dereq_,module,exports){
+},{"116":116,"176":176}],119:[function(_dereq_,module,exports){
 /**
  * The function whose prototype all chaining wrappers inherit from.
  *
@@ -15781,9 +15602,9 @@ function baseLodash() {
 
 module.exports = baseLodash;
 
-},{}],121:[function(_dereq_,module,exports){
-var baseEach = _dereq_(106),
-    isArrayLike = _dereq_(160);
+},{}],120:[function(_dereq_,module,exports){
+var baseEach = _dereq_(105),
+    isArrayLike = _dereq_(159);
 
 /**
  * The base implementation of `_.map` without support for callback shorthands
@@ -15806,10 +15627,10 @@ function baseMap(collection, iteratee) {
 
 module.exports = baseMap;
 
-},{"106":106,"160":160}],122:[function(_dereq_,module,exports){
-var baseIsMatch = _dereq_(119),
-    getMatchData = _dereq_(157),
-    toObject = _dereq_(177);
+},{"105":105,"159":159}],121:[function(_dereq_,module,exports){
+var baseIsMatch = _dereq_(118),
+    getMatchData = _dereq_(156),
+    toObject = _dereq_(176);
 
 /**
  * The base implementation of `_.matches` which does not clone `source`.
@@ -15838,16 +15659,16 @@ function baseMatches(source) {
 
 module.exports = baseMatches;
 
-},{"119":119,"157":157,"177":177}],123:[function(_dereq_,module,exports){
-var baseGet = _dereq_(115),
-    baseIsEqual = _dereq_(117),
-    baseSlice = _dereq_(130),
-    isArray = _dereq_(181),
-    isKey = _dereq_(163),
-    isStrictComparable = _dereq_(167),
-    last = _dereq_(73),
-    toObject = _dereq_(177),
-    toPath = _dereq_(178);
+},{"118":118,"156":156,"176":176}],122:[function(_dereq_,module,exports){
+var baseGet = _dereq_(114),
+    baseIsEqual = _dereq_(116),
+    baseSlice = _dereq_(129),
+    isArray = _dereq_(180),
+    isKey = _dereq_(162),
+    isStrictComparable = _dereq_(166),
+    last = _dereq_(72),
+    toObject = _dereq_(176),
+    toPath = _dereq_(177);
 
 /**
  * The base implementation of `_.matchesProperty` which does not clone `srcValue`.
@@ -15885,15 +15706,15 @@ function baseMatchesProperty(path, srcValue) {
 
 module.exports = baseMatchesProperty;
 
-},{"115":115,"117":117,"130":130,"163":163,"167":167,"177":177,"178":178,"181":181,"73":73}],124:[function(_dereq_,module,exports){
-var arrayEach = _dereq_(92),
-    baseMergeDeep = _dereq_(125),
-    isArray = _dereq_(181),
-    isArrayLike = _dereq_(160),
-    isObject = _dereq_(185),
-    isObjectLike = _dereq_(166),
-    isTypedArray = _dereq_(188),
-    keys = _dereq_(191);
+},{"114":114,"116":116,"129":129,"162":162,"166":166,"176":176,"177":177,"180":180,"72":72}],123:[function(_dereq_,module,exports){
+var arrayEach = _dereq_(91),
+    baseMergeDeep = _dereq_(124),
+    isArray = _dereq_(180),
+    isArrayLike = _dereq_(159),
+    isObject = _dereq_(184),
+    isObjectLike = _dereq_(165),
+    isTypedArray = _dereq_(187),
+    keys = _dereq_(190);
 
 /**
  * The base implementation of `_.merge` without support for argument juggling,
@@ -15943,14 +15764,14 @@ function baseMerge(object, source, customizer, stackA, stackB) {
 
 module.exports = baseMerge;
 
-},{"125":125,"160":160,"166":166,"181":181,"185":185,"188":188,"191":191,"92":92}],125:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(91),
-    isArguments = _dereq_(180),
-    isArray = _dereq_(181),
-    isArrayLike = _dereq_(160),
-    isPlainObject = _dereq_(186),
-    isTypedArray = _dereq_(188),
-    toPlainObject = _dereq_(189);
+},{"124":124,"159":159,"165":165,"180":180,"184":184,"187":187,"190":190,"91":91}],124:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(90),
+    isArguments = _dereq_(179),
+    isArray = _dereq_(180),
+    isArrayLike = _dereq_(159),
+    isPlainObject = _dereq_(185),
+    isTypedArray = _dereq_(187),
+    toPlainObject = _dereq_(188);
 
 /**
  * A specialized version of `baseMerge` for arrays and objects which performs
@@ -16012,7 +15833,7 @@ function baseMergeDeep(object, source, key, mergeFunc, customizer, stackA, stack
 
 module.exports = baseMergeDeep;
 
-},{"160":160,"180":180,"181":181,"186":186,"188":188,"189":189,"91":91}],126:[function(_dereq_,module,exports){
+},{"159":159,"179":179,"180":180,"185":185,"187":187,"188":188,"90":90}],125:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.property` without support for deep paths.
  *
@@ -16028,9 +15849,9 @@ function baseProperty(key) {
 
 module.exports = baseProperty;
 
-},{}],127:[function(_dereq_,module,exports){
-var baseGet = _dereq_(115),
-    toPath = _dereq_(178);
+},{}],126:[function(_dereq_,module,exports){
+var baseGet = _dereq_(114),
+    toPath = _dereq_(177);
 
 /**
  * A specialized version of `baseProperty` which supports deep paths.
@@ -16049,7 +15870,7 @@ function basePropertyDeep(path) {
 
 module.exports = basePropertyDeep;
 
-},{"115":115,"178":178}],128:[function(_dereq_,module,exports){
+},{"114":114,"177":177}],127:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.reduce` and `_.reduceRight` without support
  * for callback shorthands and `this` binding, which iterates over `collection`
@@ -16075,9 +15896,9 @@ function baseReduce(collection, iteratee, accumulator, initFromCollection, eachF
 
 module.exports = baseReduce;
 
-},{}],129:[function(_dereq_,module,exports){
-var identity = _dereq_(197),
-    metaMap = _dereq_(169);
+},{}],128:[function(_dereq_,module,exports){
+var identity = _dereq_(196),
+    metaMap = _dereq_(168);
 
 /**
  * The base implementation of `setData` without support for hot loop detection.
@@ -16094,7 +15915,7 @@ var baseSetData = !metaMap ? identity : function(func, data) {
 
 module.exports = baseSetData;
 
-},{"169":169,"197":197}],130:[function(_dereq_,module,exports){
+},{"168":168,"196":196}],129:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.slice` without an iteratee call guard.
  *
@@ -16128,8 +15949,8 @@ function baseSlice(array, start, end) {
 
 module.exports = baseSlice;
 
-},{}],131:[function(_dereq_,module,exports){
-var baseEach = _dereq_(106);
+},{}],130:[function(_dereq_,module,exports){
+var baseEach = _dereq_(105);
 
 /**
  * The base implementation of `_.some` without support for callback shorthands
@@ -16153,7 +15974,7 @@ function baseSome(collection, predicate) {
 
 module.exports = baseSome;
 
-},{"106":106}],132:[function(_dereq_,module,exports){
+},{"105":105}],131:[function(_dereq_,module,exports){
 /**
  * Converts `value` to a string if it's not one. An empty string is returned
  * for `null` or `undefined` values.
@@ -16168,8 +15989,8 @@ function baseToString(value) {
 
 module.exports = baseToString;
 
-},{}],133:[function(_dereq_,module,exports){
-var identity = _dereq_(197);
+},{}],132:[function(_dereq_,module,exports){
+var identity = _dereq_(196);
 
 /**
  * A specialized version of `baseCallback` which only supports `this` binding
@@ -16209,8 +16030,8 @@ function bindCallback(func, thisArg, argCount) {
 
 module.exports = bindCallback;
 
-},{"197":197}],134:[function(_dereq_,module,exports){
-var isObject = _dereq_(185);
+},{"196":196}],133:[function(_dereq_,module,exports){
+var isObject = _dereq_(184);
 
 /**
  * Checks if `value` is in `cache` mimicking the return signature of
@@ -16230,8 +16051,8 @@ function cacheIndexOf(cache, value) {
 
 module.exports = cacheIndexOf;
 
-},{"185":185}],135:[function(_dereq_,module,exports){
-var isObject = _dereq_(185);
+},{"184":184}],134:[function(_dereq_,module,exports){
+var isObject = _dereq_(184);
 
 /**
  * Adds `value` to the cache.
@@ -16252,7 +16073,7 @@ function cachePush(value) {
 
 module.exports = cachePush;
 
-},{"185":185}],136:[function(_dereq_,module,exports){
+},{"184":184}],135:[function(_dereq_,module,exports){
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMax = Math.max;
 
@@ -16288,7 +16109,7 @@ function composeArgs(args, partials, holders) {
 
 module.exports = composeArgs;
 
-},{}],137:[function(_dereq_,module,exports){
+},{}],136:[function(_dereq_,module,exports){
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMax = Math.max;
 
@@ -16326,10 +16147,10 @@ function composeArgsRight(args, partials, holders) {
 
 module.exports = composeArgsRight;
 
-},{}],138:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(101),
-    baseEach = _dereq_(106),
-    isArray = _dereq_(181);
+},{}],137:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(100),
+    baseEach = _dereq_(105),
+    isArray = _dereq_(180);
 
 /**
  * Creates a `_.countBy`, `_.groupBy`, `_.indexBy`, or `_.partition` function.
@@ -16363,10 +16184,10 @@ function createAggregator(setter, initializer) {
 
 module.exports = createAggregator;
 
-},{"101":101,"106":106,"181":181}],139:[function(_dereq_,module,exports){
-var bindCallback = _dereq_(133),
-    isIterateeCall = _dereq_(162),
-    restParam = _dereq_(87);
+},{"100":100,"105":105,"180":180}],138:[function(_dereq_,module,exports){
+var bindCallback = _dereq_(132),
+    isIterateeCall = _dereq_(161),
+    restParam = _dereq_(86);
 
 /**
  * Creates a `_.assign`, `_.defaults`, or `_.merge` function.
@@ -16406,10 +16227,10 @@ function createAssigner(assigner) {
 
 module.exports = createAssigner;
 
-},{"133":133,"162":162,"87":87}],140:[function(_dereq_,module,exports){
-var getLength = _dereq_(156),
-    isLength = _dereq_(165),
-    toObject = _dereq_(177);
+},{"132":132,"161":161,"86":86}],139:[function(_dereq_,module,exports){
+var getLength = _dereq_(155),
+    isLength = _dereq_(164),
+    toObject = _dereq_(176);
 
 /**
  * Creates a `baseEach` or `baseEachRight` function.
@@ -16439,8 +16260,8 @@ function createBaseEach(eachFunc, fromRight) {
 
 module.exports = createBaseEach;
 
-},{"156":156,"165":165,"177":177}],141:[function(_dereq_,module,exports){
-var toObject = _dereq_(177);
+},{"155":155,"164":164,"176":176}],140:[function(_dereq_,module,exports){
+var toObject = _dereq_(176);
 
 /**
  * Creates a base function for `_.forIn` or `_.forInRight`.
@@ -16468,9 +16289,9 @@ function createBaseFor(fromRight) {
 
 module.exports = createBaseFor;
 
-},{"177":177}],142:[function(_dereq_,module,exports){
+},{"176":176}],141:[function(_dereq_,module,exports){
 (function (global){
-var createCtorWrapper = _dereq_(144);
+var createCtorWrapper = _dereq_(143);
 
 /**
  * Creates a function that wraps `func` and invokes it with the `this`
@@ -16495,10 +16316,10 @@ module.exports = createBindWrapper;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"144":144}],143:[function(_dereq_,module,exports){
+},{"143":143}],142:[function(_dereq_,module,exports){
 (function (global){
-var SetCache = _dereq_(90),
-    getNative = _dereq_(158);
+var SetCache = _dereq_(89),
+    getNative = _dereq_(157);
 
 /** Native method references. */
 var Set = getNative(global, 'Set');
@@ -16521,9 +16342,9 @@ module.exports = createCache;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"158":158,"90":90}],144:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(103),
-    isObject = _dereq_(185);
+},{"157":157,"89":89}],143:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(102),
+    isObject = _dereq_(184);
 
 /**
  * Creates a function that produces an instance of `Ctor` regardless of
@@ -16560,11 +16381,11 @@ function createCtorWrapper(Ctor) {
 
 module.exports = createCtorWrapper;
 
-},{"103":103,"185":185}],145:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(101),
-    baseFind = _dereq_(109),
-    baseFindIndex = _dereq_(110),
-    isArray = _dereq_(181);
+},{"102":102,"184":184}],144:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(100),
+    baseFind = _dereq_(108),
+    baseFindIndex = _dereq_(109),
+    isArray = _dereq_(180);
 
 /**
  * Creates a `_.find` or `_.findLast` function.
@@ -16587,9 +16408,9 @@ function createFind(eachFunc, fromRight) {
 
 module.exports = createFind;
 
-},{"101":101,"109":109,"110":110,"181":181}],146:[function(_dereq_,module,exports){
-var bindCallback = _dereq_(133),
-    isArray = _dereq_(181);
+},{"100":100,"108":108,"109":109,"180":180}],145:[function(_dereq_,module,exports){
+var bindCallback = _dereq_(132),
+    isArray = _dereq_(180);
 
 /**
  * Creates a function for `_.forEach` or `_.forEachRight`.
@@ -16609,16 +16430,16 @@ function createForEach(arrayFunc, eachFunc) {
 
 module.exports = createForEach;
 
-},{"133":133,"181":181}],147:[function(_dereq_,module,exports){
+},{"132":132,"180":180}],146:[function(_dereq_,module,exports){
 (function (global){
-var arrayCopy = _dereq_(91),
-    composeArgs = _dereq_(136),
-    composeArgsRight = _dereq_(137),
-    createCtorWrapper = _dereq_(144),
-    isLaziable = _dereq_(164),
-    reorder = _dereq_(173),
-    replaceHolders = _dereq_(174),
-    setData = _dereq_(175);
+var arrayCopy = _dereq_(90),
+    composeArgs = _dereq_(135),
+    composeArgsRight = _dereq_(136),
+    createCtorWrapper = _dereq_(143),
+    isLaziable = _dereq_(163),
+    reorder = _dereq_(172),
+    replaceHolders = _dereq_(173),
+    setData = _dereq_(174);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -16725,9 +16546,9 @@ module.exports = createHybridWrapper;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"136":136,"137":137,"144":144,"164":164,"173":173,"174":174,"175":175,"91":91}],148:[function(_dereq_,module,exports){
+},{"135":135,"136":136,"143":143,"163":163,"172":172,"173":173,"174":174,"90":90}],147:[function(_dereq_,module,exports){
 (function (global){
-var createCtorWrapper = _dereq_(144);
+var createCtorWrapper = _dereq_(143);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1;
@@ -16773,10 +16594,10 @@ module.exports = createPartialWrapper;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"144":144}],149:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(101),
-    baseReduce = _dereq_(128),
-    isArray = _dereq_(181);
+},{"143":143}],148:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(100),
+    baseReduce = _dereq_(127),
+    isArray = _dereq_(180);
 
 /**
  * Creates a function for `_.reduce` or `_.reduceRight`.
@@ -16797,14 +16618,14 @@ function createReduce(arrayFunc, eachFunc) {
 
 module.exports = createReduce;
 
-},{"101":101,"128":128,"181":181}],150:[function(_dereq_,module,exports){
-var baseSetData = _dereq_(129),
-    createBindWrapper = _dereq_(142),
-    createHybridWrapper = _dereq_(147),
-    createPartialWrapper = _dereq_(148),
-    getData = _dereq_(154),
-    mergeData = _dereq_(168),
-    setData = _dereq_(175);
+},{"100":100,"127":127,"180":180}],149:[function(_dereq_,module,exports){
+var baseSetData = _dereq_(128),
+    createBindWrapper = _dereq_(141),
+    createHybridWrapper = _dereq_(146),
+    createPartialWrapper = _dereq_(147),
+    getData = _dereq_(153),
+    mergeData = _dereq_(167),
+    setData = _dereq_(174);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -16885,8 +16706,8 @@ function createWrapper(func, bitmask, thisArg, partials, holders, argPos, ary, a
 
 module.exports = createWrapper;
 
-},{"129":129,"142":142,"147":147,"148":148,"154":154,"168":168,"175":175}],151:[function(_dereq_,module,exports){
-var arraySome = _dereq_(98);
+},{"128":128,"141":141,"146":146,"147":147,"153":153,"167":167,"174":174}],150:[function(_dereq_,module,exports){
+var arraySome = _dereq_(97);
 
 /**
  * A specialized version of `baseIsEqualDeep` for arrays with support for
@@ -16938,7 +16759,7 @@ function equalArrays(array, other, equalFunc, customizer, isLoose, stackA, stack
 
 module.exports = equalArrays;
 
-},{"98":98}],152:[function(_dereq_,module,exports){
+},{"97":97}],151:[function(_dereq_,module,exports){
 /** `Object#toString` result references. */
 var boolTag = '[object Boolean]',
     dateTag = '[object Date]',
@@ -16988,8 +16809,8 @@ function equalByTag(object, other, tag) {
 
 module.exports = equalByTag;
 
-},{}],153:[function(_dereq_,module,exports){
-var keys = _dereq_(191);
+},{}],152:[function(_dereq_,module,exports){
+var keys = _dereq_(190);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -17057,9 +16878,9 @@ function equalObjects(object, other, equalFunc, customizer, isLoose, stackA, sta
 
 module.exports = equalObjects;
 
-},{"191":191}],154:[function(_dereq_,module,exports){
-var metaMap = _dereq_(169),
-    noop = _dereq_(198);
+},{"190":190}],153:[function(_dereq_,module,exports){
+var metaMap = _dereq_(168),
+    noop = _dereq_(197);
 
 /**
  * Gets metadata for `func`.
@@ -17074,8 +16895,8 @@ var getData = !metaMap ? noop : function(func) {
 
 module.exports = getData;
 
-},{"169":169,"198":198}],155:[function(_dereq_,module,exports){
-var realNames = _dereq_(172);
+},{"168":168,"197":197}],154:[function(_dereq_,module,exports){
+var realNames = _dereq_(171);
 
 /**
  * Gets the name of `func`.
@@ -17101,8 +16922,8 @@ function getFuncName(func) {
 
 module.exports = getFuncName;
 
-},{"172":172}],156:[function(_dereq_,module,exports){
-var baseProperty = _dereq_(126);
+},{"171":171}],155:[function(_dereq_,module,exports){
+var baseProperty = _dereq_(125);
 
 /**
  * Gets the "length" property value of `object`.
@@ -17118,9 +16939,9 @@ var getLength = baseProperty('length');
 
 module.exports = getLength;
 
-},{"126":126}],157:[function(_dereq_,module,exports){
-var isStrictComparable = _dereq_(167),
-    pairs = _dereq_(195);
+},{"125":125}],156:[function(_dereq_,module,exports){
+var isStrictComparable = _dereq_(166),
+    pairs = _dereq_(194);
 
 /**
  * Gets the propery names, values, and compare flags of `object`.
@@ -17141,8 +16962,8 @@ function getMatchData(object) {
 
 module.exports = getMatchData;
 
-},{"167":167,"195":195}],158:[function(_dereq_,module,exports){
-var isNative = _dereq_(183);
+},{"166":166,"194":194}],157:[function(_dereq_,module,exports){
+var isNative = _dereq_(182);
 
 /**
  * Gets the native function at `key` of `object`.
@@ -17159,7 +16980,7 @@ function getNative(object, key) {
 
 module.exports = getNative;
 
-},{"183":183}],159:[function(_dereq_,module,exports){
+},{"182":182}],158:[function(_dereq_,module,exports){
 /**
  * Gets the index at which the first occurrence of `NaN` is found in `array`.
  *
@@ -17184,9 +17005,9 @@ function indexOfNaN(array, fromIndex, fromRight) {
 
 module.exports = indexOfNaN;
 
-},{}],160:[function(_dereq_,module,exports){
-var getLength = _dereq_(156),
-    isLength = _dereq_(165);
+},{}],159:[function(_dereq_,module,exports){
+var getLength = _dereq_(155),
+    isLength = _dereq_(164);
 
 /**
  * Checks if `value` is array-like.
@@ -17201,7 +17022,7 @@ function isArrayLike(value) {
 
 module.exports = isArrayLike;
 
-},{"156":156,"165":165}],161:[function(_dereq_,module,exports){
+},{"155":155,"164":164}],160:[function(_dereq_,module,exports){
 /** Used to detect unsigned integer values. */
 var reIsUint = /^\d+$/;
 
@@ -17227,10 +17048,10 @@ function isIndex(value, length) {
 
 module.exports = isIndex;
 
-},{}],162:[function(_dereq_,module,exports){
-var isArrayLike = _dereq_(160),
-    isIndex = _dereq_(161),
-    isObject = _dereq_(185);
+},{}],161:[function(_dereq_,module,exports){
+var isArrayLike = _dereq_(159),
+    isIndex = _dereq_(160),
+    isObject = _dereq_(184);
 
 /**
  * Checks if the provided arguments are from an iteratee call.
@@ -17257,9 +17078,9 @@ function isIterateeCall(value, index, object) {
 
 module.exports = isIterateeCall;
 
-},{"160":160,"161":161,"185":185}],163:[function(_dereq_,module,exports){
-var isArray = _dereq_(181),
-    toObject = _dereq_(177);
+},{"159":159,"160":160,"184":184}],162:[function(_dereq_,module,exports){
+var isArray = _dereq_(180),
+    toObject = _dereq_(176);
 
 /** Used to match property names within property paths. */
 var reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\n\\]|\\.)*?\1)\]/,
@@ -17287,11 +17108,11 @@ function isKey(value, object) {
 
 module.exports = isKey;
 
-},{"177":177,"181":181}],164:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(88),
-    getData = _dereq_(154),
-    getFuncName = _dereq_(155),
-    lodash = _dereq_(74);
+},{"176":176,"180":180}],163:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(87),
+    getData = _dereq_(153),
+    getFuncName = _dereq_(154),
+    lodash = _dereq_(73);
 
 /**
  * Checks if `func` has a lazy counterpart.
@@ -17316,7 +17137,7 @@ function isLaziable(func) {
 
 module.exports = isLaziable;
 
-},{"154":154,"155":155,"74":74,"88":88}],165:[function(_dereq_,module,exports){
+},{"153":153,"154":154,"73":73,"87":87}],164:[function(_dereq_,module,exports){
 /**
  * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
  * of an array-like value.
@@ -17338,7 +17159,7 @@ function isLength(value) {
 
 module.exports = isLength;
 
-},{}],166:[function(_dereq_,module,exports){
+},{}],165:[function(_dereq_,module,exports){
 /**
  * Checks if `value` is object-like.
  *
@@ -17352,8 +17173,8 @@ function isObjectLike(value) {
 
 module.exports = isObjectLike;
 
-},{}],167:[function(_dereq_,module,exports){
-var isObject = _dereq_(185);
+},{}],166:[function(_dereq_,module,exports){
+var isObject = _dereq_(184);
 
 /**
  * Checks if `value` is suitable for strict equality comparisons, i.e. `===`.
@@ -17369,11 +17190,11 @@ function isStrictComparable(value) {
 
 module.exports = isStrictComparable;
 
-},{"185":185}],168:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(91),
-    composeArgs = _dereq_(136),
-    composeArgsRight = _dereq_(137),
-    replaceHolders = _dereq_(174);
+},{"184":184}],167:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(90),
+    composeArgs = _dereq_(135),
+    composeArgsRight = _dereq_(136),
+    replaceHolders = _dereq_(173);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -17460,9 +17281,9 @@ function mergeData(data, source) {
 
 module.exports = mergeData;
 
-},{"136":136,"137":137,"174":174,"91":91}],169:[function(_dereq_,module,exports){
+},{"135":135,"136":136,"173":173,"90":90}],168:[function(_dereq_,module,exports){
 (function (global){
-var getNative = _dereq_(158);
+var getNative = _dereq_(157);
 
 /** Native method references. */
 var WeakMap = getNative(global, 'WeakMap');
@@ -17474,8 +17295,8 @@ module.exports = metaMap;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"158":158}],170:[function(_dereq_,module,exports){
-var toObject = _dereq_(177);
+},{"157":157}],169:[function(_dereq_,module,exports){
+var toObject = _dereq_(176);
 
 /**
  * A specialized version of `_.pick` which picks `object` properties specified
@@ -17504,8 +17325,8 @@ function pickByArray(object, props) {
 
 module.exports = pickByArray;
 
-},{"177":177}],171:[function(_dereq_,module,exports){
-var baseForIn = _dereq_(113);
+},{"176":176}],170:[function(_dereq_,module,exports){
+var baseForIn = _dereq_(112);
 
 /**
  * A specialized version of `_.pick` which picks `object` properties `predicate`
@@ -17528,15 +17349,15 @@ function pickByCallback(object, predicate) {
 
 module.exports = pickByCallback;
 
-},{"113":113}],172:[function(_dereq_,module,exports){
+},{"112":112}],171:[function(_dereq_,module,exports){
 /** Used to lookup unminified function names. */
 var realNames = {};
 
 module.exports = realNames;
 
-},{}],173:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(91),
-    isIndex = _dereq_(161);
+},{}],172:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(90),
+    isIndex = _dereq_(160);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMin = Math.min;
@@ -17565,7 +17386,7 @@ function reorder(array, indexes) {
 
 module.exports = reorder;
 
-},{"161":161,"91":91}],174:[function(_dereq_,module,exports){
+},{"160":160,"90":90}],173:[function(_dereq_,module,exports){
 /** Used as the internal argument placeholder. */
 var PLACEHOLDER = '__lodash_placeholder__';
 
@@ -17595,9 +17416,9 @@ function replaceHolders(array, placeholder) {
 
 module.exports = replaceHolders;
 
-},{}],175:[function(_dereq_,module,exports){
-var baseSetData = _dereq_(129),
-    now = _dereq_(83);
+},{}],174:[function(_dereq_,module,exports){
+var baseSetData = _dereq_(128),
+    now = _dereq_(82);
 
 /** Used to detect when a function becomes hot. */
 var HOT_COUNT = 150,
@@ -17638,12 +17459,12 @@ var setData = (function() {
 
 module.exports = setData;
 
-},{"129":129,"83":83}],176:[function(_dereq_,module,exports){
-var isArguments = _dereq_(180),
-    isArray = _dereq_(181),
-    isIndex = _dereq_(161),
-    isLength = _dereq_(165),
-    keysIn = _dereq_(192);
+},{"128":128,"82":82}],175:[function(_dereq_,module,exports){
+var isArguments = _dereq_(179),
+    isArray = _dereq_(180),
+    isIndex = _dereq_(160),
+    isLength = _dereq_(164),
+    keysIn = _dereq_(191);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -17681,8 +17502,8 @@ function shimKeys(object) {
 
 module.exports = shimKeys;
 
-},{"161":161,"165":165,"180":180,"181":181,"192":192}],177:[function(_dereq_,module,exports){
-var isObject = _dereq_(185);
+},{"160":160,"164":164,"179":179,"180":180,"191":191}],176:[function(_dereq_,module,exports){
+var isObject = _dereq_(184);
 
 /**
  * Converts `value` to an object if it's not one.
@@ -17697,9 +17518,9 @@ function toObject(value) {
 
 module.exports = toObject;
 
-},{"185":185}],178:[function(_dereq_,module,exports){
-var baseToString = _dereq_(132),
-    isArray = _dereq_(181);
+},{"184":184}],177:[function(_dereq_,module,exports){
+var baseToString = _dereq_(131),
+    isArray = _dereq_(180);
 
 /** Used to match property names within property paths. */
 var rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\n\\]|\\.)*?)\2)\]/g;
@@ -17727,10 +17548,10 @@ function toPath(value) {
 
 module.exports = toPath;
 
-},{"132":132,"181":181}],179:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(88),
-    LodashWrapper = _dereq_(89),
-    arrayCopy = _dereq_(91);
+},{"131":131,"180":180}],178:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(87),
+    LodashWrapper = _dereq_(88),
+    arrayCopy = _dereq_(90);
 
 /**
  * Creates a clone of `wrapper`.
@@ -17747,9 +17568,9 @@ function wrapperClone(wrapper) {
 
 module.exports = wrapperClone;
 
-},{"88":88,"89":89,"91":91}],180:[function(_dereq_,module,exports){
-var isArrayLike = _dereq_(160),
-    isObjectLike = _dereq_(166);
+},{"87":87,"88":88,"90":90}],179:[function(_dereq_,module,exports){
+var isArrayLike = _dereq_(159),
+    isObjectLike = _dereq_(165);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -17783,10 +17604,10 @@ function isArguments(value) {
 
 module.exports = isArguments;
 
-},{"160":160,"166":166}],181:[function(_dereq_,module,exports){
-var getNative = _dereq_(158),
-    isLength = _dereq_(165),
-    isObjectLike = _dereq_(166);
+},{"159":159,"165":165}],180:[function(_dereq_,module,exports){
+var getNative = _dereq_(157),
+    isLength = _dereq_(164),
+    isObjectLike = _dereq_(165);
 
 /** `Object#toString` result references. */
 var arrayTag = '[object Array]';
@@ -17825,8 +17646,8 @@ var isArray = nativeIsArray || function(value) {
 
 module.exports = isArray;
 
-},{"158":158,"165":165,"166":166}],182:[function(_dereq_,module,exports){
-var isObject = _dereq_(185);
+},{"157":157,"164":164,"165":165}],181:[function(_dereq_,module,exports){
+var isObject = _dereq_(184);
 
 /** `Object#toString` result references. */
 var funcTag = '[object Function]';
@@ -17865,9 +17686,9 @@ function isFunction(value) {
 
 module.exports = isFunction;
 
-},{"185":185}],183:[function(_dereq_,module,exports){
-var isFunction = _dereq_(182),
-    isObjectLike = _dereq_(166);
+},{"184":184}],182:[function(_dereq_,module,exports){
+var isFunction = _dereq_(181),
+    isObjectLike = _dereq_(165);
 
 /** Used to detect host constructors (Safari > 5). */
 var reIsHostCtor = /^\[object .+?Constructor\]$/;
@@ -17915,8 +17736,8 @@ function isNative(value) {
 
 module.exports = isNative;
 
-},{"166":166,"182":182}],184:[function(_dereq_,module,exports){
-var isObjectLike = _dereq_(166);
+},{"165":165,"181":181}],183:[function(_dereq_,module,exports){
+var isObjectLike = _dereq_(165);
 
 /** `Object#toString` result references. */
 var numberTag = '[object Number]';
@@ -17958,7 +17779,7 @@ function isNumber(value) {
 
 module.exports = isNumber;
 
-},{"166":166}],185:[function(_dereq_,module,exports){
+},{"165":165}],184:[function(_dereq_,module,exports){
 /**
  * Checks if `value` is the [language type](https://es5.github.io/#x8) of `Object`.
  * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
@@ -17988,10 +17809,10 @@ function isObject(value) {
 
 module.exports = isObject;
 
-},{}],186:[function(_dereq_,module,exports){
-var baseForIn = _dereq_(113),
-    isArguments = _dereq_(180),
-    isObjectLike = _dereq_(166);
+},{}],185:[function(_dereq_,module,exports){
+var baseForIn = _dereq_(112),
+    isArguments = _dereq_(179),
+    isObjectLike = _dereq_(165);
 
 /** `Object#toString` result references. */
 var objectTag = '[object Object]';
@@ -18061,8 +17882,8 @@ function isPlainObject(value) {
 
 module.exports = isPlainObject;
 
-},{"113":113,"166":166,"180":180}],187:[function(_dereq_,module,exports){
-var isObjectLike = _dereq_(166);
+},{"112":112,"165":165,"179":179}],186:[function(_dereq_,module,exports){
+var isObjectLike = _dereq_(165);
 
 /** `Object#toString` result references. */
 var stringTag = '[object String]';
@@ -18098,9 +17919,9 @@ function isString(value) {
 
 module.exports = isString;
 
-},{"166":166}],188:[function(_dereq_,module,exports){
-var isLength = _dereq_(165),
-    isObjectLike = _dereq_(166);
+},{"165":165}],187:[function(_dereq_,module,exports){
+var isLength = _dereq_(164),
+    isObjectLike = _dereq_(165);
 
 /** `Object#toString` result references. */
 var argsTag = '[object Arguments]',
@@ -18174,9 +17995,9 @@ function isTypedArray(value) {
 
 module.exports = isTypedArray;
 
-},{"165":165,"166":166}],189:[function(_dereq_,module,exports){
-var baseCopy = _dereq_(102),
-    keysIn = _dereq_(192);
+},{"164":164,"165":165}],188:[function(_dereq_,module,exports){
+var baseCopy = _dereq_(101),
+    keysIn = _dereq_(191);
 
 /**
  * Converts `value` to a plain object flattening inherited enumerable
@@ -18207,10 +18028,10 @@ function toPlainObject(value) {
 
 module.exports = toPlainObject;
 
-},{"102":102,"192":192}],190:[function(_dereq_,module,exports){
-var assignWith = _dereq_(99),
-    baseAssign = _dereq_(100),
-    createAssigner = _dereq_(139);
+},{"101":101,"191":191}],189:[function(_dereq_,module,exports){
+var assignWith = _dereq_(98),
+    baseAssign = _dereq_(99),
+    createAssigner = _dereq_(138);
 
 /**
  * Assigns own enumerable properties of source object(s) to the destination
@@ -18252,11 +18073,11 @@ var assign = createAssigner(function(object, source, customizer) {
 
 module.exports = assign;
 
-},{"100":100,"139":139,"99":99}],191:[function(_dereq_,module,exports){
-var getNative = _dereq_(158),
-    isArrayLike = _dereq_(160),
-    isObject = _dereq_(185),
-    shimKeys = _dereq_(176);
+},{"138":138,"98":98,"99":99}],190:[function(_dereq_,module,exports){
+var getNative = _dereq_(157),
+    isArrayLike = _dereq_(159),
+    isObject = _dereq_(184),
+    shimKeys = _dereq_(175);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeKeys = getNative(Object, 'keys');
@@ -18299,12 +18120,12 @@ var keys = !nativeKeys ? shimKeys : function(object) {
 
 module.exports = keys;
 
-},{"158":158,"160":160,"176":176,"185":185}],192:[function(_dereq_,module,exports){
-var isArguments = _dereq_(180),
-    isArray = _dereq_(181),
-    isIndex = _dereq_(161),
-    isLength = _dereq_(165),
-    isObject = _dereq_(185);
+},{"157":157,"159":159,"175":175,"184":184}],191:[function(_dereq_,module,exports){
+var isArguments = _dereq_(179),
+    isArray = _dereq_(180),
+    isIndex = _dereq_(160),
+    isLength = _dereq_(164),
+    isObject = _dereq_(184);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -18365,9 +18186,9 @@ function keysIn(object) {
 
 module.exports = keysIn;
 
-},{"161":161,"165":165,"180":180,"181":181,"185":185}],193:[function(_dereq_,module,exports){
-var baseMerge = _dereq_(124),
-    createAssigner = _dereq_(139);
+},{"160":160,"164":164,"179":179,"180":180,"184":184}],192:[function(_dereq_,module,exports){
+var baseMerge = _dereq_(123),
+    createAssigner = _dereq_(138);
 
 /**
  * Recursively merges own enumerable properties of the source object(s), that
@@ -18421,15 +18242,15 @@ var merge = createAssigner(baseMerge);
 
 module.exports = merge;
 
-},{"124":124,"139":139}],194:[function(_dereq_,module,exports){
-var arrayMap = _dereq_(95),
-    baseDifference = _dereq_(105),
-    baseFlatten = _dereq_(111),
-    bindCallback = _dereq_(133),
-    keysIn = _dereq_(192),
-    pickByArray = _dereq_(170),
-    pickByCallback = _dereq_(171),
-    restParam = _dereq_(87);
+},{"123":123,"138":138}],193:[function(_dereq_,module,exports){
+var arrayMap = _dereq_(94),
+    baseDifference = _dereq_(104),
+    baseFlatten = _dereq_(110),
+    bindCallback = _dereq_(132),
+    keysIn = _dereq_(191),
+    pickByArray = _dereq_(169),
+    pickByCallback = _dereq_(170),
+    restParam = _dereq_(86);
 
 /**
  * The opposite of `_.pick`; this method creates an object composed of the
@@ -18470,9 +18291,9 @@ var omit = restParam(function(object, props) {
 
 module.exports = omit;
 
-},{"105":105,"111":111,"133":133,"170":170,"171":171,"192":192,"87":87,"95":95}],195:[function(_dereq_,module,exports){
-var keys = _dereq_(191),
-    toObject = _dereq_(177);
+},{"104":104,"110":110,"132":132,"169":169,"170":170,"191":191,"86":86,"94":94}],194:[function(_dereq_,module,exports){
+var keys = _dereq_(190),
+    toObject = _dereq_(176);
 
 /**
  * Creates a two dimensional array of the key-value pairs for `object`,
@@ -18505,12 +18326,12 @@ function pairs(object) {
 
 module.exports = pairs;
 
-},{"177":177,"191":191}],196:[function(_dereq_,module,exports){
-var baseFlatten = _dereq_(111),
-    bindCallback = _dereq_(133),
-    pickByArray = _dereq_(170),
-    pickByCallback = _dereq_(171),
-    restParam = _dereq_(87);
+},{"176":176,"190":190}],195:[function(_dereq_,module,exports){
+var baseFlatten = _dereq_(110),
+    bindCallback = _dereq_(132),
+    pickByArray = _dereq_(169),
+    pickByCallback = _dereq_(170),
+    restParam = _dereq_(86);
 
 /**
  * Creates an object composed of the picked `object` properties. Property
@@ -18549,7 +18370,7 @@ var pick = restParam(function(object, props) {
 
 module.exports = pick;
 
-},{"111":111,"133":133,"170":170,"171":171,"87":87}],197:[function(_dereq_,module,exports){
+},{"110":110,"132":132,"169":169,"170":170,"86":86}],196:[function(_dereq_,module,exports){
 /**
  * This method returns the first argument provided to it.
  *
@@ -18571,7 +18392,7 @@ function identity(value) {
 
 module.exports = identity;
 
-},{}],198:[function(_dereq_,module,exports){
+},{}],197:[function(_dereq_,module,exports){
 /**
  * A no-operation function that returns `undefined` regardless of the
  * arguments it receives.
@@ -18592,10 +18413,10 @@ function noop() {
 
 module.exports = noop;
 
-},{}],199:[function(_dereq_,module,exports){
-var baseProperty = _dereq_(126),
-    basePropertyDeep = _dereq_(127),
-    isKey = _dereq_(163);
+},{}],198:[function(_dereq_,module,exports){
+var baseProperty = _dereq_(125),
+    basePropertyDeep = _dereq_(126),
+    isKey = _dereq_(162);
 
 /**
  * Creates a function that returns the property value at `path` on a
@@ -18625,7 +18446,7 @@ function property(path) {
 
 module.exports = property;
 
-},{"126":126,"127":127,"163":163}],200:[function(_dereq_,module,exports){
+},{"125":125,"126":126,"162":162}],199:[function(_dereq_,module,exports){
 /**
  * Set attribute `name` to `val`, or get attr `name`.
  *
@@ -18651,9 +18472,202 @@ module.exports = function(el, name, val) {
 
   return el;
 };
-},{}],201:[function(_dereq_,module,exports){
-module.exports = _dereq_(23);
-},{"23":23}],202:[function(_dereq_,module,exports){
+},{}],200:[function(_dereq_,module,exports){
+/**
+ * Taken from https://github.com/component/classes
+ *
+ * Without the component bits.
+ */
+
+/**
+ * Module dependencies.
+ */
+
+var index = _dereq_(70);
+
+/**
+ * Whitespace regexp.
+ */
+
+var re = /\s+/;
+
+/**
+ * toString reference.
+ */
+
+var toString = Object.prototype.toString;
+
+/**
+ * Wrap `el` in a `ClassList`.
+ *
+ * @param {Element} el
+ * @return {ClassList}
+ * @api public
+ */
+
+module.exports = function(el) {
+  return new ClassList(el);
+};
+
+/**
+ * Initialize a new ClassList for `el`.
+ *
+ * @param {Element} el
+ * @api private
+ */
+
+function ClassList(el) {
+  if (!el || !el.nodeType) {
+    throw new Error('A DOM element reference is required');
+  }
+  this.el = el;
+  this.list = el.classList;
+}
+
+/**
+ * Add class `name` if not already present.
+ *
+ * @param {String} name
+ * @return {ClassList}
+ * @api public
+ */
+
+ClassList.prototype.add = function(name) {
+  // classList
+  if (this.list) {
+    this.list.add(name);
+    return this;
+  }
+
+  // fallback
+  var arr = this.array();
+  var i = index(arr, name);
+  if (!~i) arr.push(name);
+  this.el.className = arr.join(' ');
+  return this;
+};
+
+/**
+ * Remove class `name` when present, or
+ * pass a regular expression to remove
+ * any which match.
+ *
+ * @param {String|RegExp} name
+ * @return {ClassList}
+ * @api public
+ */
+
+ClassList.prototype.remove = function(name) {
+  if ('[object RegExp]' == toString.call(name)) {
+    return this.removeMatching(name);
+  }
+
+  // classList
+  if (this.list) {
+    this.list.remove(name);
+    return this;
+  }
+
+  // fallback
+  var arr = this.array();
+  var i = index(arr, name);
+  if (~i) arr.splice(i, 1);
+  this.el.className = arr.join(' ');
+  return this;
+};
+
+/**
+ * Remove all classes matching `re`.
+ *
+ * @param {RegExp} re
+ * @return {ClassList}
+ * @api private
+ */
+
+ClassList.prototype.removeMatching = function(re) {
+  var arr = this.array();
+  for (var i = 0; i < arr.length; i++) {
+    if (re.test(arr[i])) {
+      this.remove(arr[i]);
+    }
+  }
+  return this;
+};
+
+/**
+ * Toggle class `name`, can force state via `force`.
+ *
+ * For browsers that support classList, but do not support `force` yet,
+ * the mistake will be detected and corrected.
+ *
+ * @param {String} name
+ * @param {Boolean} force
+ * @return {ClassList}
+ * @api public
+ */
+
+ClassList.prototype.toggle = function(name, force) {
+  // classList
+  if (this.list) {
+    if ('undefined' !== typeof force) {
+      if (force !== this.list.toggle(name, force)) {
+        this.list.toggle(name); // toggle again to correct
+      }
+    } else {
+      this.list.toggle(name);
+    }
+    return this;
+  }
+
+  // fallback
+  if ('undefined' !== typeof force) {
+    if (!force) {
+      this.remove(name);
+    } else {
+      this.add(name);
+    }
+  } else {
+    if (this.has(name)) {
+      this.remove(name);
+    } else {
+      this.add(name);
+    }
+  }
+
+  return this;
+};
+
+/**
+ * Return an array of classes.
+ *
+ * @return {Array}
+ * @api public
+ */
+
+ClassList.prototype.array = function() {
+  var className = this.el.getAttribute('class') || '';
+  var str = className.replace(/^\s+|\s+$/g, '');
+  var arr = str.split(re);
+  if ('' === arr[0]) arr.shift();
+  return arr;
+};
+
+/**
+ * Check if class `name` is present.
+ *
+ * @param {String} name
+ * @return {ClassList}
+ * @api public
+ */
+
+ClassList.prototype.has =
+ClassList.prototype.contains = function(name) {
+  return this.list
+    ? this.list.contains(name)
+    : !! ~index(this.array(), name);
+};
+
+},{"70":70}],201:[function(_dereq_,module,exports){
 module.exports = function(el) {
 
   var c;
@@ -18665,19 +18679,29 @@ module.exports = function(el) {
 
   return el;
 };
-},{}],203:[function(_dereq_,module,exports){
-module.exports = _dereq_(25);
-},{"25":25}],204:[function(_dereq_,module,exports){
-module.exports = _dereq_(69);
-},{"69":69}],205:[function(_dereq_,module,exports){
+},{}],202:[function(_dereq_,module,exports){
+module.exports = _dereq_(27);
+},{"27":27}],203:[function(_dereq_,module,exports){
+module.exports = _dereq_(67);
+},{"67":67}],204:[function(_dereq_,module,exports){
 module.exports = _dereq_(26);
-},{"26":26}],206:[function(_dereq_,module,exports){
-module.exports = _dereq_(29);
-},{"29":29}],207:[function(_dereq_,module,exports){
+},{"26":26}],205:[function(_dereq_,module,exports){
+module.exports = function(selector, el) {
+  el = el || document;
+
+  return el.querySelector(selector);
+};
+
+module.exports.all = function(selector, el) {
+  el = el || document;
+
+  return el.querySelectorAll(selector);
+};
+},{}],206:[function(_dereq_,module,exports){
 module.exports = function(el) {
   el.parentNode && el.parentNode.removeChild(el);
 };
-},{}],208:[function(_dereq_,module,exports){
+},{}],207:[function(_dereq_,module,exports){
 'use strict';
 
 function hasLowerCaseAlias(pkg) {
@@ -18704,22 +18728,22 @@ module.exports.serializeAsType = function(element) {
 module.exports.serializeAsProperty = function(element) {
   return serializeFormat(element) === 'property';
 };
-},{}],209:[function(_dereq_,module,exports){
+},{}],208:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(78),
-    find = _dereq_(77),
-    assign = _dereq_(190),
-    defer = _dereq_(86);
+var forEach = _dereq_(77),
+    find = _dereq_(76),
+    assign = _dereq_(189),
+    defer = _dereq_(85);
 
-var Stack = _dereq_(225),
-    SaxParser = _dereq_(224),
-    Moddle = _dereq_(211),
-    parseNameNs = _dereq_(216).parseName,
-    Types = _dereq_(219),
+var Stack = _dereq_(224),
+    SaxParser = _dereq_(223),
+    Moddle = _dereq_(210),
+    parseNameNs = _dereq_(215).parseName,
+    Types = _dereq_(218),
     coerceType = Types.coerceType,
     isSimpleType = Types.isSimple,
-    common = _dereq_(208),
+    common = _dereq_(207),
     XSI_TYPE = common.XSI_TYPE,
     serializeAsType = common.serializeAsType,
     hasLowerCaseAlias = common.hasLowerCaseAlias;
@@ -19414,6 +19438,25 @@ XMLReader.prototype.fromXML = function(xml, options, done) {
     stack.pop().handleEnd();
   }
 
+  var ENCODING_PATTERN = /^<\?xml.* encoding="([^"]+)"(?: .*)?\?>$/i;
+
+  var UTF_8_PATTERN = /^utf-8$/i;
+
+  function handleQuestion(question) {
+    var match = ENCODING_PATTERN.exec(question);
+    var encoding = match && match[1];
+
+    if (!encoding || UTF_8_PATTERN.test(encoding)) {
+      return;
+    }
+
+    context.addWarning({
+      message:
+        'unsupported document encoding <' + encoding + '>, ' +
+        'falling back to UTF-8'
+    });
+  }
+
   function handleOpen(node, getContext) {
     var handler = stack.peek();
 
@@ -19473,6 +19516,7 @@ XMLReader.prototype.fromXML = function(xml, options, done) {
 
       handleOpen(node, getContext);
     })
+    .on('question', handleQuestion)
     .on('closeTag', handleClose)
     .on('cdata', handleCData)
     .on('text', handleText)
@@ -19512,18 +19556,18 @@ XMLReader.prototype.handler = function(name) {
 
 module.exports = XMLReader;
 module.exports.ElementHandler = ElementHandler;
-},{"190":190,"208":208,"211":211,"216":216,"219":219,"224":224,"225":225,"77":77,"78":78,"86":86}],210:[function(_dereq_,module,exports){
+},{"189":189,"207":207,"210":210,"215":215,"218":218,"223":223,"224":224,"76":76,"77":77,"85":85}],209:[function(_dereq_,module,exports){
 'use strict';
 
-var map = _dereq_(80),
-    forEach = _dereq_(78),
-    isString = _dereq_(187),
-    filter = _dereq_(76),
-    assign = _dereq_(190);
+var map = _dereq_(79),
+    forEach = _dereq_(77),
+    isString = _dereq_(186),
+    filter = _dereq_(75),
+    assign = _dereq_(189);
 
-var Types = _dereq_(219),
-    parseNameNs = _dereq_(216).parseName,
-    common = _dereq_(208),
+var Types = _dereq_(218),
+    parseNameNs = _dereq_(215).parseName,
+    common = _dereq_(207),
     hasLowerCaseAlias = common.hasLowerCaseAlias,
     serializeAsType = common.serializeAsType,
     serializeAsProperty = common.serializeAsProperty;
@@ -19533,6 +19577,63 @@ var XML_PREAMBLE = '<?xml version="1.0" encoding="UTF-8"?>\n',
     DEFAULT_NS_MAP = common.DEFAULT_NS_MAP,
     XSI_TYPE = common.XSI_TYPE;
 
+
+function Namespaces(parent) {
+
+  var prefixMap = {};
+  var uriMap = {};
+  var used = {};
+
+  var wellknown = [];
+  var custom = [];
+
+  // API
+
+  this.byUri = function(uri) {
+    return uriMap[uri] || (
+      parent && parent.byUri(uri)
+    );
+  };
+
+  this.add = function(ns, isWellknown) {
+
+    uriMap[ns.uri] = ns;
+
+    if (isWellknown) {
+      wellknown.push(ns);
+    } else {
+      custom.push(ns);
+    }
+
+    this.mapPrefix(ns.prefix, ns.uri);
+  };
+
+  this.uriByPrefix = function(prefix) {
+    return prefixMap[prefix || 'xmlns'];
+  };
+
+  this.mapPrefix = function(prefix, uri) {
+    prefixMap[prefix || 'xmlns'] = uri;
+  };
+
+  this.logUsed = function(ns) {
+    var uri = ns.uri;
+
+    used[uri] = this.byUri(uri);
+  };
+
+  this.getUsed = function(ns) {
+
+    function isUsed(ns) {
+      return used[ns.uri];
+    }
+
+    var allNs = [].concat(wellknown, custom);
+
+    return allNs.filter(isUsed);
+  };
+
+}
 
 function lower(string) {
   return string.charAt(0).toLowerCase() + string.slice(1);
@@ -19568,18 +19669,11 @@ function nsName(ns) {
 
 function getNsAttrs(namespaces) {
 
-  function isUsed(ns) {
-    return namespaces.used[ns.uri];
-  }
-
-  function toAttr(ns) {
+  return map(namespaces.getUsed(), function(ns) {
     var name = 'xmlns' + (ns.prefix ? ':' + ns.prefix : '');
     return { name: name, value: ns.uri };
-  }
+  });
 
-  var allNs = [].concat(namespaces.wellknown, namespaces.custom);
-
-  return map(filter(allNs, isUsed), toAttr);
 }
 
 function getElementNs(ns, descriptor) {
@@ -19660,8 +19754,8 @@ function filterContained(props) {
 }
 
 
-function ReferenceSerializer(parent, ns) {
-  this.ns = ns;
+function ReferenceSerializer(tagName) {
+  this.tagName = tagName;
 }
 
 ReferenceSerializer.prototype.build = function(element) {
@@ -19672,7 +19766,7 @@ ReferenceSerializer.prototype.build = function(element) {
 ReferenceSerializer.prototype.serializeTo = function(writer) {
   writer
     .appendIndent()
-    .append('<' + nsName(this.ns) + '>' + this.element.id + '</' + nsName(this.ns) + '>')
+    .append('<' + this.tagName + '>' + this.element.id + '</' + this.tagName + '>')
     .appendNewLine();
 };
 
@@ -19702,8 +19796,8 @@ BodySerializer.prototype.build = function(prop, value) {
   return this;
 };
 
-function ValueSerializer(ns) {
-  this.ns = ns;
+function ValueSerializer(tagName) {
+  this.tagName = tagName;
 }
 
 inherits(ValueSerializer, BodySerializer);
@@ -19712,42 +19806,57 @@ ValueSerializer.prototype.serializeTo = function(writer) {
 
   writer
     .appendIndent()
-    .append('<' + nsName(this.ns) + '>');
+    .append('<' + this.tagName + '>');
 
   this.serializeValue(writer);
 
   writer
-    .append('</' + nsName(this.ns) + '>')
+    .append('</' + this.tagName + '>')
     .appendNewLine();
 };
 
-function ElementSerializer(parent, ns) {
+function ElementSerializer(parent, propertyDescriptor) {
   this.body = [];
   this.attrs = [];
 
   this.parent = parent;
-  this.ns = ns;
+  this.propertyDescriptor = propertyDescriptor;
 }
 
 ElementSerializer.prototype.build = function(element) {
   this.element = element;
 
-  var otherAttrs = this.parseNsAttributes(element);
+  var elementDescriptor = element.$descriptor,
+      propertyDescriptor = this.propertyDescriptor;
 
-  if (!this.ns) {
-    this.ns = this.nsTagName(element.$descriptor);
+  var otherAttrs,
+      properties;
+
+  var isGeneric = elementDescriptor.isGeneric;
+
+  if (isGeneric) {
+    otherAttrs = this.parseGeneric(element);
+  } else {
+    otherAttrs = this.parseNsAttributes(element);
   }
 
-  if (element.$descriptor.isGeneric) {
-    this.parseGeneric(element);
+  if (propertyDescriptor) {
+    this.ns = this.nsPropertyTagName(propertyDescriptor);
   } else {
-    var properties = getSerializableProperties(element);
+    this.ns = this.nsTagName(elementDescriptor);
+  }
+
+  // compute tag name
+  this.tagName = this.addTagName(this.ns);
+
+  if (!isGeneric) {
+    properties = getSerializableProperties(element);
 
     this.parseAttributes(filterAttributes(properties));
     this.parseContainments(filterContained(properties));
-
-    this.parseGenericAttributes(element, otherAttrs);
   }
+
+  this.parseGenericAttributes(element, otherAttrs);
 
   return this;
 };
@@ -19770,7 +19879,7 @@ ElementSerializer.prototype.isLocalNs = function(ns) {
  * Get the actual ns attribute name for the given element.
  *
  * @param {Object} element
- * @param {Boolean} [inherited=false]
+ * @param {Boolean} [element.inherited=false]
  *
  * @return {Object} nsName
  */
@@ -19792,6 +19901,9 @@ ElementSerializer.prototype.nsAttributeName = function(element) {
   // parse + log effective ns
   var effectiveNs = this.logNamespaceUsed(ns);
 
+  // LOG ACTUAL namespace use
+  this.getNamespaces().logUsed(effectiveNs);
+
   // strip prefix if same namespace like parent
   if (this.isLocalNs(effectiveNs)) {
     return { localName: ns.localName };
@@ -19803,10 +19915,13 @@ ElementSerializer.prototype.nsAttributeName = function(element) {
 ElementSerializer.prototype.parseGeneric = function(element) {
 
   var self = this,
-      body = this.body,
-      attrs = this.attrs;
+      body = this.body;
+
+  var attributes = [];
 
   forEach(element, function(val, key) {
+
+    var nonNsAttr;
 
     if (key === '$body') {
       body.push(new BodySerializer().build({ type: 'String' }, val));
@@ -19817,10 +19932,52 @@ ElementSerializer.prototype.parseGeneric = function(element) {
       });
     } else
     if (key.indexOf('$') !== 0) {
-      attrs.push({ name: key, value: escapeAttr(val) });
+      nonNsAttr = self.parseNsAttribute(element, key, val);
+
+      if (nonNsAttr) {
+        attributes.push({ name: key, value: val });
+      }
     }
   });
+
+  return attributes;
 };
+
+ElementSerializer.prototype.parseNsAttribute = function(element, name, value) {
+  var model = element.$model;
+
+  var nameNs = parseNameNs(name);
+
+  var ns;
+
+  // parse xmlns:foo="http://foo.bar"
+  if (nameNs.prefix === 'xmlns') {
+    ns = { prefix: nameNs.localName, uri: value };
+  }
+
+  // parse xmlns="http://foo.bar"
+  if (!nameNs.prefix && nameNs.localName === 'xmlns') {
+    ns = { uri: value };
+  }
+
+  if (!ns) {
+    return {
+      name: name,
+      value: value
+    };
+  }
+
+  if (model && model.getPackage(value)) {
+    // register well known namespace
+    this.logNamespace(ns, true, true);
+  } else {
+    // log custom namespace directly as used
+    var actualNs = this.logNamespaceUsed(ns, true);
+
+    this.getNamespaces().logUsed(actualNs);
+  }
+};
+
 
 /**
  * Parse namespaces and return a list of left over generic attributes
@@ -19828,12 +19985,10 @@ ElementSerializer.prototype.parseGeneric = function(element) {
  * @param  {Object} element
  * @return {Array<Object>}
  */
-ElementSerializer.prototype.parseNsAttributes = function(element) {
+ElementSerializer.prototype.parseNsAttributes = function(element, attrs) {
   var self = this;
 
   var genericAttrs = element.$attrs;
-
-  var model = element.$model;
 
   var attributes = [];
 
@@ -19841,30 +19996,11 @@ ElementSerializer.prototype.parseNsAttributes = function(element) {
   // and log them. push non namespace attributes to a list
   // and process them later
   forEach(genericAttrs, function(value, name) {
-    var nameNs = parseNameNs(name);
 
-    var ns;
+    var nonNsAttr = self.parseNsAttribute(element, name, value);
 
-    // parse xmlns:foo="http://foo.bar"
-    if (nameNs.prefix === 'xmlns') {
-      ns = { prefix: nameNs.localName, uri: value };
-    }
-
-    // parse xmlns="http://foo.bar"
-    if (!nameNs.prefix && nameNs.localName === 'xmlns') {
-      ns = { uri: value };
-    }
-
-    if (ns) {
-      if (model.getPackage(value)) {
-        // register well known namespace
-        self.logNamespace(ns, true);
-      } else {
-        // log custom namespace directly as used
-        self.logNamespaceUsed(ns);
-      }
-    } else {
-      attributes.push({ name: name, value: value });
+    if (nonNsAttr) {
+      attributes.push(nonNsAttr);
     }
   });
 
@@ -19905,8 +20041,6 @@ ElementSerializer.prototype.parseContainments = function(properties) {
         isReference = p.isReference,
         isMany = p.isMany;
 
-    var ns = self.nsPropertyTagName(p);
-
     if (!isMany) {
       value = [ value ];
     }
@@ -19916,12 +20050,12 @@ ElementSerializer.prototype.parseContainments = function(properties) {
     } else
     if (Types.isSimple(p.type)) {
       forEach(value, function(v) {
-        body.push(new ValueSerializer(ns).build(p, v));
+        body.push(new ValueSerializer(self.addTagName(self.nsPropertyTagName(p))).build(p, v));
       });
     } else
     if (isReference) {
       forEach(value, function(v) {
-        body.push(new ReferenceSerializer(self, ns).build(v));
+        body.push(new ReferenceSerializer(self.addTagName(self.nsPropertyTagName(p))).build(v));
       });
     } else {
       // allow serialization via type
@@ -19933,10 +20067,10 @@ ElementSerializer.prototype.parseContainments = function(properties) {
         var serializer;
 
         if (asType) {
-          serializer = new TypeSerializer(self, ns);
+          serializer = new TypeSerializer(self, p);
         } else
         if (asProperty) {
-          serializer = new ElementSerializer(self, ns);
+          serializer = new ElementSerializer(self, p);
         } else {
           serializer = new ElementSerializer(self);
         }
@@ -19947,50 +20081,46 @@ ElementSerializer.prototype.parseContainments = function(properties) {
   });
 };
 
-ElementSerializer.prototype.getNamespaces = function() {
+ElementSerializer.prototype.getNamespaces = function(local) {
 
   var namespaces = this.namespaces,
-      parent = this.parent;
+      parent = this.parent,
+      parentNamespaces;
 
   if (!namespaces) {
-    namespaces = this.namespaces = parent ? parent.getNamespaces() : {
-      prefixMap: {},
-      uriMap: {},
-      used: {},
-      wellknown: [],
-      custom: []
-    };
+    parentNamespaces = parent && parent.getNamespaces();
+
+    if (local || !parentNamespaces) {
+      this.namespaces = namespaces = new Namespaces(parentNamespaces);
+    } else {
+      namespaces = parentNamespaces;
+    }
   }
 
   return namespaces;
 };
 
-ElementSerializer.prototype.logNamespace = function(ns, wellknown) {
-  var namespaces = this.getNamespaces();
+ElementSerializer.prototype.logNamespace = function(ns, wellknown, local) {
+  var namespaces = this.getNamespaces(local);
 
-  var nsUri = ns.uri;
+  var nsUri = ns.uri,
+      nsPrefix = ns.prefix;
 
-  var existing = namespaces.uriMap[nsUri];
+  var existing = namespaces.byUri(nsUri);
 
   if (!existing) {
-    namespaces.uriMap[nsUri] = ns;
-
-    if (wellknown) {
-      namespaces.wellknown.push(ns);
-    } else {
-      namespaces.custom.push(ns);
-    }
+    namespaces.add(ns, wellknown);
   }
 
-  namespaces.prefixMap[ns.prefix] = nsUri;
+  namespaces.mapPrefix(nsPrefix, nsUri);
 
   return ns;
 };
 
-ElementSerializer.prototype.logNamespaceUsed = function(ns) {
+ElementSerializer.prototype.logNamespaceUsed = function(ns, local) {
   var element = this.element,
       model = element.$model,
-      namespaces = this.getNamespaces();
+      namespaces = this.getNamespaces(local);
 
   // ns may be
   //
@@ -20010,28 +20140,24 @@ ElementSerializer.prototype.logNamespaceUsed = function(ns) {
 
   wellknownUri = DEFAULT_NS_MAP[prefix] || model && (model.getPackage(prefix) || {}).uri;
 
-  uri = uri || wellknownUri || namespaces.prefixMap[prefix];
+  uri = uri || wellknownUri || namespaces.uriByPrefix(prefix);
 
   if (!uri) {
     throw new Error('no namespace uri given for prefix <' + prefix + '>');
   }
 
-  ns = namespaces.uriMap[uri];
+  ns = namespaces.byUri(uri);
 
   if (!ns) {
     newPrefix = prefix;
     idx = 1;
 
     // find a prefix that is not mapped yet
-    while (namespaces.prefixMap[newPrefix]) {
+    while (namespaces.uriByPrefix(newPrefix)) {
       newPrefix = prefix + '_' + idx++;
     }
 
     ns = this.logNamespace({ prefix: newPrefix, uri: uri }, wellknownUri === uri);
-  }
-
-  if (!namespaces.used[ns.uri]) {
-    namespaces.used[ns.uri] = ns;
   }
 
   return ns;
@@ -20065,6 +20191,14 @@ ElementSerializer.prototype.parseAttributes = function(properties) {
   });
 };
 
+ElementSerializer.prototype.addTagName = function(nsTagName) {
+  var actualNs = this.logNamespaceUsed(nsTagName);
+
+  this.getNamespaces().logUsed(actualNs);
+
+  return nsName(nsTagName);
+};
+
 ElementSerializer.prototype.addAttribute = function(name, value) {
   var attrs = this.attrs;
 
@@ -20077,10 +20211,10 @@ ElementSerializer.prototype.addAttribute = function(name, value) {
 
 ElementSerializer.prototype.serializeAttributes = function(writer) {
   var attrs = this.attrs,
-      root = !this.parent;
+      namespaces = this.namespaces;
 
-  if (root) {
-    attrs = getNsAttrs(this.namespaces).concat(attrs);
+  if (namespaces) {
+    attrs = getNsAttrs(namespaces).concat(attrs);
   }
 
   forEach(attrs, function(a) {
@@ -20096,7 +20230,7 @@ ElementSerializer.prototype.serializeTo = function(writer) {
 
   writer
     .appendIndent()
-    .append('<' + nsName(this.ns));
+    .append('<' + this.tagName);
 
   this.serializeAttributes(writer);
 
@@ -20120,7 +20254,7 @@ ElementSerializer.prototype.serializeTo = function(writer) {
         .appendIndent();
     }
 
-    writer.append('</' + nsName(this.ns) + '>');
+    writer.append('</' + this.tagName + '>');
   }
 
   writer.appendNewLine();
@@ -20129,32 +20263,39 @@ ElementSerializer.prototype.serializeTo = function(writer) {
 /**
  * A serializer for types that handles serialization of data types
  */
-function TypeSerializer(parent, ns) {
-  ElementSerializer.call(this, parent, ns);
+function TypeSerializer(parent, propertyDescriptor) {
+  ElementSerializer.call(this, parent, propertyDescriptor);
 }
 
 inherits(TypeSerializer, ElementSerializer);
 
-TypeSerializer.prototype.build = function(element) {
+TypeSerializer.prototype.parseNsAttributes = function(element) {
+
+  // extracted attributes
+  var attributes = ElementSerializer.prototype.parseNsAttributes.call(this, element);
+
   var descriptor = element.$descriptor;
 
-  this.element = element;
+  // only serialize xsi:type if necessary
+  if (descriptor.name === this.propertyDescriptor.type) {
+    return attributes;
+  }
 
-  this.typeNs = this.nsTagName(descriptor);
+  var typeNs = this.typeNs = this.nsTagName(descriptor);
+  this.getNamespaces().logUsed(this.typeNs);
 
   // add xsi:type attribute to represent the elements
   // actual type
 
-  var typeNs = this.typeNs,
-      pkg = element.$model.getPackage(typeNs.uri),
+  var pkg = element.$model.getPackage(typeNs.uri),
       typePrefix = (pkg.xml && pkg.xml.typePrefix) || '';
 
-  this.addAttribute(this.nsAttributeName(XSI_TYPE),
-    (typeNs.prefix ? typeNs.prefix + ':' : '') +
-    typePrefix + descriptor.ns.localName);
+  this.addAttribute(
+    this.nsAttributeName(XSI_TYPE),
+    (typeNs.prefix ? typeNs.prefix + ':' : '') + typePrefix + descriptor.ns.localName
+  );
 
-  // do the usual stuff
-  return ElementSerializer.prototype.build.call(this, element);
+  return attributes;
 };
 
 TypeSerializer.prototype.isLocalNs = function(ns) {
@@ -20237,9 +20378,9 @@ function XMLWriter(options) {
 
 module.exports = XMLWriter;
 
-},{"187":187,"190":190,"208":208,"216":216,"219":219,"76":76,"78":78,"80":80}],211:[function(_dereq_,module,exports){
-module.exports = _dereq_(215);
-},{"215":215}],212:[function(_dereq_,module,exports){
+},{"186":186,"189":189,"207":207,"215":215,"218":218,"75":75,"77":77,"79":79}],210:[function(_dereq_,module,exports){
+module.exports = _dereq_(214);
+},{"214":214}],211:[function(_dereq_,module,exports){
 'use strict';
 
 function Base() { }
@@ -20254,14 +20395,14 @@ Base.prototype.set = function(name, value) {
 
 
 module.exports = Base;
-},{}],213:[function(_dereq_,module,exports){
+},{}],212:[function(_dereq_,module,exports){
 'use strict';
 
-var pick = _dereq_(196),
-    assign = _dereq_(190),
-    forEach = _dereq_(78);
+var pick = _dereq_(195),
+    assign = _dereq_(189),
+    forEach = _dereq_(77);
 
-var parseNameNs = _dereq_(216).parseName;
+var parseNameNs = _dereq_(215).parseName;
 
 
 function DescriptorBuilder(nameNs) {
@@ -20485,12 +20626,12 @@ DescriptorBuilder.prototype.addTrait = function(t, inherited) {
   typesByName[typeName] = t;
 };
 
-},{"190":190,"196":196,"216":216,"78":78}],214:[function(_dereq_,module,exports){
+},{"189":189,"195":195,"215":215,"77":77}],213:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(78);
+var forEach = _dereq_(77);
 
-var Base = _dereq_(212);
+var Base = _dereq_(211);
 
 
 function Factory(model, properties) {
@@ -20543,19 +20684,19 @@ Factory.prototype.createType = function(descriptor) {
 
   return ModdleElement;
 };
-},{"212":212,"78":78}],215:[function(_dereq_,module,exports){
+},{"211":211,"77":77}],214:[function(_dereq_,module,exports){
 'use strict';
 
-var isString = _dereq_(187),
-    isObject = _dereq_(185),
-    forEach = _dereq_(78);
+var isString = _dereq_(186),
+    isObject = _dereq_(184),
+    forEach = _dereq_(77);
 
 
-var Factory = _dereq_(214),
-    Registry = _dereq_(218),
-    Properties = _dereq_(217);
+var Factory = _dereq_(213),
+    Registry = _dereq_(217),
+    Properties = _dereq_(216);
 
-var parseNameNs = _dereq_(216).parseName;
+var parseNameNs = _dereq_(215).parseName;
 
 
 //// Moddle implementation /////////////////////////////////////////////////
@@ -20768,7 +20909,7 @@ Moddle.prototype.getTypeDescriptor = function(type) {
   return this.registry.typeMap[type];
 };
 
-},{"185":185,"187":187,"214":214,"216":216,"217":217,"218":218,"78":78}],216:[function(_dereq_,module,exports){
+},{"184":184,"186":186,"213":213,"215":215,"216":216,"217":217,"77":77}],215:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -20805,7 +20946,7 @@ module.exports.parseName = function(name, defaultPrefix) {
     localName: localName
   };
 };
-},{}],217:[function(_dereq_,module,exports){
+},{}],216:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -20924,16 +21065,16 @@ function defineProperty(target, property, value) {
     configurable: true
   });
 }
-},{}],218:[function(_dereq_,module,exports){
+},{}],217:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(190),
-    forEach = _dereq_(78);
+var assign = _dereq_(189),
+    forEach = _dereq_(77);
 
-var Types = _dereq_(219),
-    DescriptorBuilder = _dereq_(213);
+var Types = _dereq_(218),
+    DescriptorBuilder = _dereq_(212);
 
-var parseNameNs = _dereq_(216).parseName,
+var parseNameNs = _dereq_(215).parseName,
     isBuiltInType = Types.isBuiltIn;
 
 
@@ -21129,7 +21270,7 @@ function ensureAvailable(packageMap, pkg, identifierKey) {
   }
 }
 
-},{"190":190,"213":213,"216":216,"219":219,"78":78}],219:[function(_dereq_,module,exports){
+},{"189":189,"212":212,"215":215,"218":218,"77":77}],218:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -21180,11 +21321,11 @@ module.exports.isBuiltIn = function(type) {
 module.exports.isSimple = function(type) {
   return !!TYPE_CONVERTERS[type];
 };
-},{}],220:[function(_dereq_,module,exports){
-module.exports = _dereq_(222);
+},{}],219:[function(_dereq_,module,exports){
+module.exports = _dereq_(221);
 
-module.exports.Collection = _dereq_(221);
-},{"221":221,"222":222}],221:[function(_dereq_,module,exports){
+module.exports.Collection = _dereq_(220);
+},{"220":220,"221":221}],220:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -21281,10 +21422,10 @@ function isExtended(collection) {
 module.exports.extend = extend;
 
 module.exports.isExtended = isExtended;
-},{}],222:[function(_dereq_,module,exports){
+},{}],221:[function(_dereq_,module,exports){
 'use strict';
 
-var Collection = _dereq_(221);
+var Collection = _dereq_(220);
 
 function hasOwnProperty(e, property) {
   return Object.prototype.hasOwnProperty.call(e, property.name || property);
@@ -21473,7 +21614,7 @@ module.exports = Refs;
  * @property {boolean} [collection=false]
  * @property {boolean} [enumerable=false]
  */
-},{"221":221}],223:[function(_dereq_,module,exports){
+},{"220":220}],222:[function(_dereq_,module,exports){
 'use strict';
 
 module['exports'] = decodeEntities;
@@ -21537,12 +21678,12 @@ function decodeEntities(s) {
 
   return s;
 }
-},{}],224:[function(_dereq_,module,exports){
+},{}],223:[function(_dereq_,module,exports){
 'use strict';
 
 module['exports'] = Saxen;
 
-var decodeEntities = _dereq_(223);
+var decodeEntities = _dereq_(222);
 
 var XSI_URI = 'http://www.w3.org/2001/XMLSchema-instance';
 var XSI_PREFIX = 'xsi';
@@ -22171,7 +22312,7 @@ function Saxen(options) {
 
       if (j !== i) {
         if (onText) {
-          onText(xml.substring(j, i), decodeEntities);
+          onText(xml.substring(j, i), decodeEntities, getContext);
           if (parseStop) {
             return;
           }
@@ -22190,7 +22331,7 @@ function Saxen(options) {
           }
 
           if (onCDATA) {
-            onCDATA(xml.substring(i + 9, j));
+            onCDATA(xml.substring(i + 9, j), getContext);
             if (parseStop) {
               return;
             }
@@ -22209,7 +22350,7 @@ function Saxen(options) {
 
 
           if (onComment) {
-            onComment(xml.substring(i + 4, j), decodeEntities);
+            onComment(xml.substring(i + 4, j), decodeEntities, getContext);
             if (parseStop) {
               return;
             }
@@ -22225,7 +22366,7 @@ function Saxen(options) {
         }
 
         if (onAttention) {
-          onAttention(xml.substring(i, j + 1), decodeEntities);
+          onAttention(xml.substring(i, j + 1), decodeEntities, getContext);
           if (parseStop) {
             return;
           }
@@ -22242,7 +22383,7 @@ function Saxen(options) {
         }
 
         if (onQuestion) {
-          onQuestion(xml.substring(i, j + 2));
+          onQuestion(xml.substring(i, j + 2), getContext);
           if (parseStop) {
             return;
           }
@@ -22429,7 +22570,7 @@ function Saxen(options) {
   } /** end parse */
 
 }
-},{"223":223}],225:[function(_dereq_,module,exports){
+},{"222":222}],224:[function(_dereq_,module,exports){
 /**
  * Tiny stack for browser or server
  *
@@ -22546,14 +22687,14 @@ else {
 }
 } )( this );
 
-},{}],226:[function(_dereq_,module,exports){
+},{}],225:[function(_dereq_,module,exports){
 /**
  * append utility
  */
 
 module.exports = append;
 
-var appendTo = _dereq_(227);
+var appendTo = _dereq_(226);
 
 /**
  * Append a node to an element
@@ -22567,13 +22708,13 @@ function append(element, node) {
   appendTo(node, element);
   return element;
 }
-},{"227":227}],227:[function(_dereq_,module,exports){
+},{"226":226}],226:[function(_dereq_,module,exports){
 /**
  * appendTo utility
  */
 module.exports = appendTo;
 
-var ensureImported = _dereq_(236);
+var ensureImported = _dereq_(235);
 
 /**
  * Append a node to a target element and return the appended node.
@@ -22587,7 +22728,7 @@ function appendTo(element, target) {
   target.appendChild(ensureImported(element, target));
   return element;
 }
-},{"236":236}],228:[function(_dereq_,module,exports){
+},{"235":235}],227:[function(_dereq_,module,exports){
 /**
  * attribute accessor utility
  */
@@ -22720,7 +22861,7 @@ function attr(node, name, value) {
   return node;
 }
 
-},{}],229:[function(_dereq_,module,exports){
+},{}],228:[function(_dereq_,module,exports){
 /**
  * Clear utility
  */
@@ -22927,7 +23068,7 @@ ClassList.prototype.contains = function(name) {
   );
 };
 
-},{}],230:[function(_dereq_,module,exports){
+},{}],229:[function(_dereq_,module,exports){
 /**
  * Clear utility
  */
@@ -22935,7 +23076,7 @@ ClassList.prototype.contains = function(name) {
 module.exports = clear;
 
 
-var remove = _dereq_(234);
+var remove = _dereq_(233);
 
 /**
  * Removes all children from the given element
@@ -22952,7 +23093,7 @@ function clear(element) {
 
   return element;
 }
-},{"234":234}],231:[function(_dereq_,module,exports){
+},{"233":233}],230:[function(_dereq_,module,exports){
 /**
  * Create utility for SVG elements
  */
@@ -22960,9 +23101,9 @@ function clear(element) {
 module.exports = create;
 
 
-var attr = _dereq_(228);
-var parse = _dereq_(238);
-var ns = _dereq_(237);
+var attr = _dereq_(227);
+var parse = _dereq_(237);
+var ns = _dereq_(236);
 
 
 /**
@@ -22989,13 +23130,13 @@ function create(name, attrs) {
 
   return element;
 }
-},{"228":228,"237":237,"238":238}],232:[function(_dereq_,module,exports){
+},{"227":227,"236":236,"237":237}],231:[function(_dereq_,module,exports){
 /**
  * Geometry helpers
  */
 
 
-var create = _dereq_(231);
+var create = _dereq_(230);
 
 // fake node used to instantiate svg geometry elements
 var node = create('svg');
@@ -23061,7 +23202,7 @@ function createTransform(matrix) {
 module.exports.createTransform = createTransform;
 module.exports.createMatrix = createMatrix;
 module.exports.createPoint = createPoint;
-},{"231":231}],233:[function(_dereq_,module,exports){
+},{"230":230}],232:[function(_dereq_,module,exports){
 /**
  * innerHTML like functionality for SVG elements.
  * based on innerSVG (https://code.google.com/p/innersvg)
@@ -23070,10 +23211,10 @@ module.exports.createPoint = createPoint;
 module.exports = innerSVG;
 
 
-var clear = _dereq_(230);
-var appendTo = _dereq_(227);
-var parse = _dereq_(238);
-var serialize = _dereq_(239);
+var clear = _dereq_(229);
+var appendTo = _dereq_(226);
+var parse = _dereq_(237);
+var serialize = _dereq_(238);
 
 
 function set(element, svg) {
@@ -23124,7 +23265,7 @@ function innerSVG(element, svg) {
     return get(element);
   }
 }
-},{"227":227,"230":230,"238":238,"239":239}],234:[function(_dereq_,module,exports){
+},{"226":226,"229":229,"237":237,"238":238}],233:[function(_dereq_,module,exports){
 module.exports = remove;
 
 function remove(element) {
@@ -23136,7 +23277,7 @@ function remove(element) {
 
   return element;
 }
-},{}],235:[function(_dereq_,module,exports){
+},{}],234:[function(_dereq_,module,exports){
 /**
  * transform accessor utility
  */
@@ -23176,7 +23317,7 @@ function transform(node, transforms) {
     }
   }
 }
-},{}],236:[function(_dereq_,module,exports){
+},{}],235:[function(_dereq_,module,exports){
 module.exports = ensureImported;
 
 function ensureImported(element, target) {
@@ -23192,13 +23333,13 @@ function ensureImported(element, target) {
 
   return element;
 }
-},{}],237:[function(_dereq_,module,exports){
+},{}],236:[function(_dereq_,module,exports){
 var ns = {
   svg: 'http://www.w3.org/2000/svg'
 };
 
 module.exports = ns;
-},{}],238:[function(_dereq_,module,exports){
+},{}],237:[function(_dereq_,module,exports){
 /**
  * DOM parsing utility
  */
@@ -23206,7 +23347,7 @@ module.exports = ns;
 module.exports = parse;
 
 
-var ns = _dereq_(237);
+var ns = _dereq_(236);
 
 var SVG_START = '<svg xmlns="' + ns.svg + '"';
 
@@ -23235,7 +23376,7 @@ function parseDocument(svg) {
 
   return parser.parseFromString(svg, 'text/xml');
 }
-},{"237":237}],239:[function(_dereq_,module,exports){
+},{"236":236}],238:[function(_dereq_,module,exports){
 /**
  * Serialization util
  */

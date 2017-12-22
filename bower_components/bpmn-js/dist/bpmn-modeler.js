@@ -1,5 +1,5 @@
 /*!
- * bpmn-js - bpmn-modeler v0.25.1
+ * bpmn-js - bpmn-modeler v0.26.1
 
  * Copyright 2014 - 2017 camunda Services GmbH and other contributors
  *
@@ -8,14 +8,14 @@
  *
  * Source Code: https://github.com/bpmn-io/bpmn-js
  *
- * Date: 2017-11-23
+ * Date: 2017-12-22
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.BpmnJS = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var Ids = _dereq_(288);
+var Ids = _dereq_(290);
 
 var Viewer = _dereq_(3);
 
@@ -186,26 +186,27 @@ Modeler.prototype._collectIds = function(definitions, context) {
 
 Modeler.prototype._interactionModules = [
   // non-modeling components
-  _dereq_(256),
-  _dereq_(257),
-  _dereq_(260)
+  _dereq_(259),
+  _dereq_(260),
+  _dereq_(263)
 ];
 
 Modeler.prototype._modelingModules = [
   // modeling components
-  _dereq_(139),
-  _dereq_(145),
-  _dereq_(206),
-  _dereq_(224),
-  _dereq_(10),
-  _dereq_(18),
+  _dereq_(142),
+  _dereq_(148),
+  _dereq_(209),
+  _dereq_(227),
+  _dereq_(15),
   _dereq_(12),
-  _dereq_(22),
+  _dereq_(23),
+  _dereq_(17),
   _dereq_(27),
-  _dereq_(66),
+  _dereq_(32),
   _dereq_(72),
-  _dereq_(77),
-  _dereq_(87)
+  _dereq_(78),
+  _dereq_(83),
+  _dereq_(93)
 ];
 
 
@@ -220,10 +221,10 @@ Modeler.prototype._modules = [].concat(
   Modeler.prototype._interactionModules,
   Modeler.prototype._modelingModules);
 
-},{"10":10,"12":12,"139":139,"145":145,"18":18,"2":2,"206":206,"22":22,"224":224,"256":256,"257":257,"260":260,"27":27,"288":288,"289":289,"3":3,"66":66,"72":72,"77":77,"87":87}],2:[function(_dereq_,module,exports){
+},{"12":12,"142":142,"148":148,"15":15,"17":17,"2":2,"209":209,"227":227,"23":23,"259":259,"260":260,"263":263,"27":27,"290":290,"292":292,"3":3,"32":32,"72":72,"78":78,"83":83,"93":93}],2:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
 var Viewer = _dereq_(3);
 
@@ -242,14 +243,14 @@ inherits(NavigatedViewer, Viewer);
 module.exports = NavigatedViewer;
 
 NavigatedViewer.prototype._navigationModules = [
-  _dereq_(260),
-  _dereq_(256)
+  _dereq_(263),
+  _dereq_(259)
 ];
 
 NavigatedViewer.prototype._modules = [].concat(
   NavigatedViewer.prototype._modules,
   NavigatedViewer.prototype._navigationModules);
-},{"256":256,"260":260,"289":289,"3":3}],3:[function(_dereq_,module,exports){
+},{"259":259,"263":263,"292":292,"3":3}],3:[function(_dereq_,module,exports){
 /**
  * The code in the <project-logo></project-logo> area
  * must not be changed.
@@ -258,23 +259,23 @@ NavigatedViewer.prototype._modules = [].concat(
  */
 'use strict';
 
-var assign = _dereq_(431),
-    omit = _dereq_(436),
-    isNumber = _dereq_(425);
+var assign = _dereq_(434),
+    omit = _dereq_(439),
+    isNumber = _dereq_(428);
 
-var domify = _dereq_(449),
-    domQuery = _dereq_(452),
-    domRemove = _dereq_(453);
+var domify = _dereq_(453),
+    domQuery = _dereq_(456),
+    domRemove = _dereq_(457);
 
-var innerSVG = _dereq_(480);
+var innerSVG = _dereq_(485);
 
-var Diagram = _dereq_(117),
-    BpmnModdle = _dereq_(99);
+var Diagram = _dereq_(120),
+    BpmnModdle = _dereq_(105);
 
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var Importer = _dereq_(90);
+var importBpmnDiagram = _dereq_(96).importBpmnDiagram;
 
 
 function checkValidationError(err) {
@@ -479,27 +480,33 @@ Viewer.prototype.saveSVG = function(options, done) {
     options = {};
   }
 
-  var canvas = this.get('canvas');
+  var svg, err;
 
-  var contentNode = canvas.getDefaultLayer(),
-      defsNode = domQuery('defs', canvas._svg);
+  try {
+    var canvas = this.get('canvas');
 
-  var contents = innerSVG(contentNode),
-      defs = defsNode ? '<defs>' + innerSVG(defsNode) + '</defs>' : '';
+    var contentNode = canvas.getDefaultLayer(),
+        defsNode = domQuery('defs', canvas._svg);
 
-  var bbox = contentNode.getBBox();
+    var contents = innerSVG(contentNode),
+        defs = defsNode ? '<defs>' + innerSVG(defsNode) + '</defs>' : '';
 
-  var svg =
-    '<?xml version="1.0" encoding="utf-8"?>\n' +
-    '<!-- created with bpmn-js / http://bpmn.io -->\n' +
-    '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n' +
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ' +
-         'width="' + bbox.width + '" height="' + bbox.height + '" ' +
-         'viewBox="' + bbox.x + ' ' + bbox.y + ' ' + bbox.width + ' ' + bbox.height + '" version="1.1">' +
-      defs + contents +
-    '</svg>';
+    var bbox = contentNode.getBBox();
 
-  done(null, svg);
+    svg =
+      '<?xml version="1.0" encoding="utf-8"?>\n' +
+      '<!-- created with bpmn-js / http://bpmn.io -->\n' +
+      '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n' +
+      '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ' +
+           'width="' + bbox.width + '" height="' + bbox.height + '" ' +
+           'viewBox="' + bbox.x + ' ' + bbox.y + ' ' + bbox.width + ' ' + bbox.height + '" version="1.1">' +
+        defs + contents +
+      '</svg>';
+  } catch (e) {
+    err = e;
+  }
+
+  done(err, svg);
 };
 
 /**
@@ -544,10 +551,8 @@ Viewer.prototype.saveSVG = function(options, done) {
 
 Viewer.prototype.importDefinitions = function(definitions, done) {
 
-  // use try/catch to not swallow synchronous exceptions
-  // that may be raised during model parsing
+  // catch synchronous exceptions during #clear()
   try {
-
     if (this._definitions) {
       // clear existing rendered diagram
       this.clear();
@@ -555,14 +560,12 @@ Viewer.prototype.importDefinitions = function(definitions, done) {
 
     // update definitions
     this._definitions = definitions;
-
-    // perform graphical import
-    Importer.importBpmnDiagram(this, definitions, done);
   } catch (e) {
-
-    // handle synchronous errors
-    done(e);
+    return done(e);
   }
+
+  // perform graphical import
+  return importBpmnDiagram(this, definitions, done);
 };
 
 Viewer.prototype.getModules = function() {
@@ -628,6 +631,8 @@ Viewer.prototype.attachTo = function(parentNode) {
   parentNode.appendChild(this._container);
 
   this._emit('attach', {});
+
+  this.get('canvas').resized();
 };
 
 Viewer.prototype.getDefinitions = function() {
@@ -709,9 +714,9 @@ Viewer.prototype._createModdle = function(options) {
 // modules the viewer is composed of
 Viewer.prototype._modules = [
   _dereq_(4),
-  _dereq_(248),
-  _dereq_(233),
-  _dereq_(211)
+  _dereq_(251),
+  _dereq_(236),
+  _dereq_(214)
 ];
 
 // default moddle extensions the viewer is composed of
@@ -719,8 +724,8 @@ Viewer.prototype._moddleExtensions = {};
 
 /* <project-logo> */
 
-var PoweredBy = _dereq_(96),
-    domEvent = _dereq_(450);
+var PoweredBy = _dereq_(102),
+    domEvent = _dereq_(454);
 
 /**
  * Adds the project logo to the diagram container as
@@ -755,47 +760,219 @@ function addProjectLogo(container) {
 
 /* </project-logo> */
 
-},{"117":117,"211":211,"233":233,"248":248,"289":289,"4":4,"425":425,"431":431,"436":436,"449":449,"450":450,"452":452,"453":453,"480":480,"90":90,"96":96,"99":99}],4:[function(_dereq_,module,exports){
+},{"102":102,"105":105,"120":120,"214":214,"236":236,"251":251,"292":292,"4":4,"428":428,"434":434,"439":439,"453":453,"454":454,"456":456,"457":457,"485":485,"96":96}],4:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(7),
-    _dereq_(92)
+    _dereq_(8),
+    _dereq_(98)
   ]
 };
-},{"7":7,"92":92}],5:[function(_dereq_,module,exports){
+},{"8":8,"98":98}],5:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289),
-    isObject = _dereq_(426),
-    assign = _dereq_(431),
-    forEach = _dereq_(303),
-    every = _dereq_(300),
-    some = _dereq_(309);
+var every = _dereq_(303),
+    some = _dereq_(312);
 
-var BaseRenderer = _dereq_(128),
-    TextUtil = _dereq_(280),
-    DiUtil = _dereq_(93);
+var componentsToPath = _dereq_(280).componentsToPath;
 
-var getBusinessObject = _dereq_(95).getBusinessObject,
-    is = _dereq_(95).is;
 
-var RenderUtil = _dereq_(278);
+///////// element utils /////////////////////////////
 
-var componentsToPath = RenderUtil.componentsToPath,
-    createLine = RenderUtil.createLine;
+/**
+ * Checks if eventDefinition of the given element matches with semantic type.
+ *
+ * @return {boolean} true if element is of the given semantic type
+ */
+function isTypedEvent(event, eventDefinitionType, filter) {
 
-var domQuery = _dereq_(452);
+  function matches(definition, filter) {
+    return every(filter, function(val, key) {
 
-var svgAppend = _dereq_(472),
-    svgAttr = _dereq_(474),
-    svgCreate = _dereq_(478),
-    svgClasses = _dereq_(475);
+      // we want a == conversion here, to be able to catch
+      // undefined == false and friends
+      /* jshint -W116 */
+      return definition[key] == val;
+    });
+  }
 
-var rotate = _dereq_(279).rotate,
-    transform = _dereq_(279).transform,
-    translate = _dereq_(279).translate;
+  return some(event.eventDefinitions, function(definition) {
+    return definition.$type === eventDefinitionType && matches(event, filter);
+  });
+}
 
-var Ids = _dereq_(288),
+module.exports.isTypedEvent = isTypedEvent;
+
+function isThrowEvent(event) {
+  return (event.$type === 'bpmn:IntermediateThrowEvent') || (event.$type === 'bpmn:EndEvent');
+}
+
+module.exports.isThrowEvent = isThrowEvent;
+
+function isCollection(element) {
+  var dataObject = element.dataObjectRef;
+
+  return element.isCollection || (dataObject && dataObject.isCollection);
+}
+
+module.exports.isCollection = isCollection;
+
+function getDi(element) {
+  return element.businessObject.di;
+}
+
+module.exports.getDi = getDi;
+
+function getSemantic(element) {
+  return element.businessObject;
+}
+
+module.exports.getSemantic = getSemantic;
+
+
+/////// color access ////////////////////////////////////////
+
+function getFillColor(element, defaultColor) {
+  return getDi(element).get('bioc:fill') || defaultColor || 'white';
+}
+
+module.exports.getFillColor = getFillColor;
+
+function getStrokeColor(element, defaultColor) {
+  return getDi(element).get('bioc:stroke') || defaultColor || 'black';
+}
+
+module.exports.getStrokeColor = getStrokeColor;
+
+
+/////// cropping path customizations /////////////////////////
+
+function getCirclePath(shape) {
+
+  var cx = shape.x + shape.width / 2,
+      cy = shape.y + shape.height / 2,
+      radius = shape.width / 2;
+
+  var circlePath = [
+    ['M', cx, cy],
+    ['m', 0, -radius],
+    ['a', radius, radius, 0, 1, 1, 0, 2 * radius],
+    ['a', radius, radius, 0, 1, 1, 0, -2 * radius],
+    ['z']
+  ];
+
+  return componentsToPath(circlePath);
+}
+
+module.exports.getCirclePath = getCirclePath;
+
+function getRoundRectPath(shape, borderRadius) {
+
+  var x = shape.x,
+      y = shape.y,
+      width = shape.width,
+      height = shape.height;
+
+  var roundRectPath = [
+    ['M', x + borderRadius, y],
+    ['l', width - borderRadius * 2, 0],
+    ['a', borderRadius, borderRadius, 0, 0, 1, borderRadius, borderRadius],
+    ['l', 0, height - borderRadius * 2],
+    ['a', borderRadius, borderRadius, 0, 0, 1, -borderRadius, borderRadius],
+    ['l', borderRadius * 2 - width, 0],
+    ['a', borderRadius, borderRadius, 0, 0, 1, -borderRadius, -borderRadius],
+    ['l', 0, borderRadius * 2 - height],
+    ['a', borderRadius, borderRadius, 0, 0, 1, borderRadius, -borderRadius],
+    ['z']
+  ];
+
+  return componentsToPath(roundRectPath);
+}
+
+module.exports.getRoundRectPath = getRoundRectPath;
+
+function getDiamondPath(shape) {
+
+  var width = shape.width,
+      height = shape.height,
+      x = shape.x,
+      y = shape.y,
+      halfWidth = width / 2,
+      halfHeight = height / 2;
+
+  var diamondPath = [
+    ['M', x + halfWidth, y],
+    ['l', halfWidth, halfHeight],
+    ['l', -halfWidth, halfHeight],
+    ['l', -halfWidth, -halfHeight],
+    ['z']
+  ];
+
+  return componentsToPath(diamondPath);
+}
+
+module.exports.getDiamondPath = getDiamondPath;
+
+function getRectPath(shape) {
+  var x = shape.x,
+      y = shape.y,
+      width = shape.width,
+      height = shape.height;
+
+  var rectPath = [
+    ['M', x, y],
+    ['l', width, 0],
+    ['l', 0, height],
+    ['l', -width, 0],
+    ['z']
+  ];
+
+  return componentsToPath(rectPath);
+}
+
+module.exports.getRectPath = getRectPath;
+},{"280":280,"303":303,"312":312}],6:[function(_dereq_,module,exports){
+'use strict';
+
+var inherits = _dereq_(292),
+    isObject = _dereq_(429),
+    assign = _dereq_(434),
+    forEach = _dereq_(306);
+
+var BaseRenderer = _dereq_(131),
+    TextUtil = _dereq_(282),
+    DiUtil = _dereq_(99);
+
+var is = _dereq_(101).is;
+
+var createLine = _dereq_(280).createLine;
+
+var BpmnRenderUtil = _dereq_(5);
+
+var isTypedEvent = BpmnRenderUtil.isTypedEvent,
+    isThrowEvent = BpmnRenderUtil.isThrowEvent,
+    isCollection = BpmnRenderUtil.isCollection,
+    getDi = BpmnRenderUtil.getDi,
+    getSemantic = BpmnRenderUtil.getSemantic;
+
+var getCirclePath = BpmnRenderUtil.getCirclePath,
+    getRoundRectPath = BpmnRenderUtil.getRoundRectPath,
+    getDiamondPath = BpmnRenderUtil.getDiamondPath,
+    getRectPath = BpmnRenderUtil.getRectPath,
+    getFillColor = BpmnRenderUtil.getFillColor,
+    getStrokeColor = BpmnRenderUtil.getStrokeColor;
+
+var domQuery = _dereq_(456);
+
+var svgAppend = _dereq_(477),
+    svgAttr = _dereq_(479),
+    svgCreate = _dereq_(483),
+    svgClasses = _dereq_(480);
+
+var rotate = _dereq_(281).rotate,
+    transform = _dereq_(281).transform,
+    translate = _dereq_(281).translate;
+
+var Ids = _dereq_(290),
     RENDERER_IDS = new Ids();
 
 var TASK_BORDER_RADIUS = 10;
@@ -805,6 +982,9 @@ var LABEL_STYLE = {
   fontFamily: 'Arial, sans-serif',
   fontSize: 12
 };
+
+var DEFAULT_FILL_OPACITY = .95,
+    HIGH_FILL_OPACITY = .35;
 
 
 function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
@@ -1243,6 +1423,11 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
 
   var handlers = this.handlers = {
     'bpmn:Event': function(parentGfx, element, attrs) {
+
+      if (!('fillOpacity' in attrs)) {
+        attrs.fillOpacity = DEFAULT_FILL_OPACITY;
+      }
+
       return drawCircle(parentGfx, element.width, element.height, attrs);
     },
     'bpmn:StartEvent': function(parentGfx, element) {
@@ -1557,6 +1742,13 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
     'bpmn:IntermediateThrowEvent': as('bpmn:IntermediateEvent'),
 
     'bpmn:Activity': function(parentGfx, element, attrs) {
+
+      attrs = attrs || {};
+
+      if (!('fillOpacity' in attrs)) {
+        attrs.fillOpacity = DEFAULT_FILL_OPACITY;
+      }
+
       return drawRect(parentGfx, element.width, element.height, TASK_BORDER_RADIUS, attrs);
     },
 
@@ -1791,7 +1983,6 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
     },
     'bpmn:SubProcess': function(parentGfx, element, attrs) {
       attrs = assign({
-        fillOpacity: 0.95,
         fill: getFillColor(element),
         stroke: getStrokeColor(element)
       }, attrs);
@@ -1840,7 +2031,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
     'bpmn:Participant': function(parentGfx, element) {
 
       var attrs = {
-        fillOpacity: 0.95,
+        fillOpacity: DEFAULT_FILL_OPACITY,
         fill: getFillColor(element),
         stroke: getStrokeColor(element)
       };
@@ -1880,6 +2071,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
     'bpmn:Lane': function(parentGfx, element, attrs) {
       var rect = drawRect(parentGfx, element.width, element.height, 0, assign({
         fill: getFillColor(element),
+        fillOpacity: HIGH_FILL_OPACITY,
         stroke: getStrokeColor(element)
       }, attrs));
 
@@ -1893,12 +2085,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
       return rect;
     },
     'bpmn:InclusiveGateway': function(parentGfx, element) {
-      var attrs = {
-        fill: getFillColor(element),
-        stroke: getStrokeColor(element)
-      };
-
-      var diamond = drawDiamond(parentGfx, element.width, element.height, attrs);
+      var diamond = renderer('bpmn:Gateway')(parentGfx, element);
 
       /* circle path */
       drawCircle(parentGfx, element.width, element.height, element.height * 0.24, {
@@ -1910,12 +2097,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
       return diamond;
     },
     'bpmn:ExclusiveGateway': function(parentGfx, element) {
-      var attrs = {
-        fill: getFillColor(element),
-        stroke: getStrokeColor(element)
-      };
-
-      var diamond = drawDiamond(parentGfx, element.width, element.height, attrs);
+      var diamond = renderer('bpmn:Gateway')(parentGfx, element);
 
       var pathData = pathMap.getScaledPath('GATEWAY_EXCLUSIVE', {
         xScaleFactor: 0.4,
@@ -1939,12 +2121,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
       return diamond;
     },
     'bpmn:ComplexGateway': function(parentGfx, element) {
-      var attrs = {
-        fill: getFillColor(element),
-        stroke: getStrokeColor(element)
-      };
-
-      var diamond = drawDiamond(parentGfx, element.width, element.height, attrs);
+      var diamond = renderer('bpmn:Gateway')(parentGfx, element);
 
       var pathData = pathMap.getScaledPath('GATEWAY_COMPLEX', {
         xScaleFactor: 0.5,
@@ -1966,12 +2143,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
       return diamond;
     },
     'bpmn:ParallelGateway': function(parentGfx, element) {
-      var attrs = {
-        fill: getFillColor(element),
-        stroke: getStrokeColor(element)
-      };
-
-      var diamond = drawDiamond(parentGfx, element.width, element.height, attrs);
+      var diamond = renderer('bpmn:Gateway')(parentGfx, element);
 
       var pathData = pathMap.getScaledPath('GATEWAY_PARALLEL', {
         xScaleFactor: 0.6,
@@ -1996,12 +2168,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
 
       var semantic = getSemantic(element);
 
-      var attrs = {
-        fill: getFillColor(element),
-        stroke: getStrokeColor(element)
-      };
-
-      var diamond = drawDiamond(parentGfx, element.width, element.height, attrs);
+      var diamond = renderer('bpmn:Gateway')(parentGfx, element);
 
       /* outer circle path */ drawCircle(parentGfx, element.width, element.height, element.height * 0.20, {
         strokeWidth: 1,
@@ -2070,7 +2237,13 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
       return diamond;
     },
     'bpmn:Gateway': function(parentGfx, element) {
-      return drawDiamond(parentGfx, element.width, element.height);
+      var attrs = {
+        fill: getFillColor(element),
+        fillOpacity: DEFAULT_FILL_OPACITY,
+        stroke: getStrokeColor(element)
+      };
+
+      return drawDiamond(parentGfx, element.width, element.height, attrs);
     },
     'bpmn:SequenceFlow': function(parentGfx, element) {
       var pathData = createPathFromConnection(element);
@@ -2087,21 +2260,26 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
       var path = drawPath(parentGfx, pathData, attrs);
 
       var sequenceFlow = getSemantic(element);
-      var source = element.source.businessObject;
 
-      // conditional flow marker
-      if (sequenceFlow.conditionExpression && source.$instanceOf('bpmn:Activity')) {
-        svgAttr(path, {
-          markerStart: marker('conditional-flow-marker', fill, stroke)
-        });
-      }
+      var source;
 
-      // default marker
-      if (source.default && (source.$instanceOf('bpmn:Gateway') || source.$instanceOf('bpmn:Activity')) &&
-          source.default === sequenceFlow) {
-        svgAttr(path, {
-          markerStart: marker('conditional-default-flow-marker', fill, stroke)
-        });
+      if (element.source) {
+        source = element.source.businessObject;
+
+        // conditional flow marker
+        if (sequenceFlow.conditionExpression && source.$instanceOf('bpmn:Activity')) {
+          svgAttr(path, {
+            markerStart: marker('conditional-flow-marker', fill, stroke)
+          });
+        }
+
+        // default marker
+        if (source.default && (source.$instanceOf('bpmn:Gateway') || source.$instanceOf('bpmn:Activity')) &&
+            source.default === sequenceFlow) {
+          svgAttr(path, {
+            markerStart: marker('conditional-default-flow-marker', fill, stroke)
+          });
+        }
       }
 
       return path;
@@ -2208,6 +2386,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
 
       var elementObject = drawPath(parentGfx, pathData, {
         fill: getFillColor(element),
+        fillOpacity: DEFAULT_FILL_OPACITY,
         stroke: getStrokeColor(element)
       });
 
@@ -2259,6 +2438,7 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
       var elementStore = drawPath(parentGfx, DATA_STORE_PATH, {
         strokeWidth: 2,
         fill: getFillColor(element),
+        fillOpacity: DEFAULT_FILL_OPACITY,
         stroke: getStrokeColor(element)
       });
 
@@ -2272,7 +2452,8 @@ function BpmnRenderer(eventBus, styles, pathMap, canvas, priority) {
       var attrs = {
         strokeWidth: 1,
         fill: getFillColor(element),
-        stroke: getStrokeColor(element)
+        stroke: getStrokeColor(element),
+        fillOpacity: 1
       };
 
       if (!cancel) {
@@ -2572,143 +2753,7 @@ BpmnRenderer.prototype.getShapePath = function(element) {
   return getRectPath(element);
 };
 
-
-///////// helper functions /////////////////////////////
-
-/**
- * Checks if eventDefinition of the given element matches with semantic type.
- *
- * @return {boolean} true if element is of the given semantic type
- */
-function isTypedEvent(event, eventDefinitionType, filter) {
-
-  function matches(definition, filter) {
-    return every(filter, function(val, key) {
-
-      // we want a == conversion here, to be able to catch
-      // undefined == false and friends
-      /* jshint -W116 */
-      return definition[key] == val;
-    });
-  }
-
-  return some(event.eventDefinitions, function(definition) {
-    return definition.$type === eventDefinitionType && matches(event, filter);
-  });
-}
-
-function isThrowEvent(event) {
-  return (event.$type === 'bpmn:IntermediateThrowEvent') || (event.$type === 'bpmn:EndEvent');
-}
-
-function isCollection(element) {
-  var dataObject = element.dataObjectRef;
-
-  return element.isCollection || (dataObject && dataObject.isCollection);
-}
-
-function getDi(element) {
-  return element.businessObject.di;
-}
-
-function getSemantic(element) {
-  return element.businessObject;
-}
-
-
-
-/////// cropping path customizations /////////////////////////
-
-function getCirclePath(shape) {
-
-  var cx = shape.x + shape.width / 2,
-      cy = shape.y + shape.height / 2,
-      radius = shape.width / 2;
-
-  var circlePath = [
-    ['M', cx, cy],
-    ['m', 0, -radius],
-    ['a', radius, radius, 0, 1, 1, 0, 2 * radius],
-    ['a', radius, radius, 0, 1, 1, 0, -2 * radius],
-    ['z']
-  ];
-
-  return componentsToPath(circlePath);
-}
-
-function getRoundRectPath(shape, borderRadius) {
-
-  var x = shape.x,
-      y = shape.y,
-      width = shape.width,
-      height = shape.height;
-
-  var roundRectPath = [
-    ['M', x + borderRadius, y],
-    ['l', width - borderRadius * 2, 0],
-    ['a', borderRadius, borderRadius, 0, 0, 1, borderRadius, borderRadius],
-    ['l', 0, height - borderRadius * 2],
-    ['a', borderRadius, borderRadius, 0, 0, 1, -borderRadius, borderRadius],
-    ['l', borderRadius * 2 - width, 0],
-    ['a', borderRadius, borderRadius, 0, 0, 1, -borderRadius, -borderRadius],
-    ['l', 0, borderRadius * 2 - height],
-    ['a', borderRadius, borderRadius, 0, 0, 1, borderRadius, -borderRadius],
-    ['z']
-  ];
-
-  return componentsToPath(roundRectPath);
-}
-
-function getDiamondPath(shape) {
-
-  var width = shape.width,
-      height = shape.height,
-      x = shape.x,
-      y = shape.y,
-      halfWidth = width / 2,
-      halfHeight = height / 2;
-
-  var diamondPath = [
-    ['M', x + halfWidth, y],
-    ['l', halfWidth, halfHeight],
-    ['l', -halfWidth, halfHeight],
-    ['l', -halfWidth, -halfHeight],
-    ['z']
-  ];
-
-  return componentsToPath(diamondPath);
-}
-
-function getRectPath(shape) {
-  var x = shape.x,
-      y = shape.y,
-      width = shape.width,
-      height = shape.height;
-
-  var rectPath = [
-    ['M', x, y],
-    ['l', width, 0],
-    ['l', 0, height],
-    ['l', -width, 0],
-    ['z']
-  ];
-
-  return componentsToPath(rectPath);
-}
-
-function getFillColor(element, defaultColor) {
-  var bo = getBusinessObject(element);
-
-  return bo.di.get('fill') || defaultColor || 'white';
-}
-
-function getStrokeColor(element, defaultColor) {
-  var bo = getBusinessObject(element);
-
-  return bo.di.get('stroke') || defaultColor || 'black';
-}
-
-},{"128":128,"278":278,"279":279,"280":280,"288":288,"289":289,"300":300,"303":303,"309":309,"426":426,"431":431,"452":452,"472":472,"474":474,"475":475,"478":478,"93":93,"95":95}],6:[function(_dereq_,module,exports){
+},{"101":101,"131":131,"280":280,"281":281,"282":282,"290":290,"292":292,"306":306,"429":429,"434":434,"456":456,"477":477,"479":479,"480":480,"483":483,"5":5,"99":99}],7:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -3188,19 +3233,556 @@ function format(str, obj) {
   });
 }
 
-},{}],7:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'bpmnRenderer' ],
-  bpmnRenderer: [ 'type', _dereq_(5) ],
-  pathMap: [ 'type', _dereq_(6) ]
+  bpmnRenderer: [ 'type', _dereq_(6) ],
+  pathMap: [ 'type', _dereq_(7) ]
 };
 
-},{"5":5,"6":6}],8:[function(_dereq_,module,exports){
-var AutoResize = _dereq_(136);
+},{"6":6,"7":7}],9:[function(_dereq_,module,exports){
+'use strict';
 
-var inherits = _dereq_(289);
+var is = _dereq_(101).is;
+var isAny = _dereq_(74).isAny;
 
-var is = _dereq_(95).is;
+var getTextAnnotationPosition = _dereq_(11).getTextAnnotationPosition,
+    getDataElementPosition = _dereq_(11).getDataElementPosition,
+    getFlowNodePosition = _dereq_(11).getFlowNodePosition,
+    getDefaultPosition = _dereq_(11).getDefaultPosition;
+
+/**
+ * A service that places elements connected to existing ones
+ * to an appropriate position in an _automated_ fashion.
+ *
+ * @param {EventBus} eventBus
+ * @param {Modeling} modeling
+ */
+function AutoPlace(eventBus, modeling) {
+
+  function emit(event, payload) {
+    return eventBus.fire(event, payload);
+  }
+
+
+  /**
+   * Append shape to source at appropriate position.
+   *
+   * @param {djs.model.Shape} source
+   * @param {djs.model.Shape} shape
+   *
+   * @return {djs.model.Shape} appended shape
+   */
+  this.append = function(source, shape) {
+
+    // allow others to provide the position
+    var position = emit('autoPlace', {
+      source: source,
+      shape: shape
+    });
+
+    if (!position) {
+      position = getNewShapePosition(source, shape);
+    }
+
+    var newShape = modeling.appendShape(source, shape, position, source.parent);
+
+    // notify interested parties on new shape placed
+    emit('autoPlace.end', {
+      shape: newShape
+    });
+
+    return newShape;
+  };
+
+}
+
+AutoPlace.$inject = [
+  'eventBus',
+  'modeling'
+];
+
+module.exports = AutoPlace;
+
+
+/////////// helpers /////////////////////////////////////
+
+/**
+ * Find the new position for the target element to
+ * connect to source.
+ *
+ * @param  {djs.model.Shape} source
+ * @param  {djs.model.Shape} element
+ *
+ * @return {Point}
+ */
+function getNewShapePosition(source, element) {
+
+  if (is(element, 'bpmn:TextAnnotation')) {
+    return getTextAnnotationPosition(source, element);
+  }
+
+  if (isAny(element, [ 'bpmn:DataObjectReference', 'bpmn:DataStoreReference' ])) {
+    return getDataElementPosition(source, element);
+  }
+
+  if (is(element, 'bpmn:FlowNode')) {
+    return getFlowNodePosition(source, element);
+  }
+
+  return getDefaultPosition(source, element);
+}
+
+},{"101":101,"11":11,"74":74}],10:[function(_dereq_,module,exports){
+'use strict';
+
+/**
+ * Select element after auto placement.
+ *
+ * @param {EventBus} eventBus
+ * @param {Selection} selection
+ */
+function AutoPlaceSelectionBehavior(eventBus, selection) {
+
+  eventBus.on('autoPlace.end', 500, function(e) {
+    selection.select(e.shape);
+  });
+
+}
+
+AutoPlaceSelectionBehavior.$inject = [
+  'eventBus',
+  'selection'
+];
+
+module.exports = AutoPlaceSelectionBehavior;
+
+},{}],11:[function(_dereq_,module,exports){
+'use strict';
+
+var is = _dereq_(101).is;
+
+var getMid = _dereq_(255).getMid,
+    asTRBL = _dereq_(255).asTRBL,
+    getOrientation = _dereq_(255).getOrientation;
+
+var find = _dereq_(305),
+    reduce = _dereq_(309);
+
+var DEFAULT_HORIZONTAL_DISTANCE = 50;
+
+var MAX_HORIZONTAL_DISTANCE = 250;
+
+// padding to detect element placement
+var PLACEMENT_DETECTION_PAD = 10;
+
+
+/**
+ * Always try to place element right of source;
+ * compute actual distance from previous nodes in flow.
+ */
+function getFlowNodePosition(source, element) {
+
+  var sourceTrbl = asTRBL(source);
+  var sourceMid = getMid(source);
+
+  var horizontalDistance = getFlowNodeDistance(source, element);
+
+  var orientation = 'left',
+      rowSize = 80,
+      margin = 30;
+
+  if (is(source, 'bpmn:BoundaryEvent')) {
+    orientation = getOrientation(source, source.host, -25);
+
+    if (orientation === 'top') {
+      margin *= -1;
+    }
+  }
+
+  var verticalDistances = {
+    left: 0,
+    right: 0,
+    top: -1 * rowSize,
+    bottom: rowSize
+  };
+
+  var position = {
+    x: sourceTrbl.right + horizontalDistance + element.width / 2,
+    y: sourceMid.y + verticalDistances[orientation]
+  };
+
+  var escapeDirection = {
+    y: {
+      margin: margin,
+      rowSize: rowSize
+    }
+  };
+
+  return deconflictPosition(source, element, position, escapeDirection);
+}
+
+module.exports.getFlowNodePosition = getFlowNodePosition;
+
+
+/**
+ * Compute best distance between source and target,
+ * based on existing connections to and from source.
+ *
+ * @param {djs.model.Shape} source
+ * @param {djs.model.Shape} element
+ *
+ * @return {Number} distance
+ */
+function getFlowNodeDistance(source, element) {
+
+  var sourceTrbl = asTRBL(source);
+
+  // is connection a reference to consider?
+  function isReference(c) {
+    return is(c, 'bpmn:SequenceFlow');
+  }
+
+  function toTargetNode(weight) {
+
+    return function(shape) {
+      return {
+        shape: shape,
+        weight: weight,
+        distanceTo: function(shape) {
+          var shapeTrbl = asTRBL(shape);
+
+          return shapeTrbl.left - sourceTrbl.right;
+        }
+      };
+    };
+  }
+
+  function toSourceNode(weight) {
+    return function(shape) {
+      return {
+        shape: shape,
+        weight: weight,
+        distanceTo: function(shape) {
+          var shapeTrbl = asTRBL(shape);
+
+          return sourceTrbl.left - shapeTrbl.right;
+        }
+      };
+    };
+  }
+
+  // we create a list of nodes to take into consideration
+  // for calculating the optimal flow node distance
+  //
+  //   * weight existing target nodes higher than source nodes
+  //   * only take into account individual nodes once
+  //
+  var nodes = reduce([].concat(
+    getTargets(source, isReference).map(toTargetNode(5)),
+    getSources(source, isReference).map(toSourceNode(1))
+  ), function(nodes, node) {
+    // filter out shapes connected twice via source or target
+    nodes[node.shape.id + '__weight_' + node.weight] = node;
+
+    return nodes;
+  }, {});
+
+  // compute distances between source and incoming nodes;
+  // group at the same time by distance and expose the
+  // favourite distance as { fav: { count, value } }.
+  var distancesGrouped = reduce(nodes, function(result, node) {
+
+    var shape = node.shape,
+        weight = node.weight,
+        distanceTo = node.distanceTo;
+
+    var fav = result.fav,
+        currentDistance,
+        currentDistanceCount,
+        currentDistanceEntry;
+
+    currentDistance = distanceTo(shape);
+
+    // ignore too far away peers
+    // or non-left to right modeled nodes
+    if (currentDistance < 0 || currentDistance > MAX_HORIZONTAL_DISTANCE) {
+      return result;
+    }
+
+    currentDistanceEntry = result[String(currentDistance)] =
+      result[String(currentDistance)] || {
+        value: currentDistance,
+        count: 0
+      };
+
+    // inc diff count
+    currentDistanceCount = currentDistanceEntry.count += 1 * weight;
+
+    if (!fav || fav.count < currentDistanceCount) {
+      result.fav = currentDistanceEntry;
+    }
+
+    return result;
+  }, { });
+
+
+  if (distancesGrouped.fav) {
+    return distancesGrouped.fav.value;
+  } else {
+    return DEFAULT_HORIZONTAL_DISTANCE;
+  }
+}
+
+module.exports.getFlowNodeDistance = getFlowNodeDistance;
+
+
+/**
+ * Always try to place text annotations top right of source.
+ */
+function getTextAnnotationPosition(source, element) {
+
+  var sourceTrbl = asTRBL(source);
+
+  var position = {
+    x: sourceTrbl.right + element.width / 2,
+    y: sourceTrbl.top - 50 - element.height / 2
+  };
+
+  var escapeDirection = {
+    y: {
+      margin: -30,
+      rowSize: 20
+    }
+  };
+
+  return deconflictPosition(source, element, position, escapeDirection);
+}
+
+module.exports.getTextAnnotationPosition = getTextAnnotationPosition;
+
+
+/**
+ * Always put element bottom right of source.
+ */
+function getDataElementPosition(source, element) {
+
+  var sourceTrbl = asTRBL(source);
+
+  var position = {
+    x: sourceTrbl.right - 10 + element.width / 2,
+    y: sourceTrbl.bottom + 40 + element.width / 2
+  };
+
+  var escapeDirection = {
+    x: {
+      margin: 30,
+      rowSize: 30
+    }
+  };
+
+  return deconflictPosition(source, element, position, escapeDirection);
+}
+
+module.exports.getDataElementPosition = getDataElementPosition;
+
+
+/**
+ * Always put element right of source per default.
+ */
+function getDefaultPosition(source, element) {
+
+  var sourceTrbl = asTRBL(source);
+
+  var sourceMid = getMid(source);
+
+  // simply put element right next to source
+  return {
+    x: sourceTrbl.right + DEFAULT_HORIZONTAL_DISTANCE + element.width / 2,
+    y: sourceMid.y
+  };
+}
+
+module.exports.getDefaultPosition = getDefaultPosition;
+
+
+/**
+ * Returns all connected elements around the given source.
+ *
+ * This includes:
+ *
+ *   - connected elements
+ *   - host connected elements
+ *   - attachers connected elements
+ *
+ * @param  {djs.model.Shape} source
+ * @param  {djs.model.Shape} element
+ *
+ * @return {Array<djs.model.Shape>}
+ */
+function getAutoPlaceClosure(source, element) {
+
+  var allConnected = getConnected(source);
+
+  if (source.host) {
+    allConnected = allConnected.concat(getConnected(source.host));
+  }
+
+  if (source.attachers) {
+    allConnected = allConnected.concat(source.attachers.reduce(function(shapes, attacher) {
+      return shapes.concat(getConnected(attacher));
+    }, []));
+  }
+
+  return allConnected;
+}
+
+/**
+ * Return target at given position, if defined.
+ *
+ * This takes connected elements from host and attachers
+ * into account, too.
+ */
+function getConnectedAtPosition(source, position, element) {
+
+  var bounds = {
+    x: position.x - (element.width / 2),
+    y: position.y - (element.height / 2),
+    width: element.width,
+    height: element.height
+  };
+
+  var closure = getAutoPlaceClosure(source, element);
+
+  return find(closure, function(target) {
+
+    if (target === element) {
+      return false;
+    }
+
+    var orientation = getOrientation(target, bounds, PLACEMENT_DETECTION_PAD);
+
+    return orientation === 'intersect';
+  });
+}
+
+module.exports.getConnectedAtPosition = getConnectedAtPosition;
+
+
+/**
+ * Returns a new, position for the given element
+ * based on the given element that is not occupied
+ * by any element connected to source.
+ *
+ * Take into account the escapeDirection (where to move
+ * on positining clashes) in the computation.
+ *
+ * @param {djs.model.Shape} source
+ * @param {djs.model.Shape} element
+ * @param {Point} position
+ * @param {Object} escapeDelta
+ *
+ * @return {Point}
+ */
+function deconflictPosition(source, element, position, escapeDelta) {
+
+  function nextPosition(existingElement) {
+
+    var newPosition = {
+      x: position.x,
+      y: position.y
+    };
+
+    [ 'x', 'y' ].forEach(function(axis) {
+
+      var axisDelta = escapeDelta[axis];
+
+      if (!axisDelta) {
+        return;
+      }
+
+      var dimension = axis === 'x' ? 'width' : 'height';
+
+      var margin = axisDelta.margin,
+          rowSize = axisDelta.rowSize;
+
+      if (margin < 0) {
+        newPosition[axis] = Math.min(
+          existingElement[axis] + margin - element[dimension] / 2,
+          position[axis] - rowSize + margin
+        );
+      } else {
+        newPosition[axis] = Math.max(
+          existingTarget[axis] + existingTarget[dimension] + margin + element[dimension] / 2,
+          position[axis] + rowSize + margin
+        );
+      }
+    });
+
+    return newPosition;
+  }
+
+  var existingTarget;
+
+  // deconflict position until free slot is found
+  while ((existingTarget = getConnectedAtPosition(source, position, element))) {
+    position = nextPosition(existingTarget);
+  }
+
+  return position;
+}
+
+module.exports.deconflictPosition = deconflictPosition;
+
+
+
+
+///////// helpers /////////////////////
+
+function noneFilter() {
+  return true;
+}
+
+function getConnected(element, connectionFilter) {
+  return [].concat(
+    getTargets(element, connectionFilter),
+    getSources(element, connectionFilter)
+  );
+}
+
+function getSources(shape, connectionFilter) {
+
+  if (!connectionFilter) {
+    connectionFilter = noneFilter;
+  }
+
+  return shape.incoming.filter(connectionFilter).map(function(c) {
+    return c.source;
+  });
+}
+
+function getTargets(shape, connectionFilter) {
+
+  if (!connectionFilter) {
+    connectionFilter = noneFilter;
+  }
+
+  return shape.outgoing.filter(connectionFilter).map(function(c) {
+    return c.target;
+  });
+}
+},{"101":101,"255":255,"305":305,"309":309}],12:[function(_dereq_,module,exports){
+module.exports = {
+  __init__: [ 'autoPlaceSelectionBehavior' ],
+  autoPlace: [ 'type', _dereq_(9) ],
+  autoPlaceSelectionBehavior: [ 'type', _dereq_(10) ]
+};
+},{"10":10,"9":9}],13:[function(_dereq_,module,exports){
+var AutoResize = _dereq_(139);
+
+var inherits = _dereq_(292);
+
+var is = _dereq_(101).is;
 
 /**
  * Sub class of the AutoResize module which implements a BPMN
@@ -3231,16 +3813,16 @@ BpmnAutoResize.prototype.resize = function(target, newBounds) {
     this._modeling.resizeShape(target, newBounds);
   }
 };
-},{"136":136,"289":289,"95":95}],9:[function(_dereq_,module,exports){
+},{"101":101,"139":139,"292":292}],14:[function(_dereq_,module,exports){
 'use strict';
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
-var AutoResizeProvider = _dereq_(137);
+var AutoResizeProvider = _dereq_(140);
 
 /**
  * This module is a provider for automatically resizing parent BPMN elements
@@ -3284,33 +3866,35 @@ BpmnAutoResizeProvider.prototype.canResize = function(elements, target) {
   return canResize;
 };
 
-},{"137":137,"289":289,"303":303,"95":95}],10:[function(_dereq_,module,exports){
+},{"101":101,"140":140,"292":292,"306":306}],15:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'bpmnAutoResize', 'bpmnAutoResizeProvider' ],
-  bpmnAutoResize: [ 'type', _dereq_(8) ],
-  bpmnAutoResizeProvider: [ 'type', _dereq_(9) ]
+  bpmnAutoResize: [ 'type', _dereq_(13) ],
+  bpmnAutoResizeProvider: [ 'type', _dereq_(14) ]
 };
 
-},{"8":8,"9":9}],11:[function(_dereq_,module,exports){
+},{"13":13,"14":14}],16:[function(_dereq_,module,exports){
 'use strict';
 
 
-var assign = _dereq_(431),
-    forEach = _dereq_(303),
-    isArray = _dereq_(422),
-    is = _dereq_(95).is,
-    isExpanded = _dereq_(93).isExpanded,
-    isAny = _dereq_(68).isAny,
-    getChildLanes = _dereq_(67).getChildLanes,
-    isEventSubProcess = _dereq_(93).isEventSubProcess,
-    hasPrimaryModifier = _dereq_(274).hasPrimaryModifier;
+var assign = _dereq_(434),
+    forEach = _dereq_(306),
+    isArray = _dereq_(425),
+    is = _dereq_(101).is,
+    isExpanded = _dereq_(99).isExpanded,
+    isAny = _dereq_(74).isAny,
+    getChildLanes = _dereq_(73).getChildLanes,
+    isEventSubProcess = _dereq_(99).isEventSubProcess,
+    hasPrimaryModifier = _dereq_(276).hasPrimaryModifier;
 
 /**
  * A provider for BPMN 2.0 elements context pad
  */
-function ContextPadProvider(eventBus, contextPad, modeling, elementFactory,
-                            connect, create, popupMenu,
+function ContextPadProvider(config, injector, eventBus, contextPad, modeling,
+                            elementFactory, connect, create, popupMenu,
                             canvas, rules, translate) {
+
+  config = config || {};
 
   contextPad.registerProvider(this);
 
@@ -3326,6 +3910,9 @@ function ContextPadProvider(eventBus, contextPad, modeling, elementFactory,
   this._rules = rules;
   this._translate = translate;
 
+  if (config.autoPlace !== false) {
+    this._autoPlace = injector.get('autoPlace', false);
+  }
 
   eventBus.on('create.end', 250, function(event) {
     var shape = event.context.shape;
@@ -3343,6 +3930,8 @@ function ContextPadProvider(eventBus, contextPad, modeling, elementFactory,
 }
 
 ContextPadProvider.$inject = [
+  'config.contextPad',
+  'injector',
   'eventBus',
   'contextPad',
   'modeling',
@@ -3369,7 +3958,7 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
       popupMenu = this._popupMenu,
       canvas = this._canvas,
       rules = this._rules,
-
+      autoPlace = this._autoPlace,
       translate = this._translate;
 
   var actions = {};
@@ -3380,8 +3969,8 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
 
   var businessObject = element.businessObject;
 
-  function startConnect(event, element, autoActivate) {
-    connect.start(event, element, autoActivate);
+  function startConnect(event, element) {
+    connect.start(event, element);
   }
 
   function removeElement(e) {
@@ -3427,19 +4016,27 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
       title = translate('Append {type}', { type: type.replace(/^bpmn\:/, '') });
     }
 
-    function appendListener(event, element) {
+    function appendStart(event, element) {
 
       var shape = elementFactory.createShape(assign({ type: type }, options));
       create.start(event, shape, element);
     }
+
+
+    var append = autoPlace ? function(event, element) {
+      var shape = elementFactory.createShape(assign({ type: type }, options));
+
+      autoPlace.append(element, shape);
+    } : appendStart;
+
 
     return {
       group: 'model',
       className: className,
       title: title,
       action: {
-        dragstart: appendListener,
-        click: appendListener
+        dragstart: appendStart,
+        click: append
       }
     };
   }
@@ -3642,8 +4239,7 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
         className: 'bpmn-icon-trash',
         title: translate('Remove'),
         action: {
-          click: removeElement,
-          dragstart: removeElement
+          click: removeElement
         }
       }
     });
@@ -3667,35 +4263,35 @@ function isEventType(eventBo, type, definition) {
   return isType && isDefinition;
 }
 
-},{"274":274,"303":303,"422":422,"431":431,"67":67,"68":68,"93":93,"95":95}],12:[function(_dereq_,module,exports){
+},{"101":101,"276":276,"306":306,"425":425,"434":434,"73":73,"74":74,"99":99}],17:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(114),
-    _dereq_(153),
-    _dereq_(233),
-    _dereq_(151),
-    _dereq_(157),
-    _dereq_(74)
+    _dereq_(117),
+    _dereq_(156),
+    _dereq_(236),
+    _dereq_(154),
+    _dereq_(160),
+    _dereq_(80)
   ],
   __init__: [ 'contextPadProvider' ],
-  contextPadProvider: [ 'type', _dereq_(11) ]
+  contextPadProvider: [ 'type', _dereq_(16) ]
 };
-},{"11":11,"114":114,"151":151,"153":153,"157":157,"233":233,"74":74}],13:[function(_dereq_,module,exports){
+},{"117":117,"154":154,"156":156,"16":16,"160":160,"236":236,"80":80}],18:[function(_dereq_,module,exports){
 'use strict';
 
-var ModelUtil = _dereq_(95),
+var ModelUtil = _dereq_(101),
     getBusinessObject = ModelUtil.getBusinessObject,
     is = ModelUtil.is;
 
-var ModelCloneHelper = _dereq_(97);
+var ModelCloneHelper = _dereq_(103);
 
-var ModelCloneUtils = _dereq_(98),
+var ModelCloneUtils = _dereq_(104),
     getProperties = ModelCloneUtils.getProperties;
 
 var IGNORED_PROPERTIES = ModelCloneUtils.IGNORED_PROPERTIES;
 
-var filter = _dereq_(301),
-    forEach = _dereq_(303);
+var filter = _dereq_(304),
+    forEach = _dereq_(306);
 
 function setProperties(descriptor, data, properties) {
   forEach(properties, function(property) {
@@ -3717,7 +4313,7 @@ function BpmnCopyPaste(
     bpmnFactory, eventBus, copyPaste,
     clipboard, canvas, bpmnRules) {
 
-  var helper = new ModelCloneHelper(eventBus);
+  var helper = new ModelCloneHelper(eventBus, bpmnFactory);
 
   copyPaste.registerDescriptor(function(element, descriptor) {
     var businessObject = descriptor.oldBusinessObject = getBusinessObject(element);
@@ -3839,21 +4435,21 @@ BpmnCopyPaste.$inject = [
 
 module.exports = BpmnCopyPaste;
 
-},{"301":301,"303":303,"95":95,"97":97,"98":98}],14:[function(_dereq_,module,exports){
+},{"101":101,"103":103,"104":104,"304":304,"306":306}],19:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(155)
+    _dereq_(158)
   ],
   __init__: [ 'bpmnCopyPaste' ],
-  bpmnCopyPaste: [ 'type', _dereq_(13) ]
+  bpmnCopyPaste: [ 'type', _dereq_(18) ]
 };
 
-},{"13":13,"155":155}],15:[function(_dereq_,module,exports){
+},{"158":158,"18":18}],20:[function(_dereq_,module,exports){
 'use strict';
 
-var filter = _dereq_(301);
+var filter = _dereq_(304);
 
-var isAny = _dereq_(68).isAny;
+var isAny = _dereq_(74).isAny;
 
 /**
  * Registers element exclude filters for elements that currently do 
@@ -3884,27 +4480,27 @@ BpmnDistributeElements.$inject = [ 'distributeElements' ];
 
 module.exports = BpmnDistributeElements;
 
-},{"301":301,"68":68}],16:[function(_dereq_,module,exports){
+},{"304":304,"74":74}],21:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(159)
+    _dereq_(162)
   ],
   __init__: [ 'bpmnDistributeElements' ],
-  bpmnDistributeElements: [ 'type', _dereq_(15) ]
+  bpmnDistributeElements: [ 'type', _dereq_(20) ]
 };
 
-},{"15":15,"159":159}],17:[function(_dereq_,module,exports){
+},{"162":162,"20":20}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var EditorActions = _dereq_(163);
+var EditorActions = _dereq_(166);
 
-var filter = _dereq_(301);
+var filter = _dereq_(304);
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
-var getBBox = _dereq_(266).getBBox;
+var getBBox = _dereq_(269).getBBox;
 
 function BpmnEditorActions(
     injector,
@@ -4025,27 +4621,27 @@ BpmnEditorActions.$inject = [
 
 module.exports = BpmnEditorActions;
 
-},{"163":163,"266":266,"289":289,"301":301,"95":95}],18:[function(_dereq_,module,exports){
+},{"101":101,"166":166,"269":269,"292":292,"304":304}],23:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(133),
-    _dereq_(164),
-    _dereq_(168),
-    _dereq_(176),
-    _dereq_(240),
-    _dereq_(20),
-    _dereq_(14),
-    _dereq_(16),
-    _dereq_(84),
-    _dereq_(66)
+    _dereq_(136),
+    _dereq_(167),
+    _dereq_(171),
+    _dereq_(179),
+    _dereq_(243),
+    _dereq_(25),
+    _dereq_(19),
+    _dereq_(21),
+    _dereq_(90),
+    _dereq_(72)
   ],
-  editorActions: [ 'type', _dereq_(17) ]
+  editorActions: [ 'type', _dereq_(22) ]
 };
 
-},{"133":133,"14":14,"16":16,"164":164,"168":168,"17":17,"176":176,"20":20,"240":240,"66":66,"84":84}],19:[function(_dereq_,module,exports){
+},{"136":136,"167":167,"171":171,"179":179,"19":19,"21":21,"22":22,"243":243,"25":25,"72":72,"90":90}],24:[function(_dereq_,module,exports){
 'use strict';
 
-var isAny = _dereq_(68).isAny;
+var isAny = _dereq_(74).isAny;
 
 /**
  * Extention of GlobalConnect tool that implements BPMN specific rules about
@@ -4093,16 +4689,16 @@ function isLabel(element) {
 
 
 
-},{"68":68}],20:[function(_dereq_,module,exports){
+},{"74":74}],25:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(166)
+    _dereq_(169)
   ],
   __init__: [ 'bpmnGlobalConnect' ],
-  bpmnGlobalConnect: [ 'type', _dereq_(19) ]
+  bpmnGlobalConnect: [ 'type', _dereq_(24) ]
 };
 
-},{"166":166,"19":19}],21:[function(_dereq_,module,exports){
+},{"169":169,"24":24}],26:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -4176,25 +4772,25 @@ BpmnKeyBindings.$inject = [
 ];
 
 module.exports = BpmnKeyBindings;
-},{}],22:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(172)
+    _dereq_(175)
   ],
   __init__: [ 'bpmnKeyBindings' ],
-  bpmnKeyBindings: [ 'type', _dereq_(21) ]
+  bpmnKeyBindings: [ 'type', _dereq_(26) ]
 };
 
-},{"172":172,"21":21}],23:[function(_dereq_,module,exports){
-var svgAppend = _dereq_(472),
-    svgAttr = _dereq_(474),
-    svgCreate = _dereq_(478),
-    svgRemove = _dereq_(481);
+},{"175":175,"26":26}],28:[function(_dereq_,module,exports){
+var svgAppend = _dereq_(477),
+    svgAttr = _dereq_(479),
+    svgCreate = _dereq_(483),
+    svgRemove = _dereq_(486);
 
-var getBusinessObject = _dereq_(95).getBusinessObject,
-    is = _dereq_(95).is;
+var getBusinessObject = _dereq_(101).getBusinessObject,
+    is = _dereq_(101).is;
 
-var translate = _dereq_(279).translate;
+var translate = _dereq_(281).translate;
 
 var MARKER_HIDDEN = 'djs-element-hidden',
     MARKER_LABEL_HIDDEN = 'djs-label-hidden';
@@ -4309,17 +4905,18 @@ LabelEditingPreview.$inject = [ 'eventBus', 'canvas', 'elementRegistry', 'pathMa
 
 module.exports = LabelEditingPreview;
 
-},{"279":279,"472":472,"474":474,"478":478,"481":481,"95":95}],24:[function(_dereq_,module,exports){
+},{"101":101,"281":281,"477":477,"479":479,"483":483,"486":486}],29:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431);
+var assign = _dereq_(434);
 
-var UpdateLabelHandler = _dereq_(26);
+var UpdateLabelHandler = _dereq_(31);
 
-var LabelUtil = _dereq_(25);
+var LabelUtil = _dereq_(30);
 
-var is = _dereq_(95).is,
-    isExpanded = _dereq_(93).isExpanded;
+var is = _dereq_(101).is,
+    isAny = _dereq_(74).isAny,
+    isExpanded = _dereq_(99).isExpanded;
 
 var SMALL_FONT_SIZE = 11,
     SMALL_LINE_HEIGHT = 13,
@@ -4337,9 +4934,7 @@ function LabelEditingProvider(eventBus, canvas, directEditing, commandStack, res
 
   // listen to dblclick on non-root elements
   eventBus.on('element.dblclick', function(event) {
-    directEditing.activate(event.element);
-
-    resizeHandles.removeResizers();
+    activateDirectEdit(event.element, true);
   });
 
   // complete on followup canvas operation
@@ -4352,29 +4947,48 @@ function LabelEditingProvider(eventBus, canvas, directEditing, commandStack, res
     directEditing.cancel();
   });
 
-  if ('ontouchstart' in document.documentElement) {
-    // we deactivate automatic label editing on mobile devices
+
+  eventBus.on('directEditing.activate', function(event) {
+    resizeHandles.removeResizers();
+  });
+
+  eventBus.on('create.end', 500, function(event) {
+
+    var element = event.shape,
+        canExecute = event.context.canExecute,
+        isTouch = event.isTouch;
+
+    // TODO(nikku): we need to find a way to support the direct editing
+    // on mobile devices; right now this will break for desworkflowediting on mobile devices
     // as it breaks the user interaction workflow
 
     // TODO(nre): we should temporarily focus the edited element here
     // and release the focused viewport after the direct edit operation is finished
-  } else {
-    eventBus.on('create.end', 500, function(event) {
-      var element = event.shape,
-          canExecute = event.context.canExecute;
+    if (isTouch) {
+      return;
+    }
 
-      if (!canExecute) {
-        return;
-      }
+    if (!canExecute) {
+      return;
+    }
 
-      if (is(element, 'bpmn:Task') || is(element, 'bpmn:TextAnnotation') ||
-          (is(element, 'bpmn:SubProcess') && !isExpanded(element))) {
-        directEditing.activate(element);
+    activateDirectEdit(element);
+  });
 
-        resizeHandles.removeResizers();
-      }
-    });
+  eventBus.on('autoPlace.end', 500, function(event) {
+    activateDirectEdit(event.shape);
+  });
+
+
+  function activateDirectEdit(element, force) {
+    if (force ||
+        isAny(element, [ 'bpmn:Task', 'bpmn:TextAnnotation' ]) ||
+        isCollapsedSubProcess(element)) {
+
+      directEditing.activate(element);
+    }
   }
+
 }
 
 LabelEditingProvider.$inject = [ 'eventBus', 'canvas', 'directEditing', 'commandStack', 'resizeHandles' ];
@@ -4413,11 +5027,8 @@ LabelEditingProvider.prototype.activate = function(element) {
   var options = {};
 
   // tasks
-  if (is(element, 'bpmn:Task') ||
-      is(element, 'bpmn:Participant') ||
-      is(element, 'bpmn:Lane') ||
-      (is(element, 'bpmn:CallActivity') && !isExpanded(element)) ||
-      (is(element, 'bpmn:SubProcess') && !isExpanded(element))) {
+  if (isAny(element, [ 'bpmn:Task', 'bpmn:Participant', 'bpmn:Lane', 'bpmn:CallActivity' ]) ||
+      isCollapsedSubProcess(element)) {
     assign(options, {
       centerVertically: true
     });
@@ -4479,8 +5090,7 @@ LabelEditingProvider.prototype.getEditingBBox = function(element) {
   var style = {};
 
   // adjust for expanded pools AND lanes
-  if ((is(element, 'bpmn:Participant') && isExpanded(element))
-       || is(element, 'bpmn:Lane')) {
+  if (is(element, 'bpmn:Lane') || isExpandedPool(element)) {
 
     assign(bounds, {
       width: bbox.height,
@@ -4502,12 +5112,10 @@ LabelEditingProvider.prototype.getEditingBBox = function(element) {
 
 
   // internal labels for tasks and collapsed call activities, sub processes and participants
-  if (
-    is(element, 'bpmn:Task') ||
-    (is(element, 'bpmn:CallActivity') && !isExpanded(element)) ||
-    (is(element, 'bpmn:SubProcess') && !isExpanded(element)) ||
-    (is(element, 'bpmn:Participant') && !isExpanded(element))
-  ) {
+  if (isAny(element, [ 'bpmn:Task', 'bpmn:CallActivity']) ||
+      isCollapsedPool(element) ||
+      isCollapsedSubProcess(element)) {
+
     assign(bounds, {
       width: bbox.width,
       height: bbox.height
@@ -4525,7 +5133,7 @@ LabelEditingProvider.prototype.getEditingBBox = function(element) {
 
 
   // internal labels for expanded sub processes
-  if (is(element, 'bpmn:SubProcess') && isExpanded(element)) {
+  if (isExpandedSubProcess(element)) {
     assign(bounds, {
       width: bbox.width,
       x: bbox.x
@@ -4603,10 +5211,29 @@ LabelEditingProvider.prototype.update = function(element, newLabel, activeContex
   });
 };
 
-},{"25":25,"26":26,"431":431,"93":93,"95":95}],25:[function(_dereq_,module,exports){
+
+
+////////// helpers ////////////////////////////////
+
+function isCollapsedSubProcess(element) {
+  return is(element, 'bpmn:SubProcess') && !isExpanded(element);
+}
+
+function isExpandedSubProcess(element) {
+  return is(element, 'bpmn:SubProcess') && isExpanded(element);
+}
+
+function isCollapsedPool(element) {
+  return is(element, 'bpmn:Participant') && !isExpanded(element);
+}
+
+function isExpandedPool(element) {
+  return is(element, 'bpmn:Participant') && isExpanded(element);
+}
+},{"101":101,"30":30,"31":31,"434":434,"74":74,"99":99}],30:[function(_dereq_,module,exports){
 'use strict';
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
 function getLabelAttr(semantic) {
   if (is(semantic, 'bpmn:FlowElement') ||
@@ -4648,17 +5275,17 @@ module.exports.setLabel = function(element, text, isExternal) {
 
   return element;
 };
-},{"95":95}],26:[function(_dereq_,module,exports){
+},{"101":101}],31:[function(_dereq_,module,exports){
 'use strict';
 
-var LabelUtil = _dereq_(25);
+var LabelUtil = _dereq_(30);
 
-var TextUtil = _dereq_(280);
+var TextUtil = _dereq_(282);
 
-var hasExternalLabel = _dereq_(94).hasExternalLabel;
+var hasExternalLabel = _dereq_(100).hasExternalLabel;
 
-var getBusinessObject = _dereq_(95).getBusinessObject,
-    is = _dereq_(95).is;
+var getBusinessObject = _dereq_(101).getBusinessObject,
+    is = _dereq_(101).is;
 
 var NULL_DIMENSIONS = {
   width: 0,
@@ -4766,28 +5393,28 @@ function getLayoutedBounds(bounds, text, textUtil) {
     height: Math.ceil(layoutedLabelDimensions.height)
   };
 }
-},{"25":25,"280":280,"94":94,"95":95}],27:[function(_dereq_,module,exports){
+},{"100":100,"101":101,"282":282,"30":30}],32:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(121),
-    _dereq_(147),
-    _dereq_(224),
-    _dereq_(114)
+    _dereq_(124),
+    _dereq_(150),
+    _dereq_(227),
+    _dereq_(117)
   ],
   __init__: [
     'labelEditingProvider',
     'labelEditingPreview'
   ],
-  labelEditingProvider: [ 'type', _dereq_(24) ],
-  labelEditingPreview: [ 'type', _dereq_(23) ]
+  labelEditingProvider: [ 'type', _dereq_(29) ],
+  labelEditingPreview: [ 'type', _dereq_(28) ]
 };
 
-},{"114":114,"121":121,"147":147,"224":224,"23":23,"24":24}],28:[function(_dereq_,module,exports){
+},{"117":117,"124":124,"150":150,"227":227,"28":28,"29":29}],33:[function(_dereq_,module,exports){
 'use strict';
 
-var map = _dereq_(305),
-    assign = _dereq_(431),
-    pick = _dereq_(438);
+var map = _dereq_(308),
+    assign = _dereq_(434),
+    pick = _dereq_(441);
 
 
 function BpmnFactory(moddle) {
@@ -4881,24 +5508,26 @@ BpmnFactory.prototype.createDiPlane = function(semantic) {
 
 module.exports = BpmnFactory;
 
-},{"305":305,"431":431,"438":438}],29:[function(_dereq_,module,exports){
+},{"308":308,"434":434,"441":441}],34:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var assign = _dereq_(431);
+var assign = _dereq_(434);
 
-var BaseLayouter = _dereq_(250),
-    ManhattanLayout = _dereq_(253);
+var BaseLayouter = _dereq_(253),
+    ManhattanLayout = _dereq_(256);
 
-var LayoutUtil = _dereq_(252);
+var LayoutUtil = _dereq_(255);
 
-var isExpanded = _dereq_(93).isExpanded;
+var pointsOnLine = _dereq_(271).pointsOnLine;
+
+var isExpanded = _dereq_(99).isExpanded;
 
 var getMid = LayoutUtil.getMid,
     getOrientation = LayoutUtil.getOrientation;
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
 
 function BpmnLayouter() {}
@@ -5041,6 +5670,20 @@ BpmnLayouter.prototype.layoutConnection = function(connection, hints) {
         start, end,
         waypoints,
         manhattanOptions);
+
+    // filter un-needed waypoints that may be the result of
+    // bundle collapsing
+    updatedWaypoints = updatedWaypoints && updatedWaypoints.reduce(function(points, p, idx) {
+
+      var previous = points[points.length - 1],
+          next = updatedWaypoints[idx + 1];
+
+      if (!pointsOnLine(previous, next, p, 0)) {
+        points.push(p);
+      }
+
+      return points;
+    }, []);
   }
 
   return updatedWaypoints || [ start, end ];
@@ -5074,20 +5717,20 @@ function isCompensationAssociation(connection) {
 function isExpandedSubProcess(element) {
   return is(element, 'bpmn:SubProcess') && isExpanded(element);
 }
-},{"250":250,"252":252,"253":253,"289":289,"431":431,"93":93,"95":95}],30:[function(_dereq_,module,exports){
+},{"101":101,"253":253,"255":255,"256":256,"271":271,"292":292,"434":434,"99":99}],35:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431),
-    forEach = _dereq_(303),
-    inherits = _dereq_(289);
+var assign = _dereq_(434),
+    forEach = _dereq_(306),
+    inherits = _dereq_(292);
 
-var Collections = _dereq_(263),
-    Model = _dereq_(254);
+var Collections = _dereq_(266),
+    Model = _dereq_(257);
 
-var getBusinessObject = _dereq_(95).getBusinessObject,
-    is = _dereq_(95).is;
+var getBusinessObject = _dereq_(101).getBusinessObject,
+    is = _dereq_(101).is;
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
 /**
  * A handler responsible for updating the underlying BPMN 2.0 XML + DI
@@ -5768,19 +6411,19 @@ function ifBpmn(fn) {
   };
 }
 
-},{"119":119,"254":254,"263":263,"289":289,"303":303,"431":431,"95":95}],31:[function(_dereq_,module,exports){
+},{"101":101,"122":122,"257":257,"266":266,"292":292,"306":306,"434":434}],36:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431),
-    forEach = _dereq_(303),
-    inherits = _dereq_(289);
+var assign = _dereq_(434),
+    forEach = _dereq_(306),
+    inherits = _dereq_(292);
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
-var isExpanded = _dereq_(93).isExpanded;
+var isExpanded = _dereq_(99).isExpanded;
 
-var BaseElementFactory = _dereq_(123),
-    LabelUtil = _dereq_(94);
+var BaseElementFactory = _dereq_(126),
+    LabelUtil = _dereq_(100);
 
 /**
  * A bpmn-aware factory for diagram-js shapes
@@ -5988,21 +6631,21 @@ function applyAttribute(element, attrs, attributeName) {
 
   delete attrs[attributeName];
 }
-},{"123":123,"289":289,"303":303,"431":431,"93":93,"94":94,"95":95}],32:[function(_dereq_,module,exports){
+},{"100":100,"101":101,"126":126,"292":292,"306":306,"434":434,"99":99}],37:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var BaseModeling = _dereq_(177);
+var BaseModeling = _dereq_(180);
 
-var UpdatePropertiesHandler = _dereq_(65),
-    UpdateCanvasRootHandler = _dereq_(63),
-    AddLaneHandler = _dereq_(58),
-    SplitLaneHandler = _dereq_(62),
-    ResizeLaneHandler = _dereq_(60),
-    UpdateFlowNodeRefsHandler = _dereq_(64),
-    IdClaimHandler = _dereq_(59),
-    SetColorHandler = _dereq_(61);
+var UpdatePropertiesHandler = _dereq_(71),
+    UpdateCanvasRootHandler = _dereq_(69),
+    AddLaneHandler = _dereq_(64),
+    SplitLaneHandler = _dereq_(68),
+    ResizeLaneHandler = _dereq_(66),
+    UpdateFlowNodeRefsHandler = _dereq_(70),
+    IdClaimHandler = _dereq_(65),
+    SetColorHandler = _dereq_(67);
 
 
 /**
@@ -6173,14 +6816,205 @@ Modeling.prototype.setColor = function(elements, colors) {
   });
 };
 
-},{"177":177,"289":289,"58":58,"59":59,"60":60,"61":61,"62":62,"63":63,"64":64,"65":65}],33:[function(_dereq_,module,exports){
+},{"180":180,"292":292,"64":64,"65":65,"66":66,"67":67,"68":68,"69":69,"70":70,"71":71}],38:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var is = _dereq_(95).is;
+var getOrientation = _dereq_(255).getOrientation,
+    getMid = _dereq_(255).getMid,
+    asTRBL = _dereq_(255).asTRBL,
+    substract = _dereq_(275).substract;
 
-var CommandInterceptor = _dereq_(119);
+var LabelUtil = _dereq_(100);
+
+var hasExternalLabel = LabelUtil.hasExternalLabel;
+
+var CommandInterceptor = _dereq_(122);
+
+
+/**
+ * A component that makes sure that external labels are added
+ * together with respective elements and properly updated (DI wise)
+ * during move.
+ *
+ * @param {EventBus} eventBus
+ * @param {Modeling} modeling
+ */
+function AdaptiveLabelPositioningBehavior(eventBus, modeling) {
+
+  CommandInterceptor.call(this, eventBus);
+
+  this.postExecuted([
+    'connection.create',
+    'connection.layout',
+    'connection.reconnectEnd',
+    'connection.reconnectStart',
+    'connection.updateWaypoints'
+  ], function(event) {
+
+    var context = event.context,
+        connection = context.connection;
+
+    var source = connection.source,
+        target = connection.target;
+
+    checkLabelAdjustment(source);
+    checkLabelAdjustment(target);
+  });
+
+
+  function checkLabelAdjustment(element) {
+
+    // skip hidden or non-existing labels
+    if (!hasExternalLabel(element)) {
+      return;
+    }
+
+    var optimalPosition = getOptimalPosition(element);
+
+    // no optimal position found
+    if (!optimalPosition) {
+      return;
+    }
+
+    adjustLabelPosition(element, optimalPosition);
+  }
+
+  var ELEMENT_LABEL_DISTANCE = 10;
+
+  function adjustLabelPosition(element, orientation) {
+
+    var elementMid = getMid(element),
+        label = element.label,
+        labelMid = getMid(label);
+
+    var elementTrbl = asTRBL(element);
+
+    var newLabelMid;
+
+    switch (orientation) {
+    case 'top':
+      newLabelMid = {
+        x: elementMid.x,
+        y: elementTrbl.top - ELEMENT_LABEL_DISTANCE - label.height / 2
+      };
+
+      break;
+
+    case 'left':
+
+      newLabelMid = {
+        x: elementTrbl.left - ELEMENT_LABEL_DISTANCE - label.width / 2,
+        y: elementMid.y
+      };
+
+      break;
+
+    case 'bottom':
+
+      newLabelMid = {
+        x: elementMid.x,
+        y: elementTrbl.bottom + ELEMENT_LABEL_DISTANCE + label.height / 2
+      };
+
+      break;
+
+    case 'right':
+
+      newLabelMid = {
+        x: elementTrbl.right + ELEMENT_LABEL_DISTANCE + label.width / 2,
+        y: elementMid.y
+      };
+
+      break;
+    }
+
+
+    var delta = substract(newLabelMid, labelMid);
+
+    modeling.moveShape(label, delta);
+  }
+
+}
+
+
+inherits(AdaptiveLabelPositioningBehavior, CommandInterceptor);
+
+AdaptiveLabelPositioningBehavior.$inject = [
+  'eventBus',
+  'modeling'
+];
+
+module.exports = AdaptiveLabelPositioningBehavior;
+
+/**
+ * Return the optimal label position around an element
+ * or _undefined_, if none was found.
+ *
+ * @param  {Shape} element
+ *
+ * @return {String} positioning identifier
+ */
+function getOptimalPosition(element) {
+
+  var labelMid = getMid(element.label);
+
+  var elementMid = getMid(element);
+
+  var labelOrientation = getApproximateOrientation(elementMid, labelMid);
+
+  if (!isAligned(labelOrientation)) {
+    return;
+  }
+
+  var takenAlignments = [].concat(
+    element.incoming.map(function(c) {
+      return c.waypoints[c.waypoints.length - 2 ];
+    }),
+    element.outgoing.map(function(c) {
+      return c.waypoints[1];
+    })
+  ).map(function(point) {
+    return getApproximateOrientation(elementMid, point);
+  });
+
+  var freeAlignments = ALIGNMENTS.filter(function(alignment) {
+
+    return takenAlignments.indexOf(alignment) === -1;
+  });
+
+  // NOTHING TO DO; label already aligned a.O.K.
+  if (freeAlignments.indexOf(labelOrientation) !== -1) {
+    return;
+  }
+
+  return freeAlignments[0];
+}
+
+var ALIGNMENTS = [
+  'top',
+  'bottom',
+  'left',
+  'right'
+];
+
+function getApproximateOrientation(p0, p1) {
+  return getOrientation(p1, p0, 5);
+}
+
+function isAligned(orientation) {
+  return ALIGNMENTS.indexOf(orientation) !== -1;
+}
+
+},{"100":100,"122":122,"255":255,"275":275,"292":292}],39:[function(_dereq_,module,exports){
+'use strict';
+
+var inherits = _dereq_(292);
+
+var is = _dereq_(101).is;
+
+var CommandInterceptor = _dereq_(122);
 
 
 function AppendBehavior(eventBus, elementFactory, bpmnRules) {
@@ -6217,16 +7051,16 @@ AppendBehavior.$inject = [ 'eventBus', 'elementFactory', 'bpmnRules' ];
 inherits(AppendBehavior, CommandInterceptor);
 
 module.exports = AppendBehavior;
-},{"119":119,"289":289,"95":95}],34:[function(_dereq_,module,exports){
+},{"101":101,"122":122,"292":292}],40:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
 
 function CopyPasteBehavior(eventBus, modeling, canvas) {
@@ -6288,14 +7122,14 @@ inherits(CopyPasteBehavior, CommandInterceptor);
 
 module.exports = CopyPasteBehavior;
 
-},{"119":119,"289":289,"303":303,"95":95}],35:[function(_dereq_,module,exports){
+},{"101":101,"122":122,"292":292,"306":306}],41:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
 
 /**
@@ -6341,14 +7175,14 @@ inherits(CreateBoundaryEventBehavior, CommandInterceptor);
 
 module.exports = CreateBoundaryEventBehavior;
 
-},{"119":119,"289":289,"95":95}],36:[function(_dereq_,module,exports){
+},{"101":101,"122":122,"292":292}],42:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
 /**
  * BPMN specific create data object behavior
@@ -6380,14 +7214,14 @@ inherits(CreateDataObjectBehavior, CommandInterceptor);
 
 module.exports = CreateDataObjectBehavior;
 
-},{"119":119,"289":289,"95":95}],37:[function(_dereq_,module,exports){
+},{"101":101,"122":122,"292":292}],43:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
 /**
  * BPMN specific create participant behavior
@@ -6473,18 +7307,18 @@ inherits(CreateParticipantBehavior, CommandInterceptor);
 
 module.exports = CreateParticipantBehavior;
 
-},{"119":119,"289":289,"95":95}],38:[function(_dereq_,module,exports){
+},{"101":101,"122":122,"292":292}],44:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
-var Collections = _dereq_(263);
+var Collections = _dereq_(266);
 
-var find = _dereq_(302);
+var find = _dereq_(305);
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
 var TARGET_REF_PLACEHOLDER_NAME = '__targetRef_placeholder';
 
@@ -6626,18 +7460,18 @@ function ifDataInputAssociation(fn) {
     }
   };
 }
-},{"119":119,"263":263,"289":289,"302":302,"95":95}],39:[function(_dereq_,module,exports){
+},{"101":101,"122":122,"266":266,"292":292,"305":305}],45:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
-var getChildLanes = _dereq_(67).getChildLanes;
+var getChildLanes = _dereq_(73).getChildLanes;
 
-var eachElement = _dereq_(266).eachElement;
+var eachElement = _dereq_(269).eachElement;
 
 
 var LOW_PRIORITY = 500;
@@ -6735,17 +7569,17 @@ DeleteLaneBehavior.$inject = [ 'eventBus', 'modeling', 'spaceTool' ];
 inherits(DeleteLaneBehavior, CommandInterceptor);
 
 module.exports = DeleteLaneBehavior;
-},{"119":119,"266":266,"289":289,"67":67,"95":95}],40:[function(_dereq_,module,exports){
+},{"101":101,"122":122,"269":269,"292":292,"73":73}],46:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var assign = _dereq_(431),
-    find = _dereq_(302);
+var assign = _dereq_(434),
+    find = _dereq_(305);
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
-var getApproxIntersection = _dereq_(272).getApproxIntersection;
+var getApproxIntersection = _dereq_(274).getApproxIntersection;
 
 function isPointInsideBBox(bbox, point) {
   var x = point.x,
@@ -6883,8 +7717,7 @@ function DropOnFlow(eventBus, bpmnRules, modeling) {
     }
   }, true);
 
-
-  this.postExecute('shape.create', function(context) {
+  this.postExecuted('shape.create', function(context) {
 
     var shape = context.shape,
         targetFlow = context.targetFlow,
@@ -6902,12 +7735,12 @@ DropOnFlow.$inject = [ 'eventBus', 'bpmnRules', 'modeling' ];
 
 module.exports = DropOnFlow;
 
-},{"119":119,"272":272,"289":289,"302":302,"431":431}],41:[function(_dereq_,module,exports){
+},{"122":122,"274":274,"292":292,"305":305,"434":434}],47:[function(_dereq_,module,exports){
 'use strict';
 
-var getMid = _dereq_(252).getMid;
+var getMid = _dereq_(255).getMid;
 
-var lineIntersect = _dereq_(57);
+var lineIntersect = _dereq_(63);
 
 
 /**
@@ -6984,15 +7817,15 @@ module.exports = ImportDockingFix;
 function getDistance(p1, p2) {
   return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
 }
-},{"252":252,"57":57}],42:[function(_dereq_,module,exports){
+},{"255":255,"63":63}],48:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431),
-    inherits = _dereq_(289);
+var assign = _dereq_(434),
+    inherits = _dereq_(292);
 
-var LabelUtil = _dereq_(94),
-    LabelLayoutUtil = _dereq_(55),
-    ModelUtil = _dereq_(95),
+var LabelUtil = _dereq_(100),
+    LabelLayoutUtil = _dereq_(61),
+    ModelUtil = _dereq_(101),
     is = ModelUtil.is,
     getBusinessObject = ModelUtil.getBusinessObject;
 
@@ -7000,9 +7833,9 @@ var hasExternalLabel = LabelUtil.hasExternalLabel,
     getExternalLabelMid = LabelUtil.getExternalLabelMid,
     getLabelAdjustment = LabelLayoutUtil.getLabelAdjustment;
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
-var TextUtil = _dereq_(280);
+var TextUtil = _dereq_(282);
 
 var DEFAULT_LABEL_DIMENSIONS = {
   width: 90,
@@ -7034,7 +7867,7 @@ function LabelSupport(eventBus, modeling, bpmnFactory) {
     var element = context.shape || context.connection,
         businessObject = element.businessObject;
 
-    if (!hasExternalLabel(businessObject)) {
+    if (!hasExternalLabel(element)) {
       return;
     }
 
@@ -7208,10 +8041,10 @@ function getLayoutedBounds(bounds, text, textUtil) {
   };
 }
 
-},{"119":119,"280":280,"289":289,"431":431,"55":55,"94":94,"95":95}],43:[function(_dereq_,module,exports){
+},{"100":100,"101":101,"122":122,"282":282,"292":292,"434":434,"61":61}],49:[function(_dereq_,module,exports){
 'use strict';
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
 var COLLAB_ERR_MSG = 'flow elements must be children of pools/participants',
     PROCESS_ERR_MSG = 'participants cannot be pasted onto a non-empty process diagram';
@@ -7260,14 +8093,14 @@ ModelingFeedback.$inject = [ 'eventBus', 'tooltips', 'translate' ];
 
 module.exports = ModelingFeedback;
 
-},{"95":95}],44:[function(_dereq_,module,exports){
+},{"101":101}],50:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
-var lineIntersect = _dereq_(57);
+var lineIntersect = _dereq_(63);
 
 
 function RemoveElementBehavior(eventBus, bpmnRules, modeling) {
@@ -7335,14 +8168,14 @@ function getNewWaypoints(inWaypoints, outWaypoints) {
     ];
   }
 }
-},{"119":119,"289":289,"57":57}],45:[function(_dereq_,module,exports){
+},{"122":122,"292":292,"63":63}],51:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
 
 /**
@@ -7387,16 +8220,16 @@ RemoveParticipantBehavior.$inject = [ 'eventBus', 'modeling' ];
 inherits(RemoveParticipantBehavior, CommandInterceptor);
 
 module.exports = RemoveParticipantBehavior;
-},{"119":119,"289":289,"95":95}],46:[function(_dereq_,module,exports){
+},{"101":101,"122":122,"292":292}],52:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303),
-    find = _dereq_(302),
-    inherits = _dereq_(289);
+var forEach = _dereq_(306),
+    find = _dereq_(305),
+    inherits = _dereq_(292);
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
 function ReplaceConnectionBehavior(eventBus, modeling, bpmnRules) {
 
@@ -7517,17 +8350,17 @@ ReplaceConnectionBehavior.$inject = [ 'eventBus', 'modeling', 'bpmnRules' ];
 
 module.exports = ReplaceConnectionBehavior;
 
-},{"119":119,"289":289,"302":302,"303":303,"95":95}],47:[function(_dereq_,module,exports){
+},{"101":101,"122":122,"292":292,"305":305,"306":306}],53:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
-var isEventSubProcess = _dereq_(93).isEventSubProcess;
-var is = _dereq_(95).is;
+var isEventSubProcess = _dereq_(99).isEventSubProcess;
+var is = _dereq_(101).is;
 
 /**
  * Defines the behaviour of what happens to the elements inside a container
@@ -7637,14 +8470,14 @@ ReplaceElementBehaviour.$inject = [
 
 module.exports = ReplaceElementBehaviour;
 
-},{"119":119,"289":289,"303":303,"93":93,"95":95}],48:[function(_dereq_,module,exports){
+},{"101":101,"122":122,"292":292,"306":306,"99":99}],54:[function(_dereq_,module,exports){
 'use strict';
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
-var roundBounds = _dereq_(252).roundBounds;
+var roundBounds = _dereq_(255).roundBounds;
 
-var hasPrimaryModifier = _dereq_(274).hasPrimaryModifier;
+var hasPrimaryModifier = _dereq_(276).hasPrimaryModifier;
 
 var SLIGHTLY_HIGHER_PRIORITY = 1001;
 
@@ -7698,15 +8531,15 @@ ResizeLaneBehavior.$inject = [ 'eventBus', 'modeling' ];
 
 module.exports = ResizeLaneBehavior;
 
-},{"252":252,"274":274,"95":95}],49:[function(_dereq_,module,exports){
+},{"101":101,"255":255,"276":276}],55:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var CommandInterceptor = _dereq_(119),
-    getBusinessObject = _dereq_(95).getBusinessObject,
-    is = _dereq_(95).is,
-    computeChildrenBBox = _dereq_(223).computeChildrenBBox;
+var CommandInterceptor = _dereq_(122),
+    getBusinessObject = _dereq_(101).getBusinessObject,
+    is = _dereq_(101).is,
+    computeChildrenBBox = _dereq_(226).computeChildrenBBox;
 
 
 var LOW_PRIORITY = 500;
@@ -7838,14 +8671,14 @@ function filterVisible(elements) {
     return !e.hidden;
   });
 }
-},{"119":119,"223":223,"289":289,"95":95}],50:[function(_dereq_,module,exports){
+},{"101":101,"122":122,"226":226,"292":292}],56:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
 function UnclaimIdBehavior(eventBus, modeling) {
 
@@ -7867,15 +8700,15 @@ inherits(UnclaimIdBehavior, CommandInterceptor);
 UnclaimIdBehavior.$inject = [ 'eventBus', 'modeling' ];
 
 module.exports = UnclaimIdBehavior;
-},{"119":119,"289":289,"303":303}],51:[function(_dereq_,module,exports){
+},{"122":122,"292":292,"306":306}],57:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
-var is = _dereq_(95).is,
-    getBusinessObject = _dereq_(95).getBusinessObject;
+var is = _dereq_(101).is,
+    getBusinessObject = _dereq_(101).getBusinessObject;
 
 /**
  * A behavior that unsets the Default property of
@@ -7923,15 +8756,15 @@ function isDefaultFlow(connection, source) {
 
   return sourceBo.get('default') === sequenceFlow;
 }
-},{"119":119,"289":289,"95":95}],52:[function(_dereq_,module,exports){
+},{"101":101,"122":122,"292":292}],58:[function(_dereq_,module,exports){
 'use strict';
 
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
 var LOW_PRIORITY = 500,
     HIGH_PRIORITY = 5000;
@@ -8081,53 +8914,55 @@ function UpdateContext() {
     return !this.counter;
   };
 }
-},{"119":119,"289":289,"95":95}],53:[function(_dereq_,module,exports){
+},{"101":101,"122":122,"292":292}],59:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [
+    'adaptiveLabelPositioningBehavior',
     'appendBehavior',
     'copyPasteBehavior',
     'createBoundaryEventBehavior',
     'createDataObjectBehavior',
-    'dropOnFlowBehavior',
     'createParticipantBehavior',
     'dataInputAssociationBehavior',
     'deleteLaneBehavior',
+    'dropOnFlowBehavior',
     'importDockingFix',
     'labelBehavior',
     'modelingFeedback',
+    'removeElementBehavior',
     'removeParticipantBehavior',
     'replaceConnectionBehavior',
     'replaceElementBehaviour',
     'resizeLaneBehavior',
-    'unsetDefaultFlowBehavior',
-    'updateFlowNodeRefsBehavior',
-    'removeElementBehavior',
+    'toggleElementCollapseBehaviour',
     'unclaimIdBehavior',
-    'toggleElementCollapseBehaviour'
+    'unsetDefaultFlowBehavior',
+    'updateFlowNodeRefsBehavior'
   ],
-  appendBehavior: [ 'type', _dereq_(33) ],
-  copyPasteBehavior: [ 'type', _dereq_(34) ],
-  createBoundaryEventBehavior: [ 'type', _dereq_(35) ],
-  createDataObjectBehavior: [ 'type', _dereq_(36) ],
-  dropOnFlowBehavior: [ 'type', _dereq_(40) ],
-  createParticipantBehavior: [ 'type', _dereq_(37) ],
-  dataInputAssociationBehavior: [ 'type', _dereq_(38) ],
-  deleteLaneBehavior: [ 'type', _dereq_(39) ],
-  importDockingFix: [ 'type', _dereq_(41) ],
-  labelBehavior: [ 'type', _dereq_(42) ],
-  modelingFeedback: [ 'type', _dereq_(43) ],
-  removeParticipantBehavior: [ 'type', _dereq_(45) ],
-  replaceConnectionBehavior: [ 'type', _dereq_(46) ],
-  replaceElementBehaviour: [ 'type', _dereq_(47) ],
-  resizeLaneBehavior: [ 'type', _dereq_(48) ],
-  unsetDefaultFlowBehavior: [ 'type', _dereq_(51) ],
-  updateFlowNodeRefsBehavior: [ 'type', _dereq_(52) ],
-  removeElementBehavior: [ 'type', _dereq_(44) ],
-  unclaimIdBehavior: [ 'type', _dereq_(50) ],
-  toggleElementCollapseBehaviour : [ 'type', _dereq_(49) ]
+  adaptiveLabelPositioningBehavior: [ 'type', _dereq_(38) ],
+  appendBehavior: [ 'type', _dereq_(39) ],
+  copyPasteBehavior: [ 'type', _dereq_(40) ],
+  createBoundaryEventBehavior: [ 'type', _dereq_(41) ],
+  createDataObjectBehavior: [ 'type', _dereq_(42) ],
+  createParticipantBehavior: [ 'type', _dereq_(43) ],
+  dataInputAssociationBehavior: [ 'type', _dereq_(44) ],
+  deleteLaneBehavior: [ 'type', _dereq_(45) ],
+  dropOnFlowBehavior: [ 'type', _dereq_(46) ],
+  importDockingFix: [ 'type', _dereq_(47) ],
+  labelBehavior: [ 'type', _dereq_(48) ],
+  modelingFeedback: [ 'type', _dereq_(49) ],
+  replaceConnectionBehavior: [ 'type', _dereq_(52) ],
+  removeParticipantBehavior: [ 'type', _dereq_(51) ],
+  replaceElementBehaviour: [ 'type', _dereq_(53) ],
+  resizeLaneBehavior: [ 'type', _dereq_(54) ],
+  removeElementBehavior: [ 'type', _dereq_(50) ],
+  toggleElementCollapseBehaviour : [ 'type', _dereq_(55) ],
+  unclaimIdBehavior: [ 'type', _dereq_(56) ],
+  updateFlowNodeRefsBehavior: [ 'type', _dereq_(58) ],
+  unsetDefaultFlowBehavior: [ 'type', _dereq_(57) ]
 };
 
-},{"33":33,"34":34,"35":35,"36":36,"37":37,"38":38,"39":39,"40":40,"41":41,"42":42,"43":43,"44":44,"45":45,"46":46,"47":47,"48":48,"49":49,"50":50,"51":51,"52":52}],54:[function(_dereq_,module,exports){
+},{"38":38,"39":39,"40":40,"41":41,"42":42,"43":43,"44":44,"45":45,"46":46,"47":47,"48":48,"49":49,"50":50,"51":51,"52":52,"53":53,"54":54,"55":55,"56":56,"57":57,"58":58}],60:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -8258,14 +9093,16 @@ function getDistancePointPoint(point1, point2) {
 
 module.exports.getDistancePointPoint = getDistancePointPoint;
 
-},{}],55:[function(_dereq_,module,exports){
+},{}],61:[function(_dereq_,module,exports){
 'use strict';
 
-var GeometricUtil = _dereq_(54);
+var getDistancePointPoint = _dereq_(60).getDistancePointPoint,
+    rotateVector = _dereq_(60).rotateVector,
+    getAngle = _dereq_(60).getAngle;
 
-var getDistancePointPoint = _dereq_(54).getDistancePointPoint;
+var getAttachment = _dereq_(62).getAttachment;
 
-var getAttachment = _dereq_(56).getAttachment;
+var roundPoint = _dereq_(255).roundPoint;
 
 
 function findNewLabelLineStartIndex(oldWaypoints, newWaypoints, attachment, hints) {
@@ -8425,7 +9262,7 @@ function getLabelAdjustment(label, newWaypoints, oldWaypoints, hints) {
   };
 
   // the rotated vector to label
-  var newLabelVector = GeometricUtil.rotateVector({
+  var newLabelVector = rotateVector({
     x: labelPosition.x - oldFoot.x,
     y: labelPosition.y - oldFoot.y
   }, angleDelta);
@@ -8434,7 +9271,10 @@ function getLabelAdjustment(label, newWaypoints, oldWaypoints, hints) {
   x = newFoot.x + newLabelVector.x - labelPosition.x;
   y = newFoot.y + newLabelVector.y - labelPosition.y;
 
-  return { x: x, y: y };
+  return roundPoint({
+    x: x,
+    y: y
+  });
 }
 
 module.exports.getLabelAdjustment = getLabelAdjustment;
@@ -8461,8 +9301,8 @@ function getLabelMid(label) {
 }
 
 function getAngleDelta(l1, l2) {
-  var a1 = GeometricUtil.getAngle(l1),
-      a2 = GeometricUtil.getAngle(l2);
+  var a1 = getAngle(l1),
+      a2 = getAngle(l2);
   return a2 - a1;
 }
 
@@ -8478,7 +9318,7 @@ function getRelativeFootPosition(line, foot) {
   return length === 0 ? 0 : lengthToFoot / length;
 }
 
-},{"54":54,"56":56}],56:[function(_dereq_,module,exports){
+},{"255":255,"60":60,"62":62}],62:[function(_dereq_,module,exports){
 'use strict';
 
 var sqrt = Math.sqrt,
@@ -8713,7 +9553,7 @@ function pointsEqual(p1, p2) {
   );
 }
 
-},{}],57:[function(_dereq_,module,exports){
+},{}],63:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -8751,16 +9591,16 @@ module.exports = function lineIntersect(l1s, l1e, l2s, l2e) {
     y: Math.round(l1s.y + (c * (l1e.y - l1s.y)))
   };
 };
-},{}],58:[function(_dereq_,module,exports){
+},{}],64:[function(_dereq_,module,exports){
 'use strict';
 
-var filter = _dereq_(301);
+var filter = _dereq_(304);
 
-var Elements = _dereq_(266);
+var Elements = _dereq_(269);
 
-var getLanesRoot = _dereq_(67).getLanesRoot,
-    getChildLanes = _dereq_(67).getChildLanes,
-    LANE_INDENTATION = _dereq_(67).LANE_INDENTATION;
+var getLanesRoot = _dereq_(73).getLanesRoot,
+    getChildLanes = _dereq_(73).getChildLanes,
+    LANE_INDENTATION = _dereq_(73).LANE_INDENTATION;
 
 /**
  * A handler that allows us to add a new lane
@@ -8836,7 +9676,7 @@ AddLaneHandler.prototype.preExecute = function(context) {
   }, laneParent);
 };
 
-},{"266":266,"301":301,"67":67}],59:[function(_dereq_,module,exports){
+},{"269":269,"304":304,"73":73}],65:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -8879,18 +9719,18 @@ IdClaimHandler.prototype.revert = function(context) {
 };
 
 
-},{}],60:[function(_dereq_,module,exports){
+},{}],66:[function(_dereq_,module,exports){
 'use strict';
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
-var getLanesRoot = _dereq_(67).getLanesRoot,
-    computeLanesResize = _dereq_(67).computeLanesResize;
+var getLanesRoot = _dereq_(73).getLanesRoot,
+    computeLanesResize = _dereq_(73).computeLanesResize;
 
-var eachElement = _dereq_(266).eachElement;
+var eachElement = _dereq_(269).eachElement;
 
-var asTRBL = _dereq_(252).asTRBL,
-    substractTRBL = _dereq_(223).substractTRBL;
+var asTRBL = _dereq_(255).asTRBL,
+    substractTRBL = _dereq_(226).substractTRBL;
 
 
 /**
@@ -9006,11 +9846,11 @@ ResizeLaneHandler.prototype.resizeSpace = function(shape, newBounds) {
     spaceTool.makeSpace(adjustments.movingShapes, adjustments.resizingShapes, { x: change, y: 0 }, direction);
   }
 };
-},{"223":223,"252":252,"266":266,"67":67,"95":95}],61:[function(_dereq_,module,exports){
+},{"101":101,"226":226,"255":255,"269":269,"73":73}],67:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431),
-    forEach = _dereq_(303);
+var assign = _dereq_(434),
+    forEach = _dereq_(306);
 
 function SetColorHandler(commandStack) {
   this._commandStack = commandStack;
@@ -9051,12 +9891,12 @@ SetColorHandler.prototype.execute = function(context) {};
 
 SetColorHandler.prototype.revert = function(context) {};
 
-},{"303":303,"431":431}],62:[function(_dereq_,module,exports){
+},{"306":306,"434":434}],68:[function(_dereq_,module,exports){
 'use strict';
 
-var getChildLanes = _dereq_(67).getChildLanes;
+var getChildLanes = _dereq_(73).getChildLanes;
 
-var LANE_INDENTATION = _dereq_(67).LANE_INDENTATION;
+var LANE_INDENTATION = _dereq_(73).LANE_INDENTATION;
 
 /**
  * A handler that splits a lane into a number of sub-lanes,
@@ -9135,10 +9975,10 @@ SplitLaneHandler.prototype.preExecute = function(context) {
   }
 };
 
-},{"67":67}],63:[function(_dereq_,module,exports){
+},{"73":73}],69:[function(_dereq_,module,exports){
 'use strict';
 
-var Collections = _dereq_(263);
+var Collections = _dereq_(266);
 
 
 function UpdateCanvasRootHandler(canvas, modeling) {
@@ -9215,18 +10055,18 @@ UpdateCanvasRootHandler.prototype.revert = function(context) {
   // TODO(nikku): return changed elements?
   // return [ newRoot, oldRoot ];
 };
-},{"263":263}],64:[function(_dereq_,module,exports){
+},{"266":266}],70:[function(_dereq_,module,exports){
 'use strict';
 
-var collectLanes = _dereq_(67).collectLanes;
+var collectLanes = _dereq_(73).collectLanes;
 
-var getLanesRoot = _dereq_(67).getLanesRoot;
+var getLanesRoot = _dereq_(73).getLanesRoot;
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
-var Collections = _dereq_(263);
+var Collections = _dereq_(266);
 
-var asTRBL = _dereq_(252).asTRBL;
+var asTRBL = _dereq_(255).asTRBL;
 
 var FLOW_NODE_REFS_ATTR = 'flowNodeRef',
     LANES_ATTR = 'lanes';
@@ -9402,17 +10242,17 @@ UpdateFlowNodeRefsHandler.prototype.revert = function(context) {
   // TODO(nikku): return changed elements
   // return [ ... ];
 };
-},{"252":252,"263":263,"67":67,"95":95}],65:[function(_dereq_,module,exports){
+},{"101":101,"255":255,"266":266,"73":73}],71:[function(_dereq_,module,exports){
 'use strict';
 
-var reduce = _dereq_(439),
-    keys = _dereq_(433),
-    forEach = _dereq_(303),
-    assign = _dereq_(431);
+var reduce = _dereq_(442),
+    keys = _dereq_(436),
+    forEach = _dereq_(306),
+    assign = _dereq_(434);
 
-var getBusinessObject = _dereq_(95).getBusinessObject;
+var getBusinessObject = _dereq_(101).getBusinessObject;
 
-var TextUtil = _dereq_(280);
+var TextUtil = _dereq_(282);
 
 var DEFAULT_FLOW = 'default',
     NAME = 'name',
@@ -9668,41 +10508,41 @@ function getLayoutedBounds(bounds, text, textUtil) {
     height: Math.ceil(layoutedLabelDimensions.height)
   };
 }
-},{"280":280,"303":303,"431":431,"433":433,"439":439,"95":95}],66:[function(_dereq_,module,exports){
+},{"101":101,"282":282,"306":306,"434":434,"436":436,"442":442}],72:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'modeling', 'bpmnUpdater' ],
   __depends__: [
-    _dereq_(53),
-    _dereq_(27),
-    _dereq_(82),
-    _dereq_(70),
-    _dereq_(80),
-    _dereq_(121),
-    _dereq_(244),
-    _dereq_(174),
-    _dereq_(135),
-    _dereq_(233),
-    _dereq_(147),
-    _dereq_(240)
+    _dereq_(59),
+    _dereq_(32),
+    _dereq_(88),
+    _dereq_(76),
+    _dereq_(86),
+    _dereq_(124),
+    _dereq_(247),
+    _dereq_(177),
+    _dereq_(138),
+    _dereq_(236),
+    _dereq_(150),
+    _dereq_(243)
   ],
-  bpmnFactory: [ 'type', _dereq_(28) ],
-  bpmnUpdater: [ 'type', _dereq_(30) ],
-  elementFactory: [ 'type', _dereq_(31) ],
-  modeling: [ 'type', _dereq_(32) ],
-  layouter: [ 'type', _dereq_(29) ],
-  connectionDocking: [ 'type', _dereq_(251) ]
+  bpmnFactory: [ 'type', _dereq_(33) ],
+  bpmnUpdater: [ 'type', _dereq_(35) ],
+  elementFactory: [ 'type', _dereq_(36) ],
+  modeling: [ 'type', _dereq_(37) ],
+  layouter: [ 'type', _dereq_(34) ],
+  connectionDocking: [ 'type', _dereq_(254) ]
 };
 
-},{"121":121,"135":135,"147":147,"174":174,"233":233,"240":240,"244":244,"251":251,"27":27,"28":28,"29":29,"30":30,"31":31,"32":32,"53":53,"70":70,"80":80,"82":82}],67:[function(_dereq_,module,exports){
+},{"124":124,"138":138,"150":150,"177":177,"236":236,"243":243,"247":247,"254":254,"32":32,"33":33,"34":34,"35":35,"36":36,"37":37,"59":59,"76":76,"86":86,"88":88}],73:[function(_dereq_,module,exports){
 'use strict';
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
-var getParent = _dereq_(68).getParent;
+var getParent = _dereq_(74).getParent;
 
-var asTRBL = _dereq_(252).asTRBL,
-    substractTRBL = _dereq_(223).substractTRBL,
-    resizeTRBL = _dereq_(223).resizeTRBL;
+var asTRBL = _dereq_(255).asTRBL,
+    substractTRBL = _dereq_(226).substractTRBL,
+    resizeTRBL = _dereq_(226).resizeTRBL;
 
 var abs = Math.abs;
 
@@ -9852,12 +10692,12 @@ function computeLanesResize(shape, newBounds) {
 
 module.exports.computeLanesResize = computeLanesResize;
 
-},{"223":223,"252":252,"68":68,"95":95}],68:[function(_dereq_,module,exports){
+},{"101":101,"226":226,"255":255,"74":74}],74:[function(_dereq_,module,exports){
 'use strict';
 
-var any = _dereq_(299);
+var any = _dereq_(302);
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
 
 /**
@@ -9902,18 +10742,18 @@ function getParent(element, anyType) {
 
 module.exports.getParent = getParent;
 
-},{"299":299,"95":95}],69:[function(_dereq_,module,exports){
+},{"101":101,"302":302}],75:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var OrderingProvider = _dereq_(207);
+var OrderingProvider = _dereq_(210);
 
-var isAny = _dereq_(68).isAny;
+var isAny = _dereq_(74).isAny;
 
-var findIndex = _dereq_(290);
+var findIndex = _dereq_(293);
 
-var find = _dereq_(302);
+var find = _dereq_(305);
 
 
 /**
@@ -9931,7 +10771,7 @@ function BpmnOrderingProvider(eventBus, translate) {
     {
       type: 'bpmn:SequenceFlow',
       order: {
-        level: 5,
+        level: 3,
         containers: [
           'bpmn:Participant',
           'bpmn:FlowElementsContainer'
@@ -9939,8 +10779,22 @@ function BpmnOrderingProvider(eventBus, translate) {
       }
     },
     // handle DataAssociation(s) like message flows and render them always on top
-    { type: 'bpmn:DataAssociation', order: { level: 9, containers: [ 'bpmn:Collaboration', 'bpmn:Process' ] } },
-    { type: 'bpmn:MessageFlow', order: { level: 9, containers: [ 'bpmn:Collaboration' ] } },
+    {
+      type: 'bpmn:DataAssociation',
+      order: {
+        level: 9,
+        containers: [
+          'bpmn:Collaboration',
+          'bpmn:Process'
+        ]
+      }
+    },
+    {
+      type: 'bpmn:MessageFlow', order: {
+        level: 9,
+        containers: [ 'bpmn:Collaboration' ]
+      }
+    },
     {
       type: 'bpmn:Association',
       order: {
@@ -9953,6 +10807,7 @@ function BpmnOrderingProvider(eventBus, translate) {
       }
     },
     { type: 'bpmn:BoundaryEvent', order: { level: 8 } },
+    { type: 'bpmn:FlowElement', order: { level: 5 } },
     { type: 'bpmn:Participant', order: { level: -2 } },
     { type: 'bpmn:Lane', order: { level: -1 } }
   ];
@@ -10051,18 +10906,18 @@ inherits(BpmnOrderingProvider, OrderingProvider);
 
 module.exports = BpmnOrderingProvider;
 
-},{"207":207,"289":289,"290":290,"302":302,"68":68}],70:[function(_dereq_,module,exports){
+},{"210":210,"292":292,"293":293,"305":305,"74":74}],76:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'bpmnOrderingProvider' ],
   __depends__: [
-    _dereq_(248)
+    _dereq_(251)
   ],
-  bpmnOrderingProvider: [ 'type', _dereq_(69) ]
+  bpmnOrderingProvider: [ 'type', _dereq_(75) ]
 };
-},{"248":248,"69":69}],71:[function(_dereq_,module,exports){
+},{"251":251,"75":75}],77:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431);
+var assign = _dereq_(434);
 
 /**
  * A palette provider for BPMN 2.0 elements.
@@ -10219,35 +11074,35 @@ PaletteProvider.prototype.getPaletteEntries = function(element) {
   return actions;
 };
 
-},{"431":431}],72:[function(_dereq_,module,exports){
+},{"434":434}],78:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(213),
-    _dereq_(157),
-    _dereq_(240),
-    _dereq_(176),
-    _dereq_(168),
-    _dereq_(248),
-    _dereq_(20)
+    _dereq_(216),
+    _dereq_(160),
+    _dereq_(243),
+    _dereq_(179),
+    _dereq_(171),
+    _dereq_(251),
+    _dereq_(25)
   ],
   __init__: [ 'paletteProvider' ],
-  paletteProvider: [ 'type', _dereq_(71) ]
+  paletteProvider: [ 'type', _dereq_(77) ]
 };
 
-},{"157":157,"168":168,"176":176,"20":20,"213":213,"240":240,"248":248,"71":71}],73:[function(_dereq_,module,exports){
+},{"160":160,"171":171,"179":179,"216":216,"243":243,"25":25,"251":251,"77":77}],79:[function(_dereq_,module,exports){
 'use strict';
 
-var is = _dereq_(95).is,
-    isEventSubProcess = _dereq_(93).isEventSubProcess,
-    getBusinessObject = _dereq_(95).getBusinessObject,
-    isExpanded = _dereq_(93).isExpanded,
-    isDifferentType = _dereq_(75).isDifferentType;
+var is = _dereq_(101).is,
+    isEventSubProcess = _dereq_(99).isEventSubProcess,
+    getBusinessObject = _dereq_(101).getBusinessObject,
+    isExpanded = _dereq_(99).isExpanded,
+    isDifferentType = _dereq_(81).isDifferentType;
 
-var forEach = _dereq_(303),
-    filter = _dereq_(301),
-    reject = _dereq_(307);
+var forEach = _dereq_(306),
+    filter = _dereq_(304),
+    reject = _dereq_(310);
 
-var replaceOptions = _dereq_(79);
+var replaceOptions = _dereq_(85);
 
 
 /**
@@ -10715,20 +11570,20 @@ ReplaceMenuProvider.prototype._getAdHocEntry = function(element) {
 
 module.exports = ReplaceMenuProvider;
 
-},{"301":301,"303":303,"307":307,"75":75,"79":79,"93":93,"95":95}],74:[function(_dereq_,module,exports){
+},{"101":101,"304":304,"306":306,"310":310,"81":81,"85":85,"99":99}],80:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(215),
-    _dereq_(80)
+    _dereq_(218),
+    _dereq_(86)
   ],
   __init__: [ 'replaceMenuProvider' ],
-  replaceMenuProvider: [ 'type', _dereq_(73) ]
+  replaceMenuProvider: [ 'type', _dereq_(79) ]
 };
-},{"215":215,"73":73,"80":80}],75:[function(_dereq_,module,exports){
+},{"218":218,"79":79,"86":86}],81:[function(_dereq_,module,exports){
 'use strict';
 
-var getBusinessObject = _dereq_(95).getBusinessObject;
-var isExpanded = _dereq_(93).isExpanded;
+var getBusinessObject = _dereq_(101).getBusinessObject;
+var isExpanded = _dereq_(99).isExpanded;
 
 /**
  * Returns true, if an element is from a different type
@@ -10767,19 +11622,19 @@ function isDifferentType(element) {
 }
 
 module.exports.isDifferentType = isDifferentType;
-},{"93":93,"95":95}],76:[function(_dereq_,module,exports){
+},{"101":101,"99":99}],82:[function(_dereq_,module,exports){
 'use strict';
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var assign = _dereq_(431),
-    forEach = _dereq_(303);
+var assign = _dereq_(434),
+    forEach = _dereq_(306);
 
-var domQuery = _dereq_(452);
+var domQuery = _dereq_(456);
 
-var svgAttr = _dereq_(474);
+var svgAttr = _dereq_(479);
 
 var LOW_PRIORITY = 250;
 
@@ -10882,31 +11737,31 @@ inherits(BpmnReplacePreview, CommandInterceptor);
 
 module.exports = BpmnReplacePreview;
 
-},{"119":119,"289":289,"303":303,"431":431,"452":452,"474":474}],77:[function(_dereq_,module,exports){
+},{"122":122,"292":292,"306":306,"434":434,"456":456,"479":479}],83:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(217) ],
+  __depends__: [ _dereq_(220) ],
   __init__: [ 'bpmnReplacePreview' ],
-  bpmnReplacePreview: [ 'type', _dereq_(76) ]
+  bpmnReplacePreview: [ 'type', _dereq_(82) ]
 };
 
-},{"217":217,"76":76}],78:[function(_dereq_,module,exports){
+},{"220":220,"82":82}],84:[function(_dereq_,module,exports){
 'use strict';
 
-var pick = _dereq_(438),
-    assign = _dereq_(431),
-    intersection = _dereq_(292),
-    filter = _dereq_(301),
-    has = _dereq_(432);
+var pick = _dereq_(441),
+    assign = _dereq_(434),
+    intersection = _dereq_(295),
+    filter = _dereq_(304),
+    has = _dereq_(435);
 
-var is = _dereq_(95).is,
-    isExpanded = _dereq_(93).isExpanded,
-    isEventSubProcess = _dereq_(93).isEventSubProcess,
-    ModelCloneUtils = _dereq_(98),
+var is = _dereq_(101).is,
+    isExpanded = _dereq_(99).isExpanded,
+    isEventSubProcess = _dereq_(99).isEventSubProcess,
+    ModelCloneUtils = _dereq_(104),
     getProperties = ModelCloneUtils.getProperties;
 
 var IGNORED_PROPERTIES = ModelCloneUtils.IGNORED_PROPERTIES;
 
-var ModelCloneHelper = _dereq_(97);
+var ModelCloneHelper = _dereq_(103);
 
 var CUSTOM_PROPERTIES = [
   'cancelActivity',
@@ -10948,7 +11803,7 @@ function toggeling(element, target) {
  */
 function BpmnReplace(bpmnFactory, replace, selection, modeling, eventBus) {
 
-  var helper = new ModelCloneHelper(eventBus);
+  var helper = new ModelCloneHelper(eventBus, bpmnFactory);
 
   /**
    * Prepares a new business object for the replacement element
@@ -11088,7 +11943,7 @@ BpmnReplace.$inject = [ 'bpmnFactory', 'replace', 'selection', 'modeling', 'even
 
 module.exports = BpmnReplace;
 
-},{"292":292,"301":301,"431":431,"432":432,"438":438,"93":93,"95":95,"97":97,"98":98}],79:[function(_dereq_,module,exports){
+},{"101":101,"103":103,"104":104,"295":295,"304":304,"434":434,"435":435,"441":441,"99":99}],85:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports.START_EVENT = [
@@ -11877,39 +12732,40 @@ module.exports.PARTICIPANT = [
   }
 ];
 
-},{}],80:[function(_dereq_,module,exports){
+},{}],86:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(219),
-    _dereq_(233)
+    _dereq_(222),
+    _dereq_(236)
   ],
-  bpmnReplace: [ 'type', _dereq_(78) ]
+  bpmnReplace: [ 'type', _dereq_(84) ]
 };
 
-},{"219":219,"233":233,"78":78}],81:[function(_dereq_,module,exports){
+},{"222":222,"236":236,"84":84}],87:[function(_dereq_,module,exports){
 'use strict';
 
-var find = _dereq_(302),
-    any = _dereq_(299),
-    every = _dereq_(300),
-    filter = _dereq_(301),
-    forEach = _dereq_(303),
-    inherits = _dereq_(289);
+var find = _dereq_(305),
+    any = _dereq_(302),
+    every = _dereq_(303),
+    filter = _dereq_(304),
+    forEach = _dereq_(306),
+    inherits = _dereq_(292);
 
-var is = _dereq_(95).is,
-    isAny = _dereq_(68).isAny,
-    getBusinessObject = _dereq_(95).getBusinessObject,
-    isExpanded = _dereq_(93).isExpanded,
-    isEventSubProcess = _dereq_(93).isEventSubProcess,
-    isInterrupting = _dereq_(93).isInterrupting,
-    hasErrorEventDefinition = _dereq_(93).hasErrorEventDefinition,
-    hasEscalationEventDefinition = _dereq_(93).hasEscalationEventDefinition,
-    hasCompensateEventDefinition = _dereq_(93).hasCompensateEventDefinition;
+var is = _dereq_(101).is,
+    isAny = _dereq_(74).isAny,
+    getBusinessObject = _dereq_(101).getBusinessObject,
+    isExpanded = _dereq_(99).isExpanded,
+    isEventSubProcess = _dereq_(99).isEventSubProcess,
+    isInterrupting = _dereq_(99).isInterrupting,
+    hasErrorEventDefinition = _dereq_(99).hasErrorEventDefinition,
+    hasEscalationEventDefinition = _dereq_(99).hasEscalationEventDefinition,
+    hasCompensateEventDefinition = _dereq_(99).hasCompensateEventDefinition;
 
 
-var RuleProvider = _dereq_(225);
+var RuleProvider = _dereq_(228);
 
-var isBoundaryAttachment = _dereq_(86).getBoundaryAttachment;
+var isBoundaryAttachment = _dereq_(92).getBoundaryAttachment;
+
 
 /**
  * BPMN specific modeling rule
@@ -11928,9 +12784,32 @@ BpmnRules.prototype.init = function() {
 
   this.addRule('connection.create', function(context) {
     var source = context.source,
-        target = context.target;
+        target = context.target,
+        hints = context.hints || {},
+        targetParent = hints.targetParent,
+        targetAttach = hints.targetAttach;
 
-    return canConnect(source, target);
+    // don't allow incoming connections on
+    // newly created boundary events
+    // to boundary events
+    if (targetAttach) {
+      return false;
+    }
+
+    // temporarily set target parent for scoping
+    // checks to work
+    if (targetParent) {
+      target.parent = targetParent;
+    }
+
+    try {
+      return canConnect(source, target);
+    } finally {
+      // unset temporary target parent
+      if (targetParent) {
+        target.parent = null;
+      }
+    }
   });
 
   this.addRule('connection.reconnectStart', function(context) {
@@ -11976,13 +12855,23 @@ BpmnRules.prototype.init = function() {
            canInsert(shapes, target, position);
   });
 
-  this.addRule([ 'shape.create', 'shape.append' ], function(context) {
-    var target = context.target,
-        shape = context.shape,
-        source = context.source,
-        position = context.position;
+  this.addRule('shape.create', function(context) {
+    return canCreate(
+      context.shape,
+      context.target,
+      context.source,
+      context.position
+    );
+  });
 
-    return canAttach([ shape ], target, source, position) || canCreate(shape, target, source, position);
+  this.addRule('shape.attach', function(context) {
+
+    return canAttach(
+      context.shape,
+      context.target,
+      null,
+      context.position
+    );
   });
 
   this.addRule('element.copy', function(context) {
@@ -12062,17 +12951,16 @@ function isSame(a, b) {
 
 function getOrganizationalParent(element) {
 
-  var bo = getBusinessObject(element);
-
-  while (bo && !is(bo, 'bpmn:Process')) {
-    if (is(bo, 'bpmn:Participant')) {
-      return bo.processRef || bo;
+  do {
+    if (is(element, 'bpmn:Process')) {
+      return getBusinessObject(element);
     }
 
-    bo = bo.$parent;
-  }
+    if (is(element, 'bpmn:Participant')) {
+      return getBusinessObject(element).processRef;
+    }
+  } while ((element = element.parent));
 
-  return bo;
 }
 
 function isTextAnnotation(element) {
@@ -12117,21 +13005,20 @@ function isMessageFlowTarget(element) {
 
 function getScopeParent(element) {
 
-  var bo = getBusinessObject(element);
+  var parent = element;
 
-  if (is(bo, 'bpmn:Participant')) {
-    return null;
-  }
+  while ((parent = parent.parent)) {
 
-  while (bo) {
-    bo = bo.$parent;
+    if (is(parent, 'bpmn:FlowElementsContainer')) {
+      return getBusinessObject(parent);
+    }
 
-    if (is(bo, 'bpmn:FlowElementsContainer')) {
-      return bo;
+    if (is(parent, 'bpmn:Participant')) {
+      return getBusinessObject(parent).processRef;
     }
   }
 
-  return bo;
+  return null;
 }
 
 function isSameScope(a, b) {
@@ -12695,23 +13582,23 @@ function canCopy(collection, element) {
   return true;
 }
 
-},{"225":225,"289":289,"299":299,"300":300,"301":301,"302":302,"303":303,"68":68,"86":86,"93":93,"95":95}],82:[function(_dereq_,module,exports){
+},{"101":101,"228":228,"292":292,"302":302,"303":303,"304":304,"305":305,"306":306,"74":74,"92":92,"99":99}],88:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(227)
+    _dereq_(230)
   ],
   __init__: [ 'bpmnRules' ],
-  bpmnRules: [ 'type', _dereq_(81) ]
+  bpmnRules: [ 'type', _dereq_(87) ]
 };
 
-},{"227":227,"81":81}],83:[function(_dereq_,module,exports){
+},{"230":230,"87":87}],89:[function(_dereq_,module,exports){
 'use strict';
 
-var map = _dereq_(305),
-    filter = _dereq_(301),
-    sortBy = _dereq_(310);
+var map = _dereq_(308),
+    filter = _dereq_(304),
+    sortBy = _dereq_(313);
 
-var labelUtil = _dereq_(25);
+var labelUtil = _dereq_(30);
 
 
 /**
@@ -12834,36 +13721,33 @@ function matchAndSplit(text, pattern) {
 
   return tokens;
 }
-},{"25":25,"301":301,"305":305,"310":310}],84:[function(_dereq_,module,exports){
+},{"30":30,"304":304,"308":308,"313":313}],90:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(229)
+    _dereq_(232)
   ],
   __init__: [ 'bpmnSearch'],
-  bpmnSearch: [ 'type', _dereq_(83) ]
+  bpmnSearch: [ 'type', _dereq_(89) ]
 };
 
-},{"229":229,"83":83}],85:[function(_dereq_,module,exports){
+},{"232":232,"89":89}],91:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var abs = Math.abs;
+var forEach = _dereq_(306),
+    assign = _dereq_(434);
 
-var forEach = _dereq_(303),
-    filter = _dereq_(301),
-    assign = _dereq_(431);
+var getBoundingBox = _dereq_(269).getBBox;
 
-var getBoundingBox = _dereq_(266).getBBox;
+var is = _dereq_(101).is,
+    isAny = _dereq_(74).isAny,
+    isExpanded = _dereq_(99).isExpanded;
 
-var is = _dereq_(95).is,
-    isAny = _dereq_(68).isAny,
-    isExpanded = _dereq_(93).isExpanded;
+var Snapping = _dereq_(239),
+    SnapUtil = _dereq_(238);
 
-var Snapping = _dereq_(236),
-    SnapUtil = _dereq_(235);
-
-var asTRBL = _dereq_(252).asTRBL;
+var asTRBL = _dereq_(255).asTRBL;
 
 var round = Math.round;
 
@@ -12873,9 +13757,9 @@ var mid = SnapUtil.mid,
     isSnapped = SnapUtil.isSnapped,
     setSnapped = SnapUtil.setSnapped;
 
-var getBoundaryAttachment = _dereq_(86).getBoundaryAttachment,
-    getParticipantSizeConstraints = _dereq_(86).getParticipantSizeConstraints,
-    getLanesRoot = _dereq_(67).getLanesRoot;
+var getBoundaryAttachment = _dereq_(92).getBoundaryAttachment,
+    getParticipantSizeConstraints = _dereq_(92).getParticipantSizeConstraints,
+    getLanesRoot = _dereq_(73).getLanesRoot;
 
 var HIGH_PRIORITY = 1500;
 
@@ -13017,89 +13901,6 @@ function BpmnSnapping(eventBus, canvas, bpmnRules, elementRegistry) {
   });
 
 
-  eventBus.on([
-    'create.move',
-    'shape.move.move'
-  ], function(event) {
-
-    var context = event.context,
-        shape = context.shape,
-        target = context.target;
-
-    var threshold = 30;
-
-    if (is(shape, 'bpmn:Lane')) {
-      if (isAny(target, [ 'bpmn:Lane', 'bpmn:Participant' ])) {
-
-        var childLanes = filter(target.children, function(c) {
-          return is(c, 'bpmn:Lane');
-        });
-
-        var y = event.y,
-            targetTrbl;
-
-        var insert = childLanes.reduce(function(insert, l) {
-
-          var laneTrbl = asTRBL(l);
-
-          if (abs(laneTrbl.top - y) < threshold) {
-            insert = assign(insert || {}, { before: { element: l, y: laneTrbl.top } });
-          } else
-          if (abs(laneTrbl.bottom - y) < threshold) {
-            insert = assign(insert || {}, { after: { element: l, y: laneTrbl.bottom } });
-          } else
-          if (laneTrbl.top < y && laneTrbl.bottom > y) {
-            if (abs(laneTrbl.top - y) > abs(laneTrbl.bottom - y)) {
-              insert = assign(insert || {}, { after: { element: l, y: laneTrbl.bottom } });
-            } else {
-              insert = assign(insert || {}, { before: { element: l, y: laneTrbl.top } });
-            }
-
-          }
-
-          return insert;
-        }, false);
-
-
-        if (!insert) {
-          targetTrbl = asTRBL(target);
-
-          if (abs(targetTrbl.top - y) < threshold) {
-            insert = { before: { element: target, y: targetTrbl.top } };
-          } else
-          if (abs(targetTrbl.bottom - y) < threshold) {
-            insert = { after: { element: target, y: targetTrbl.bottom } };
-          } else {
-            insert = { into: { element: target, y: (targetTrbl.top + targetTrbl.bottom) / 2 } };
-          }
-
-        }
-
-        if (insert.before && insert.after) {
-          console.log('insert between', insert.before.element.id, 'and', insert.after.element.id);
-          setSnapped(event, 'x', insert.before.element.x + insert.before.element.width / 2);
-          setSnapped(event, 'y', insert.before.y);
-        } else
-        if (insert.after) {
-          console.log('insert after', insert.after.element.id);
-          setSnapped(event, 'x', insert.after.element.x + insert.after.element.width / 2);
-          setSnapped(event, 'y', insert.after.y);
-        } else
-        if (insert.before) {
-          console.log('insert before', insert.before.element.id);
-          setSnapped(event, 'x', insert.before.element.x + insert.before.element.width / 2);
-          setSnapped(event, 'y', insert.before.y);
-        } else
-        if (insert.into) {
-          console.log('insert into', insert.into.element.id);
-          setSnapped(event, 'x', insert.into.element.x + insert.into.element.width / 2);
-          setSnapped(event, 'y', insert.into.y);
-        }
-      }
-    }
-
-  });
-
   eventBus.on('resize.start', HIGH_PRIORITY, function(event) {
     var context = event.context,
         shape = context.shape;
@@ -13227,14 +14028,19 @@ BpmnSnapping.prototype.addTargetSnaps = function(snapPoints, shape, target) {
     }
 
     if (sibling.waypoints) {
-      forEach(sibling.waypoints, function(waypoint, i) {
-        var nextWaypoint = sibling.waypoints[i+1];
 
-        if (!nextWaypoint) {
-          return;
+      forEach(sibling.waypoints.slice(1, -1), function(waypoint, i) {
+        var nextWaypoint = sibling.waypoints[i + 2],
+            previousWaypoint = sibling.waypoints[i];
+
+        if (!nextWaypoint || !previousWaypoint) {
+          throw new Error('waypoints must exist');
         }
 
-        if (nextWaypoint.x === waypoint.x || nextWaypoint.y === waypoint.y) {
+        if (nextWaypoint.x === waypoint.x ||
+            nextWaypoint.y === waypoint.y ||
+            previousWaypoint.x === waypoint.x ||
+            previousWaypoint.y === waypoint.y) {
           snapPoints.add('mid', waypoint);
         }
       });
@@ -13356,10 +14162,10 @@ function snapBoundaryEvent(event, shape, target) {
   }
 }
 
-},{"235":235,"236":236,"252":252,"266":266,"289":289,"301":301,"303":303,"431":431,"67":67,"68":68,"86":86,"93":93,"95":95}],86:[function(_dereq_,module,exports){
+},{"101":101,"238":238,"239":239,"255":255,"269":269,"292":292,"306":306,"434":434,"73":73,"74":74,"92":92,"99":99}],92:[function(_dereq_,module,exports){
 'use strict';
 
-var getOrientation = _dereq_(252).getOrientation;
+var getOrientation = _dereq_(255).getOrientation;
 
 
 function getBoundaryAttachment(position, targetBounds) {
@@ -13379,12 +14185,12 @@ module.exports.getBoundaryAttachment = getBoundaryAttachment;
 
 // participant snapping box implementation /////////////////
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
-var asTRBL = _dereq_(252).asTRBL;
+var asTRBL = _dereq_(255).asTRBL;
 
-var collectLanes = _dereq_(67).collectLanes,
-    getLanesRoot = _dereq_(67).getLanesRoot;
+var collectLanes = _dereq_(73).collectLanes,
+    getLanesRoot = _dereq_(73).getLanesRoot;
 
 var abs = Math.abs,
     min = Math.min,
@@ -13517,27 +14323,27 @@ function getParticipantSizeConstraints(laneShape, resizeDirection, balanced) {
 
 
 module.exports.getParticipantSizeConstraints = getParticipantSizeConstraints;
-},{"252":252,"67":67,"95":95}],87:[function(_dereq_,module,exports){
+},{"101":101,"255":255,"73":73}],93:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'snapping' ],
-  snapping: [ 'type', _dereq_(85) ]
+  snapping: [ 'type', _dereq_(91) ]
 };
-},{"85":85}],88:[function(_dereq_,module,exports){
+},{"91":91}],94:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431),
-    map = _dereq_(305);
+var assign = _dereq_(434),
+    map = _dereq_(308);
 
-var LabelUtil = _dereq_(94);
+var LabelUtil = _dereq_(100);
 
-var TextUtil = _dereq_(280);
+var TextUtil = _dereq_(282);
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
 var hasExternalLabel = LabelUtil.hasExternalLabel,
     getExternalLabelBounds = LabelUtil.getExternalLabelBounds,
-    isExpanded = _dereq_(93).isExpanded,
-    elementToString = _dereq_(91).elementToString;
+    isExpanded = _dereq_(99).isExpanded,
+    elementToString = _dereq_(97).elementToString;
 
 
 function elementData(semantic, attrs) {
@@ -13598,6 +14404,8 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
       translate = this._translate,
       hidden;
 
+  var parentIndex;
+
   // ROOT ELEMENT
   // handle the special case that we deal with a
   // invisible root element (process or collaboration)
@@ -13630,7 +14438,12 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
       this._attachBoundary(semantic, element);
     }
 
-    this._canvas.addShape(element, parentElement);
+    // insert lanes behind other flow nodes (cf. #727)
+    if (is(semantic, 'bpmn:Lane')) {
+      parentIndex = 0;
+    }
+
+    this._canvas.addShape(element, parentElement, parentIndex);
   }
 
   // CONNECTION
@@ -13657,7 +14470,12 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
       parentElement = null;
     }
 
-    this._canvas.addConnection(element, parentElement);
+    // insert sequence flows behind other flow nodes (cf. #727)
+    if (is(semantic, 'bpmn:SequenceFlow')) {
+      parentIndex = 0;
+    }
+
+    this._canvas.addConnection(element, parentElement, parentIndex);
   } else {
     throw new Error(translate('unknown di {di} for element {semantic}', {
       di: elementToString(di),
@@ -13826,16 +14644,16 @@ function getLayoutedBounds(bounds, text, textUtil) {
     height: Math.ceil(layoutedLabelDimensions.height)
   };
 }
-},{"280":280,"305":305,"431":431,"91":91,"93":93,"94":94,"95":95}],89:[function(_dereq_,module,exports){
+},{"100":100,"101":101,"282":282,"308":308,"434":434,"97":97,"99":99}],95:[function(_dereq_,module,exports){
 'use strict';
 
-var filter = _dereq_(301),
-    find = _dereq_(302),
-    forEach = _dereq_(303);
+var filter = _dereq_(304),
+    find = _dereq_(305),
+    forEach = _dereq_(306);
 
-var Refs = _dereq_(466);
+var Refs = _dereq_(470);
 
-var elementToString = _dereq_(91).elementToString;
+var elementToString = _dereq_(97).elementToString;
 
 var diRefs = new Refs({ name: 'bpmnElement', enumerable: true }, { name: 'di' });
 
@@ -14058,7 +14876,15 @@ function BpmnTreeWalker(handler, translate) {
   }
 
   function handleDeferred(deferred) {
-    forEach(deferred, function(d) { d(); });
+
+    var fn;
+
+    // drain deferred until empty
+    while (deferred.length) {
+      fn = deferred.shift();
+
+      fn();
+    }
   }
 
   function handleProcess(process, context) {
@@ -14177,13 +15003,17 @@ function BpmnTreeWalker(handler, translate) {
   }
 
   function handleLane(lane, context) {
-    var newContext = visitIfDi(lane, context);
 
-    if (lane.childLaneSet) {
-      handleLaneSet(lane.childLaneSet, newContext || context);
-    }
+    deferred.push(function() {
 
-    wireFlowNodeRefs(lane);
+      var newContext = visitIfDi(lane, context);
+
+      if (lane.childLaneSet) {
+        handleLaneSet(lane.childLaneSet, newContext || context);
+      }
+
+      wireFlowNodeRefs(lane);
+    });
   }
 
   function handleLaneSet(laneSet, context) {
@@ -14195,11 +15025,11 @@ function BpmnTreeWalker(handler, translate) {
   }
 
   function handleFlowElementsContainer(container, context) {
+    handleFlowElements(container.flowElements, context);
+
     if (container.laneSets) {
       handleLaneSets(container.laneSets, context);
     }
-
-    handleFlowElements(container.flowElements, context);
   }
 
   function handleFlowElements(flowElements, context) {
@@ -14273,10 +15103,10 @@ function BpmnTreeWalker(handler, translate) {
 }
 
 module.exports = BpmnTreeWalker;
-},{"301":301,"302":302,"303":303,"466":466,"91":91}],90:[function(_dereq_,module,exports){
+},{"304":304,"305":305,"306":306,"470":470,"97":97}],96:[function(_dereq_,module,exports){
 'use strict';
 
-var BpmnTreeWalker = _dereq_(89);
+var BpmnTreeWalker = _dereq_(95);
 
 
 /**
@@ -14290,9 +15120,9 @@ var BpmnTreeWalker = _dereq_(89);
  */
 function importBpmnDiagram(diagram, definitions, done) {
 
-  var importer = diagram.get('bpmnImporter'),
-      eventBus = diagram.get('eventBus'),
-      translate = diagram.get('translate');
+  var importer,
+      eventBus,
+      translate;
 
   var error,
       warnings = [];
@@ -14327,24 +15157,28 @@ function importBpmnDiagram(diagram, definitions, done) {
     walker.handleDefinitions(definitions);
   }
 
-  eventBus.fire('import.render.start', { definitions: definitions });
-
   try {
+    importer = diagram.get('bpmnImporter');
+    eventBus = diagram.get('eventBus');
+    translate = diagram.get('translate');
+
+    eventBus.fire('import.render.start', { definitions: definitions });
+
     render(definitions);
+
+    eventBus.fire('import.render.complete', {
+      error: error,
+      warnings: warnings
+    });
   } catch (e) {
     error = e;
   }
-
-  eventBus.fire('import.render.complete', {
-    error: error,
-    warnings: warnings
-  });
 
   done(error, warnings);
 }
 
 module.exports.importBpmnDiagram = importBpmnDiagram;
-},{"89":89}],91:[function(_dereq_,module,exports){
+},{"95":95}],97:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports.elementToString = function(e) {
@@ -14354,20 +15188,20 @@ module.exports.elementToString = function(e) {
 
   return '<' + e.$type + (e.id ? ' id="' + e.id : '') + '" />';
 };
-},{}],92:[function(_dereq_,module,exports){
+},{}],98:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(248)
+    _dereq_(251)
   ],
-  bpmnImporter: [ 'type', _dereq_(88) ]
+  bpmnImporter: [ 'type', _dereq_(94) ]
 };
-},{"248":248,"88":88}],93:[function(_dereq_,module,exports){
+},{"251":251,"94":94}],99:[function(_dereq_,module,exports){
 'use strict';
 
-var is = _dereq_(95).is,
-    getBusinessObject = _dereq_(95).getBusinessObject;
+var is = _dereq_(101).is,
+    getBusinessObject = _dereq_(101).getBusinessObject;
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
 module.exports.isExpanded = function(element) {
 
@@ -14423,12 +15257,12 @@ module.exports.hasCompensateEventDefinition = function(element) {
   return hasEventDefinition(element, 'bpmn:CompensateEventDefinition');
 };
 
-},{"303":303,"95":95}],94:[function(_dereq_,module,exports){
+},{"101":101,"306":306}],100:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431);
+var assign = _dereq_(434);
 
-var is = _dereq_(95).is;
+var is = _dereq_(101).is;
 
 var DEFAULT_LABEL_SIZE = module.exports.DEFAULT_LABEL_SIZE = {
   width: 90,
@@ -14564,7 +15398,7 @@ module.exports.getExternalLabelBounds = function(semantic, element) {
   }, size);
 };
 
-},{"431":431,"95":95}],95:[function(_dereq_,module,exports){
+},{"101":101,"434":434}],101:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -14597,7 +15431,7 @@ function getBusinessObject(element) {
 
 module.exports.getBusinessObject = getBusinessObject;
 
-},{}],96:[function(_dereq_,module,exports){
+},{}],102:[function(_dereq_,module,exports){
 /**
  * This file must not be changed or exchanged.
  *
@@ -14606,9 +15440,9 @@ module.exports.getBusinessObject = getBusinessObject;
 
 'use strict';
 
-var domify = _dereq_(449);
+var domify = _dereq_(453);
 
-var domDelegate = _dereq_(448);
+var domDelegate = _dereq_(452);
 
 /* jshint -W101 */
 
@@ -14681,16 +15515,16 @@ function open() {
 }
 
 module.exports.open = open;
-},{"448":448,"449":449}],97:[function(_dereq_,module,exports){
+},{"452":452,"453":453}],103:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303),
-    filter = _dereq_(301),
-    any = _dereq_(299),
-    sort = _dereq_(310),
-    isArray = _dereq_(422);
+var forEach = _dereq_(306),
+    filter = _dereq_(304),
+    any = _dereq_(302),
+    sort = _dereq_(313),
+    isArray = _dereq_(425);
 
-var IGNORED_PROPERTIES = _dereq_(98).IGNORED_PROPERTIES;
+var IGNORED_PROPERTIES = _dereq_(104).IGNORED_PROPERTIES;
 
 function isAllowedIn(extProp, type) {
   var allowedIn = extProp.meta.allowedIn;
@@ -14713,8 +15547,9 @@ function isType(element, types) {
  * A bpmn properties cloning interface
  *
  */
-function ModelCloneHelper(eventBus) {
+function ModelCloneHelper(eventBus, bpmnFactory) {
   this._eventBus = eventBus;
+  this._bpmnFactory = bpmnFactory;
 }
 
 module.exports = ModelCloneHelper;
@@ -14744,8 +15579,11 @@ ModelCloneHelper.prototype.clone = function(refElement, newElement, properties) 
     // - same values from simple types
     // - cloning id's
     // - cloning reference elements
-    if (newElementProp === refElementProp ||
-       (propDescriptor && (propDescriptor.isId || propDescriptor.isReference))) {
+    if (newElementProp === refElementProp) {
+      return;
+    }
+
+    if (propDescriptor && (propDescriptor.isId || propDescriptor.isReference)) {
       return;
     }
 
@@ -14794,8 +15632,9 @@ ModelCloneHelper.prototype.clone = function(refElement, newElement, properties) 
 
 ModelCloneHelper.prototype._deepClone = function _deepClone(propertyElement, context) {
   var eventBus = this._eventBus;
+  var bpmnFactory = this._bpmnFactory;
 
-  var newProp = propertyElement.$model.create(propertyElement.$type);
+  var newProp = bpmnFactory.create(propertyElement.$type);
 
   var properties = filter(Object.keys(propertyElement), function(prop) {
     var descriptor = newProp.$model.getPropertyDescriptor(newProp, prop);
@@ -14884,10 +15723,10 @@ ModelCloneHelper.prototype._deepClone = function _deepClone(propertyElement, con
   return newProp;
 };
 
-},{"299":299,"301":301,"303":303,"310":310,"422":422,"98":98}],98:[function(_dereq_,module,exports){
+},{"104":104,"302":302,"304":304,"306":306,"313":313,"425":425}],104:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
 /**
  * These are the properties that should be ignored when cloning elements.
@@ -14900,7 +15739,9 @@ module.exports.IGNORED_PROPERTIES = [
   'outgoing',
   'artifacts',
   'default',
-  'flowElements'
+  'flowElements',
+  'dataInputAssociations',
+  'dataOutputAssociations'
 ];
 
 
@@ -14921,18 +15762,18 @@ function getProperties(descriptor, keepDefault) {
 
 module.exports.getProperties = getProperties;
 
-},{"303":303}],99:[function(_dereq_,module,exports){
-module.exports = _dereq_(101);
-},{"101":101}],100:[function(_dereq_,module,exports){
+},{"306":306}],105:[function(_dereq_,module,exports){
+module.exports = _dereq_(107);
+},{"107":107}],106:[function(_dereq_,module,exports){
 'use strict';
 
-var isString = _dereq_(428),
-    isFunction = _dereq_(423),
-    assign = _dereq_(431);
+var isString = _dereq_(431),
+    isFunction = _dereq_(426),
+    assign = _dereq_(434);
 
-var Moddle = _dereq_(457),
-    XmlReader = _dereq_(455),
-    XmlWriter = _dereq_(456);
+var Moddle = _dereq_(461),
+    XmlReader = _dereq_(459),
+    XmlWriter = _dereq_(460);
 
 /**
  * A sub class of {@link Moddle} with support for import and export of BPMN 2.0 xml files.
@@ -14996,34 +15837,39 @@ BpmnModdle.prototype.toXML = function(element, options, done) {
   }
 
   var writer = new XmlWriter(options);
+
+  var result;
+  var err;
+
   try {
-    var result = writer.toXML(element);
-    done(null, result);
+    result = writer.toXML(element);
   } catch (e) {
-    done(e);
+    err = e;
   }
+
+  return done(err, result);
 };
 
-},{"423":423,"428":428,"431":431,"455":455,"456":456,"457":457}],101:[function(_dereq_,module,exports){
+},{"426":426,"431":431,"434":434,"459":459,"460":460,"461":461}],107:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431);
+var assign = _dereq_(434);
 
-var BpmnModdle = _dereq_(100);
+var BpmnModdle = _dereq_(106);
 
 var packages = {
-  bpmn: _dereq_(103),
-  bpmndi: _dereq_(104),
-  dc: _dereq_(105),
-  di: _dereq_(106),
-  bioc: _dereq_(102)
+  bpmn: _dereq_(109),
+  bpmndi: _dereq_(110),
+  dc: _dereq_(111),
+  di: _dereq_(112),
+  bioc: _dereq_(108)
 };
 
 module.exports = function(additionalPackages, options) {
   return new BpmnModdle(assign({}, packages, additionalPackages), options);
 };
 
-},{"100":100,"102":102,"103":103,"104":104,"105":105,"106":106,"431":431}],102:[function(_dereq_,module,exports){
+},{"106":106,"108":108,"109":109,"110":110,"111":111,"112":112,"434":434}],108:[function(_dereq_,module,exports){
 module.exports={
   "name": "bpmn.io colors for BPMN",
   "uri": "http://bpmn.io/schema/bpmn/biocolor/1.0",
@@ -15066,7 +15912,7 @@ module.exports={
   "associations": []
 }
 
-},{}],103:[function(_dereq_,module,exports){
+},{}],109:[function(_dereq_,module,exports){
 module.exports={
   "name": "BPMN20",
   "uri": "http://www.omg.org/spec/BPMN/20100524/MODEL",
@@ -15837,7 +16683,8 @@ module.exports={
         {
           "name": "waitForCompletion",
           "isAttr": true,
-          "type": "Boolean"
+          "type": "Boolean",
+          "default": true
         },
         {
           "name": "activityRef",
@@ -18020,7 +18867,7 @@ module.exports={
     "typePrefix": "t"
   }
 }
-},{}],104:[function(_dereq_,module,exports){
+},{}],110:[function(_dereq_,module,exports){
 module.exports={
   "name": "BPMNDI",
   "uri": "http://www.omg.org/spec/BPMN/20100524/DI",
@@ -18214,7 +19061,7 @@ module.exports={
   "associations": [],
   "prefix": "bpmndi"
 }
-},{}],105:[function(_dereq_,module,exports){
+},{}],111:[function(_dereq_,module,exports){
 module.exports={
   "name": "DC",
   "uri": "http://www.omg.org/spec/DD/20100524/DC",
@@ -18314,7 +19161,7 @@ module.exports={
   "prefix": "dc",
   "associations": []
 }
-},{}],106:[function(_dereq_,module,exports){
+},{}],112:[function(_dereq_,module,exports){
 module.exports={
   "name": "DI",
   "uri": "http://www.omg.org/spec/DD/20100524/DI",
@@ -18553,274 +19400,60 @@ module.exports={
     "tagAlias": "lowerCase"
   }
 }
-},{}],107:[function(_dereq_,module,exports){
-/**
- * Module dependencies.
- */
+},{}],113:[function(_dereq_,module,exports){
+var matches = _dereq_(114)
 
-try {
-  var index = _dereq_(111);
-} catch (err) {
-  var index = _dereq_(111);
-}
+module.exports = function (element, selector, checkYoSelf) {
+  var parent = checkYoSelf ? element : element.parentNode
 
-/**
- * Whitespace regexp.
- */
-
-var re = /\s+/;
-
-/**
- * toString reference.
- */
-
-var toString = Object.prototype.toString;
-
-/**
- * Wrap `el` in a `ClassList`.
- *
- * @param {Element} el
- * @return {ClassList}
- * @api public
- */
-
-module.exports = function(el){
-  return new ClassList(el);
-};
-
-/**
- * Initialize a new ClassList for `el`.
- *
- * @param {Element} el
- * @api private
- */
-
-function ClassList(el) {
-  if (!el || !el.nodeType) {
-    throw new Error('A DOM element reference is required');
-  }
-  this.el = el;
-  this.list = el.classList;
-}
-
-/**
- * Add class `name` if not already present.
- *
- * @param {String} name
- * @return {ClassList}
- * @api public
- */
-
-ClassList.prototype.add = function(name){
-  // classList
-  if (this.list) {
-    this.list.add(name);
-    return this;
-  }
-
-  // fallback
-  var arr = this.array();
-  var i = index(arr, name);
-  if (!~i) arr.push(name);
-  this.el.className = arr.join(' ');
-  return this;
-};
-
-/**
- * Remove class `name` when present, or
- * pass a regular expression to remove
- * any which match.
- *
- * @param {String|RegExp} name
- * @return {ClassList}
- * @api public
- */
-
-ClassList.prototype.remove = function(name){
-  if ('[object RegExp]' == toString.call(name)) {
-    return this.removeMatching(name);
-  }
-
-  // classList
-  if (this.list) {
-    this.list.remove(name);
-    return this;
-  }
-
-  // fallback
-  var arr = this.array();
-  var i = index(arr, name);
-  if (~i) arr.splice(i, 1);
-  this.el.className = arr.join(' ');
-  return this;
-};
-
-/**
- * Remove all classes matching `re`.
- *
- * @param {RegExp} re
- * @return {ClassList}
- * @api private
- */
-
-ClassList.prototype.removeMatching = function(re){
-  var arr = this.array();
-  for (var i = 0; i < arr.length; i++) {
-    if (re.test(arr[i])) {
-      this.remove(arr[i]);
-    }
-  }
-  return this;
-};
-
-/**
- * Toggle class `name`, can force state via `force`.
- *
- * For browsers that support classList, but do not support `force` yet,
- * the mistake will be detected and corrected.
- *
- * @param {String} name
- * @param {Boolean} force
- * @return {ClassList}
- * @api public
- */
-
-ClassList.prototype.toggle = function(name, force){
-  // classList
-  if (this.list) {
-    if ("undefined" !== typeof force) {
-      if (force !== this.list.toggle(name, force)) {
-        this.list.toggle(name); // toggle again to correct
-      }
-    } else {
-      this.list.toggle(name);
-    }
-    return this;
-  }
-
-  // fallback
-  if ("undefined" !== typeof force) {
-    if (!force) {
-      this.remove(name);
-    } else {
-      this.add(name);
-    }
-  } else {
-    if (this.has(name)) {
-      this.remove(name);
-    } else {
-      this.add(name);
-    }
-  }
-
-  return this;
-};
-
-/**
- * Return an array of classes.
- *
- * @return {Array}
- * @api public
- */
-
-ClassList.prototype.array = function(){
-  var className = this.el.getAttribute('class') || '';
-  var str = className.replace(/^\s+|\s+$/g, '');
-  var arr = str.split(re);
-  if ('' === arr[0]) arr.shift();
-  return arr;
-};
-
-/**
- * Check if class `name` is present.
- *
- * @param {String} name
- * @return {ClassList}
- * @api public
- */
-
-ClassList.prototype.has =
-ClassList.prototype.contains = function(name){
-  return this.list
-    ? this.list.contains(name)
-    : !! ~index(this.array(), name);
-};
-
-},{"111":111}],108:[function(_dereq_,module,exports){
-var matches = _dereq_(112)
-
-module.exports = function (element, selector, checkYoSelf, root) {
-  element = checkYoSelf ? {parentNode: element} : element
-
-  root = root || document
-
-  // Make sure `element !== document` and `element != null`
-  // otherwise we get an illegal invocation
-  while ((element = element.parentNode) && element !== document) {
-    if (matches(element, selector))
-      return element
-    // After `matches` on the edge case that
-    // the selector matches the root
-    // (when the root is not the document)
-    if (element === root)
-      return
+  while (parent && parent !== document) {
+    if (matches(parent, selector)) return parent;
+    parent = parent.parentNode
   }
 }
 
-},{"112":112}],109:[function(_dereq_,module,exports){
+},{"114":114}],114:[function(_dereq_,module,exports){
+
 /**
- * Module dependencies.
+ * Element prototype.
  */
 
-try {
-  var closest = _dereq_(108);
-} catch(err) {
-  var closest = _dereq_(108);
-}
-
-try {
-  var event = _dereq_(110);
-} catch(err) {
-  var event = _dereq_(110);
-}
+var proto = Element.prototype;
 
 /**
- * Delegate event `type` to `selector`
- * and invoke `fn(e)`. A callback function
- * is returned which may be passed to `.unbind()`.
+ * Vendor function.
+ */
+
+var vendor = proto.matchesSelector
+  || proto.webkitMatchesSelector
+  || proto.mozMatchesSelector
+  || proto.msMatchesSelector
+  || proto.oMatchesSelector;
+
+/**
+ * Expose `match()`.
+ */
+
+module.exports = match;
+
+/**
+ * Match `el` to `selector`.
  *
  * @param {Element} el
  * @param {String} selector
- * @param {String} type
- * @param {Function} fn
- * @param {Boolean} capture
- * @return {Function}
+ * @return {Boolean}
  * @api public
  */
 
-exports.bind = function(el, selector, type, fn, capture){
-  return event.bind(el, type, function(e){
-    var target = e.target || e.srcElement;
-    e.delegateTarget = closest(target, selector, true, el);
-    if (e.delegateTarget) fn.call(el, e);
-  }, capture);
-};
-
-/**
- * Unbind event `type`'s callback `fn`.
- *
- * @param {Element} el
- * @param {String} type
- * @param {Function} fn
- * @param {Boolean} capture
- * @api public
- */
-
-exports.unbind = function(el, type, fn, capture){
-  event.unbind(el, type, fn, capture);
-};
-
-},{"108":108,"110":110}],110:[function(_dereq_,module,exports){
+function match(el, selector) {
+  if (vendor) return vendor.call(el, selector);
+  var nodes = el.parentNode.querySelectorAll(selector);
+  for (var i = 0; i < nodes.length; ++i) {
+    if (nodes[i] == el) return true;
+  }
+  return false;
+}
+},{}],115:[function(_dereq_,module,exports){
 var bind = window.addEventListener ? 'addEventListener' : 'attachEvent',
     unbind = window.removeEventListener ? 'removeEventListener' : 'detachEvent',
     prefix = bind !== 'addEventListener' ? 'on' : '';
@@ -18856,102 +19489,71 @@ exports.unbind = function(el, type, fn, capture){
   el[unbind](prefix + type, fn, capture || false);
   return fn;
 };
-},{}],111:[function(_dereq_,module,exports){
-module.exports = function(arr, obj){
-  if (arr.indexOf) return arr.indexOf(obj);
-  for (var i = 0; i < arr.length; ++i) {
-    if (arr[i] === obj) return i;
-  }
-  return -1;
-};
-},{}],112:[function(_dereq_,module,exports){
+},{}],116:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
 
-try {
-  var query = _dereq_(113);
-} catch (err) {
-  var query = _dereq_(113);
-}
+var closest = _dereq_(113)
+  , event = _dereq_(115);
 
 /**
- * Element prototype.
- */
-
-var proto = Element.prototype;
-
-/**
- * Vendor function.
- */
-
-var vendor = proto.matches
-  || proto.webkitMatchesSelector
-  || proto.mozMatchesSelector
-  || proto.msMatchesSelector
-  || proto.oMatchesSelector;
-
-/**
- * Expose `match()`.
- */
-
-module.exports = match;
-
-/**
- * Match `el` to `selector`.
+ * Delegate event `type` to `selector`
+ * and invoke `fn(e)`. A callback function
+ * is returned which may be passed to `.unbind()`.
  *
  * @param {Element} el
  * @param {String} selector
- * @return {Boolean}
+ * @param {String} type
+ * @param {Function} fn
+ * @param {Boolean} capture
+ * @return {Function}
  * @api public
  */
 
-function match(el, selector) {
-  if (!el || el.nodeType !== 1) return false;
-  if (vendor) return vendor.call(el, selector);
-  var nodes = query.all(selector, el.parentNode);
-  for (var i = 0; i < nodes.length; ++i) {
-    if (nodes[i] == el) return true;
-  }
-  return false;
-}
+// Some events don't bubble, so we want to bind to the capture phase instead
+// when delegating.
+var forceCaptureEvents = ['focus', 'blur'];
 
-},{"113":113}],113:[function(_dereq_,module,exports){
-function one(selector, el) {
-  return el.querySelector(selector);
-}
+exports.bind = function(el, selector, type, fn, capture){
+  if (forceCaptureEvents.indexOf(type) !== -1) capture = true;
 
-exports = module.exports = function(selector, el){
-  el = el || document;
-  return one(selector, el);
+  return event.bind(el, type, function(e){
+    var target = e.target || e.srcElement;
+    e.delegateTarget = closest(target, selector, true, el);
+    if (e.delegateTarget) fn.call(el, e);
+  }, capture);
 };
 
-exports.all = function(selector, el){
-  el = el || document;
-  return el.querySelectorAll(selector);
+/**
+ * Unbind event `type`'s callback `fn`.
+ *
+ * @param {Element} el
+ * @param {String} type
+ * @param {Function} fn
+ * @param {Boolean} capture
+ * @api public
+ */
+
+exports.unbind = function(el, type, fn, capture){
+  if (forceCaptureEvents.indexOf(type) !== -1) capture = true;
+
+  event.unbind(el, type, fn, capture);
 };
 
-exports.engine = function(obj){
-  if (!obj.one) throw new Error('.one callback required');
-  if (!obj.all) throw new Error('.all callback required');
-  one = obj.one;
-  exports.all = obj.all;
-  return exports;
-};
-
-},{}],114:[function(_dereq_,module,exports){
+},{"113":113,"115":115}],117:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(170) ],
+  __depends__: [ _dereq_(173) ],
   __init__: [ 'directEditing' ],
-  directEditing: [ 'type', _dereq_(115) ]
+  directEditing: [ 'type', _dereq_(118) ]
 };
-},{"115":115,"170":170}],115:[function(_dereq_,module,exports){
+},{"118":118,"173":173}],118:[function(_dereq_,module,exports){
 'use strict';
 
-var bind = _dereq_(312),
-    find = _dereq_(302);
+var bind = _dereq_(315),
+    find = _dereq_(305);
 
-var TextBox = _dereq_(116);
+var TextBox = _dereq_(119);
 
 
 /**
@@ -19130,17 +19732,17 @@ DirectEditing.prototype.activate = function(element) {
 
 
 module.exports = DirectEditing;
-},{"116":116,"302":302,"312":312}],116:[function(_dereq_,module,exports){
+},{"119":119,"305":305,"315":315}],119:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431),
-    bind = _dereq_(312),
-    pick = _dereq_(438);
+var assign = _dereq_(434),
+    bind = _dereq_(315),
+    pick = _dereq_(441);
 
-var domAttr = _dereq_(444),
-    domClasses = _dereq_(445),
-    domEvent = _dereq_(450),
-    domRemove = _dereq_(453);
+var domify = _dereq_(453),
+    domQuery = _dereq_(456),
+    domEvent = _dereq_(454),
+    domRemove = _dereq_(457);
 
 var min = Math.min,
     max = Math.max;
@@ -19169,7 +19771,7 @@ function toArray(nodeList) {
  * container
  *   parent
  *     content
- *     handle
+ *     resize-handle
  *
  * @param {object} options
  * @param {DOMElement} options.container The DOM element to append the contentContainer to
@@ -19179,13 +19781,13 @@ function toArray(nodeList) {
 function TextBox(options) {
   this.container = options.container;
 
-  this.parent = document.createElement('div');
+  this.parent = domify(
+    '<div class="djs-direct-editing-parent">' +
+      '<div class="djs-direct-editing-content" contenteditable="true"></div>' +
+    '</div>'
+  );
 
-  this.content = document.createElement('div');
-
-  this.parent.appendChild(this.content);
-
-  domAttr(this.content, 'contentEditable', 'true');
+  this.content = domQuery('[contenteditable]', this.parent);
 
   this.keyHandler = options.keyHandler || function() {};
   this.resizeHandler = options.resizeHandler || function() {};
@@ -19445,9 +20047,9 @@ TextBox.prototype.resizable = function() {
       maxHeight = parseInt(this.style.maxHeight) || Infinity;
 
   if (!resizeHandle) {
-    resizeHandle = this.resizeHandle = document.createElement('div');
-
-    domClasses(resizeHandle).add('djs-direct-editing-resize-handle');
+    resizeHandle = this.resizeHandle = domify(
+      '<div class="djs-direct-editing-resize-handle"></div>'
+    );
 
     var startX, startY, startWidth, startHeight;
 
@@ -19573,12 +20175,12 @@ TextBox.prototype.setSelection = function(container, offset) {
   selection.addRange(range);
 };
 
-},{"312":312,"431":431,"438":438,"444":444,"445":445,"450":450,"453":453}],117:[function(_dereq_,module,exports){
-module.exports = _dereq_(118);
-},{"118":118}],118:[function(_dereq_,module,exports){
+},{"315":315,"434":434,"441":441,"453":453,"454":454,"456":456,"457":457}],120:[function(_dereq_,module,exports){
+module.exports = _dereq_(121);
+},{"121":121}],121:[function(_dereq_,module,exports){
 'use strict';
 
-var di = _dereq_(282);
+var di = _dereq_(284);
 
 
 /**
@@ -19655,7 +20257,7 @@ function createInjector(options) {
     'config': ['value', options]
   };
 
-  var coreModule = _dereq_(127);
+  var coreModule = _dereq_(130);
 
   var modules = [ configModule, coreModule ].concat(options.modules || []);
 
@@ -19777,13 +20379,13 @@ Diagram.prototype.clear = function() {
   this.get('eventBus').fire('diagram.clear');
 };
 
-},{"127":127,"282":282}],119:[function(_dereq_,module,exports){
+},{"130":130,"284":284}],122:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303),
-    isFunction = _dereq_(423),
-    isArray = _dereq_(422),
-    isNumber = _dereq_(425);
+var forEach = _dereq_(306),
+    isFunction = _dereq_(426),
+    isArray = _dereq_(425),
+    isNumber = _dereq_(428);
 
 
 var DEFAULT_PRIORITY = 1000;
@@ -19928,14 +20530,14 @@ forEach(hooks, function(hook) {
   };
 });
 
-},{"303":303,"422":422,"423":423,"425":425}],120:[function(_dereq_,module,exports){
+},{"306":306,"425":425,"426":426,"428":428}],123:[function(_dereq_,module,exports){
 'use strict';
 
-var unique = _dereq_(296),
-    isArray = _dereq_(422),
-    assign = _dereq_(431);
+var unique = _dereq_(299),
+    isArray = _dereq_(425),
+    assign = _dereq_(434);
 
-var InternalEvent = _dereq_(125).Event;
+var InternalEvent = _dereq_(128).Event;
 
 
 /**
@@ -20053,7 +20655,12 @@ function CommandStack(eventBus, injector) {
 
   this._uid = 1;
 
-  eventBus.on([ 'diagram.destroy', 'diagram.clear' ], this.clear, this);
+  eventBus.on([
+    'diagram.destroy',
+    'diagram.clear'
+  ], function() {
+    this.clear(false);
+  }, this);
 }
 
 CommandStack.$inject = [ 'eventBus', 'injector' ];
@@ -20127,11 +20734,13 @@ CommandStack.prototype.canExecute = function(command, context) {
 /**
  * Clear the command stack, erasing all undo / redo history
  */
-CommandStack.prototype.clear = function() {
+CommandStack.prototype.clear = function(emit) {
   this._stack.length = 0;
   this._stackIdx = -1;
 
-  this._fire('changed');
+  if (emit !== false) {
+    this._fire('changed');
+  }
 };
 
 
@@ -20432,31 +21041,31 @@ CommandStack.prototype._setHandler = function(command, handler) {
   this._handlerMap[command] = handler;
 };
 
-},{"125":125,"296":296,"422":422,"431":431}],121:[function(_dereq_,module,exports){
+},{"128":128,"299":299,"425":425,"434":434}],124:[function(_dereq_,module,exports){
 module.exports = {
-  commandStack: [ 'type', _dereq_(120) ]
+  commandStack: [ 'type', _dereq_(123) ]
 };
 
-},{"120":120}],122:[function(_dereq_,module,exports){
+},{"123":123}],125:[function(_dereq_,module,exports){
 'use strict';
 
-var isNumber = _dereq_(425),
-    assign = _dereq_(431),
-    forEach = _dereq_(303),
-    every = _dereq_(300),
-    debounce = _dereq_(313),
-    reduce = _dereq_(306);
+var isNumber = _dereq_(428),
+    assign = _dereq_(434),
+    forEach = _dereq_(306),
+    every = _dereq_(303),
+    debounce = _dereq_(316),
+    reduce = _dereq_(309);
 
-var Collections = _dereq_(263),
-    Elements = _dereq_(266);
+var Collections = _dereq_(266),
+    Elements = _dereq_(269);
 
-var svgAppend = _dereq_(472),
-    svgAttr = _dereq_(474),
-    svgClasses = _dereq_(475),
-    svgCreate = _dereq_(478),
-    svgTransform = _dereq_(482);
+var svgAppend = _dereq_(477),
+    svgAttr = _dereq_(479),
+    svgClasses = _dereq_(480),
+    svgCreate = _dereq_(483),
+    svgTransform = _dereq_(487);
 
-var createMatrix = _dereq_(479).createMatrix;
+var createMatrix = _dereq_(484).createMatrix;
 
 
 function round(number, resolution) {
@@ -20595,10 +21204,6 @@ Canvas.prototype._init = function(config) {
       svg: svg,
       viewport: viewport
     });
-
-    // fire this in order for certain components to check
-    // if they need to be adjusted due the canvas size
-    this.resized();
 
   }, this);
 
@@ -20963,7 +21568,7 @@ Canvas.prototype._addElement = function(type, element, parent, parentIndex) {
   this._setParent(element, parent, parentIndex);
 
   // create graphics
-  var gfx = graphicsFactory.create(type, element);
+  var gfx = graphicsFactory.create(type, element, parentIndex);
 
   this._elementRegistry.add(element, gfx);
 
@@ -21392,9 +21997,9 @@ Canvas.prototype._setZoom = function(scale, center) {
 
     // create scale matrix
     scaleMatrix = matrix
-                    .translate(originalPoint.x, originalPoint.y)
-                    .scale(1 / currentScale * scale)
-                    .translate(-originalPoint.x, -originalPoint.y);
+      .translate(originalPoint.x, originalPoint.y)
+      .scale(1 / currentScale * scale)
+      .translate(-originalPoint.x, -originalPoint.y);
 
     newMatrix = currentMatrix.multiply(scaleMatrix);
   } else {
@@ -21473,12 +22078,12 @@ Canvas.prototype.resized = function() {
   this._eventBus.fire('canvas.resized');
 };
 
-},{"263":263,"266":266,"300":300,"303":303,"306":306,"313":313,"425":425,"431":431,"472":472,"474":474,"475":475,"478":478,"479":479,"482":482}],123:[function(_dereq_,module,exports){
+},{"266":266,"269":269,"303":303,"306":306,"309":309,"316":316,"428":428,"434":434,"477":477,"479":479,"480":480,"483":483,"484":484,"487":487}],126:[function(_dereq_,module,exports){
 'use strict';
 
-var Model = _dereq_(254);
+var Model = _dereq_(257);
 
-var assign = _dereq_(431);
+var assign = _dereq_(434);
 
 /**
  * A factory for diagram-js shapes
@@ -21524,12 +22129,12 @@ ElementFactory.prototype.create = function(type, attrs) {
 
   return Model.create(type, attrs);
 };
-},{"254":254,"431":431}],124:[function(_dereq_,module,exports){
+},{"257":257,"434":434}],127:[function(_dereq_,module,exports){
 'use strict';
 
 var ELEMENT_ID = 'data-element-id';
 
-var svgAttr = _dereq_(474);
+var svgAttr = _dereq_(479);
 
 
 /**
@@ -21735,14 +22340,14 @@ ElementRegistry.prototype._validateId = function(id) {
   }
 };
 
-},{"474":474}],125:[function(_dereq_,module,exports){
+},{"479":479}],128:[function(_dereq_,module,exports){
 'use strict';
 
-var isFunction = _dereq_(423),
-    isArray = _dereq_(422),
-    isNumber = _dereq_(425),
-    bind = _dereq_(312),
-    assign = _dereq_(431);
+var isFunction = _dereq_(426),
+    isArray = _dereq_(425),
+    isNumber = _dereq_(428),
+    bind = _dereq_(315),
+    assign = _dereq_(434);
 
 var FN_REF = '__fn';
 
@@ -22193,23 +22798,23 @@ function invokeFunction(fn, args) {
   return fn.apply(null, args);
 }
 
-},{"312":312,"422":422,"423":423,"425":425,"431":431}],126:[function(_dereq_,module,exports){
+},{"315":315,"425":425,"426":426,"428":428,"434":434}],129:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303),
-    reduce = _dereq_(306);
+var forEach = _dereq_(306),
+    reduce = _dereq_(309);
 
-var GraphicsUtil = _dereq_(269);
+var GraphicsUtil = _dereq_(272);
 
-var translate = _dereq_(279).translate;
+var translate = _dereq_(281).translate;
 
-var domClear = _dereq_(446);
+var domClear = _dereq_(450);
 
-var svgAppend = _dereq_(472),
-    svgAttr = _dereq_(474),
-    svgClasses = _dereq_(475),
-    svgCreate = _dereq_(478),
-    svgRemove = _dereq_(481);
+var svgAppend = _dereq_(477),
+    svgAttr = _dereq_(479),
+    svgClasses = _dereq_(480),
+    svgCreate = _dereq_(483),
+    svgRemove = _dereq_(486);
 
 
 /**
@@ -22284,12 +22889,18 @@ GraphicsFactory.prototype._clear = function(gfx) {
  *
  * @param {Object} parent
  * @param {String} type the type of the element, i.e. shape | connection
+ * @param {Number} [parentIndex] position to create container in parent
  */
-GraphicsFactory.prototype._createContainer = function(type, parentGfx) {
+GraphicsFactory.prototype._createContainer = function(type, childrenGfx, parentIndex) {
   var outerGfx = svgCreate('g');
   svgClasses(outerGfx).add('djs-group');
 
-  svgAppend(parentGfx, outerGfx);
+  // insert node at position
+  if (typeof parentIndex !== 'undefined') {
+    prependTo(outerGfx, childrenGfx, childrenGfx.childNodes[parentIndex]);
+  } else {
+    svgAppend(childrenGfx, outerGfx);
+  }
 
   var gfx = svgCreate('g');
   svgClasses(gfx).add('djs-element');
@@ -22306,9 +22917,9 @@ GraphicsFactory.prototype._createContainer = function(type, parentGfx) {
   return gfx;
 };
 
-GraphicsFactory.prototype.create = function(type, element) {
+GraphicsFactory.prototype.create = function(type, element, parentIndex) {
   var childrenGfx = this._getChildren(element.parent);
-  return this._createContainer(type, childrenGfx);
+  return this._createContainer(type, childrenGfx, parentIndex);
 };
 
 GraphicsFactory.prototype.updateContainments = function(elements) {
@@ -22330,12 +22941,13 @@ GraphicsFactory.prototype.updateContainments = function(elements) {
   // in the correct order (as indicated in our model)
   forEach(parents, function(parent) {
 
-    var childGfx = self._getChildren(parent),
-        children = parent.children;
+    var children = parent.children;
 
     if (!children) {
       return;
     }
+
+    var childGfx = self._getChildren(parent);
 
     forEach(children.slice().reverse(), function(c) {
       var gfx = elementRegistry.getGraphics(c);
@@ -22406,21 +23018,21 @@ GraphicsFactory.prototype.remove = function(element) {
 
 ////////// helpers ///////////
 
-function prependTo(newNode, parentNode) {
-  parentNode.insertBefore(newNode, parentNode.firstChild);
+function prependTo(newNode, parentNode, siblingNode) {
+  parentNode.insertBefore(newNode, siblingNode || parentNode.firstChild);
 }
 
-},{"269":269,"279":279,"303":303,"306":306,"446":446,"472":472,"474":474,"475":475,"478":478,"481":481}],127:[function(_dereq_,module,exports){
+},{"272":272,"281":281,"306":306,"309":309,"450":450,"477":477,"479":479,"480":480,"483":483,"486":486}],130:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(131) ],
+  __depends__: [ _dereq_(134) ],
   __init__: [ 'canvas' ],
-  canvas: [ 'type', _dereq_(122) ],
-  elementRegistry: [ 'type', _dereq_(124) ],
-  elementFactory: [ 'type', _dereq_(123) ],
-  eventBus: [ 'type', _dereq_(125) ],
-  graphicsFactory: [ 'type', _dereq_(126) ]
+  canvas: [ 'type', _dereq_(125) ],
+  elementRegistry: [ 'type', _dereq_(127) ],
+  elementFactory: [ 'type', _dereq_(126) ],
+  eventBus: [ 'type', _dereq_(128) ],
+  graphicsFactory: [ 'type', _dereq_(129) ]
 };
-},{"122":122,"123":123,"124":124,"125":125,"126":126,"131":131}],128:[function(_dereq_,module,exports){
+},{"125":125,"126":126,"127":127,"128":128,"129":129,"134":134}],131:[function(_dereq_,module,exports){
 'use strict';
 
 var DEFAULT_RENDER_PRIORITY = 1000;
@@ -22511,21 +23123,21 @@ BaseRenderer.prototype.getConnectionPath = function() {};
 
 module.exports = BaseRenderer;
 
-},{}],129:[function(_dereq_,module,exports){
+},{}],132:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var BaseRenderer = _dereq_(128);
+var BaseRenderer = _dereq_(131);
 
-var renderUtil = _dereq_(278);
+var renderUtil = _dereq_(280);
 
 var componentsToPath = renderUtil.componentsToPath,
     createLine = renderUtil.createLine;
 
-var svgAppend = _dereq_(472),
-    svgAttr = _dereq_(474),
-    svgCreate = _dereq_(478);
+var svgAppend = _dereq_(477),
+    svgAttr = _dereq_(479),
+    svgCreate = _dereq_(483);
 
 // apply default renderer with lowest possible priority
 // so that it only kicks in if noone else could render
@@ -22616,12 +23228,12 @@ DefaultRenderer.$inject = [ 'eventBus', 'styles' ];
 
 module.exports = DefaultRenderer;
 
-},{"128":128,"278":278,"289":289,"472":472,"474":474,"478":478}],130:[function(_dereq_,module,exports){
+},{"131":131,"280":280,"292":292,"477":477,"479":479,"483":483}],133:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(422),
-    assign = _dereq_(431),
-    reduce = _dereq_(306);
+var isArray = _dereq_(425),
+    assign = _dereq_(434),
+    reduce = _dereq_(309);
 
 
 /**
@@ -22693,19 +23305,19 @@ function Styles() {
 
 module.exports = Styles;
 
-},{"306":306,"422":422,"431":431}],131:[function(_dereq_,module,exports){
+},{"309":309,"425":425,"434":434}],134:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'defaultRenderer' ],
-  defaultRenderer: [ 'type', _dereq_(129) ],
-  styles: [ 'type', _dereq_(130) ]
+  defaultRenderer: [ 'type', _dereq_(132) ],
+  styles: [ 'type', _dereq_(133) ]
 };
 
-},{"129":129,"130":130}],132:[function(_dereq_,module,exports){
+},{"132":132,"133":133}],135:[function(_dereq_,module,exports){
 'use strict';
 
-var filter = _dereq_(301),
-    forEach = _dereq_(303),
-    sortBy = _dereq_(310);
+var filter = _dereq_(304),
+    forEach = _dereq_(306),
+    sortBy = _dereq_(313);
 
 function last(arr) {
   return arr && arr[arr.length - 1];
@@ -22874,39 +23486,56 @@ AlignElements.prototype.trigger = function(elements, type) {
   modeling.alignElements(sortedElements, alignment);
 };
 
-},{"301":301,"303":303,"310":310}],133:[function(_dereq_,module,exports){
+},{"304":304,"306":306,"313":313}],136:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'alignElements' ],
-  alignElements: [ 'type', _dereq_(132) ]
+  alignElements: [ 'type', _dereq_(135) ]
 };
 
-},{"132":132}],134:[function(_dereq_,module,exports){
+},{"135":135}],137:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303),
-    flatten = _dereq_(291),
-    union = _dereq_(294),
-    filter = _dereq_(301),
-    groupBy = _dereq_(304),
-    map = _dereq_(305);
+var forEach = _dereq_(306),
+    flatten = _dereq_(294),
+    union = _dereq_(297),
+    filter = _dereq_(304),
+    groupBy = _dereq_(307),
+    map = _dereq_(308);
 
-var saveClear = _dereq_(277).saveClear,
-    Collections = _dereq_(263);
+var saveClear = _dereq_(279).saveClear,
+    Collections = _dereq_(266);
 
-var getNewAttachShapeDelta = _dereq_(261).getNewAttachShapeDelta;
+var getNewAttachShapeDelta = _dereq_(264).getNewAttachShapeDelta;
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var HIGH_PRIORITY = 1500;
+var LOW_PRIORITY = 251,
+    HIGH_PRIORITY = 1401;
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
 
-function AttachSupport(eventBus, modeling, movePreview, rules) {
+/**
+ * Adds the notion of attached elements to the modeler.
+ *
+ * Optionally depends on `diagram-js/lib/features/move` to render
+ * the attached elements during move preview.
+ *
+ * Optionally depends on `diagram-js/lib/features/label-support`
+ * to render attached labels during move preview.
+ *
+ * @param {didi.Injector} injector
+ * @param {EventBus} eventBus
+ * @param {Rules} rules
+ * @param {Modeling} modeling
+ */
+function AttachSupport(injector, eventBus, rules, modeling) {
 
   CommandInterceptor.call(this, eventBus);
+
+  var movePreview = injector.get('movePreview', false);
 
 
   // remove all the attached elements from the shapes to be validated
@@ -22922,9 +23551,25 @@ function AttachSupport(eventBus, modeling, movePreview, rules) {
     context.validatedShapes = removeAttached(validatedShapes);
   });
 
+  // add attachers to the visual's group
+  movePreview && eventBus.on('shape.move.start', LOW_PRIORITY, function(e) {
+
+    var context = e.context,
+        shapes = context.shapes,
+        attachers = getAttachers(shapes);
+
+    forEach(attachers, function(attacher) {
+      movePreview.makeDraggable(context, attacher, true);
+
+      if (attacher.label) {
+        movePreview.makeDraggable(context, attacher.label, true);
+      }
+    });
+  });
+
 
   // move all attachments after the other shapes are done moving
-  this.postExecuted([ 'elements.move' ], function(event) {
+  this.postExecuted('elements.move', function(event) {
 
     var context = event.context,
         delta = context.delta,
@@ -22947,7 +23592,7 @@ function AttachSupport(eventBus, modeling, movePreview, rules) {
   });
 
   // perform the attaching after shapes are done moving
-  this.postExecuted([ 'elements.move' ], function(e) {
+  this.postExecuted('elements.move', function(e) {
 
     var context = e.context,
         shapes = context.shapes,
@@ -22975,7 +23620,7 @@ function AttachSupport(eventBus, modeling, movePreview, rules) {
   });
 
   // ensure invalid attachment connections are removed
-  this.postExecuted([ 'elements.move' ], function(e) {
+  this.postExecuted('elements.move', function(e) {
 
     var shapes = e.context.shapes;
 
@@ -23012,7 +23657,7 @@ function AttachSupport(eventBus, modeling, movePreview, rules) {
     });
   });
 
-  this.postExecute([ 'shape.create' ], function(e) {
+  this.postExecute('shape.create', function(e) {
     var context = e.context,
         shape = context.shape,
         host = context.host;
@@ -23023,7 +23668,7 @@ function AttachSupport(eventBus, modeling, movePreview, rules) {
   });
 
   // update attachments if the host is replaced
-  this.postExecute([ 'shape.replace' ], function(e) {
+  this.postExecute('shape.replace', function(e) {
 
     var context = e.context,
         oldShape = context.oldShape,
@@ -23055,7 +23700,7 @@ function AttachSupport(eventBus, modeling, movePreview, rules) {
   });
 
   // move shape on host resize
-  this.postExecute([ 'shape.resize' ], function(event) {
+  this.postExecute('shape.resize', function(event) {
     var context = event.context,
         shape = context.shape,
         oldBounds = context.oldBounds,
@@ -23078,7 +23723,7 @@ function AttachSupport(eventBus, modeling, movePreview, rules) {
   });
 
   // remove attachments
-  this.preExecute([ 'shape.delete' ], function(event) {
+  this.preExecute('shape.delete', function(event) {
 
     var shape = event.context.shape;
 
@@ -23096,28 +23741,44 @@ function AttachSupport(eventBus, modeling, movePreview, rules) {
   // Otherwise the attachers and their labels would be moved twice.
   eventBus.on('spaceTool.move', function(event) {
 
-    var movingShapes = event.context.movingShapes;
+    var context = event.context,
+        initialized = context.initialized,
+        attachSupportInitialized = context.attachSupportInitialized;
 
-    // Collect all attachers which would be moved using the space tool
-    var movingAttachers = filter(movingShapes, function(shape) {
-      return shape.host && shape.host.id;
+    if (!initialized || attachSupportInitialized) {
+      return;
+    }
+
+    var movingShapes = context.movingShapes;
+
+    // collect attachers whose host is not being moved using the space tool
+    var staticAttachers = filter(movingShapes, function(shape) {
+      var host = shape.host;
+
+      return host && movingShapes.indexOf(host) === -1;
     });
 
-    forEach(movingAttachers, function(shape) {
-      // Remove all attachers and their labels from the movingShapes, because they
-      // already will be moved along with the host.
+    // remove attachers that are not going to be moved from moving shapes
+    forEach(staticAttachers, function(shape) {
       Collections.remove(movingShapes, shape);
+
       if (shape.label) {
         Collections.remove(movingShapes, shape.label);
       }
     });
 
+    context.attachSupportInitialized = true;
   });
 }
 
 inherits(AttachSupport, CommandInterceptor);
 
-AttachSupport.$inject = [ 'eventBus', 'modeling', 'movePreview', 'rules' ];
+AttachSupport.$inject = [
+  'injector',
+  'eventBus',
+  'rules',
+  'modeling'
+];
 
 module.exports = AttachSupport;
 
@@ -23175,33 +23836,32 @@ function removeAttached(elements) {
   });
 }
 
-},{"119":119,"261":261,"263":263,"277":277,"289":289,"291":291,"294":294,"301":301,"303":303,"304":304,"305":305}],135:[function(_dereq_,module,exports){
+},{"122":122,"264":264,"266":266,"279":279,"292":292,"294":294,"297":297,"304":304,"306":306,"307":307,"308":308}],138:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(206),
-    _dereq_(174)
+    _dereq_(230)
   ],
-  __init__: [ 'attachSupport'],
-  attachSupport: [ 'type', _dereq_(134) ]
+  __init__: [ 'attachSupport' ],
+  attachSupport: [ 'type', _dereq_(137) ]
 };
 
-},{"134":134,"174":174,"206":206}],136:[function(_dereq_,module,exports){
+},{"137":137,"230":230}],139:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var getBoundingBox = _dereq_(266).getBBox;
+var getBoundingBox = _dereq_(269).getBBox;
 
-var asTRBL = _dereq_(252).asTRBL,
-    asBounds = _dereq_(252).asBounds;
+var asTRBL = _dereq_(255).asTRBL,
+    asBounds = _dereq_(255).asBounds;
 
-var assign = _dereq_(431),
-    forEach = _dereq_(303),
-    values = _dereq_(440),
-    flatten = _dereq_(291),
-    groupBy = _dereq_(304);
+var assign = _dereq_(434),
+    forEach = _dereq_(306),
+    values = _dereq_(443),
+    flatten = _dereq_(294),
+    groupBy = _dereq_(307);
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
 
 /**
@@ -23388,10 +24048,10 @@ function boundsChanged(newBounds, oldBounds) {
     newBounds.height !== oldBounds.height
   );
 }
-},{"119":119,"252":252,"266":266,"289":289,"291":291,"303":303,"304":304,"431":431,"440":440}],137:[function(_dereq_,module,exports){
-var RuleProvider = _dereq_(225);
+},{"122":122,"255":255,"269":269,"292":292,"294":294,"306":306,"307":307,"434":434,"443":443}],140:[function(_dereq_,module,exports){
+var RuleProvider = _dereq_(228);
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
 /**
  * This is a base rule provider for the element.autoResize rule.
@@ -23424,12 +24084,12 @@ module.exports = AutoResizeProvider;
 AutoResizeProvider.prototype.canResize = function(elements, target) {
   return false;
 };
-},{"225":225,"289":289}],138:[function(_dereq_,module,exports){
+},{"228":228,"292":292}],141:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431);
+var assign = _dereq_(434);
 
-var EventUtil = _dereq_(267);
+var EventUtil = _dereq_(270);
 
 
 /**
@@ -23568,20 +24228,20 @@ AutoScroll.prototype._toBorderPoint = function(event) {
     y: globalPosition.y - clientRect.top
   };
 };
-},{"267":267,"431":431}],139:[function(_dereq_,module,exports){
+},{"270":270,"434":434}],142:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(162),
-    _dereq_(203)
+    _dereq_(165),
+    _dereq_(206)
   ],
   __init__: [ 'autoScroll' ],
-  autoScroll: [ 'type', _dereq_(138) ]
+  autoScroll: [ 'type', _dereq_(141) ]
 };
-},{"138":138,"162":162,"203":203}],140:[function(_dereq_,module,exports){
+},{"141":141,"165":165,"206":206}],143:[function(_dereq_,module,exports){
 'use strict';
 
-var Geometry = _dereq_(268),
-    BendpointUtil = _dereq_(142);
+var Geometry = _dereq_(271),
+    BendpointUtil = _dereq_(145);
 
 var MARKER_OK = 'connect-ok',
     MARKER_NOT_OK = 'connect-not-ok',
@@ -23594,10 +24254,10 @@ var COMMAND_BENDPOINT_UPDATE = 'connection.updateWaypoints',
 
 var round = Math.round;
 
-var svgClasses = _dereq_(475),
-    svgRemove = _dereq_(481);
+var svgClasses = _dereq_(480),
+    svgRemove = _dereq_(486);
 
-var translate = _dereq_(279).translate;
+var translate = _dereq_(281).translate;
 
 
 /**
@@ -23845,12 +24505,12 @@ BendpointMove.$inject = [ 'injector', 'eventBus', 'canvas', 'dragging', 'graphic
 
 module.exports = BendpointMove;
 
-},{"142":142,"268":268,"279":279,"475":475,"481":481}],141:[function(_dereq_,module,exports){
+},{"145":145,"271":271,"281":281,"480":480,"486":486}],144:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431),
-    forEach = _dereq_(303),
-    isArray = _dereq_(422);
+var assign = _dereq_(434),
+    forEach = _dereq_(306),
+    isArray = _dereq_(425);
 
 var abs= Math.abs,
     round = Math.round;
@@ -24045,22 +24705,22 @@ BendpointSnapping.$inject = [ 'eventBus' ];
 
 module.exports = BendpointSnapping;
 
-},{"303":303,"422":422,"431":431}],142:[function(_dereq_,module,exports){
+},{"306":306,"425":425,"434":434}],145:[function(_dereq_,module,exports){
 'use strict';
 
-var Events = _dereq_(267),
-    Geometry = _dereq_(268);
+var Events = _dereq_(270),
+    Geometry = _dereq_(271);
 
 var BENDPOINT_CLS = module.exports.BENDPOINT_CLS = 'djs-bendpoint';
 var SEGMENT_DRAGGER_CLS = module.exports.SEGMENT_DRAGGER_CLS = 'djs-segment-dragger';
 
-var svgAppend = _dereq_(472),
-    svgAttr = _dereq_(474),
-    svgClasses = _dereq_(475),
-    svgCreate = _dereq_(478);
+var svgAppend = _dereq_(477),
+    svgAttr = _dereq_(479),
+    svgClasses = _dereq_(480),
+    svgCreate = _dereq_(483);
 
-var rotate = _dereq_(279).rotate,
-    translate = _dereq_(279).translate;
+var rotate = _dereq_(281).rotate,
+    translate = _dereq_(281).translate;
 
 
 module.exports.toCanvasCoordinates = function(canvas, event) {
@@ -24176,37 +24836,37 @@ module.exports.addSegmentDragger = function(parentGfx, segmentStart, segmentEnd)
   return groupGfx;
 };
 
-},{"267":267,"268":268,"279":279,"472":472,"474":474,"475":475,"478":478}],143:[function(_dereq_,module,exports){
+},{"270":270,"271":271,"281":281,"477":477,"479":479,"480":480,"483":483}],146:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
-var domEvent = _dereq_(450),
-    domQuery = _dereq_(452),
-    BendpointUtil = _dereq_(142);
+var domEvent = _dereq_(454),
+    domQuery = _dereq_(456),
+    BendpointUtil = _dereq_(145);
 
-var pointsAligned = _dereq_(268).pointsAligned,
-    getMidPoint = _dereq_(268).getMidPoint;
+var pointsAligned = _dereq_(271).pointsAligned,
+    getMidPoint = _dereq_(271).getMidPoint;
 
 var BENDPOINT_CLS = BendpointUtil.BENDPOINT_CLS,
     SEGMENT_DRAGGER_CLS = BendpointUtil.SEGMENT_DRAGGER_CLS;
 
-var getApproxIntersection = _dereq_(272).getApproxIntersection;
+var getApproxIntersection = _dereq_(274).getApproxIntersection;
 
-var svgAppend = _dereq_(472),
-    svgAttr = _dereq_(474),
-    svgClasses = _dereq_(475),
-    svgCreate = _dereq_(478),
-    svgRemove = _dereq_(481);
+var svgAppend = _dereq_(477),
+    svgAttr = _dereq_(479),
+    svgClasses = _dereq_(480),
+    svgCreate = _dereq_(483),
+    svgRemove = _dereq_(486);
 
-var translate = _dereq_(279).translate;
+var translate = _dereq_(281).translate;
 
 
 /**
  * A service that adds editable bendpoints to connections.
  */
 function Bendpoints(eventBus, canvas, interactionEvents,
-                    bendpointMove, connectionSegmentMove) {
+  bendpointMove, connectionSegmentMove) {
 
   function getConnectionIntersection(waypoints, event) {
     var localPosition = BendpointUtil.toCanvasCoordinates(canvas, event),
@@ -24247,6 +24907,9 @@ function Bendpoints(eventBus, canvas, interactionEvents,
     } else {
       bendpointMove.start(event, connection, intersection.index, !intersection.bendpoint);
     }
+
+    // we've handled the event
+    return true;
   }
 
   function bindInteractionEvents(node, eventName, element) {
@@ -24410,7 +25073,7 @@ function Bendpoints(eventBus, canvas, interactionEvents,
       return;
     }
 
-    activateBendpointMove(originalEvent, element, waypoints);
+    return activateBendpointMove(originalEvent, element, waypoints);
   });
 
   eventBus.on('selection.changed', function(event) {
@@ -24463,20 +25126,20 @@ Bendpoints.$inject = [
 
 module.exports = Bendpoints;
 
-},{"142":142,"268":268,"272":272,"279":279,"303":303,"450":450,"452":452,"472":472,"474":474,"475":475,"478":478,"481":481}],144:[function(_dereq_,module,exports){
+},{"145":145,"271":271,"274":274,"281":281,"306":306,"454":454,"456":456,"477":477,"479":479,"480":480,"483":483,"486":486}],147:[function(_dereq_,module,exports){
 'use strict';
 
-var Geometry = _dereq_(268),
-    BendpointUtil = _dereq_(142),
-    LayoutUtil = _dereq_(252);
+var Geometry = _dereq_(271),
+    BendpointUtil = _dereq_(145),
+    LayoutUtil = _dereq_(255);
 
 var MARKER_CONNECT_HOVER = 'connect-hover',
     MARKER_CONNECT_UPDATING = 'djs-updating';
 
-var svgClasses = _dereq_(475),
-    svgRemove = _dereq_(481);
+var svgClasses = _dereq_(480),
+    svgRemove = _dereq_(486);
 
-var translate = _dereq_(279).translate;
+var translate = _dereq_(281).translate;
 
 
 function axisAdd(point, axis, delta) {
@@ -24866,20 +25529,20 @@ ConnectionSegmentMove.$inject = [
 
 module.exports = ConnectionSegmentMove;
 
-},{"142":142,"252":252,"268":268,"279":279,"475":475,"481":481}],145:[function(_dereq_,module,exports){
+},{"145":145,"255":255,"271":271,"281":281,"480":480,"486":486}],148:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(162), _dereq_(227) ],
+  __depends__: [ _dereq_(165), _dereq_(230) ],
   __init__: [ 'bendpoints', 'bendpointSnapping' ],
-  bendpoints: [ 'type', _dereq_(143) ],
-  bendpointMove: [ 'type', _dereq_(140) ],
-  connectionSegmentMove: [ 'type', _dereq_(144) ],
-  bendpointSnapping: [ 'type', _dereq_(141) ]
+  bendpoints: [ 'type', _dereq_(146) ],
+  bendpointMove: [ 'type', _dereq_(143) ],
+  connectionSegmentMove: [ 'type', _dereq_(147) ],
+  bendpointSnapping: [ 'type', _dereq_(144) ]
 };
 
-},{"140":140,"141":141,"143":143,"144":144,"162":162,"227":227}],146:[function(_dereq_,module,exports){
+},{"143":143,"144":144,"146":146,"147":147,"165":165,"230":230}],149:[function(_dereq_,module,exports){
 'use strict';
 
-var getElementType = _dereq_(266).getType;
+var getElementType = _dereq_(269).getType;
 
 /**
  * Adds change support to the diagram, including
@@ -24939,12 +25602,12 @@ ChangeSupport.$inject = [ 'eventBus', 'canvas', 'elementRegistry', 'graphicsFact
 
 module.exports = ChangeSupport;
 
-},{"266":266}],147:[function(_dereq_,module,exports){
+},{"269":269}],150:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'changeSupport'],
-  changeSupport: [ 'type', _dereq_(146) ]
+  changeSupport: [ 'type', _dereq_(149) ]
 };
-},{"146":146}],148:[function(_dereq_,module,exports){
+},{"149":149}],151:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -24974,23 +25637,24 @@ Clipboard.prototype.clear = function() {
 Clipboard.prototype.isEmpty = function() {
   return !this._data;
 };
-},{}],149:[function(_dereq_,module,exports){
+},{}],152:[function(_dereq_,module,exports){
 module.exports = {
-  clipboard: [ 'type', _dereq_(148) ]
+  clipboard: [ 'type', _dereq_(151) ]
 };
 
-},{"148":148}],150:[function(_dereq_,module,exports){
+},{"151":151}],153:[function(_dereq_,module,exports){
 'use strict';
 
-var LayoutUtil = _dereq_(252);
+var getElementLineIntersection = _dereq_(255).getElementLineIntersection,
+    getMid = _dereq_(255).getMid;
 
 var MARKER_OK = 'connect-ok',
     MARKER_NOT_OK = 'connect-not-ok';
 
-var svgAppend = _dereq_(472),
-    svgAttr = _dereq_(474),
-    svgCreate = _dereq_(478),
-    svgRemove = _dereq_(481);
+var svgAppend = _dereq_(477),
+    svgAttr = _dereq_(479),
+    svgCreate = _dereq_(483),
+    svgRemove = _dereq_(486);
 
 
 function Connect(eventBus, dragging, modeling, rules, canvas, graphicsFactory) {
@@ -25015,8 +25679,8 @@ function Connect(eventBus, dragging, modeling, rules, canvas, graphicsFactory) {
         targetPath = target && graphicsFactory.getShapePath(target),
         connectionPath = graphicsFactory.getConnectionPath({ waypoints: [ start, end ] });
 
-    start = LayoutUtil.getElementLineIntersection(sourcePath, connectionPath, true) || start;
-    end = (target && LayoutUtil.getElementLineIntersection(targetPath, connectionPath, false)) || end;
+    start = getElementLineIntersection(sourcePath, connectionPath, true) || start;
+    end = (target && getElementLineIntersection(targetPath, connectionPath, false)) || end;
 
     return [ start, end ];
   }
@@ -25072,6 +25736,7 @@ function Connect(eventBus, dragging, modeling, rules, canvas, graphicsFactory) {
     }
 
     context.target = null;
+    context.canExecute = false;
   });
 
   eventBus.on('connect.cleanup', function(event) {
@@ -25143,7 +25808,7 @@ function Connect(eventBus, dragging, modeling, rules, canvas, graphicsFactory) {
 
     if (typeof sourcePosition !== 'object') {
       autoActivate = sourcePosition;
-      sourcePosition = LayoutUtil.getMid(source);
+      sourcePosition = getMid(source);
     }
 
     dragging.init(event, 'connect', {
@@ -25163,29 +25828,29 @@ Connect.$inject = [ 'eventBus', 'dragging', 'modeling', 'rules', 'canvas', 'grap
 
 module.exports = Connect;
 
-},{"252":252,"472":472,"474":474,"478":478,"481":481}],151:[function(_dereq_,module,exports){
+},{"255":255,"477":477,"479":479,"483":483,"486":486}],154:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(233),
-    _dereq_(227),
-    _dereq_(162)
+    _dereq_(236),
+    _dereq_(230),
+    _dereq_(165)
   ],
-  connect: [ 'type', _dereq_(150) ]
+  connect: [ 'type', _dereq_(153) ]
 };
 
-},{"150":150,"162":162,"227":227,"233":233}],152:[function(_dereq_,module,exports){
+},{"153":153,"165":165,"230":230,"236":236}],155:[function(_dereq_,module,exports){
 'use strict';
 
-var isFunction = _dereq_(423),
-    isArray = _dereq_(422),
-    forEach = _dereq_(303),
+var isFunction = _dereq_(426),
+    isArray = _dereq_(425),
+    forEach = _dereq_(306),
 
-    domDelegate = _dereq_(448),
-    domEvent = _dereq_(450),
-    domAttr = _dereq_(444),
-    domQuery = _dereq_(452),
-    domClasses = _dereq_(445),
-    domify = _dereq_(449);
+    domDelegate = _dereq_(452),
+    domEvent = _dereq_(454),
+    domAttr = _dereq_(448),
+    domQuery = _dereq_(456),
+    domClasses = _dereq_(449),
+    domify = _dereq_(453);
 
 
 var entrySelector = '.entry';
@@ -25476,31 +26141,31 @@ function addClasses(element, classNames) {
     classes.add(cls);
   });
 }
-},{"303":303,"422":422,"423":423,"444":444,"445":445,"448":448,"449":449,"450":450,"452":452}],153:[function(_dereq_,module,exports){
+},{"306":306,"425":425,"426":426,"448":448,"449":449,"452":452,"453":453,"454":454,"456":456}],156:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(170),
-    _dereq_(211)
+    _dereq_(173),
+    _dereq_(214)
   ],
-  contextPad: [ 'type', _dereq_(152) ]
+  contextPad: [ 'type', _dereq_(155) ]
 };
-},{"152":152,"170":170,"211":211}],154:[function(_dereq_,module,exports){
+},{"155":155,"173":173,"214":214}],157:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(422),
-    forEach = _dereq_(303),
-    map = _dereq_(305),
-    find = _dereq_(302),
-    findIndex = _dereq_(290),
-    sortBy = _dereq_(310),
-    reduce = _dereq_(306);
+var isArray = _dereq_(425),
+    forEach = _dereq_(306),
+    map = _dereq_(308),
+    find = _dereq_(305),
+    findIndex = _dereq_(293),
+    sortBy = _dereq_(313),
+    reduce = _dereq_(309);
 
-var getBBox = _dereq_(266).getBBox;
+var getBBox = _dereq_(269).getBBox;
 
-var PositionUtil = _dereq_(276);
+var PositionUtil = _dereq_(278);
 
-var CopyPasteUtil = _dereq_(264),
-    ElementsUtil = _dereq_(266);
+var CopyPasteUtil = _dereq_(267),
+    ElementsUtil = _dereq_(269);
 
 
 
@@ -25946,18 +26611,18 @@ CopyPaste.prototype.createTree = function(elements) {
   return tree;
 };
 
-},{"264":264,"266":266,"276":276,"290":290,"302":302,"303":303,"305":305,"306":306,"310":310,"422":422}],155:[function(_dereq_,module,exports){
+},{"267":267,"269":269,"278":278,"293":293,"305":305,"306":306,"308":308,"309":309,"313":313,"425":425}],158:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(149),
-    _dereq_(227),
-    _dereq_(203)
+    _dereq_(152),
+    _dereq_(230),
+    _dereq_(206)
   ],
   __init__: [ 'copyPaste' ],
-  copyPaste: [ 'type', _dereq_(154) ]
+  copyPaste: [ 'type', _dereq_(157) ]
 };
 
-},{"149":149,"154":154,"203":203,"227":227}],156:[function(_dereq_,module,exports){
+},{"152":152,"157":157,"206":206,"230":230}],159:[function(_dereq_,module,exports){
 'use strict';
 
 var LOW_PRIORITY = 750;
@@ -25967,35 +26632,111 @@ var MARKER_OK = 'drop-ok',
     MARKER_ATTACH = 'attach-ok',
     MARKER_NEW_PARENT = 'new-parent';
 
-var svgAppend = _dereq_(472),
-    svgAttr = _dereq_(474),
-    svgClasses = _dereq_(475),
-    svgCreate = _dereq_(478),
-    svgRemove = _dereq_(481);
+var svgAppend = _dereq_(477),
+    svgAttr = _dereq_(479),
+    svgClasses = _dereq_(480),
+    svgCreate = _dereq_(483),
+    svgRemove = _dereq_(486);
 
-var translate = _dereq_(279).translate;
+var translate = _dereq_(281).translate;
 
 
-function Create(eventBus, dragging, rules, modeling, canvas, styles, graphicsFactory) {
+/**
+ * Adds the ability to create new shapes via drag and drop.
+ *
+ * Create must be activated via {@link Create#start}. From that
+ * point on, create will invoke `shape.create` and `shape.attach`
+ * rules to query whether or not creation or attachment on a certain
+ * position is allowed.
+ *
+ * If create or attach is allowed and a source is given, Create it
+ * will invoke `connection.create` rules to query whether a connection
+ * can be drawn between source and new shape. During rule evaluation
+ * the target is not attached yet, however
+ *
+ *   hints = { targetParent, targetAttach }
+ *
+ * are passed to the evaluating rules.
+ *
+ *
+ * ## Rule Return Values
+ *
+ * Return values interpreted from  `shape.create`:
+ *
+ *   * `true`: create is allowed
+ *   * `false`: create is disallowed
+ *   * `null`: create is not allowed but should be ignored visually
+ *
+ * Return values interpreted from `shape.attach`:
+ *
+ *   * `true`: attach is allowed
+ *   * `Any`: attach is allowed with the constraints
+ *   * `false`: attach is disallowed
+ *
+ * Return values interpreted from `connection.create`:
+ *
+ *   * `true`: connection can be created
+ *   * `Any`: connection with the given attributes can be created
+ *   * `false`: connection can't be created
+ *
+ *
+ * @param {EventBus} eventBus
+ * @param {Dragging} dragging
+ * @param {Rules} rules
+ * @param {Modeling} modeling
+ * @param {Canvas} canvas
+ * @param {Styles} styles
+ * @param {GraphicsFactory} graphicsFactory
+ */
+function Create(
+  eventBus, dragging, rules, modeling,
+  canvas, styles, graphicsFactory) {
 
   // rules
 
   function canCreate(shape, target, source, position) {
 
-    if (source) {
-      return rules.allowed('shape.append', {
+    if (!target) {
+      return false;
+    }
+
+    var ctx = {
+      source: source,
+      shape: shape,
+      target: target,
+      position: position
+    };
+
+    var create,
+        attach,
+        connect;
+
+    attach = rules.allowed('shape.attach', ctx);
+
+    if (!attach) {
+      create = rules.allowed('shape.create', ctx);
+    }
+
+    if (create || attach) {
+
+      connect = source && rules.allowed('connection.create', {
         source: source,
-        shape: shape,
-        target: target,
-        position: position
-      });
-    } else {
-      return rules.allowed('shape.create', {
-        shape: shape,
-        target: target,
-        position: position
+        target: shape,
+        hints: {
+          targetParent: target,
+          targetAttach: attach
+        }
       });
     }
+
+    if (create || attach) {
+      return {
+        attach: attach,
+        connect: connect
+      };
+    }
+
+    return false;
   }
 
 
@@ -26050,6 +26791,8 @@ function Create(eventBus, dragging, rules, modeling, canvas, styles, graphicsFac
 
     var context = event.context,
         hover = event.hover,
+        shape = context.shape,
+        source = context.source,
         canExecute;
 
     var position = {
@@ -26057,16 +26800,16 @@ function Create(eventBus, dragging, rules, modeling, canvas, styles, graphicsFac
       y: event.y
     };
 
-    canExecute = context.canExecute = hover && canCreate(context.shape, hover, context.source, position);
+    canExecute = context.canExecute = hover && canCreate(shape, hover, source, position);
 
     // ignore hover visually if canExecute is null
     if (hover && canExecute !== null) {
       context.target = hover;
 
-      if (canExecute === 'attach') {
+      if (canExecute && canExecute.attach) {
         setMarker(hover, MARKER_ATTACH);
       } else {
-        setMarker(hover, context.canExecute ? MARKER_NEW_PARENT : MARKER_NOT_OK);
+        setMarker(hover, canExecute ? MARKER_NEW_PARENT : MARKER_NOT_OK);
       }
     }
   });
@@ -26102,7 +26845,8 @@ function Create(eventBus, dragging, rules, modeling, canvas, styles, graphicsFac
         shape = context.shape,
         target = context.target,
         canExecute = context.canExecute,
-        isAttach,
+        attach = canExecute && canExecute.attach,
+        connect = canExecute && canExecute.connect,
         position = {
           x: event.x,
           y: event.y
@@ -26112,12 +26856,17 @@ function Create(eventBus, dragging, rules, modeling, canvas, styles, graphicsFac
       return false;
     }
 
-    if (source) {
-      shape = modeling.appendShape(source, shape, position, target);
+    if (connect) {
+      // invoke append if connect is set via rules
+      shape = modeling.appendShape(source, shape, position, target, {
+        attach: attach,
+        connection: connect === true ? {} : connect
+      });
     } else {
-      isAttach = canExecute === 'attach';
-
-      shape = modeling.createShape(shape, position, target, isAttach);
+      // invoke create, if connect is not set
+      shape = modeling.createShape(shape, position, target, {
+        attach: attach
+      });
     }
 
     // make sure we provide the actual attached
@@ -26154,26 +26903,33 @@ function Create(eventBus, dragging, rules, modeling, canvas, styles, graphicsFac
   };
 }
 
-Create.$inject = [ 'eventBus', 'dragging', 'rules', 'modeling', 'canvas', 'styles', 'graphicsFactory' ];
+Create.$inject = [
+  'eventBus',
+  'dragging',
+  'rules',
+  'modeling',
+  'canvas',
+  'styles',
+  'graphicsFactory'
+];
 
 module.exports = Create;
-
-},{"279":279,"472":472,"474":474,"475":475,"478":478,"481":481}],157:[function(_dereq_,module,exports){
+},{"281":281,"477":477,"479":479,"480":480,"483":483,"486":486}],160:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(162),
-    _dereq_(233),
-    _dereq_(227)
+    _dereq_(165),
+    _dereq_(236),
+    _dereq_(230)
   ],
-  create: [ 'type', _dereq_(156) ]
+  create: [ 'type', _dereq_(159) ]
 };
 
-},{"156":156,"162":162,"227":227,"233":233}],158:[function(_dereq_,module,exports){
+},{"159":159,"165":165,"230":230,"236":236}],161:[function(_dereq_,module,exports){
 'use strict';
 
-var sortBy = _dereq_(310),
-    forEach = _dereq_(303),
-    filter = _dereq_(301);
+var sortBy = _dereq_(313),
+    forEach = _dereq_(306),
+    filter = _dereq_(304);
 
 var AXIS_DIMENSIONS = {
   horizontal: [ 'x', 'width' ],
@@ -26387,39 +27143,45 @@ DistributeElements.prototype._findRange = function(element) {
   };
 };
 
-},{"301":301,"303":303,"310":310}],159:[function(_dereq_,module,exports){
+},{"304":304,"306":306,"313":313}],162:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'distributeElements' ],
-  distributeElements: [ 'type', _dereq_(158) ]
+  distributeElements: [ 'type', _dereq_(161) ]
 };
 
-},{"158":158}],160:[function(_dereq_,module,exports){
+},{"161":161}],163:[function(_dereq_,module,exports){
 'use strict';
 
 /* global TouchEvent */
 
 var round = Math.round;
 
-var assign = _dereq_(431);
+var assign = _dereq_(434);
 
-var domEvent = _dereq_(450),
-    Event = _dereq_(267),
-    ClickTrap = _dereq_(262),
-    Cursor = _dereq_(265);
+var domEvent = _dereq_(454),
+    Event = _dereq_(270),
+    Cursor = _dereq_(268),
+    ClickTrap = _dereq_(265);
 
-var EventBusEvent = _dereq_(125).Event;
+var EventBusEvent = _dereq_(128).Event;
 
 var DRAG_ACTIVE_CLS = 'djs-drag-active';
 
 
-function suppressEvent(event) {
-  if (event instanceof MouseEvent) {
-    Event.stopEvent(event, true);
-  } else {
-    Event.preventDefault(event);
-  }
+function preventDefault(event) {
+  event.preventDefault();
+}
+
+function stopPropagation(event) {
+  Event.stopPropagation(event);
+}
+
+function isTouchEvent(event) {
+  // check for TouchEvent being available first
+  // (i.e. not available on desktop Firefox)
+  return typeof TouchEvent !== 'undefined' && event instanceof TouchEvent;
 }
 
 function getLength(point) {
@@ -26542,7 +27304,7 @@ function Dragging(eventBus, canvas, selection) {
   function fire(type, dragContext) {
     dragContext = dragContext || context;
 
-    var event = assign(new EventBusEvent(), dragContext.payload, dragContext.data);
+    var event = assign(new EventBusEvent(), dragContext.payload, dragContext.data, { isTouch: dragContext.isTouch });
 
     // default integration
     if (eventBus.fire('drag.' + type, event) === false) {
@@ -26602,7 +27364,7 @@ function Dragging(eventBus, canvas, selection) {
       canvas.addMarker(canvas.getRootElement(), DRAG_ACTIVE_CLS);
     }
 
-    suppressEvent(event);
+    stopPropagation(event);
 
     if (context.active) {
 
@@ -26630,7 +27392,7 @@ function Dragging(eventBus, canvas, selection) {
 
         // suppress original event (click, ...)
         // because we just ended a drag operation
-        suppressEvent(event);
+        stopPropagation(event);
       }
 
       // implementations may stop restoring the
@@ -26675,7 +27437,10 @@ function Dragging(eventBus, canvas, selection) {
     // drag operation. This will effectively prevent
     // the ghost click that cannot be canceled otherwise.
     if (context.active) {
-      untrap = ClickTrap.install();
+
+      untrap = ClickTrap.install(eventBus);
+
+      // remove trap after minimal delay
       setTimeout(untrap, 400);
     }
 
@@ -26751,6 +27516,9 @@ function Dragging(eventBus, canvas, selection) {
     // reset dom listeners
     domEvent.unbind(document, 'mousemove', move);
 
+    domEvent.unbind(document, 'dragstart', preventDefault);
+    domEvent.unbind(document, 'selectstart', preventDefault);
+
     domEvent.unbind(document, 'mousedown', endDrag, true);
     domEvent.unbind(document, 'mouseup', endDrag, true);
 
@@ -26810,7 +27578,9 @@ function Dragging(eventBus, canvas, selection) {
     var data = options.data || {},
         originalEvent,
         globalStart,
-        endDrag;
+        localStart,
+        endDrag,
+        isTouch;
 
     if (options.trapClick) {
       endDrag = trapClickAndEnd;
@@ -26822,17 +27592,24 @@ function Dragging(eventBus, canvas, selection) {
       originalEvent = Event.getOriginal(event) || event;
       globalStart = Event.toPoint(event);
 
-      suppressEvent(event);
+      stopPropagation(event);
+
+      // prevent default browser dragging behavior
+      if (originalEvent.type === 'dragstart') {
+        preventDefault(originalEvent);
+      }
     } else {
       originalEvent = null;
       globalStart = { x: 0, y: 0 };
     }
 
-    var localStart = toLocalPoint(globalStart);
+    localStart = toLocalPoint(globalStart);
 
     if (!relativeTo) {
       relativeTo = localStart;
     }
+
+    isTouch = isTouchEvent(originalEvent);
 
     context = assign({
       prefix: prefix,
@@ -26840,7 +27617,8 @@ function Dragging(eventBus, canvas, selection) {
       payload: {},
       globalStart: globalStart,
       displacement: substract(relativeTo, localStart),
-      localStart: localStart
+      localStart: localStart,
+      isTouch: isTouch
     }, options);
 
     // skip dom registration if trigger
@@ -26849,8 +27627,7 @@ function Dragging(eventBus, canvas, selection) {
 
       // add dom listeners
 
-      // fixes TouchEvent not being available on desktop Firefox
-      if (typeof TouchEvent !== 'undefined' && originalEvent instanceof TouchEvent) {
+      if (isTouch) {
         domEvent.bind(document, 'touchstart', trapTouch, true);
         domEvent.bind(document, 'touchcancel', cancel, true);
         domEvent.bind(document, 'touchmove', move, true);
@@ -26858,6 +27635,10 @@ function Dragging(eventBus, canvas, selection) {
       } else {
         // assume we use the mouse to interact per default
         domEvent.bind(document, 'mousemove', move);
+
+        // prevent default browser drag and text selection behavior
+        domEvent.bind(document, 'dragstart', preventDefault);
+        domEvent.bind(document, 'selectstart', preventDefault);
 
         domEvent.bind(document, 'mousedown', endDrag, true);
         domEvent.bind(document, 'mouseup', endDrag, true);
@@ -26905,12 +27686,12 @@ Dragging.$inject = [ 'eventBus', 'canvas', 'selection' ];
 
 module.exports = Dragging;
 
-},{"125":125,"262":262,"265":265,"267":267,"431":431,"450":450}],161:[function(_dereq_,module,exports){
+},{"128":128,"265":265,"268":268,"270":270,"434":434,"454":454}],164:[function(_dereq_,module,exports){
 'use strict';
 
-var domClosest = _dereq_(447);
+var domClosest = _dereq_(451);
 
-var Event = _dereq_(267);
+var Event = _dereq_(270);
 
 function getGfx(target) {
   var node = domClosest(target, 'svg, .djs-element', true);
@@ -26996,22 +27777,22 @@ HoverFix.$inject = [ 'eventBus', 'dragging', 'elementRegistry' ];
 
 module.exports = HoverFix;
 
-},{"267":267,"447":447}],162:[function(_dereq_,module,exports){
+},{"270":270,"451":451}],165:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [
     'hoverFix'
   ],
   __depends__: [
-    _dereq_(233)
+    _dereq_(236)
   ],
-  dragging: [ 'type', _dereq_(160) ],
-  hoverFix: [ 'type', _dereq_(161) ]
+  dragging: [ 'type', _dereq_(163) ],
+  hoverFix: [ 'type', _dereq_(164) ]
 };
-},{"160":160,"161":161,"233":233}],163:[function(_dereq_,module,exports){
+},{"163":163,"164":164,"236":236}],166:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303),
-    isArray = _dereq_(422);
+var forEach = _dereq_(306),
+    isArray = _dereq_(425);
 
 var NOT_REGISTERED_ERROR = 'is not a registered action',
     IS_REGISTERED_ERROR = 'is already registered';
@@ -27221,18 +28002,18 @@ function error(action, message) {
   return new Error(action + ' ' + message);
 }
 
-},{"303":303,"422":422}],164:[function(_dereq_,module,exports){
+},{"306":306,"425":425}],167:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(233),
-    _dereq_(155),
-    _dereq_(260)
+    _dereq_(236),
+    _dereq_(158),
+    _dereq_(263)
   ],
   __init__: [ 'editorActions' ],
-  editorActions: [ 'type', _dereq_(163) ]
+  editorActions: [ 'type', _dereq_(166) ]
 };
 
-},{"155":155,"163":163,"233":233,"260":260}],165:[function(_dereq_,module,exports){
+},{"158":158,"166":166,"236":236,"263":263}],168:[function(_dereq_,module,exports){
 'use strict';
 
 var MARKER_OK = 'connect-ok',
@@ -27350,21 +28131,21 @@ GlobalConnect.prototype.canStartConnect = function(startTarget) {
   return this._provider.canStartConnect(startTarget);
 };
 
-},{}],166:[function(_dereq_,module,exports){
+},{}],169:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(151),
-    _dereq_(227),
-    _dereq_(162),
-    _dereq_(242)
+    _dereq_(154),
+    _dereq_(230),
+    _dereq_(165),
+    _dereq_(245)
   ],
-  globalConnect: [ 'type', _dereq_(165) ]
+  globalConnect: [ 'type', _dereq_(168) ]
 };
 
-},{"151":151,"162":162,"165":165,"227":227,"242":242}],167:[function(_dereq_,module,exports){
+},{"154":154,"165":165,"168":168,"230":230,"245":245}],170:[function(_dereq_,module,exports){
 'use strict';
 
-var hasPrimaryModifier = _dereq_(274).hasPrimaryModifier;
+var hasPrimaryModifier = _dereq_(276).hasPrimaryModifier;
 
 
 var HIGH_PRIORITY = 1500;
@@ -27483,30 +28264,30 @@ HandTool.prototype.isActive = function() {
   return context && /^hand/.test(context.prefix);
 };
 
-},{"274":274}],168:[function(_dereq_,module,exports){
+},{"276":276}],171:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
-  __depends__: [ _dereq_(242) ],
+  __depends__: [ _dereq_(245) ],
   __init__: [ 'handTool' ],
-  handTool: [ 'type', _dereq_(167) ]
+  handTool: [ 'type', _dereq_(170) ]
 };
 
-},{"167":167,"242":242}],169:[function(_dereq_,module,exports){
+},{"170":170,"245":245}],172:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303),
-    domDelegate = _dereq_(448);
+var forEach = _dereq_(306),
+    domDelegate = _dereq_(452);
 
-var isPrimaryButton = _dereq_(274).isPrimaryButton;
+var isPrimaryButton = _dereq_(276).isPrimaryButton;
 
-var svgAppend = _dereq_(472),
-    svgAttr = _dereq_(474),
-    svgCreate = _dereq_(478);
+var svgAppend = _dereq_(477),
+    svgAttr = _dereq_(479),
+    svgCreate = _dereq_(483);
 
-var domQuery = _dereq_(452);
+var domQuery = _dereq_(456);
 
-var renderUtil = _dereq_(278);
+var renderUtil = _dereq_(280);
 
 var createLine = renderUtil.createLine,
     updateLine = renderUtil.updateLine;
@@ -27792,16 +28573,16 @@ module.exports = InteractionEvents;
  * @property {Event} originalEvent
  */
 
-},{"274":274,"278":278,"303":303,"448":448,"452":452,"472":472,"474":474,"478":478}],170:[function(_dereq_,module,exports){
+},{"276":276,"280":280,"306":306,"452":452,"456":456,"477":477,"479":479,"483":483}],173:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'interactionEvents' ],
-  interactionEvents: [ 'type', _dereq_(169) ]
+  interactionEvents: [ 'type', _dereq_(172) ]
 };
-},{"169":169}],171:[function(_dereq_,module,exports){
+},{"172":172}],174:[function(_dereq_,module,exports){
 'use strict';
 
-var domEvent = _dereq_(450),
-    domMatches = _dereq_(451);
+var domEvent = _dereq_(454),
+    domMatches = _dereq_(455);
 
 /**
  * A keyboard abstraction that may be activated and
@@ -28112,32 +28893,41 @@ function isShift(modifiers) {
   return modifiers.shiftKey;
 }
 
-},{"450":450,"451":451}],172:[function(_dereq_,module,exports){
+},{"454":454,"455":455}],175:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'keyboard' ],
-  keyboard: [ 'type', _dereq_(171) ]
+  keyboard: [ 'type', _dereq_(174) ]
 };
 
-},{"171":171}],173:[function(_dereq_,module,exports){
+},{"174":174}],176:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303),
-    filter = _dereq_(301),
-    inherits = _dereq_(289);
+var forEach = _dereq_(306),
+    filter = _dereq_(304),
+    map = _dereq_(308),
+    inherits = _dereq_(292);
 
 var LOW_PRIORITY = 250,
     HIGH_PRIORITY = 1400;
 
-var CommandInterceptor = _dereq_(119);
+var getMid = _dereq_(255).getMid;
+
+var CommandInterceptor = _dereq_(122);
 
 
 /**
  * A handler that makes sure labels are properly moved with
  * their label targets.
+ *
+ * @param {didi.Injector} injector
+ * @param {EventBus} eventBus
+ * @param {Modeling} modeling
  */
-function LabelSupport(eventBus, modeling, movePreview) {
+function LabelSupport(injector, eventBus, modeling) {
 
   CommandInterceptor.call(this, eventBus);
+
+  var movePreview = injector.get('movePreview', false);
 
   // remove labels from the collection that are being
   // moved with other elements anyway
@@ -28151,9 +28941,8 @@ function LabelSupport(eventBus, modeling, movePreview) {
     context.validatedShapes = removeLabels(validatedShapes);
   });
 
-
   // add labels to visual's group
-  eventBus.on('shape.move.start', LOW_PRIORITY, function(e) {
+  movePreview && eventBus.on('shape.move.start', LOW_PRIORITY, function(e) {
 
     var context = e.context,
         shapes = context.shapes;
@@ -28178,27 +28967,54 @@ function LabelSupport(eventBus, modeling, movePreview) {
 
   });
 
-  // move labels after the other shapes are done moving
-  this.postExecuted([ 'elements.move' ], function(e) {
+  // fetch all labels to be moved together with their
+  // pre-move mid; we'll use this to determine, if a label
+  // needs move afterwards
+  this.postExecute('elements.move', HIGH_PRIORITY, function(e) {
     var context = e.context,
         closure = context.closure,
         enclosedElements = closure.enclosedElements;
 
-    // ensure we move all labels with their respective elements
-    // if they have not been moved already
-    forEach(enclosedElements, function(element) {
-      if (element.label && !enclosedElements[element.label.id]) {
-        modeling.moveShape(element.label, context.delta, element.parent);
+    context.enclosedLabels = map(enclosedElements, function(element) {
+      var label = element.label;
+
+      if (label && !enclosedElements[label.id]) {
+        return [ label, getMid(label) ];
+      }
+
+      return null;
+    }).filter(function(s) { return s; });
+  });
+
+  // move previously fetched labels, if the have not been moved already
+  this.postExecuted('elements.move', function(e) {
+
+    var context = e.context,
+        labels = context.enclosedLabels,
+        delta = context.delta;
+
+    forEach(labels, function(entry) {
+      var label = entry[0];
+      var mid = entry[1];
+
+      var currentMid = getMid(label);
+
+      // has label not been moved yet?
+      if (currentMid.x === mid.x && currentMid.y === mid.y) {
+        modeling.moveShape(label, delta, label.labelTarget.parent);
       }
     });
-
   });
 
 }
 
 inherits(LabelSupport, CommandInterceptor);
 
-LabelSupport.$inject = [ 'eventBus', 'modeling', 'movePreview' ];
+LabelSupport.$inject = [
+  'injector',
+  'eventBus',
+  'modeling'
+];
 
 module.exports = LabelSupport;
 
@@ -28222,28 +29038,25 @@ function removeLabels(elements) {
   });
 }
 
-},{"119":119,"289":289,"301":301,"303":303}],174:[function(_dereq_,module,exports){
+},{"122":122,"255":255,"292":292,"304":304,"306":306,"308":308}],177:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [
-    _dereq_(206)
-  ],
   __init__: [ 'labelSupport'],
-  labelSupport: [ 'type', _dereq_(173) ]
+  labelSupport: [ 'type', _dereq_(176) ]
 };
 
-},{"173":173,"206":206}],175:[function(_dereq_,module,exports){
+},{"176":176}],178:[function(_dereq_,module,exports){
 'use strict';
 
-var values = _dereq_(440);
+var values = _dereq_(443);
 
-var getEnclosedElements = _dereq_(266).getEnclosedElements;
+var getEnclosedElements = _dereq_(269).getEnclosedElements;
 
-var hasSecondaryModifier = _dereq_(274).hasSecondaryModifier;
+var hasSecondaryModifier = _dereq_(276).hasSecondaryModifier;
 
-var svgAppend = _dereq_(472),
-    svgAttr = _dereq_(474),
-    svgCreate = _dereq_(478),
-    svgRemove = _dereq_(481);
+var svgAppend = _dereq_(477),
+    svgAttr = _dereq_(479),
+    svgCreate = _dereq_(483),
+    svgRemove = _dereq_(486);
 
 var LASSO_TOOL_CURSOR = 'crosshair';
 
@@ -28361,7 +29174,8 @@ function LassoTool(eventBus, canvas, dragging, elementRegistry, selection, toolM
     if (hasSecondaryModifier(event)) {
       self.activateLasso(event.originalEvent);
 
-      event.stopPropagation();
+      // we've handled the event
+      return true;
     }
   });
 }
@@ -28485,21 +29299,21 @@ function toBBox(event) {
   return bbox;
 }
 
-},{"266":266,"274":274,"440":440,"472":472,"474":474,"478":478,"481":481}],176:[function(_dereq_,module,exports){
+},{"269":269,"276":276,"443":443,"477":477,"479":479,"483":483,"486":486}],179:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
-  __depends__: [ _dereq_(242) ],
+  __depends__: [ _dereq_(245) ],
   __init__: [ 'lassoTool' ],
-  lassoTool: [ 'type', _dereq_(175) ]
+  lassoTool: [ 'type', _dereq_(178) ]
 };
 
-},{"175":175,"242":242}],177:[function(_dereq_,module,exports){
+},{"178":178,"245":245}],180:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
-var model = _dereq_(254);
+var model = _dereq_(257);
 
 
 /**
@@ -28529,37 +29343,37 @@ module.exports = Modeling;
 
 Modeling.prototype.getHandlers = function() {
   return {
-    'shape.append': _dereq_(179),
-    'shape.create': _dereq_(182),
-    'shape.delete': _dereq_(185),
-    'shape.move': _dereq_(190),
-    'shape.resize': _dereq_(195),
-    'shape.replace': _dereq_(194),
-    'shape.toggleCollapse': _dereq_(197),
+    'shape.append': _dereq_(182),
+    'shape.create': _dereq_(185),
+    'shape.delete': _dereq_(188),
+    'shape.move': _dereq_(193),
+    'shape.resize': _dereq_(198),
+    'shape.replace': _dereq_(197),
+    'shape.toggleCollapse': _dereq_(200),
 
-    'spaceTool': _dereq_(196),
+    'spaceTool': _dereq_(199),
 
-    'label.create': _dereq_(181),
+    'label.create': _dereq_(184),
 
-    'connection.create': _dereq_(180),
-    'connection.delete': _dereq_(183),
-    'connection.move': _dereq_(188),
-    'connection.layout': _dereq_(187),
+    'connection.create': _dereq_(183),
+    'connection.delete': _dereq_(186),
+    'connection.move': _dereq_(191),
+    'connection.layout': _dereq_(190),
 
-    'connection.updateWaypoints': _dereq_(199),
+    'connection.updateWaypoints': _dereq_(202),
 
-    'connection.reconnectStart': _dereq_(193),
-    'connection.reconnectEnd': _dereq_(193),
+    'connection.reconnectStart': _dereq_(196),
+    'connection.reconnectEnd': _dereq_(196),
 
-    'elements.move': _dereq_(189),
-    'elements.delete': _dereq_(184),
+    'elements.move': _dereq_(192),
+    'elements.delete': _dereq_(187),
 
-    'elements.distribute': _dereq_(186),
-    'elements.align': _dereq_(178),
+    'elements.distribute': _dereq_(189),
+    'elements.align': _dereq_(181),
 
-    'element.updateAttachment': _dereq_(198),
+    'element.updateAttachment': _dereq_(201),
 
-    'elements.paste': _dereq_(192)
+    'elements.paste': _dereq_(195)
   };
 };
 
@@ -28599,8 +29413,8 @@ Modeling.prototype.moveShape = function(shape, delta, newParent, newParentIndex,
 /**
  * Update the attachment of the given shape.
  *
- * @param  {djs.mode.Base} shape
- * @param  {djs.model.Base} [newHost]
+ * @param {djs.mode.Base} shape
+ * @param {djs.model.Base} [newHost]
  */
 Modeling.prototype.updateAttachment = function(shape, newHost) {
   var context = {
@@ -28611,6 +29425,7 @@ Modeling.prototype.updateAttachment = function(shape, newHost) {
   this._commandStack.execute('element.updateAttachment', context);
 };
 
+
 /**
  * Move a number of shapes to a new target, either setting it as
  * the new parent or attaching it.
@@ -28618,24 +29433,24 @@ Modeling.prototype.updateAttachment = function(shape, newHost) {
  * @param {Array<djs.mode.Base>} shapes
  * @param {Point} delta
  * @param {djs.model.Base} [target]
- * @param {Boolean} [isAttach=false]
  * @param {Object} [hints]
+ * @param {Boolean} [hints.attach=false]
  */
-Modeling.prototype.moveElements = function(shapes, delta, target, isAttach, hints) {
-  if (typeof isAttach === 'object') {
-    hints = isAttach;
-    isAttach = undefined;
-  }
+Modeling.prototype.moveElements = function(shapes, delta, target, hints) {
+
+  hints = hints || {};
+
+  var attach = hints.attach;
 
   var newParent = target,
       newHost;
 
-  if (isAttach === true) {
+  if (attach === true) {
     newHost = target;
     newParent = target.parent;
-  }
+  } else
 
-  if (isAttach === false) {
+  if (attach === false) {
     newHost = null;
   }
 
@@ -28644,11 +29459,12 @@ Modeling.prototype.moveElements = function(shapes, delta, target, isAttach, hint
     delta: delta,
     newParent: newParent,
     newHost: newHost,
-    hints: hints || {}
+    hints: hints
   };
 
   this._commandStack.execute('elements.move', context);
 };
+
 
 Modeling.prototype.moveConnection = function(connection, delta, newParent, newParentIndex, hints) {
 
@@ -28677,6 +29493,7 @@ Modeling.prototype.layoutConnection = function(connection, hints) {
 
   this._commandStack.execute('connection.layout', context);
 };
+
 
 /**
  * Create connection.
@@ -28715,33 +29532,49 @@ Modeling.prototype.createConnection = function(source, target, parentIndex, conn
   return context.connection;
 };
 
-Modeling.prototype.createShape = function(shape, position, parent, parentIndex, isAttach, hints) {
+
+/**
+ * Create a shape at the specified position.
+ *
+ * @param {djs.model.Shape|Object} shape
+ * @param {Point} position
+ * @param {djs.model.Shape|djs.model.Root} target
+ * @param {Number} [parentIndex] position in parents children list
+ * @param {Object} [hints]
+ * @param {Boolean} [hints.attach] whether to attach to target or become a child
+ *
+ * @return {djs.model.Shape} the created shape
+ */
+Modeling.prototype.createShape = function(shape, position, target, parentIndex, hints) {
 
   if (typeof parentIndex !== 'number') {
-    hints = isAttach;
-    isAttach = parentIndex;
+    hints = parentIndex;
+    parentIndex = undefined;
   }
 
-  if (typeof isAttach !== 'boolean') {
-    hints = isAttach;
-    isAttach = false;
-  }
+  hints = hints || {};
+
+  var attach = hints.attach,
+      parent,
+      host;
 
   shape = this._create('shape', shape);
+
+  if (attach) {
+    parent = target.parent;
+    host = target;
+  } else {
+    parent = target;
+  }
 
   var context = {
     position: position,
     shape: shape,
     parent: parent,
     parentIndex: parentIndex,
-    host: shape.host,
-    hints: hints || {}
+    host: host,
+    hints: hints
   };
-
-  if (isAttach) {
-    context.parent = parent.parent;
-    context.host = parent;
-  }
 
   this._commandStack.execute('shape.create', context);
 
@@ -28766,17 +29599,35 @@ Modeling.prototype.createLabel = function(labelTarget, position, label, parent) 
 };
 
 
-Modeling.prototype.appendShape = function(source, shape, position, parent, connection, connectionParent) {
+/**
+ * Append shape to given source, drawing a connection
+ * between source and the newly created shape.
+ *
+ * @param {djs.model.Shape} source
+ * @param {djs.model.Shape|Object} shape
+ * @param {Point} position
+ * @param {djs.model.Shape} target
+ * @param {Object} [hints]
+ * @param {Boolean} [hints.attach]
+ * @param {djs.model.Connection|Object} [hints.connection]
+ * @param {djs.model.Base} [hints.connectionParent]
+ *
+ * @return {djs.model.Shape} the newly created shape
+ */
+Modeling.prototype.appendShape = function(source, shape, position, target, hints) {
+
+  hints = hints || {};
 
   shape = this._create('shape', shape);
 
   var context = {
     source: source,
     position: position,
-    parent: parent,
+    target: target,
     shape: shape,
-    connection: connection,
-    connectionParent: connectionParent
+    connection: hints.connection,
+    connectionParent: hints.connectionParent,
+    attach: hints.attach
   };
 
   this._commandStack.execute('shape.append', context);
@@ -28927,10 +29778,10 @@ Modeling.prototype.toggleCollapse = function(shape, hints) {
   this._commandStack.execute('shape.toggleCollapse', context);
 };
 
-},{"178":178,"179":179,"180":180,"181":181,"182":182,"183":183,"184":184,"185":185,"186":186,"187":187,"188":188,"189":189,"190":190,"192":192,"193":193,"194":194,"195":195,"196":196,"197":197,"198":198,"199":199,"254":254,"303":303}],178:[function(_dereq_,module,exports){
+},{"181":181,"182":182,"183":183,"184":184,"185":185,"186":186,"187":187,"188":188,"189":189,"190":190,"191":191,"192":192,"193":193,"195":195,"196":196,"197":197,"198":198,"199":199,"200":200,"201":201,"202":202,"257":257,"306":306}],181:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
 /**
  * A handler that align elements in a certain way.
@@ -28986,12 +29837,12 @@ AlignElements.prototype.postExecute = function(context) {
 
 };
 
-},{"303":303}],179:[function(_dereq_,module,exports){
+},{"306":306}],182:[function(_dereq_,module,exports){
 'use strict';
 
-var any = _dereq_(299);
+var any = _dereq_(302);
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
 
 /**
@@ -29006,7 +29857,7 @@ function AppendShapeHandler(modeling) {
   this._modeling = modeling;
 }
 
-inherits(AppendShapeHandler, _dereq_(191));
+inherits(AppendShapeHandler, _dereq_(194));
 
 
 AppendShapeHandler.$inject = [ 'modeling' ];
@@ -29027,12 +29878,20 @@ module.exports = AppendShapeHandler;
  */
 AppendShapeHandler.prototype.preExecute = function(context) {
 
-  if (!context.source) {
+  var source = context.source;
+
+  if (!source) {
     throw new Error('source required');
   }
 
-  var parent = context.parent || context.source.parent,
-      shape = this._modeling.createShape(context.shape, context.position, parent);
+  var target = context.target || source.parent,
+      shape = context.shape;
+
+  shape = context.shape =
+    this._modeling.createShape(
+      shape,
+      context.position,
+      target, { attach: context.attach });
 
   context.shape = shape;
 };
@@ -29053,7 +29912,7 @@ function existsConnection(source, target) {
     return c.target === target;
   });
 }
-},{"191":191,"289":289,"299":299}],180:[function(_dereq_,module,exports){
+},{"194":194,"292":292,"302":302}],183:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -29116,12 +29975,12 @@ CreateConnectionHandler.prototype.revert = function(context) {
   connection.source = null;
   connection.target = null;
 };
-},{}],181:[function(_dereq_,module,exports){
+},{}],184:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var CreateShapeHandler = _dereq_(182);
+var CreateShapeHandler = _dereq_(185);
 
 
 /**
@@ -29189,10 +30048,10 @@ function ensureValidDimensions(label) {
     }
   });
 }
-},{"182":182,"289":289}],182:[function(_dereq_,module,exports){
+},{"185":185,"292":292}],185:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431);
+var assign = _dereq_(434);
 
 var round = Math.round;
 
@@ -29262,10 +30121,10 @@ CreateShapeHandler.prototype.revert = function(context) {
   // (3) remove form canvas
   this._canvas.removeShape(context.shape);
 };
-},{"431":431}],183:[function(_dereq_,module,exports){
+},{"434":434}],186:[function(_dereq_,module,exports){
 'use strict';
 
-var Collections = _dereq_(263);
+var Collections = _dereq_(266);
 
 
 /**
@@ -29335,11 +30194,11 @@ DeleteConnectionHandler.prototype.revert = function(context) {
   return connection;
 };
 
-},{"263":263}],184:[function(_dereq_,module,exports){
+},{"266":266}],187:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303),
-    inherits = _dereq_(289);
+var forEach = _dereq_(306),
+    inherits = _dereq_(292);
 
 
 function DeleteElementsHandler(modeling, elementRegistry) {
@@ -29347,7 +30206,7 @@ function DeleteElementsHandler(modeling, elementRegistry) {
   this._elementRegistry = elementRegistry;
 }
 
-inherits(DeleteElementsHandler, _dereq_(191));
+inherits(DeleteElementsHandler, _dereq_(194));
 
 DeleteElementsHandler.$inject = [ 'modeling', 'elementRegistry' ];
 
@@ -29375,12 +30234,12 @@ DeleteElementsHandler.prototype.postExecute = function(context) {
     }
   });
 };
-},{"191":191,"289":289,"303":303}],185:[function(_dereq_,module,exports){
+},{"194":194,"292":292,"306":306}],188:[function(_dereq_,module,exports){
 'use strict';
 
-var Collections = _dereq_(263);
+var Collections = _dereq_(266);
 
-var saveClear = _dereq_(277).saveClear;
+var saveClear = _dereq_(279).saveClear;
 
 
 /**
@@ -29488,11 +30347,11 @@ function isConnection(element) {
   return element.waypoints;
 }
 
-},{"263":263,"277":277}],186:[function(_dereq_,module,exports){
+},{"266":266,"279":279}],189:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303),
-    sortBy = _dereq_(310);
+var forEach = _dereq_(306),
+    sortBy = _dereq_(313);
 
 /**
  * A handler that distributes elements evenly.
@@ -29645,10 +30504,10 @@ DistributeElements.prototype.postExecute = function(context) {
 
 };
 
-},{"303":303,"310":310}],187:[function(_dereq_,module,exports){
+},{"306":306,"313":313}],190:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431);
+var assign = _dereq_(434);
 
 
 /**
@@ -29687,12 +30546,12 @@ LayoutConnectionHandler.prototype.revert = function(context) {
   return connection;
 };
 
-},{"431":431}],188:[function(_dereq_,module,exports){
+},{"434":434}],191:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
-var Collections = _dereq_(263);
+var Collections = _dereq_(266);
 
 
 /**
@@ -29769,10 +30628,10 @@ MoveConnectionHandler.prototype.revert = function(context) {
 
   return connection;
 };
-},{"263":263,"303":303}],189:[function(_dereq_,module,exports){
+},{"266":266,"306":306}],192:[function(_dereq_,module,exports){
 'use strict';
 
-var MoveHelper = _dereq_(201);
+var MoveHelper = _dereq_(204);
 
 
 /**
@@ -29807,18 +30666,18 @@ MoveElementsHandler.prototype.postExecute = function(context) {
 MoveElementsHandler.prototype.execute = function(context) { };
 MoveElementsHandler.prototype.revert = function(context) { };
 
-},{"201":201}],190:[function(_dereq_,module,exports){
+},{"204":204}],193:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431),
-    forEach = _dereq_(303),
-    pick = _dereq_(438);
+var assign = _dereq_(434),
+    forEach = _dereq_(306),
+    pick = _dereq_(441);
 
-var MoveHelper = _dereq_(201),
-    Collections = _dereq_(263);
+var MoveHelper = _dereq_(204),
+    Collections = _dereq_(266);
 
-var getMovedSourceAnchor = _dereq_(200).getMovedSourceAnchor,
-    getMovedTargetAnchor = _dereq_(200).getMovedTargetAnchor;
+var getMovedSourceAnchor = _dereq_(203).getMovedSourceAnchor,
+    getMovedTargetAnchor = _dereq_(203).getMovedTargetAnchor;
 
 
 /**
@@ -29922,7 +30781,7 @@ MoveShapeHandler.prototype.getNewParent = function(context) {
   return context.newParent || context.shape.parent;
 };
 
-},{"200":200,"201":201,"263":263,"303":303,"431":431,"438":438}],191:[function(_dereq_,module,exports){
+},{"203":203,"204":204,"266":266,"306":306,"434":434,"441":441}],194:[function(_dereq_,module,exports){
 'use strict';
 
 function NoopHandler() {}
@@ -29931,15 +30790,15 @@ module.exports = NoopHandler;
 
 NoopHandler.prototype.execute = function() {};
 NoopHandler.prototype.revert = function() {};
-},{}],192:[function(_dereq_,module,exports){
+},{}],195:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303),
-    map = _dereq_(305),
-    sortBy = _dereq_(310),
-    clone = _dereq_(420);
+var forEach = _dereq_(306),
+    map = _dereq_(308),
+    sortBy = _dereq_(313),
+    clone = _dereq_(423);
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
 
 
@@ -29970,7 +30829,7 @@ function PasteHandler(eventBus, canvas, selection, elementFactory, modeling, rul
   this._rules = rules;
 }
 
-inherits(PasteHandler, _dereq_(191));
+inherits(PasteHandler, _dereq_(194));
 
 
 PasteHandler.$inject = [
@@ -30027,8 +30886,7 @@ PasteHandler.prototype.preExecute = function(context) {
     forEach(elements, function(descriptor) {
       var id = descriptor.id,
           parent = descriptor.parent,
-          isAttach = false,
-          hints,
+          hints = {},
           newPosition;
 
       var element = clone(descriptor);
@@ -30063,14 +30921,15 @@ PasteHandler.prototype.preExecute = function(context) {
         return;
       }
 
+
       // supply not-root information as hint
       if (element.parent !== topParent) {
-        hints = { root: false };
+        hints.root = false;
       }
 
       // set host
       if (element.host) {
-        isAttach = true;
+        hints.attach = true;
 
         parent = this._getCreatedElement(element.host, tree);
       }
@@ -30085,9 +30944,15 @@ PasteHandler.prototype.preExecute = function(context) {
         y: Math.round(position.y + element.delta.y + (element.height / 2))
       };
 
-      removeProperties(element, [ 'id', 'parent', 'delta', 'host', 'priority' ]);
+      removeProperties(element, [
+        'id',
+        'parent',
+        'delta',
+        'host',
+        'priority'
+      ]);
 
-      element = this._createShape(element, parent, newPosition, isAttach, hints);
+      element = this._createShape(element, parent, newPosition, hints);
 
       if (element) {
         tree.createdElements[id] = {
@@ -30181,7 +31046,16 @@ PasteHandler.prototype._createConnection = function(element, parent, parentCente
     return null;
   }
 
-  removeProperties(element, [ 'id', 'parent', 'delta', 'source', 'target', 'width', 'height', 'priority' ]);
+  removeProperties(element, [
+    'id',
+    'parent',
+    'delta',
+    'source',
+    'target',
+    'width',
+    'height',
+    'priority'
+  ]);
 
   connection = modeling.createConnection(source, target, element, parent);
 
@@ -30216,10 +31090,10 @@ PasteHandler.prototype._getCreatedElement = function(id, tree) {
   return tree.createdElements[id] && tree.createdElements[id].element;
 };
 
-},{"191":191,"289":289,"303":303,"305":305,"310":310,"420":420}],193:[function(_dereq_,module,exports){
+},{"194":194,"292":292,"306":306,"308":308,"313":313,"423":423}],196:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(422);
+var isArray = _dereq_(425);
 
 
 /**
@@ -30291,10 +31165,10 @@ ReconnectConnectionHandler.prototype.revert = function(context) {
 
   return connection;
 };
-},{"422":422}],194:[function(_dereq_,module,exports){
+},{"425":425}],197:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
 
 /**
@@ -30449,14 +31323,14 @@ ReplaceShapeHandler.prototype.reconnectEnd = function(connection, newTarget, doc
   modeling.reconnectEnd(connection, newTarget, dockingPoint);
 };
 
-},{"303":303}],195:[function(_dereq_,module,exports){
+},{"306":306}],198:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431),
-    forEach = _dereq_(303);
+var assign = _dereq_(434),
+    forEach = _dereq_(306);
 
-var getResizedSourceAnchor = _dereq_(200).getResizedSourceAnchor,
-    getResizedTargetAnchor = _dereq_(200).getResizedTargetAnchor;
+var getResizedSourceAnchor = _dereq_(203).getResizedSourceAnchor,
+    getResizedTargetAnchor = _dereq_(203).getResizedTargetAnchor;
 
 /**
  * A handler that implements reversible resizing of shapes.
@@ -30557,12 +31431,12 @@ ResizeShapeHandler.prototype.revert = function(context) {
   return shape;
 };
 
-},{"200":200,"303":303,"431":431}],196:[function(_dereq_,module,exports){
+},{"203":203,"306":306,"434":434}],199:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
-var SpaceUtil = _dereq_(239);
+var SpaceUtil = _dereq_(242);
 
 /**
  * A handler that implements reversible creating and removing of space.
@@ -30602,13 +31476,13 @@ SpaceToolHandler.prototype.postExecute = function(context) {
       movingShapes = context.movingShapes,
       delta = context.delta;
 
-  modeling.moveElements(movingShapes, delta, undefined, false, { autoResize: false });
+  modeling.moveElements(movingShapes, delta, undefined, { autoResize: false, attach: false });
 };
 
 SpaceToolHandler.prototype.execute = function(context) {};
 SpaceToolHandler.prototype.revert = function(context) {};
 
-},{"239":239,"303":303}],197:[function(_dereq_,module,exports){
+},{"242":242,"306":306}],200:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -30694,10 +31568,10 @@ function restoreVisibility(elements, lastState) {
   });
 }
 
-},{}],198:[function(_dereq_,module,exports){
+},{}],201:[function(_dereq_,module,exports){
 'use strict';
 
-var Collections = _dereq_(263);
+var Collections = _dereq_(266);
 
 /**
  * A handler that implements reversible attaching/detaching of shapes.
@@ -30768,7 +31642,7 @@ function addAttacher(host, attacher, idx) {
   Collections.add(attachers, attacher, idx);
 }
 
-},{"263":263}],199:[function(_dereq_,module,exports){
+},{"266":266}],202:[function(_dereq_,module,exports){
 'use strict';
 
 function UpdateWaypointsHandler() { }
@@ -30796,10 +31670,10 @@ UpdateWaypointsHandler.prototype.revert = function(context) {
 
   return connection;
 };
-},{}],200:[function(_dereq_,module,exports){
+},{}],203:[function(_dereq_,module,exports){
 'use strict';
 
-var getNewAttachPoint = _dereq_(261).getNewAttachPoint;
+var getNewAttachPoint = _dereq_(264).getNewAttachPoint;
 
 function getResizedSourceAnchor(connection, shape, oldBounds) {
 
@@ -30867,15 +31741,15 @@ function safeGetWaypoints(connection) {
   return waypoints;
 }
 
-},{"261":261}],201:[function(_dereq_,module,exports){
+},{"264":264}],204:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
-var Elements = _dereq_(266);
+var Elements = _dereq_(269);
 
-var getMovedSourceAnchor = _dereq_(200).getMovedSourceAnchor,
-    getMovedTargetAnchor = _dereq_(200).getMovedTargetAnchor;
+var getMovedSourceAnchor = _dereq_(203).getMovedSourceAnchor,
+    getMovedTargetAnchor = _dereq_(203).getMovedTargetAnchor;
 
 /**
  * A helper that is able to carry out serialized move operations on multiple elements.
@@ -30966,10 +31840,10 @@ MoveHelper.prototype.getClosure = function(elements) {
   return Elements.getClosure(elements);
 };
 
-},{"200":200,"266":266,"303":303}],202:[function(_dereq_,module,exports){
+},{"203":203,"269":269,"306":306}],205:[function(_dereq_,module,exports){
 'use strict';
 
-var bind = _dereq_(312);
+var bind = _dereq_(315);
 
 
 function MouseTracking(eventBus, canvas) {
@@ -31027,26 +31901,26 @@ MouseTracking.prototype._setMousePosition = function(event) {
   this._mouseY = event.layerY;
 };
 
-},{"312":312}],203:[function(_dereq_,module,exports){
+},{"315":315}],206:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'mouseTracking' ],
-  mouseTracking: [ 'type', _dereq_(202) ]
+  mouseTracking: [ 'type', _dereq_(205) ]
 };
 
-},{"202":202}],204:[function(_dereq_,module,exports){
+},{"205":205}],207:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431),
-    filter = _dereq_(301),
-    groupBy = _dereq_(304);
+var assign = _dereq_(434),
+    filter = _dereq_(304),
+    groupBy = _dereq_(307);
 
 var LOW_PRIORITY = 500,
     MEDIUM_PRIORITY = 1250,
     HIGH_PRIORITY = 1500;
 
-var getOriginalEvent = _dereq_(267).getOriginal;
+var getOriginalEvent = _dereq_(270).getOriginal;
 
 var round = Math.round;
 
@@ -31133,9 +32007,6 @@ function MoveEvents(eventBus, dragging, modeling, selection, rules) {
 
     // check if we can move the elements
     if (!canExecute) {
-      // suppress move operation
-      event.stopPropagation();
-
       return false;
     }
   });
@@ -31187,7 +32058,10 @@ function MoveEvents(eventBus, dragging, modeling, selection, rules) {
     delta.x = round(delta.x);
     delta.y = round(delta.y);
 
-    modeling.moveElements(shapes, delta, context.target, isAttach, { primaryShape: context.shape });
+    modeling.moveElements(shapes, delta, context.target, {
+      primaryShape: context.shape,
+      attach: isAttach
+    });
   });
 
 
@@ -31201,7 +32075,7 @@ function MoveEvents(eventBus, dragging, modeling, selection, rules) {
       throw new Error('must supply DOM mousedown event');
     }
 
-    start(originalEvent, event.element);
+    return start(originalEvent, event.element);
   });
 
 
@@ -31222,6 +32096,9 @@ function MoveEvents(eventBus, dragging, modeling, selection, rules) {
         context: {}
       }
     });
+
+    // we've handled the event
+    return true;
   }
 
   // API
@@ -31259,27 +32136,27 @@ function removeNested(elements) {
   });
 }
 
-},{"267":267,"301":301,"304":304,"431":431}],205:[function(_dereq_,module,exports){
+},{"270":270,"304":304,"307":307,"434":434}],208:[function(_dereq_,module,exports){
 'use strict';
 
-var flatten = _dereq_(291),
-    forEach = _dereq_(303),
-    filter = _dereq_(301),
-    find = _dereq_(302),
-    size = _dereq_(308),
-    groupBy = _dereq_(304),
-    map = _dereq_(305);
+var flatten = _dereq_(294),
+    forEach = _dereq_(306),
+    filter = _dereq_(304),
+    find = _dereq_(305),
+    size = _dereq_(311),
+    groupBy = _dereq_(307),
+    map = _dereq_(308);
 
-var Elements = _dereq_(266);
+var Elements = _dereq_(269);
 
-var svgAppend = _dereq_(472),
-    svgAttr = _dereq_(474),
-    svgClear = _dereq_(476),
-    svgCreate = _dereq_(478);
+var svgAppend = _dereq_(477),
+    svgAttr = _dereq_(479),
+    svgClear = _dereq_(481),
+    svgCreate = _dereq_(483);
 
-var translate = _dereq_(279).translate;
+var translate = _dereq_(281).translate;
 
-var LOW_PRIORITY = 500;
+var LOW_PRIORITY = 499;
 
 var MARKER_DRAGGING = 'djs-dragging',
     MARKER_OK = 'drop-ok',
@@ -31330,6 +32207,13 @@ function MovePreview(eventBus, elementRegistry, canvas, styles, previewSupport) 
     });
   }
 
+  /**
+   * Make an element draggable.
+   *
+   * @param {Object} context
+   * @param {djs.model.Base} element
+   * @param {Boolean} addMarker
+   */
   function makeDraggable(context, element, addMarker) {
 
     previewSupport.addDragger(element, context.dragGroup);
@@ -31345,11 +32229,9 @@ function MovePreview(eventBus, elementRegistry, canvas, styles, previewSupport) 
     }
   }
 
-  // expose to other components
-  // that plug into the drag behavior
-  this.makeDraggable = makeDraggable;
-
-  // add previews
+  // assign a low priority to this handler
+  // to let others modify the move context before
+  // we draw things
   eventBus.on('shape.move.start', LOW_PRIORITY, function(event) {
 
     var context = event.context,
@@ -31441,13 +32323,32 @@ function MovePreview(eventBus, elementRegistry, canvas, styles, previewSupport) 
       svgClear(dragGroup);
     }
   });
+
+
+  //// API ////////////
+
+  /**
+   * Make an element draggable.
+   *
+   * @param {Object} context
+   * @param {djs.model.Base} element
+   * @param {Boolean} addMarker
+   */
+  this.makeDraggable = makeDraggable;
 }
 
-MovePreview.$inject = [ 'eventBus', 'elementRegistry', 'canvas', 'styles', 'previewSupport' ];
+MovePreview.$inject = [
+  'eventBus',
+  'elementRegistry',
+  'canvas',
+  'styles',
+  'previewSupport'
+];
 
 module.exports = MovePreview;
 
-////////// helpers //////////
+
+////////// helpers /////////////////////////////////////
 
 // returns elements minus all connections
 // where source or target is not elements
@@ -31479,27 +32380,27 @@ function isConnection(element) {
   return element.waypoints;
 }
 
-},{"266":266,"279":279,"291":291,"301":301,"302":302,"303":303,"304":304,"305":305,"308":308,"472":472,"474":474,"476":476,"478":478}],206:[function(_dereq_,module,exports){
+},{"269":269,"281":281,"294":294,"304":304,"305":305,"306":306,"307":307,"308":308,"311":311,"477":477,"479":479,"481":481,"483":483}],209:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(170),
-    _dereq_(233),
-    _dereq_(209),
-    _dereq_(227),
-    _dereq_(162),
-    _dereq_(217)
+    _dereq_(173),
+    _dereq_(236),
+    _dereq_(212),
+    _dereq_(230),
+    _dereq_(165),
+    _dereq_(220)
   ],
   __init__: [ 'move', 'movePreview' ],
-  move: [ 'type', _dereq_(204) ],
-  movePreview: [ 'type', _dereq_(205) ]
+  move: [ 'type', _dereq_(207) ],
+  movePreview: [ 'type', _dereq_(208) ]
 };
 
-},{"162":162,"170":170,"204":204,"205":205,"209":209,"217":217,"227":227,"233":233}],207:[function(_dereq_,module,exports){
+},{"165":165,"173":173,"207":207,"208":208,"212":212,"220":220,"230":230,"236":236}],210:[function(_dereq_,module,exports){
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
 
 /**
@@ -31594,20 +32495,20 @@ OrderingProvider.prototype.getOrdering = function(element, newParent) {
 inherits(OrderingProvider, CommandInterceptor);
 
 module.exports = OrderingProvider;
-},{"119":119,"289":289}],208:[function(_dereq_,module,exports){
+},{"122":122,"292":292}],211:[function(_dereq_,module,exports){
 'use strict';
 
-var getBBox = _dereq_(266).getBBox;
+var getBBox = _dereq_(269).getBBox;
 
 var LOW_PRIORITY = 500;
 
-var svgAppend = _dereq_(472),
-    svgAttr = _dereq_(474),
-    svgCreate = _dereq_(478);
+var svgAppend = _dereq_(477),
+    svgAttr = _dereq_(479),
+    svgCreate = _dereq_(483);
 
-var domQuery = _dereq_(452);
+var domQuery = _dereq_(456);
 
-var assign = _dereq_(431);
+var assign = _dereq_(434);
 
 
 /**
@@ -31717,34 +32618,34 @@ Outline.$inject = ['eventBus', 'styles', 'elementRegistry'];
 
 module.exports = Outline;
 
-},{"266":266,"431":431,"452":452,"472":472,"474":474,"478":478}],209:[function(_dereq_,module,exports){
+},{"269":269,"434":434,"456":456,"477":477,"479":479,"483":483}],212:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'outline' ],
-  outline: [ 'type', _dereq_(208) ]
+  outline: [ 'type', _dereq_(211) ]
 };
-},{"208":208}],210:[function(_dereq_,module,exports){
+},{"211":211}],213:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(422),
-    isString = _dereq_(428),
-    isObject = _dereq_(426),
-    assign = _dereq_(431),
-    forEach = _dereq_(303),
-    find = _dereq_(302),
-    filter = _dereq_(301);
+var isArray = _dereq_(425),
+    isString = _dereq_(431),
+    isObject = _dereq_(429),
+    assign = _dereq_(434),
+    forEach = _dereq_(306),
+    find = _dereq_(305),
+    filter = _dereq_(304);
 
-var domify = _dereq_(449),
-    domClasses = _dereq_(445),
-    domAttr = _dereq_(444),
-    domRemove = _dereq_(453),
-    domClear = _dereq_(446);
+var domify = _dereq_(453),
+    domClasses = _dereq_(449),
+    domAttr = _dereq_(448),
+    domRemove = _dereq_(457),
+    domClear = _dereq_(450);
 
-var getBBox = _dereq_(266).getBBox;
+var getBBox = _dereq_(269).getBBox;
 
 // document wide unique overlay ids
-var ids = new (_dereq_(270))('ov');
+var ids = new (_dereq_(273))('ov');
 
 var LOW_PRIORITY = 500;
 
@@ -32363,41 +33264,42 @@ Overlays.prototype._init = function() {
   eventBus.on('diagram.clear', this.clear, this);
 };
 
-},{"266":266,"270":270,"301":301,"302":302,"303":303,"422":422,"426":426,"428":428,"431":431,"444":444,"445":445,"446":446,"449":449,"453":453}],211:[function(_dereq_,module,exports){
+},{"269":269,"273":273,"304":304,"305":305,"306":306,"425":425,"429":429,"431":431,"434":434,"448":448,"449":449,"450":450,"453":453,"457":457}],214:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'overlays' ],
-  overlays: [ 'type', _dereq_(210) ]
+  overlays: [ 'type', _dereq_(213) ]
 };
-},{"210":210}],212:[function(_dereq_,module,exports){
+},{"213":213}],215:[function(_dereq_,module,exports){
 'use strict';
 
-var isFunction = _dereq_(423),
-    isArray = _dereq_(422),
-    forEach = _dereq_(303);
+var isFunction = _dereq_(426),
+    isArray = _dereq_(425),
+    forEach = _dereq_(306);
 
-var domify = _dereq_(449),
-    domQuery = _dereq_(452),
-    domAttr = _dereq_(444),
-    domClear = _dereq_(446),
-    domClasses = _dereq_(445),
-    domMatches = _dereq_(451),
-    domDelegate = _dereq_(448),
-    domEvent = _dereq_(450);
+var domify = _dereq_(453),
+    domQuery = _dereq_(456),
+    domAttr = _dereq_(448),
+    domClear = _dereq_(450),
+    domClasses = _dereq_(449),
+    domMatches = _dereq_(455),
+    domDelegate = _dereq_(452),
+    domEvent = _dereq_(454);
 
 
-var toggleSelector = '.djs-palette-toggle',
-    entrySelector = '.entry',
-    elementSelector = toggleSelector + ', ' + entrySelector;
+var TOGGLE_SELECTOR = '.djs-palette-toggle',
+    ENTRY_SELECTOR = '.entry',
+    ELEMENT_SELECTOR = TOGGLE_SELECTOR + ', ' + ENTRY_SELECTOR;
 
+var PALETTE_OPEN_CLS = 'open',
+    PALETTE_TWO_COLUMN_CLS = 'two-column';
 
 /**
  * A palette containing modeling elements.
  */
-function Palette(eventBus, canvas, dragging) {
+function Palette(eventBus, canvas) {
 
   this._eventBus = eventBus;
   this._canvas = canvas;
-  this._dragging = dragging;
 
   this._providers = [];
 
@@ -32412,9 +33314,21 @@ function Palette(eventBus, canvas, dragging) {
   eventBus.on('i18n.changed', function() {
     self._update();
   });
+
+  eventBus.on('diagram.init', function() {
+
+    self._diagramInitialized = true;
+
+    // initialize + update once diagram is ready
+    if (self._providers.length) {
+      self._init();
+
+      self._update();
+    }
+  });
 }
 
-Palette.$inject = [ 'eventBus', 'canvas', 'dragging' ];
+Palette.$inject = [ 'eventBus', 'canvas' ];
 
 module.exports = Palette;
 
@@ -32426,6 +33340,11 @@ module.exports = Palette;
  */
 Palette.prototype.registerProvider = function(provider) {
   this._providers.push(provider);
+
+  // postpone init / update until diagram is initialized
+  if (!this._diagramInitialized) {
+    return;
+  }
 
   if (!this._container) {
     this._init();
@@ -32471,11 +33390,11 @@ Palette.prototype._init = function() {
 
   parent.appendChild(container);
 
-  domDelegate.bind(container, elementSelector, 'click', function(event) {
+  domDelegate.bind(container, ELEMENT_SELECTOR, 'click', function(event) {
 
     var target = event.delegateTarget;
 
-    if (domMatches(target, toggleSelector)) {
+    if (domMatches(target, TOGGLE_SELECTOR)) {
       return self.toggle();
     }
 
@@ -32488,17 +33407,53 @@ Palette.prototype._init = function() {
   });
 
   // prevent drag propagation
-  domDelegate.bind(container, entrySelector, 'dragstart', function(event) {
+  domDelegate.bind(container, ENTRY_SELECTOR, 'dragstart', function(event) {
     self.trigger('dragstart', event);
   });
 
-  eventBus.fire('palette.create', {
-    html: container
-  });
+  eventBus.on('canvas.resized', this._layoutChanged, this);
 
-  eventBus.on('canvas.resized', this.triggerTwoColumn, this);
+  eventBus.fire('palette.create', {
+    container: container
+  });
 };
 
+/**
+ * Update palette state.
+ *
+ * @param  {Object} [state] { open, twoColumn }
+ */
+Palette.prototype._toggleState = function(state) {
+
+  state = state || {};
+
+  var parent = this._getParentContainer(),
+      container = this._container;
+
+  var eventBus = this._eventBus;
+
+  var twoColumn;
+
+  var cls = domClasses(container);
+
+  if ('twoColumn' in state) {
+    twoColumn = state.twoColumn;
+  } else {
+    twoColumn = this._needsCollapse(parent.clientHeight, this._entries || {});
+  }
+
+  // always update two column
+  cls.toggle(PALETTE_TWO_COLUMN_CLS, twoColumn);
+
+  if ('open' in state) {
+    cls.toggle(PALETTE_OPEN_CLS, state.open);
+  }
+
+  eventBus.fire('palette.changed', {
+    twoColumn: twoColumn,
+    open: this.isOpen()
+  });
+};
 
 Palette.prototype._update = function() {
 
@@ -32544,7 +33499,7 @@ Palette.prototype._update = function() {
   });
 
   // open after update
-  this.open(true);
+  this.open();
 };
 
 
@@ -32591,30 +33546,39 @@ Palette.prototype.trigger = function(action, event, autoActivate) {
   event.preventDefault();
 };
 
-Palette.prototype.triggerTwoColumn = function() {
-  var canvas = this._canvas;
-
-  var parent = canvas.getContainer();
-
-  if (parent.clientHeight < 650) {
-    domClasses(parent).add('two-column');
-  } else {
-    domClasses(parent).remove('two-column');
-  }
+Palette.prototype._layoutChanged = function() {
+  this._toggleState({});
 };
 
+/**
+ * Do we need to collapse to two columns?
+ *
+ * @param {Number} availableHeight
+ * @param {Object} entries
+ *
+ * @return {Boolean}
+ */
+Palette.prototype._needsCollapse = function(availableHeight, entries) {
+
+  // top margin + bottom toggle + bottom margin
+  // implementors must override this method if they
+  // change the palette styles
+  var margin = 20 + 10 + 20;
+
+  var entriesHeight = Object.keys(entries).length * 46;
+
+  return availableHeight < entriesHeight + margin;
+};
 
 /**
  * Close the palette
  */
 Palette.prototype.close = function() {
-  var canvas = this._canvas;
 
-  var parent = canvas.getContainer();
-
-  domClasses(this._container).remove('open');
-
-  domClasses(parent).remove('two-column');
+  this._toggleState({
+    open: false,
+    twoColumn: false
+  });
 };
 
 
@@ -32622,9 +33586,7 @@ Palette.prototype.close = function() {
  * Open the palette
  */
 Palette.prototype.open = function() {
-  domClasses(this._container).add('open');
-
-  this.triggerTwoColumn();
+  this._toggleState({ open: true });
 };
 
 
@@ -32684,7 +33646,16 @@ Palette.prototype.updateToolHighlight = function(name) {
  * @return {boolean} true if palette is opened
  */
 Palette.prototype.isOpen = function() {
-  return this._container && domClasses(this._container).has('open');
+  return domClasses(this._container).has(PALETTE_OPEN_CLS);
+};
+
+/**
+ * Get container the palette lives in.
+ *
+ * @return {Element}
+ */
+Palette.prototype._getParentContainer = function() {
+  return this._canvas.getContainer();
 };
 
 
@@ -32709,27 +33680,26 @@ function addClasses(element, classNames) {
   });
 }
 
-},{"303":303,"422":422,"423":423,"444":444,"445":445,"446":446,"448":448,"449":449,"450":450,"451":451,"452":452}],213:[function(_dereq_,module,exports){
+},{"306":306,"425":425,"426":426,"448":448,"449":449,"450":450,"452":452,"453":453,"454":454,"455":455,"456":456}],216:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
-  __depends__: [ _dereq_(242) ],
   __init__: [ 'palette' ],
-  palette: [ 'type', _dereq_(212) ]
+  palette: [ 'type', _dereq_(215) ]
 };
 
-},{"212":212,"242":242}],214:[function(_dereq_,module,exports){
+},{"215":215}],217:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303),
-    assign = _dereq_(431),
-    find = _dereq_(302);
+var forEach = _dereq_(306),
+    assign = _dereq_(434),
+    find = _dereq_(305);
 
-var domDelegate = _dereq_(448),
-    domify = _dereq_(449),
-    domClasses = _dereq_(445),
-    domAttr = _dereq_(444),
-    domRemove = _dereq_(453);
+var domDelegate = _dereq_(452),
+    domify = _dereq_(453),
+    domClasses = _dereq_(449),
+    domAttr = _dereq_(448),
+    domRemove = _dereq_(457);
 
 var DATA_REF = 'data-id';
 
@@ -32852,16 +33822,19 @@ PopupMenu.prototype.open = function(position) {
 
   current.container = this._createContainer();
 
-  if (current.headerEntries) {
-    var headerEntriesContainer = this._createEntries(current.headerEntries, 'djs-popup-header');
+  var headerEntries = current.headerEntries || [],
+      entries = current.entries || [];
 
-    current.container.appendChild(headerEntriesContainer);
+  if (headerEntries.length) {
+    current.container.appendChild(
+      this._createEntries(current.headerEntries, 'djs-popup-header')
+    );
   }
 
-  if (current.entries) {
-    var entriesContainer = this._createEntries(current.entries, 'djs-popup-body');
-
-    current.container.appendChild(entriesContainer);
+  if (entries.length) {
+    current.container.appendChild(
+      this._createEntries(current.entries, 'djs-popup-body')
+    );
   }
 
   this._attachContainer(current.container, parent, position.cursor);
@@ -32970,7 +33943,7 @@ PopupMenu.prototype._createContainer = function() {
 PopupMenu.prototype._attachContainer = function(container, parent, cursor) {
   var self = this;
 
-   // Event handler
+  // Event handler
   domDelegate.bind(container, '.entry' ,'click', function(event) {
     self.trigger(event);
   });
@@ -33154,23 +34127,23 @@ PopupMenu.prototype._unbindHandlers = function() {
 
 module.exports = PopupMenu;
 
-},{"302":302,"303":303,"431":431,"444":444,"445":445,"448":448,"449":449,"453":453}],215:[function(_dereq_,module,exports){
+},{"305":305,"306":306,"434":434,"448":448,"449":449,"452":452,"453":453,"457":457}],218:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'popupMenu' ],
-  popupMenu: [ 'type', _dereq_(214) ]
+  popupMenu: [ 'type', _dereq_(217) ]
 };
 
-},{"214":214}],216:[function(_dereq_,module,exports){
+},{"217":217}],219:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
-var svgAppend = _dereq_(472),
-    svgAttr = _dereq_(474),
-    svgClone = _dereq_(477),
-    svgCreate = _dereq_(478);
+var svgAppend = _dereq_(477),
+    svgAttr = _dereq_(479),
+    svgClone = _dereq_(482),
+    svgCreate = _dereq_(483);
 
 /**
  * Adds support for previews of moving/resizing elements.
@@ -33282,15 +34255,15 @@ function isConnection(element) {
   return element.waypoints;
 }
 
-},{"303":303,"472":472,"474":474,"477":477,"478":478}],217:[function(_dereq_,module,exports){
+},{"306":306,"477":477,"479":479,"482":482,"483":483}],220:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'previewSupport' ],
-  previewSupport: [ 'type', _dereq_(216) ]
+  previewSupport: [ 'type', _dereq_(219) ]
 };
 
-},{"216":216}],218:[function(_dereq_,module,exports){
+},{"219":219}],221:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -33339,24 +34312,24 @@ Replace.prototype.replaceElement = function(oldElement, newElementData, options)
   return newElement;
 };
 
-},{}],219:[function(_dereq_,module,exports){
+},{}],222:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: [ 'replace' ],
-  replace: [ 'type', _dereq_(218) ]
+  replace: [ 'type', _dereq_(221) ]
 };
 
-},{"218":218}],220:[function(_dereq_,module,exports){
+},{"221":221}],223:[function(_dereq_,module,exports){
 'use strict';
 
-var pick = _dereq_(438),
-    assign = _dereq_(431);
+var pick = _dereq_(441),
+    assign = _dereq_(434);
 
-var ResizeUtil = _dereq_(223);
+var ResizeUtil = _dereq_(226);
 
-var asTRBL = _dereq_(252).asTRBL,
-    roundBounds = _dereq_(252).roundBounds;
+var asTRBL = _dereq_(255).asTRBL,
+    roundBounds = _dereq_(255).roundBounds;
 
 var DEFAULT_MIN_WIDTH = 10;
 
@@ -33405,38 +34378,19 @@ function Resize(eventBus, rules, modeling, dragging) {
 
   var self = this;
 
-  eventBus.on('resize.start', function(event) {
 
-    var context = event.context,
-        resizeConstraints = context.resizeConstraints,
-        // evaluate minBounds for backwards compatibility
-        minBounds = context.minBounds;
+  /**
+   * Handle resize move by specified delta.
+   *
+   * @param {Object} context
+   * @param {Point delta
+   */
+  function handleMove(context, delta) {
 
-    if (resizeConstraints === undefined) {
-
-      if (minBounds === undefined) {
-        minBounds = self.computeMinResizeBox(context);
-      }
-
-      context.resizeConstraints = {
-        min: asTRBL(minBounds)
-      };
-    }
-  });
-
-  eventBus.on('resize.move', function(event) {
-
-    var context = event.context,
-        shape = context.shape,
+    var shape = context.shape,
         direction = context.direction,
         resizeConstraints = context.resizeConstraints,
-        delta,
         newBounds;
-
-    delta = {
-      x: event.dx,
-      y: event.dy
-    };
 
     context.delta = delta;
 
@@ -33447,11 +34401,39 @@ function Resize(eventBus, rules, modeling, dragging) {
 
     // update + cache executable state
     context.canExecute = self.canResize(context);
-  });
+  }
 
-  eventBus.on('resize.end', function(event) {
-    var context = event.context,
-        shape = context.shape,
+  /**
+   * Handle resize start.
+   *
+   * @param  {Object} context
+   */
+  function handleStart(context) {
+
+    var resizeConstraints = context.resizeConstraints,
+        // evaluate minBounds for backwards compatibility
+        minBounds = context.minBounds;
+
+    if (resizeConstraints !== undefined) {
+      return;
+    }
+
+    if (minBounds === undefined) {
+      minBounds = self.computeMinResizeBox(context);
+    }
+
+    context.resizeConstraints = {
+      min: asTRBL(minBounds)
+    };
+  }
+
+  /**
+   * Handle resize end.
+   *
+   * @param  {Object} context
+   */
+  function handleEnd(context) {
+    var shape = context.shape,
         canExecute = context.canExecute,
         newBounds = context.newBounds;
 
@@ -33463,7 +34445,26 @@ function Resize(eventBus, rules, modeling, dragging) {
       // perform the actual resize
       modeling.resizeShape(shape, newBounds);
     }
+  }
+
+
+  eventBus.on('resize.start', function(event) {
+    handleStart(event.context);
   });
+
+  eventBus.on('resize.move', function(event) {
+    var delta = {
+      x: event.dx,
+      y: event.dy
+    };
+
+    handleMove(event.context, delta);
+  });
+
+  eventBus.on('resize.end', function(event) {
+    handleEnd(event.context);
+  });
+
 }
 
 
@@ -33476,7 +34477,7 @@ Resize.prototype.canResize = function(context) {
 };
 
 /**
- * Activate a resize operation
+ * Activate a resize operation.
  *
  * You may specify additional contextual information and must specify a
  * resize direction during activation of the resize event.
@@ -33538,10 +34539,10 @@ Resize.$inject = [ 'eventBus', 'rules', 'modeling', 'dragging' ];
 
 module.exports = Resize;
 
-},{"223":223,"252":252,"431":431,"438":438}],221:[function(_dereq_,module,exports){
+},{"226":226,"255":255,"434":434,"441":441}],224:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
 var HANDLE_OFFSET = -2,
     HANDLE_SIZE  = 5,
@@ -33549,19 +34550,19 @@ var HANDLE_OFFSET = -2,
 
 var CLS_RESIZER   = 'djs-resizer';
 
-var svgAppend = _dereq_(472),
-    svgAttr = _dereq_(474),
-    svgClasses = _dereq_(475),
-    svgClear = _dereq_(476),
-    svgCreate = _dereq_(478);
+var svgAppend = _dereq_(477),
+    svgAttr = _dereq_(479),
+    svgClasses = _dereq_(480),
+    svgClear = _dereq_(481),
+    svgCreate = _dereq_(483);
 
-var domEvent = _dereq_(450);
+var domEvent = _dereq_(454);
 
-var isPrimaryButton = _dereq_(274).isPrimaryButton;
+var isPrimaryButton = _dereq_(276).isPrimaryButton;
 
-var asTRBL = _dereq_(252).asTRBL;
+var asTRBL = _dereq_(255).asTRBL;
 
-var transform = _dereq_(279).transform;
+var transform = _dereq_(281).transform;
 
 
 /**
@@ -33713,7 +34714,7 @@ ResizeHandles.$inject = [ 'eventBus', 'canvas', 'selection', 'resize' ];
 
 module.exports = ResizeHandles;
 
-},{"252":252,"274":274,"279":279,"303":303,"450":450,"472":472,"474":474,"475":475,"476":476,"478":478}],222:[function(_dereq_,module,exports){
+},{"255":255,"276":276,"281":281,"306":306,"454":454,"477":477,"479":479,"480":480,"481":481,"483":483}],225:[function(_dereq_,module,exports){
 'use strict';
 
 var MARKER_RESIZING = 'djs-resizing',
@@ -33721,26 +34722,29 @@ var MARKER_RESIZING = 'djs-resizing',
 
 var LOW_PRIORITY = 500;
 
-var svgAttr = _dereq_(474),
-    svgRemove = _dereq_(481);
+var svgAttr = _dereq_(479),
+    svgRemove = _dereq_(486);
 
-var svgClasses = _dereq_(475);
+var svgClasses = _dereq_(480);
 
 
 /**
  * Provides previews for resizing shapes when resizing.
  *
  * @param {EventBus} eventBus
- * @param {ElementRegistry} elementRegistry
  * @param {Canvas} canvas
- * @param {Styles} styles
+ * @param {PreviewSupport} previewSupport
  */
-function ResizePreview(eventBus, elementRegistry, canvas, styles, previewSupport) {
+function ResizePreview(eventBus, canvas, previewSupport) {
 
-  // add and update previews
-  eventBus.on('resize.move', LOW_PRIORITY, function(event) {
-    var context = event.context,
-        shape = context.shape,
+  /**
+   * Update resizer frame.
+   *
+   * @param {Object} context
+   */
+  function updateFrame(context) {
+
+    var shape = context.shape,
         bounds = context.newBounds,
         frame = context.frame;
 
@@ -33763,13 +34767,15 @@ function ResizePreview(eventBus, elementRegistry, canvas, styles, previewSupport
     } else {
       svgClasses(frame).add(MARKER_RESIZE_NOT_OK);
     }
+  }
 
-  });
-
-  // remove previews
-  eventBus.on('resize.cleanup', function(event) {
-    var context = event.context,
-        shape = context.shape,
+  /**
+   * Remove resizer frame.
+   *
+   * @param {Object} context
+   */
+  function removeFrame(context) {
+    var shape = context.shape,
         frame = context.frame;
 
     if (frame) {
@@ -33777,28 +34783,43 @@ function ResizePreview(eventBus, elementRegistry, canvas, styles, previewSupport
     }
 
     canvas.removeMarker(shape, MARKER_RESIZING);
+  }
+
+  // add and update previews
+  eventBus.on('resize.move', LOW_PRIORITY, function(event) {
+    updateFrame(event.context);
   });
+
+  // remove previews
+  eventBus.on('resize.cleanup', function(event) {
+    removeFrame(event.context);
+  });
+
 }
 
-ResizePreview.$inject = [ 'eventBus', 'elementRegistry', 'canvas', 'styles', 'previewSupport'];
+ResizePreview.$inject = [
+  'eventBus',
+  'canvas',
+  'previewSupport'
+];
 
 module.exports = ResizePreview;
 
-},{"474":474,"475":475,"481":481}],223:[function(_dereq_,module,exports){
+},{"479":479,"480":480,"486":486}],226:[function(_dereq_,module,exports){
 'use strict';
 
-var filter = _dereq_(301);
+var filter = _dereq_(304);
 
 var max = Math.max,
     min = Math.min;
 
 var DEFAULT_CHILD_BOX_PADDING = 20;
 
-var getBBox = _dereq_(266).getBBox;
+var getBBox = _dereq_(269).getBBox;
 
 
-var asTRBL = _dereq_(252).asTRBL,
-    asBounds = _dereq_(252).asBounds;
+var asTRBL = _dereq_(255).asTRBL,
+    asBounds = _dereq_(255).asBounds;
 
 function isNumber(a) {
   return typeof a === 'number';
@@ -34048,26 +35069,26 @@ function computeChildrenBBox(shapeOrChildren, padding) {
 
 module.exports.computeChildrenBBox = computeChildrenBBox;
 
-},{"252":252,"266":266,"301":301}],224:[function(_dereq_,module,exports){
+},{"255":255,"269":269,"304":304}],227:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(227),
-    _dereq_(162),
-    _dereq_(217)
+    _dereq_(230),
+    _dereq_(165),
+    _dereq_(220)
   ],
   __init__: [ 'resize', 'resizePreview', 'resizeHandles' ],
-  resize: [ 'type', _dereq_(220) ],
-  resizePreview: [ 'type', _dereq_(222) ],
-  resizeHandles: [ 'type', _dereq_(221) ]
+  resize: [ 'type', _dereq_(223) ],
+  resizePreview: [ 'type', _dereq_(225) ],
+  resizeHandles: [ 'type', _dereq_(224) ]
 };
 
-},{"162":162,"217":217,"220":220,"221":221,"222":222,"227":227}],225:[function(_dereq_,module,exports){
+},{"165":165,"220":220,"223":223,"224":224,"225":225,"230":230}],228:[function(_dereq_,module,exports){
 
 'use strict';
 
-var inherits = _dereq_(289);
+var inherits = _dereq_(292);
 
-var CommandInterceptor = _dereq_(119);
+var CommandInterceptor = _dereq_(122);
 
 /**
  * A basic provider that may be extended to implement modeling rules.
@@ -34154,7 +35175,7 @@ RuleProvider.prototype.addRule = function(actions, priority, fn) {
  * Implement this method to add new rules during provider initialization.
  */
 RuleProvider.prototype.init = function() {};
-},{"119":119,"289":289}],226:[function(_dereq_,module,exports){
+},{"122":122,"292":292}],229:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -34205,23 +35226,23 @@ Rules.prototype.allowed = function(action, context) {
   // map undefined to true, i.e. no rules
   return allowed === undefined ? true : allowed;
 };
-},{}],227:[function(_dereq_,module,exports){
+},{}],230:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'rules' ],
-  rules: [ 'type', _dereq_(226) ]
+  rules: [ 'type', _dereq_(229) ]
 };
 
-},{"226":226}],228:[function(_dereq_,module,exports){
+},{"229":229}],231:[function(_dereq_,module,exports){
 'use strict';
 
-var domClear = _dereq_(446),
-    domDelegate = _dereq_(448),
-    domQuery = _dereq_(452),
-    domClasses = _dereq_(445),
-    domAttr = _dereq_(444),
-    domify = _dereq_(449);
+var domClear = _dereq_(450),
+    domDelegate = _dereq_(452),
+    domQuery = _dereq_(456),
+    domClasses = _dereq_(449),
+    domAttr = _dereq_(448),
+    domify = _dereq_(453);
 
-var getBoundingBox = _dereq_(266).getBBox;
+var getBoundingBox = _dereq_(269).getBBox;
 
 
 /**
@@ -34761,20 +35782,20 @@ SearchPad.RESULT_PRIMARY_HTML =
 SearchPad.RESULT_SECONDARY_HTML =
   '<p class="djs-search-result-secondary"></p>';
 
-},{"266":266,"444":444,"445":445,"446":446,"448":448,"449":449,"452":452}],229:[function(_dereq_,module,exports){
+},{"269":269,"448":448,"449":449,"450":450,"452":452,"453":453,"456":456}],232:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(211),
-    _dereq_(233)
+    _dereq_(214),
+    _dereq_(236)
   ],
-  searchPad: [ 'type', _dereq_(228) ]
+  searchPad: [ 'type', _dereq_(231) ]
 };
 
-},{"211":211,"228":228,"233":233}],230:[function(_dereq_,module,exports){
+},{"214":214,"231":231,"236":236}],233:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(422),
-    forEach = _dereq_(303);
+var isArray = _dereq_(425),
+    forEach = _dereq_(306);
 
 
 /**
@@ -34869,12 +35890,12 @@ Selection.prototype.select = function(elements, add) {
   this._eventBus.fire('selection.changed', { oldSelection: oldSelection, newSelection: selectedElements });
 };
 
-},{"303":303,"422":422}],231:[function(_dereq_,module,exports){
+},{"306":306,"425":425}],234:[function(_dereq_,module,exports){
 'use strict';
 
-var hasPrimaryModifier = _dereq_(274).hasPrimaryModifier;
+var hasPrimaryModifier = _dereq_(276).hasPrimaryModifier;
 
-var find = _dereq_(302);
+var find = _dereq_(305);
 
 
 function SelectionBehavior(eventBus, selection, canvas, elementRegistry) {
@@ -34949,10 +35970,10 @@ function SelectionBehavior(eventBus, selection, canvas, elementRegistry) {
 SelectionBehavior.$inject = [ 'eventBus', 'selection', 'canvas', 'elementRegistry' ];
 module.exports = SelectionBehavior;
 
-},{"274":274,"302":302}],232:[function(_dereq_,module,exports){
+},{"276":276,"305":305}],235:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
 var MARKER_HOVER = 'hover',
     MARKER_SELECTED = 'selected';
@@ -35026,24 +36047,24 @@ SelectionVisuals.$inject = [
 
 module.exports = SelectionVisuals;
 
-},{"303":303}],233:[function(_dereq_,module,exports){
+},{"306":306}],236:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'selectionVisuals', 'selectionBehavior' ],
   __depends__: [
-    _dereq_(170),
-    _dereq_(209)
+    _dereq_(173),
+    _dereq_(212)
   ],
-  selection: [ 'type', _dereq_(230) ],
-  selectionVisuals: [ 'type', _dereq_(232) ],
-  selectionBehavior: [ 'type', _dereq_(231) ]
+  selection: [ 'type', _dereq_(233) ],
+  selectionVisuals: [ 'type', _dereq_(235) ],
+  selectionBehavior: [ 'type', _dereq_(234) ]
 };
 
-},{"170":170,"209":209,"230":230,"231":231,"232":232}],234:[function(_dereq_,module,exports){
+},{"173":173,"212":212,"233":233,"234":234,"235":235}],237:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
-var snapTo = _dereq_(235).snapTo;
+var snapTo = _dereq_(238).snapTo;
 
 
 /**
@@ -35209,7 +36230,7 @@ SnapPoints.prototype.initDefaults = function(defaultSnaps) {
     });
   });
 };
-},{"235":235,"303":303}],235:[function(_dereq_,module,exports){
+},{"238":238,"306":306}],238:[function(_dereq_,module,exports){
 'use strict';
 
 var abs = Math.abs,
@@ -35340,28 +36361,28 @@ module.exports.setSnapped = function(event, axis, value) {
 
   return previousValue;
 };
-},{}],236:[function(_dereq_,module,exports){
+},{}],239:[function(_dereq_,module,exports){
 'use strict';
 
-var filter = _dereq_(301),
-    forEach = _dereq_(303),
-    debounce = _dereq_(313);
+var filter = _dereq_(304),
+    forEach = _dereq_(306),
+    debounce = _dereq_(316);
 
-var mid = _dereq_(235).mid;
+var mid = _dereq_(238).mid;
 
-var SnapContext = _dereq_(234);
+var SnapContext = _dereq_(237);
 
-var SnapUtil = _dereq_(235);
+var SnapUtil = _dereq_(238);
 
 var HIGHER_PRIORITY = 1250;
 
 var isSnapped = SnapUtil.isSnapped,
     setSnapped = SnapUtil.setSnapped;
 
-var svgAppend = _dereq_(472),
-    svgAttr = _dereq_(474),
-    svgClasses = _dereq_(475),
-    svgCreate = _dereq_(478);
+var svgAppend = _dereq_(477),
+    svgAttr = _dereq_(479),
+    svgClasses = _dereq_(480),
+    svgCreate = _dereq_(483);
 
 
 /**
@@ -35591,14 +36612,14 @@ Snapping.prototype.getSiblings = function(element, target) {
   });
 };
 
-},{"234":234,"235":235,"301":301,"303":303,"313":313,"472":472,"474":474,"475":475,"478":478}],237:[function(_dereq_,module,exports){
+},{"237":237,"238":238,"304":304,"306":306,"316":316,"477":477,"479":479,"480":480,"483":483}],240:[function(_dereq_,module,exports){
 'use strict';
 
-var SpaceUtil = _dereq_(239);
+var SpaceUtil = _dereq_(242);
 
-var Cursor = _dereq_(265);
+var Cursor = _dereq_(268);
 
-var hasPrimaryModifier = _dereq_(274).hasPrimaryModifier;
+var hasPrimaryModifier = _dereq_(276).hasPrimaryModifier;
 
 var abs = Math.abs,
     round = Math.round;
@@ -35609,10 +36630,10 @@ var HIGH_PRIORITY = 1500,
 var AXIS_TO_DIMENSION = { x: 'width', y: 'height' },
     AXIS_INVERTED = { x: 'y', y: 'x' };
 
-var getAllChildren = _dereq_(266).selfAndAllChildren;
+var getAllChildren = _dereq_(269).selfAndAllChildren;
 
-var assign = _dereq_(431),
-    forEach = _dereq_(303);
+var assign = _dereq_(434),
+    forEach = _dereq_(306);
 
 
 /**
@@ -35877,23 +36898,23 @@ SpaceTool.prototype.isActive = function() {
   return context && /^spaceTool/.test(context.prefix);
 };
 
-},{"239":239,"265":265,"266":266,"274":274,"303":303,"431":431}],238:[function(_dereq_,module,exports){
+},{"242":242,"268":268,"269":269,"276":276,"306":306,"434":434}],241:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
 var MARKER_DRAGGING = 'djs-dragging',
     MARKER_RESIZING = 'djs-resizing';
 
 var LOW_PRIORITY = 250;
 
-var svgAppend = _dereq_(472),
-    svgAttr = _dereq_(474),
-    svgClasses = _dereq_(475),
-    svgCreate = _dereq_(478),
-    svgRemove = _dereq_(481);
+var svgAppend = _dereq_(477),
+    svgAttr = _dereq_(479),
+    svgClasses = _dereq_(480),
+    svgCreate = _dereq_(483),
+    svgRemove = _dereq_(486);
 
-var translate = _dereq_(279).translate;
+var translate = _dereq_(281).translate;
 
 
 /**
@@ -36149,7 +37170,7 @@ function isConnection(element) {
   return element.waypoints;
 }
 
-},{"279":279,"303":303,"472":472,"474":474,"475":475,"478":478,"481":481}],239:[function(_dereq_,module,exports){
+},{"281":281,"306":306,"477":477,"479":479,"480":480,"483":483,"486":486}],242:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -36239,25 +37260,25 @@ module.exports.resizeBounds = function(bounds, direction, delta) {
     throw new Error('unrecognized direction: ' + direction);
   }
 };
-},{}],240:[function(_dereq_,module,exports){
+},{}],243:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   __init__: ['spaceToolPreview'],
   __depends__: [
-    _dereq_(162),
-    _dereq_(227),
-    _dereq_(242),
-    _dereq_(217)
+    _dereq_(165),
+    _dereq_(230),
+    _dereq_(245),
+    _dereq_(220)
   ],
-  spaceTool: ['type', _dereq_(237)],
-  spaceToolPreview: ['type', _dereq_(238) ]
+  spaceTool: ['type', _dereq_(240)],
+  spaceToolPreview: ['type', _dereq_(241) ]
 };
 
-},{"162":162,"217":217,"227":227,"237":237,"238":238,"242":242}],241:[function(_dereq_,module,exports){
+},{"165":165,"220":220,"230":230,"240":240,"241":241,"245":245}],244:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
 var LOW_PRIORITY = 250;
 
@@ -36351,31 +37372,31 @@ ToolManager.prototype.bindEvents = function(name, events) {
   }, this);
 };
 
-},{"303":303}],242:[function(_dereq_,module,exports){
+},{"306":306}],245:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
-  __depends__: [ _dereq_(162) ],
+  __depends__: [ _dereq_(165) ],
   __init__: [ 'toolManager' ],
-  toolManager: [ 'type', _dereq_(241) ]
+  toolManager: [ 'type', _dereq_(244) ]
 };
 
-},{"162":162,"241":241}],243:[function(_dereq_,module,exports){
+},{"165":165,"244":244}],246:[function(_dereq_,module,exports){
 'use strict';
 
-var isString = _dereq_(428),
-    assign = _dereq_(431),
-    forEach = _dereq_(303);
+var isString = _dereq_(431),
+    assign = _dereq_(434),
+    forEach = _dereq_(306);
 
-var domify = _dereq_(449),
-    domAttr = _dereq_(444),
-    domClasses = _dereq_(445),
-    domRemove = _dereq_(453),
-    domDelegate = _dereq_(448);
+var domify = _dereq_(453),
+    domAttr = _dereq_(448),
+    domClasses = _dereq_(449),
+    domRemove = _dereq_(457),
+    domDelegate = _dereq_(452);
 
 
 // document wide unique tooltip ids
-var ids = new (_dereq_(270))('tt');
+var ids = new (_dereq_(273))('tt');
 
 
 function createRoot(parent) {
@@ -36725,17 +37746,17 @@ Tooltips.prototype._init = function() {
   });
 };
 
-},{"270":270,"303":303,"428":428,"431":431,"444":444,"445":445,"448":448,"449":449,"453":453}],244:[function(_dereq_,module,exports){
+},{"273":273,"306":306,"431":431,"434":434,"448":448,"449":449,"452":452,"453":453,"457":457}],247:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'tooltips' ],
-  tooltips: [ 'type', _dereq_(243) ]
+  tooltips: [ 'type', _dereq_(246) ]
 };
-},{"243":243}],245:[function(_dereq_,module,exports){
+},{"246":246}],248:[function(_dereq_,module,exports){
 'use strict';
 
-var svgAppend = _dereq_(472),
-    svgAttr = _dereq_(474),
-    svgCreate = _dereq_(478);
+var svgAppend = _dereq_(477),
+    svgAttr = _dereq_(479),
+    svgCreate = _dereq_(483);
 
 
 function TouchFix(canvas, eventBus) {
@@ -36789,14 +37810,14 @@ TouchFix.prototype.addBBoxMarker = function(svg) {
   svgAppend(svg, rect2);
 };
 
-},{"472":472,"474":474,"478":478}],246:[function(_dereq_,module,exports){
+},{"477":477,"479":479,"483":483}],249:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303),
-    domEvent = _dereq_(450),
-    domClosest = _dereq_(447),
-    Hammer = _dereq_(286),
-    Event = _dereq_(267);
+var forEach = _dereq_(306),
+    domEvent = _dereq_(454),
+    domClosest = _dereq_(451),
+    Hammer = _dereq_(288),
+    Event = _dereq_(270);
 
 var MIN_ZOOM = 0.2,
     MAX_ZOOM = 4;
@@ -36818,11 +37839,18 @@ function get(service, injector) {
   return injector.get(service, false);
 }
 
-function createTouchRecognizer(node) {
+function stopEvent(event) {
 
-  function stopEvent(event) {
-    Event.stopEvent(event, true);
+  event.preventDefault();
+  event.stopPropagation();
+
+  if (typeof event.stopImmediatePropagation === 'function') {
+    event.stopImmediatePropagation();
   }
+}
+
+
+function createTouchRecognizer(node) {
 
   function stopMouse(event) {
 
@@ -36997,7 +38025,7 @@ function TouchInteractionEvents(injector, canvas, eventBus, elementRegistry, int
 
         canvas.zoom(newZoom, mid);
 
-        Event.stopEvent(e, true);
+        stopEvent(e);
       }
 
       function end(e) {
@@ -37081,7 +38109,7 @@ function TouchInteractionEvents(injector, canvas, eventBus, elementRegistry, int
 
   if (palette) {
     eventBus.on('palette.create', function(event) {
-      var node = event.html;
+      var node = event.container;
 
       // touch recognizer
       var padRecognizer = createTouchRecognizer(node);
@@ -37120,18 +38148,18 @@ TouchInteractionEvents.$inject = [
 
 module.exports = TouchInteractionEvents;
 
-},{"267":267,"286":286,"303":303,"447":447,"450":450}],247:[function(_dereq_,module,exports){
+},{"270":270,"288":288,"306":306,"451":451,"454":454}],250:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(170) ],
+  __depends__: [ _dereq_(173) ],
   __init__: [ 'touchInteractionEvents' ],
-  touchInteractionEvents: [ 'type', _dereq_(246) ],
-  touchFix: [ 'type', _dereq_(245) ]
+  touchInteractionEvents: [ 'type', _dereq_(249) ],
+  touchFix: [ 'type', _dereq_(248) ]
 };
-},{"170":170,"245":245,"246":246}],248:[function(_dereq_,module,exports){
+},{"173":173,"248":248,"249":249}],251:[function(_dereq_,module,exports){
 module.exports = {
-  translate: [ 'value', _dereq_(249) ]
+  translate: [ 'value', _dereq_(252) ]
 };
-},{"249":249}],249:[function(_dereq_,module,exports){
+},{"252":252}],252:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -37160,10 +38188,10 @@ module.exports = function translate(template, replacements) {
     return replacements[key] || '{' + key + '}';
   });
 };
-},{}],250:[function(_dereq_,module,exports){
+},{}],253:[function(_dereq_,module,exports){
 'use strict';
 
-var getMid = _dereq_(252).getMid;
+var getMid = _dereq_(255).getMid;
 
 
 /**
@@ -37199,12 +38227,12 @@ BaseLayouter.prototype.layoutConnection = function(connection, hints) {
   ];
 };
 
-},{"252":252}],251:[function(_dereq_,module,exports){
+},{"255":255}],254:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431);
+var assign = _dereq_(434);
 
-var LayoutUtil = _dereq_(252);
+var getElementLineIntersection = _dereq_(255).getElementLineIntersection;
 
 
 function dockingToPoint(docking) {
@@ -37281,7 +38309,7 @@ CroppingConnectionDocking.prototype._getIntersection = function(shape, connectio
   var shapePath = this._getShapePath(shape),
       connectionPath = this._getConnectionPath(connection);
 
-  return LayoutUtil.getElementLineIntersection(shapePath, connectionPath, takeFirst);
+  return getElementLineIntersection(shapePath, connectionPath, takeFirst);
 };
 
 CroppingConnectionDocking.prototype._getConnectionPath = function(connection) {
@@ -37296,14 +38324,14 @@ CroppingConnectionDocking.prototype._getGfx = function(element) {
   return this._elementRegistry.getGraphics(element);
 };
 
-},{"252":252,"431":431}],252:[function(_dereq_,module,exports){
+},{"255":255,"434":434}],255:[function(_dereq_,module,exports){
 'use strict';
 
-var isObject = _dereq_(426),
-    sortBy = _dereq_(310),
-    pointDistance = _dereq_(268).pointDistance;
+var isObject = _dereq_(429),
+    sortBy = _dereq_(313),
+    pointDistance = _dereq_(271).pointDistance;
 
-var intersection = _dereq_(271).intersection;
+var intersectPaths = _dereq_(473);
 
 
 function roundBounds(bounds) {
@@ -37481,21 +38509,21 @@ module.exports.getElementLineIntersection = getElementLineIntersection;
 
 
 function getIntersections(a, b) {
-  return intersection(a, b);
+  return intersectPaths(a, b);
 }
 
 module.exports.getIntersections = getIntersections;
 
-},{"268":268,"271":271,"310":310,"426":426}],253:[function(_dereq_,module,exports){
+},{"271":271,"313":313,"429":429,"473":473}],256:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(422),
-    find = _dereq_(302),
-    without = _dereq_(297),
-    assign = _dereq_(431);
+var isArray = _dereq_(425),
+    find = _dereq_(305),
+    without = _dereq_(300),
+    assign = _dereq_(434);
 
-var LayoutUtil = _dereq_(252),
-    Geometry = _dereq_(268);
+var LayoutUtil = _dereq_(255),
+    Geometry = _dereq_(271);
 
 var getOrientation = LayoutUtil.getOrientation,
     getMid = LayoutUtil.getMid,
@@ -37882,10 +38910,10 @@ function _repairConnectionSide(moved, other, newDocking, points) {
 
     switch (alignment) {
     case 'v':
-        // repair vertical alignment
+      // repair vertical alignment
       return { x: candidate.x, y: newPeer.y };
     case 'h':
-        // repair horizontal alignment
+      // repair horizontal alignment
       return { x: newPeer.x, y: candidate.y };
     }
 
@@ -37983,13 +39011,13 @@ function getDirections(orientation, defaultLayout) {
   }
 }
 
-},{"252":252,"268":268,"297":297,"302":302,"422":422,"431":431}],254:[function(_dereq_,module,exports){
+},{"255":255,"271":271,"300":300,"305":305,"425":425,"434":434}],257:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431),
-    inherits = _dereq_(289);
+var assign = _dereq_(434),
+    inherits = _dereq_(292);
 
-var Refs = _dereq_(466);
+var Refs = _dereq_(470);
 
 var parentRefs = new Refs({ name: 'children', enumerable: true, collection: true }, { name: 'parent' }),
     labelRefs = new Refs({ name: 'label', enumerable: true }, { name: 'labelTarget' }),
@@ -38199,30 +39227,27 @@ module.exports.Shape = Shape;
 module.exports.Connection = Connection;
 module.exports.Label = Label;
 
-},{"289":289,"431":431,"466":466}],255:[function(_dereq_,module,exports){
+},{"292":292,"434":434,"470":470}],258:[function(_dereq_,module,exports){
 'use strict';
 
-var Cursor = _dereq_(265),
-    ClickTrap = _dereq_(262),
-    substract = _dereq_(273).substract,
-    domEvent = _dereq_(450),
-    domClosest = _dereq_(447),
-    EventUtil = _dereq_(267);
+var Cursor = _dereq_(268),
+    ClickTrap = _dereq_(265),
+    substract = _dereq_(275).substract,
+    domEvent = _dereq_(454),
+    domClosest = _dereq_(451),
+    EventUtil = _dereq_(270);
 
 
 function length(point) {
   return Math.sqrt(Math.pow(point.x, 2) + Math.pow(point.y, 2));
 }
 
-
 var THRESHOLD = 15;
 
 
 function MoveCanvas(eventBus, canvas) {
 
-  var container = canvas._container,
-      context;
-
+  var context;
 
   function handleMove(event) {
 
@@ -38233,9 +39258,7 @@ function MoveCanvas(eventBus, canvas) {
     if (!context.dragging && length(delta) > THRESHOLD) {
       context.dragging = true;
 
-      // prevent mouse click in this
-      // interaction sequence
-      ClickTrap.install();
+      ClickTrap.install(eventBus);
 
       Cursor.set('grab');
     }
@@ -38286,9 +39309,18 @@ function MoveCanvas(eventBus, canvas) {
 
     domEvent.bind(document, 'mousemove', handleMove);
     domEvent.bind(document, 'mouseup', handleEnd);
+
+    // we've handled the event
+    return true;
   }
 
-  domEvent.bind(container, 'mousedown', handleStart);
+  // listen for move on element mouse down;
+  // allow others to hook into the event before us though
+  // (dragging / element moving will do this)
+  eventBus.on('element.mousedown', 500, function(e) {
+    return handleStart(e.originalEvent);
+  });
+
 }
 
 
@@ -38296,32 +39328,31 @@ MoveCanvas.$inject = [ 'eventBus', 'canvas' ];
 
 module.exports = MoveCanvas;
 
-},{"262":262,"265":265,"267":267,"273":273,"447":447,"450":450}],256:[function(_dereq_,module,exports){
+},{"265":265,"268":268,"270":270,"275":275,"451":451,"454":454}],259:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'moveCanvas' ],
-  moveCanvas: [ 'type', _dereq_(255) ]
+  moveCanvas: [ 'type', _dereq_(258) ]
 };
-},{"255":255}],257:[function(_dereq_,module,exports){
+},{"258":258}],260:[function(_dereq_,module,exports){
 module.exports = {
-  __depends__: [ _dereq_(247) ]
+  __depends__: [ _dereq_(250) ]
 };
-},{"247":247}],258:[function(_dereq_,module,exports){
+},{"250":250}],261:[function(_dereq_,module,exports){
 'use strict';
 
-var domEvent = _dereq_(450),
-    domClosest = _dereq_(447);
+var domEvent = _dereq_(454),
+    domClosest = _dereq_(451);
 
-var hasPrimaryModifier = _dereq_(274).hasPrimaryModifier,
-    hasSecondaryModifier = _dereq_(274).hasSecondaryModifier;
+var getStepSize = _dereq_(262).getStepSize,
+    cap = _dereq_(262).cap;
 
-var isMac = _dereq_(275).isMac;
+var log10 = _dereq_(275).log10;
 
-var getStepSize = _dereq_(259).getStepSize,
-    cap = _dereq_(259).cap;
+var bind = _dereq_(315);
 
-var log10 = _dereq_(273).log10;
-
-var bind = _dereq_(312);
+var sign = Math.sign || function(n) {
+  return n >= 0 ? 1 : -1;
+};
 
 var RANGE = { min: 0.2, max: 4 },
     NUM_STEPS = 10;
@@ -38379,7 +39410,7 @@ ZoomScroll.prototype.reset = function reset() {
 
 /**
  * Zoom depending on delta.
- * 
+ *
  * @param {number} delta - Zoom delta.
  * @param {Object} position - Zoom position.
  */
@@ -38410,32 +39441,23 @@ ZoomScroll.prototype._handleWheel = function handleWheel(event) {
 
   event.preventDefault();
 
-  // mouse-event: SELECTION_KEY
-  // mouse-event: AND_KEY
-  var isVerticalScroll = hasPrimaryModifier(event),
-      isHorizontalScroll = hasSecondaryModifier(event);
+  // pinch to zoom is mapped to wheel + ctrlKey = true
+  // in modern browsers (!)
 
-  var factor;
+  var isZoom = event.ctrlKey;
 
-  if (isVerticalScroll || isHorizontalScroll) {
+  var isHorizontalScroll = event.shiftKey;
 
-    if (isMac) {
-      factor = event.deltaMode === 0 ? 1.25 : 50;
-    } else {
-      factor = event.deltaMode === 0 ? 1/40 : 1/2;
-    }
+  var factor,
+      delta;
 
-    var delta = {};
-
-    if (isHorizontalScroll) {
-      delta.dx = (factor * (event.deltaX || event.deltaY));
-    } else {
-      delta.dy = (factor * event.deltaY);
-    }
-    this.scroll(delta);
+  if (!isZoom) {
+    factor = event.deltaMode === 0 ? 1.25 : 18;
   } else {
-    factor = (event.deltaMode === 0 ? 1/40 : 1/2);
+    factor = event.deltaMode === 0 ? 1/40 : 1/4;
+  }
 
+  if (isZoom) {
     var elementRect = element.getBoundingClientRect();
 
     var offset =  {
@@ -38443,8 +39465,30 @@ ZoomScroll.prototype._handleWheel = function handleWheel(event) {
       y: event.clientY - elementRect.top
     };
 
+    delta = -(
+      Math.sqrt(
+        Math.pow(event.deltaY, 2) +
+        Math.pow(event.deltaX, 2)
+      ) * sign(event.deltaY) * factor
+    );
+
     // zoom in relative to diagram {x,y} coordinates
-    this.zoom(event.deltaY * factor / (-5), offset);
+    this.zoom(delta, offset);
+  } else {
+
+    if (isHorizontalScroll) {
+      delta = {
+        dx: factor * event.deltaY,
+        dy: 0
+      };
+    } else {
+      delta = {
+        dx: -(factor * event.deltaX),
+        dy: -(factor * event.deltaY)
+      };
+    }
+
+    this.scroll(delta);
   }
 };
 
@@ -38464,7 +39508,7 @@ ZoomScroll.prototype.stepZoom = function stepZoom(delta, position) {
 
 /**
  * Zoom in/out given a step size.
- * 
+ *
  * @param {number} delta - Zoom delta. Can be positive or negative.
  * @param {Object} position - Zoom position.
  * @param {number} stepSize - Step size.
@@ -38524,11 +39568,11 @@ ZoomScroll.prototype._init = function(newEnabled) {
   this.toggle(newEnabled);
 };
 
-},{"259":259,"273":273,"274":274,"275":275,"312":312,"447":447,"450":450}],259:[function(_dereq_,module,exports){
+},{"262":262,"275":275,"315":315,"451":451,"454":454}],262:[function(_dereq_,module,exports){
 'use strict';
 
 
-var log10 = _dereq_(273).log10;
+var log10 = _dereq_(275).log10;
 
 /**
  * Get step size for given range and number of steps.
@@ -38551,18 +39595,18 @@ module.exports.cap = function(range, scale) {
   return Math.max(range.min, Math.min(range.max, scale));
 };
 
-},{"273":273}],260:[function(_dereq_,module,exports){
+},{"275":275}],263:[function(_dereq_,module,exports){
 module.exports = {
   __init__: [ 'zoomScroll' ],
-  zoomScroll: [ 'type', _dereq_(258) ]
+  zoomScroll: [ 'type', _dereq_(261) ]
 };
-},{"258":258}],261:[function(_dereq_,module,exports){
+},{"261":261}],264:[function(_dereq_,module,exports){
 'use strict';
 
-var roundPoint = _dereq_(252).roundPoint;
+var roundPoint = _dereq_(255).roundPoint;
 
-var center = _dereq_(276).center,
-    delta = _dereq_(276).delta;
+var center = _dereq_(278).center,
+    delta = _dereq_(278).delta;
 
 
 /**
@@ -38628,38 +39672,33 @@ function getNewAttachShapeDelta(shape, oldBounds, newBounds) {
 
 module.exports.getNewAttachShapeDelta = getNewAttachShapeDelta;
 
-},{"252":252,"276":276}],262:[function(_dereq_,module,exports){
+},{"255":255,"278":278}],265:[function(_dereq_,module,exports){
 'use strict';
 
-var domEvent = _dereq_(450),
-    stopEvent = _dereq_(267).stopEvent;
-
-function trap(event) {
-  stopEvent(event);
-
-  toggle(false);
-}
-
-function toggle(active) {
-  domEvent[active ? 'bind' : 'unbind'](document.body, 'click', trap, true);
-}
+var TRAP_PRIORITY = 5000;
 
 /**
  * Installs a click trap that prevents a ghost click following a dragging operation.
  *
  * @return {Function} a function to immediately remove the installed trap.
  */
-function install() {
+function install(eventBus, eventName) {
 
-  toggle(true);
+  eventName = eventName || 'element.click';
+
+  function trap() {
+    return false;
+  }
+
+  eventBus.once(eventName, TRAP_PRIORITY, trap);
 
   return function() {
-    toggle(false);
+    eventBus.off(eventName, trap);
   };
 }
 
 module.exports.install = install;
-},{"267":267,"450":450}],263:[function(_dereq_,module,exports){
+},{}],266:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -38750,10 +39789,10 @@ module.exports.indexOf = function(collection, element) {
   return collection.indexOf(element);
 };
 
-},{}],264:[function(_dereq_,module,exports){
+},{}],267:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
 function getTopLevel(elements) {
   var topLevel = {},
@@ -38796,10 +39835,10 @@ function getTopLevel(elements) {
 
 module.exports.getTopLevel = getTopLevel;
 
-},{"303":303}],265:[function(_dereq_,module,exports){
+},{"306":306}],268:[function(_dereq_,module,exports){
 'use strict';
 
-var domClasses = _dereq_(445);
+var domClasses = _dereq_(449);
 
 var CURSOR_CLS_PATTERN = /^djs-cursor-.*$/;
 
@@ -38824,13 +39863,13 @@ module.exports.has = function(mode) {
   return classes.has('djs-cursor-' + mode);
 };
 
-},{"445":445}],266:[function(_dereq_,module,exports){
+},{"449":449}],269:[function(_dereq_,module,exports){
 'use strict';
 
-var isArray = _dereq_(422),
-    isNumber = _dereq_(425),
-    groupBy = _dereq_(304),
-    forEach = _dereq_(303);
+var isArray = _dereq_(425),
+    isNumber = _dereq_(428),
+    groupBy = _dereq_(307),
+    forEach = _dereq_(306);
 
 /**
  * Adds an element to a collection and returns true if the
@@ -39122,25 +40161,15 @@ function getElementType(element) {
 }
 
 module.exports.getType = getElementType;
-},{"303":303,"304":304,"422":422,"425":425}],267:[function(_dereq_,module,exports){
+},{"306":306,"307":307,"425":425,"428":428}],270:[function(_dereq_,module,exports){
 'use strict';
 
-function __preventDefault(event) {
-  return event && event.preventDefault();
-}
-
-function __stopPropagation(event, immediate) {
-  if (!event) {
+function __stopPropagation(event) {
+  if (!event || typeof event.stopPropagation !== 'function') {
     return;
   }
 
-  if (event.stopPropagation) {
-    event.stopPropagation();
-  }
-
-  if (immediate && event.stopImmediatePropagation) {
-    event.stopImmediatePropagation();
-  }
+  event.stopPropagation();
 }
 
 
@@ -39149,22 +40178,6 @@ function getOriginal(event) {
 }
 
 module.exports.getOriginal = getOriginal;
-
-
-function stopEvent(event, immediate) {
-  stopPropagation(event, immediate);
-  preventDefault(event);
-}
-
-module.exports.stopEvent = stopEvent;
-
-
-function preventDefault(event) {
-  __preventDefault(event);
-  __preventDefault(getOriginal(event));
-}
-
-module.exports.preventDefault = preventDefault;
 
 
 function stopPropagation(event, immediate) {
@@ -39193,7 +40206,7 @@ function toPoint(event) {
 
 module.exports.toPoint = toPoint;
 
-},{}],268:[function(_dereq_,module,exports){
+},{}],271:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -39216,15 +40229,20 @@ module.exports.pointDistance = pointDistance;
 
 
 /**
- * Returns true if the point r is on the line between p and y
+ * Returns true if the point r is on the line between p and q
  *
  * @param  {Point}  p
  * @param  {Point}  q
  * @param  {Point}  r
+ * @param  {Number} [accuracy=5] accuracy for points on line check (lower is better)
  *
  * @return {Boolean}
  */
-module.exports.pointsOnLine = function(p, q, r) {
+module.exports.pointsOnLine = function(p, q, r, accuracy) {
+
+  if (typeof accuracy === 'undefined') {
+    accuracy = 5;
+  }
 
   if (!p || !q || !r) {
     return false;
@@ -39234,7 +40252,7 @@ module.exports.pointsOnLine = function(p, q, r) {
       dist = pointDistance(p, q);
 
   // @see http://stackoverflow.com/a/907491/412190
-  return Math.abs(val / dist) < 5;
+  return Math.abs(val / dist) <= accuracy;
 };
 
 
@@ -39298,10 +40316,10 @@ module.exports.getMidPoint = function(p, q) {
   };
 };
 
-},{}],269:[function(_dereq_,module,exports){
+},{}],272:[function(_dereq_,module,exports){
 'use strict';
 
-var domQuery = _dereq_(452);
+var domQuery = _dereq_(456);
 
 /**
  * SVGs for elements are generated by the {@link GraphicsFactory}.
@@ -39334,7 +40352,7 @@ function getChildren(gfx) {
 module.exports.getVisual = getVisual;
 module.exports.getChildren = getChildren;
 
-},{"452":452}],270:[function(_dereq_,module,exports){
+},{"456":456}],273:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -39367,1406 +40385,12 @@ IdGenerator.prototype.next = function() {
   return this._prefix + (++this._counter);
 };
 
-},{}],271:[function(_dereq_,module,exports){
-/* eslint no-fallthrough: "off" */
-
+},{}],274:[function(_dereq_,module,exports){
 'use strict';
 
-var has = 'hasOwnProperty',
-    p2s = /,?([a-z]),?/gi,
-    toFloat = parseFloat,
-    math = Math,
-    PI = math.PI,
-    mmin = math.min,
-    mmax = math.max,
-    pow = math.pow,
-    abs = math.abs,
-    pathCommand = /([a-z])[\s,]*((-?\d*\.?\d*(?:e[\-+]?\d+)?[\s]*,?[\s]*)+)/ig,
-    pathValues = /(-?\d*\.?\d*(?:e[\-+]?\\d+)?)[\s]*,?[\s]*/ig;
+var pointDistance = _dereq_(271).pointDistance;
 
-function is(o, type) {
-  type = String.prototype.toLowerCase.call(type);
-
-  if (type == 'finite') {
-    return isFinite(o);
-  }
-
-  if (type == 'array' && (o instanceof Array || Array.isArray && Array.isArray(o))) {
-    return true;
-  }
-
-  return  (type == 'null' && o === null) ||
-          (type == typeof o && o !== null) ||
-          (type == 'object' && o === Object(o)) ||
-          Object.prototype.toString.call(o).slice(8, -1).toLowerCase() == type;
-}
-
-function clone(obj) {
-
-  if (typeof obj == 'function' || Object(obj) !== obj) {
-    return obj;
-  }
-
-  var res = new obj.constructor;
-
-  for (var key in obj) if (obj[has](key)) {
-    res[key] = clone(obj[key]);
-  }
-
-  return res;
-}
-
-function repush(array, item) {
-  for (var i = 0, ii = array.length; i < ii; i++) if (array[i] === item) {
-    return array.push(array.splice(i, 1)[0]);
-  }
-}
-
-function cacher(f, scope, postprocessor) {
-
-  function newf() {
-
-    var arg = Array.prototype.slice.call(arguments, 0),
-        args = arg.join('\u2400'),
-        cache = newf.cache = newf.cache || {},
-        count = newf.count = newf.count || [];
-
-    if (cache[has](args)) {
-      repush(count, args);
-      return postprocessor ? postprocessor(cache[args]) : cache[args];
-    }
-
-    count.length >= 1e3 && delete cache[count.shift()];
-    count.push(args);
-    cache[args] = f.apply(scope, arg);
-
-    return postprocessor ? postprocessor(cache[args]) : cache[args];
-  }
-  return newf;
-}
-
-function parsePathString(pathString) {
-
-  if (!pathString) {
-    return null;
-  }
-
-  var pth = paths(pathString);
-
-  if (pth.arr) {
-    return clone(pth.arr);
-  }
-
-  var paramCounts = { a: 7, c: 6, o: 2, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, u: 3, z: 0 },
-      data = [];
-
-  if (is(pathString, 'array') && is(pathString[0], 'array')) { // rough assumption
-    data = clone(pathString);
-  }
-
-  if (!data.length) {
-
-    String(pathString).replace(pathCommand, function(a, b, c) {
-      var params = [],
-          name = b.toLowerCase();
-
-      c.replace(pathValues, function(a, b) {
-        b && params.push(+b);
-      });
-
-      if (name == 'm' && params.length > 2) {
-        data.push([b].concat(params.splice(0, 2)));
-        name = 'l';
-        b = b == 'm' ? 'l' : 'L';
-      }
-
-      if (name == 'o' && params.length == 1) {
-        data.push([b, params[0]]);
-      }
-
-      if (name == 'r') {
-        data.push([b].concat(params));
-      } else while (params.length >= paramCounts[name]) {
-        data.push([b].concat(params.splice(0, paramCounts[name])));
-        if (!paramCounts[name]) {
-          break;
-        }
-      }
-    });
-  }
-
-  data.toString = paths.toString;
-  pth.arr = clone(data);
-
-  return data;
-}
-
-function paths(ps) {
-  var p = paths.ps = paths.ps || {};
-
-  if (p[ps]) {
-    p[ps].sleep = 100;
-  } else {
-    p[ps] = {
-      sleep: 100
-    };
-  }
-
-  setTimeout(function() {
-    for (var key in p) if (p[has](key) && key != ps) {
-      p[key].sleep--;
-      !p[key].sleep && delete p[key];
-    }
-  });
-
-  return p[ps];
-}
-
-function box(x, y, width, height) {
-  if (x == null) {
-    x = y = width = height = 0;
-  }
-
-  if (y == null) {
-    y = x.y;
-    width = x.width;
-    height = x.height;
-    x = x.x;
-  }
-
-  return {
-    x: x,
-    y: y,
-    width: width,
-    w: width,
-    height: height,
-    h: height,
-    x2: x + width,
-    y2: y + height,
-    cx: x + width / 2,
-    cy: y + height / 2,
-    r1: math.min(width, height) / 2,
-    r2: math.max(width, height) / 2,
-    r0: math.sqrt(width * width + height * height) / 2,
-    path: rectPath(x, y, width, height),
-    vb: [x, y, width, height].join(' ')
-  };
-}
-
-function toString() {
-  return this.join(',').replace(p2s, '$1');
-}
-
-function pathClone(pathArray) {
-  var res = clone(pathArray);
-  res.toString = toString;
-  return res;
-}
-
-function getPointAtSegmentLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, length) {
-  if (length == null) {
-    return bezlen(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y);
-  } else {
-    return findDotsAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y,
-      getTotLen(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, length));
-  }
-}
-
-function getLengthFactory(istotal, subpath) {
-  function O(val) {
-    return +(+val).toFixed(3);
-  }
-
-  return cacher(function(path, length, onlystart) {
-
-    if (path instanceof Element) {
-      path = path.attr('d');
-    }
-
-    path = path2curve(path);
-
-    var x, y, p, l, sp = '', subpaths = {}, point,
-        len = 0;
-
-    for (var i = 0, ii = path.length; i < ii; i++) {
-      p = path[i];
-
-      if (p[0] == 'M') {
-        x = +p[1];
-        y = +p[2];
-      } else {
-        l = getPointAtSegmentLength(x, y, p[1], p[2], p[3], p[4], p[5], p[6]);
-
-        if (len + l > length) {
-
-          if (subpath && !subpaths.start) {
-            point = getPointAtSegmentLength(x, y, p[1], p[2], p[3], p[4], p[5], p[6], length - len);
-
-            sp += [
-              'C' + O(point.start.x),
-              O(point.start.y),
-              O(point.m.x),
-              O(point.m.y),
-              O(point.x),
-              O(point.y)
-            ];
-
-            if (onlystart) {
-              return sp;
-            }
-
-            subpaths.start = sp;
-            sp = [
-              'M' + O(point.x),
-              O(point.y) + 'C' + O(point.n.x),
-              O(point.n.y),
-              O(point.end.x),
-              O(point.end.y),
-              O(p[5]),
-              O(p[6])
-            ].join();
-            len += l;
-            x = +p[5];
-            y = +p[6];
-            continue;
-          }
-
-          if (!istotal && !subpath) {
-            point = getPointAtSegmentLength(x, y, p[1], p[2], p[3], p[4], p[5], p[6], length - len);
-            return point;
-          }
-        }
-
-        len += l;
-        x = +p[5];
-        y = +p[6];
-      }
-
-      sp += p.shift() + p;
-    }
-
-    subpaths.end = sp;
-    point = istotal ? len : subpath ? subpaths : findDotsAtSegment(x, y, p[0], p[1], p[2], p[3], p[4], p[5], 1);
-    return point;
-  }, null, clone);
-}
-
-var getTotalLength = getLengthFactory(1),
-    getPointAtLength = getLengthFactory();
-
-function findDotsAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
-  var t1 = 1 - t,
-      t13 = pow(t1, 3),
-      t12 = pow(t1, 2),
-      t2 = t * t,
-      t3 = t2 * t,
-      x = t13 * p1x + t12 * 3 * t * c1x + t1 * 3 * t * t * c2x + t3 * p2x,
-      y = t13 * p1y + t12 * 3 * t * c1y + t1 * 3 * t * t * c2y + t3 * p2y,
-      mx = p1x + 2 * t * (c1x - p1x) + t2 * (c2x - 2 * c1x + p1x),
-      my = p1y + 2 * t * (c1y - p1y) + t2 * (c2y - 2 * c1y + p1y),
-      nx = c1x + 2 * t * (c2x - c1x) + t2 * (p2x - 2 * c2x + c1x),
-      ny = c1y + 2 * t * (c2y - c1y) + t2 * (p2y - 2 * c2y + c1y),
-      ax = t1 * p1x + t * c1x,
-      ay = t1 * p1y + t * c1y,
-      cx = t1 * c2x + t * p2x,
-      cy = t1 * c2y + t * p2y,
-      alpha = (90 - math.atan2(mx - nx, my - ny) * 180 / PI);
-
-  // (mx > nx || my < ny) && (alpha += 180);
-
-  return {
-    x: x,
-    y: y,
-    m: { x: mx, y: my },
-    n: { x: nx, y: ny },
-    start: { x: ax, y: ay },
-    end: { x: cx, y: cy },
-    alpha: alpha
-  };
-}
-
-function bezierBBox(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
-
-  if (!is(p1x, 'array')) {
-    p1x = [p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y];
-  }
-
-  var bbox = curveDim.apply(null, p1x);
-
-  return box(
-    bbox.min.x,
-    bbox.min.y,
-    bbox.max.x - bbox.min.x,
-    bbox.max.y - bbox.min.y
-  );
-}
-
-function isPointInsideBBox(bbox, x, y) {
-  return x >= bbox.x &&
-    x <= bbox.x + bbox.width &&
-    y >= bbox.y &&
-    y <= bbox.y + bbox.height;
-}
-
-function isBBoxIntersect(bbox1, bbox2) {
-  bbox1 = box(bbox1);
-  bbox2 = box(bbox2);
-  return isPointInsideBBox(bbox2, bbox1.x, bbox1.y)
-    || isPointInsideBBox(bbox2, bbox1.x2, bbox1.y)
-    || isPointInsideBBox(bbox2, bbox1.x, bbox1.y2)
-    || isPointInsideBBox(bbox2, bbox1.x2, bbox1.y2)
-    || isPointInsideBBox(bbox1, bbox2.x, bbox2.y)
-    || isPointInsideBBox(bbox1, bbox2.x2, bbox2.y)
-    || isPointInsideBBox(bbox1, bbox2.x, bbox2.y2)
-    || isPointInsideBBox(bbox1, bbox2.x2, bbox2.y2)
-    || (bbox1.x < bbox2.x2 && bbox1.x > bbox2.x
-        || bbox2.x < bbox1.x2 && bbox2.x > bbox1.x)
-    && (bbox1.y < bbox2.y2 && bbox1.y > bbox2.y
-        || bbox2.y < bbox1.y2 && bbox2.y > bbox1.y);
-}
-
-function base3(t, p1, p2, p3, p4) {
-  var t1 = -3 * p1 + 9 * p2 - 9 * p3 + 3 * p4,
-      t2 = t * t1 + 6 * p1 - 12 * p2 + 6 * p3;
-  return t * t2 - 3 * p1 + 3 * p2;
-}
-
-function bezlen(x1, y1, x2, y2, x3, y3, x4, y4, z) {
-
-  if (z == null) {
-    z = 1;
-  }
-
-  z = z > 1 ? 1 : z < 0 ? 0 : z;
-
-  var z2 = z / 2,
-      n = 12,
-      Tvalues = [-.1252,.1252,-.3678,.3678,-.5873,.5873,-.7699,.7699,-.9041,.9041,-.9816,.9816],
-      Cvalues = [0.2491,0.2491,0.2335,0.2335,0.2032,0.2032,0.1601,0.1601,0.1069,0.1069,0.0472,0.0472],
-      sum = 0;
-
-  for (var i = 0; i < n; i++) {
-    var ct = z2 * Tvalues[i] + z2,
-        xbase = base3(ct, x1, x2, x3, x4),
-        ybase = base3(ct, y1, y2, y3, y4),
-        comb = xbase * xbase + ybase * ybase;
-
-    sum += Cvalues[i] * math.sqrt(comb);
-  }
-
-  return z2 * sum;
-}
-
-function getTotLen(x1, y1, x2, y2, x3, y3, x4, y4, ll) {
-
-  if (ll < 0 || bezlen(x1, y1, x2, y2, x3, y3, x4, y4) < ll) {
-    return;
-  }
-
-  var t = 1,
-      step = t / 2,
-      t2 = t - step,
-      l,
-      e = .01;
-
-  l = bezlen(x1, y1, x2, y2, x3, y3, x4, y4, t2);
-
-  while (abs(l - ll) > e) {
-    step /= 2;
-    t2 += (l < ll ? 1 : -1) * step;
-    l = bezlen(x1, y1, x2, y2, x3, y3, x4, y4, t2);
-  }
-
-  return t2;
-}
-
-function intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
-
-  if (
-      mmax(x1, x2) < mmin(x3, x4) ||
-      mmin(x1, x2) > mmax(x3, x4) ||
-      mmax(y1, y2) < mmin(y3, y4) ||
-      mmin(y1, y2) > mmax(y3, y4)
-  ) {
-    return;
-  }
-
-  var nx = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4),
-      ny = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4),
-      denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-
-  if (!denominator) {
-    return;
-  }
-
-  var px = nx / denominator,
-      py = ny / denominator,
-      px2 = +px.toFixed(2),
-      py2 = +py.toFixed(2);
-
-  if (
-      px2 < +mmin(x1, x2).toFixed(2) ||
-      px2 > +mmax(x1, x2).toFixed(2) ||
-      px2 < +mmin(x3, x4).toFixed(2) ||
-      px2 > +mmax(x3, x4).toFixed(2) ||
-      py2 < +mmin(y1, y2).toFixed(2) ||
-      py2 > +mmax(y1, y2).toFixed(2) ||
-      py2 < +mmin(y3, y4).toFixed(2) ||
-      py2 > +mmax(y3, y4).toFixed(2)
-  ) {
-    return;
-  }
-
-  return { x: px, y: py };
-}
-
-function interHelper(bez1, bez2, justCount) {
-  var bbox1 = bezierBBox(bez1),
-      bbox2 = bezierBBox(bez2);
-
-  if (!isBBoxIntersect(bbox1, bbox2)) {
-    return justCount ? 0 : [];
-  }
-
-  var l1 = bezlen.apply(0, bez1),
-      l2 = bezlen.apply(0, bez2),
-      n1 = ~~(l1 / 8),
-      n2 = ~~(l2 / 8),
-      dots1 = [],
-      dots2 = [],
-      xy = {},
-      res = justCount ? 0 : [];
-
-  for (var i = 0; i < n1 + 1; i++) {
-    var p = findDotsAtSegment.apply(0, bez1.concat(i / n1));
-    dots1.push({ x: p.x, y: p.y, t: i / n1 });
-  }
-
-  for (i = 0; i < n2 + 1; i++) {
-    p = findDotsAtSegment.apply(0, bez2.concat(i / n2));
-    dots2.push({ x: p.x, y: p.y, t: i / n2 });
-  }
-
-  for (i = 0; i < n1; i++) {
-
-    for (var j = 0; j < n2; j++) {
-      var di = dots1[i],
-          di1 = dots1[i + 1],
-          dj = dots2[j],
-          dj1 = dots2[j + 1],
-          ci = abs(di1.x - di.x) < .001 ? 'y' : 'x',
-          cj = abs(dj1.x - dj.x) < .001 ? 'y' : 'x',
-          is = intersect(di.x, di.y, di1.x, di1.y, dj.x, dj.y, dj1.x, dj1.y);
-
-      if (is) {
-
-        if (xy[is.x.toFixed(4)] == is.y.toFixed(4)) {
-          continue;
-        }
-
-        xy[is.x.toFixed(4)] = is.y.toFixed(4);
-
-        var t1 = di.t + abs((is[ci] - di[ci]) / (di1[ci] - di[ci])) * (di1.t - di.t),
-            t2 = dj.t + abs((is[cj] - dj[cj]) / (dj1[cj] - dj[cj])) * (dj1.t - dj.t);
-
-        if (t1 >= 0 && t1 <= 1 && t2 >= 0 && t2 <= 1) {
-
-          if (justCount) {
-            res++;
-          } else {
-            res.push({
-              x: is.x,
-              y: is.y,
-              t1: t1,
-              t2: t2
-            });
-          }
-        }
-      }
-    }
-  }
-
-  return res;
-}
-
-function pathIntersection(path1, path2) {
-  return interPathHelper(path1, path2);
-}
-
-function pathIntersectionNumber(path1, path2) {
-  return interPathHelper(path1, path2, 1);
-}
-
-function interPathHelper(path1, path2, justCount) {
-  path1 = path2curve(path1);
-  path2 = path2curve(path2);
-
-  var x1, y1, x2, y2, x1m, y1m, x2m, y2m, bez1, bez2,
-      res = justCount ? 0 : [];
-
-  for (var i = 0, ii = path1.length; i < ii; i++) {
-    var pi = path1[i];
-
-    if (pi[0] == 'M') {
-      x1 = x1m = pi[1];
-      y1 = y1m = pi[2];
-    } else {
-
-      if (pi[0] == 'C') {
-        bez1 = [x1, y1].concat(pi.slice(1));
-        x1 = bez1[6];
-        y1 = bez1[7];
-      } else {
-        bez1 = [x1, y1, x1, y1, x1m, y1m, x1m, y1m];
-        x1 = x1m;
-        y1 = y1m;
-      }
-
-      for (var j = 0, jj = path2.length; j < jj; j++) {
-        var pj = path2[j];
-
-        if (pj[0] == 'M') {
-          x2 = x2m = pj[1];
-          y2 = y2m = pj[2];
-        } else {
-
-          if (pj[0] == 'C') {
-            bez2 = [x2, y2].concat(pj.slice(1));
-            x2 = bez2[6];
-            y2 = bez2[7];
-          } else {
-            bez2 = [x2, y2, x2, y2, x2m, y2m, x2m, y2m];
-            x2 = x2m;
-            y2 = y2m;
-          }
-
-          var intr = interHelper(bez1, bez2, justCount);
-
-          if (justCount) {
-            res += intr;
-          } else {
-
-            for (var k = 0, kk = intr.length; k < kk; k++) {
-              intr[k].segment1 = i;
-              intr[k].segment2 = j;
-              intr[k].bez1 = bez1;
-              intr[k].bez2 = bez2;
-            }
-
-            res = res.concat(intr);
-          }
-        }
-      }
-    }
-  }
-
-  return res;
-}
-
-function isPointInsidePath(path, x, y) {
-  var bbox = pathBBox(path);
-
-  return isPointInsideBBox(bbox, x, y) &&
-         interPathHelper(path, [['M', x, y], ['H', bbox.x2 + 10]], 1) % 2 == 1;
-}
-
-function pathBBox(path) {
-  var pth = paths(path);
-
-  if (pth.bbox) {
-    return clone(pth.bbox);
-  }
-
-  if (!path) {
-    return box();
-  }
-
-  path = path2curve(path);
-
-  var x = 0,
-      y = 0,
-      X = [],
-      Y = [],
-      p;
-
-  for (var i = 0, ii = path.length; i < ii; i++) {
-    p = path[i];
-
-    if (p[0] == 'M') {
-      x = p[1];
-      y = p[2];
-      X.push(x);
-      Y.push(y);
-    } else {
-      var dim = curveDim(x, y, p[1], p[2], p[3], p[4], p[5], p[6]);
-      X = X.concat(dim.min.x, dim.max.x);
-      Y = Y.concat(dim.min.y, dim.max.y);
-      x = p[5];
-      y = p[6];
-    }
-  }
-
-  var xmin = mmin.apply(0, X),
-      ymin = mmin.apply(0, Y),
-      xmax = mmax.apply(0, X),
-      ymax = mmax.apply(0, Y),
-      bb = box(xmin, ymin, xmax - xmin, ymax - ymin);
-
-  pth.bbox = clone(bb);
-
-  return bb;
-}
-
-function rectPath(x, y, w, h, r) {
-  if (r) {
-    return [
-      ['M', +x + (+r), y],
-      ['l', w - r * 2, 0],
-      ['a', r, r, 0, 0, 1, r, r],
-      ['l', 0, h - r * 2],
-      ['a', r, r, 0, 0, 1, -r, r],
-      ['l', r * 2 - w, 0],
-      ['a', r, r, 0, 0, 1, -r, -r],
-      ['l', 0, r * 2 - h],
-      ['a', r, r, 0, 0, 1, r, -r],
-      ['z']
-    ];
-  }
-
-  var res = [['M', x, y], ['l', w, 0], ['l', 0, h], ['l', -w, 0], ['z']];
-  res.toString = toString;
-
-  return res;
-}
-
-function ellipsePath(x, y, rx, ry, a) {
-  if (a == null && ry == null) {
-    ry = rx;
-  }
-
-  x = +x;
-  y = +y;
-  rx = +rx;
-  ry = +ry;
-
-  if (a != null) {
-    var rad = Math.PI / 180,
-        x1 = x + rx * Math.cos(-ry * rad),
-        x2 = x + rx * Math.cos(-a * rad),
-        y1 = y + rx * Math.sin(-ry * rad),
-        y2 = y + rx * Math.sin(-a * rad),
-        res = [['M', x1, y1], ['A', rx, rx, 0, +(a - ry > 180), 0, x2, y2]];
-  } else {
-    res = [
-      ['M', x, y],
-      ['m', 0, -ry],
-      ['a', rx, ry, 0, 1, 1, 0, 2 * ry],
-      ['a', rx, ry, 0, 1, 1, 0, -2 * ry],
-      ['z']
-    ];
-  }
-
-  res.toString = toString;
-
-  return res;
-}
-
-function pathToRelative(pathArray) {
-  var pth = paths(pathArray),
-      lowerCase = String.prototype.toLowerCase;
-
-  if (pth.rel) {
-    return pathClone(pth.rel);
-  }
-
-  if (!is(pathArray, 'array') || !is(pathArray && pathArray[0], 'array')) {
-    pathArray = parsePathString(pathArray);
-  }
-
-  var res = [],
-      x = 0,
-      y = 0,
-      mx = 0,
-      my = 0,
-      start = 0;
-
-  if (pathArray[0][0] == 'M') {
-    x = pathArray[0][1];
-    y = pathArray[0][2];
-    mx = x;
-    my = y;
-    start++;
-    res.push(['M', x, y]);
-  }
-
-  for (var i = start, ii = pathArray.length; i < ii; i++) {
-    var r = res[i] = [],
-        pa = pathArray[i];
-
-    if (pa[0] != lowerCase.call(pa[0])) {
-      r[0] = lowerCase.call(pa[0]);
-
-      switch (r[0]) {
-      case 'a':
-        r[1] = pa[1];
-        r[2] = pa[2];
-        r[3] = pa[3];
-        r[4] = pa[4];
-        r[5] = pa[5];
-        r[6] = +(pa[6] - x).toFixed(3);
-        r[7] = +(pa[7] - y).toFixed(3);
-        break;
-      case 'v':
-        r[1] = +(pa[1] - y).toFixed(3);
-        break;
-      case 'm':
-        mx = pa[1];
-        my = pa[2];
-      default:
-        for (var j = 1, jj = pa.length; j < jj; j++) {
-          r[j] = +(pa[j] - ((j % 2) ? x : y)).toFixed(3);
-        }
-      }
-    } else {
-      r = res[i] = [];
-
-      if (pa[0] == 'm') {
-        mx = pa[1] + x;
-        my = pa[2] + y;
-      }
-
-      for (var k = 0, kk = pa.length; k < kk; k++) {
-        res[i][k] = pa[k];
-      }
-    }
-
-    var len = res[i].length;
-
-    switch (res[i][0]) {
-    case 'z':
-      x = mx;
-      y = my;
-      break;
-    case 'h':
-      x += +res[i][len - 1];
-      break;
-    case 'v':
-      y += +res[i][len - 1];
-      break;
-    default:
-      x += +res[i][len - 2];
-      y += +res[i][len - 1];
-    }
-  }
-
-  res.toString = toString;
-  pth.rel = pathClone(res);
-
-  return res;
-}
-
-function pathToAbsolute(pathArray) {
-  var pth = paths(pathArray);
-
-  if (pth.abs) {
-    return pathClone(pth.abs);
-  }
-
-  if (!is(pathArray, 'array') || !is(pathArray && pathArray[0], 'array')) { // rough assumption
-    pathArray = parsePathString(pathArray);
-  }
-
-  if (!pathArray || !pathArray.length) {
-    return [['M', 0, 0]];
-  }
-
-  var res = [],
-      x = 0,
-      y = 0,
-      mx = 0,
-      my = 0,
-      start = 0,
-      pa0;
-
-  if (pathArray[0][0] == 'M') {
-    x = +pathArray[0][1];
-    y = +pathArray[0][2];
-    mx = x;
-    my = y;
-    start++;
-    res[0] = ['M', x, y];
-  }
-
-  var crz = pathArray.length == 3 &&
-      pathArray[0][0] == 'M' &&
-      pathArray[1][0].toUpperCase() == 'R' &&
-      pathArray[2][0].toUpperCase() == 'Z';
-
-  for (var r, pa, i = start, ii = pathArray.length; i < ii; i++) {
-    res.push(r = []);
-    pa = pathArray[i];
-    pa0 = pa[0];
-
-    if (pa0 != pa0.toUpperCase()) {
-      r[0] = pa0.toUpperCase();
-
-      switch (r[0]) {
-      case 'A':
-        r[1] = pa[1];
-        r[2] = pa[2];
-        r[3] = pa[3];
-        r[4] = pa[4];
-        r[5] = pa[5];
-        r[6] = +pa[6] + x;
-        r[7] = +pa[7] + y;
-        break;
-      case 'V':
-        r[1] = +pa[1] + y;
-        break;
-      case 'H':
-        r[1] = +pa[1] + x;
-        break;
-      case 'R':
-        var dots = [x, y].concat(pa.slice(1));
-
-        for (var j = 2, jj = dots.length; j < jj; j++) {
-          dots[j] = +dots[j] + x;
-          dots[++j] = +dots[j] + y;
-        }
-
-        res.pop();
-        res = res.concat(catmullRom2bezier(dots, crz));
-        break;
-      case 'O':
-        res.pop();
-        dots = ellipsePath(x, y, pa[1], pa[2]);
-        dots.push(dots[0]);
-        res = res.concat(dots);
-        break;
-      case 'U':
-        res.pop();
-        res = res.concat(ellipsePath(x, y, pa[1], pa[2], pa[3]));
-        r = ['U'].concat(res[res.length - 1].slice(-2));
-        break;
-      case 'M':
-        mx = +pa[1] + x;
-        my = +pa[2] + y;
-      default:
-
-        for (j = 1, jj = pa.length; j < jj; j++) {
-          r[j] = +pa[j] + ((j % 2) ? x : y);
-        }
-      }
-    } else if (pa0 == 'R') {
-      dots = [x, y].concat(pa.slice(1));
-      res.pop();
-      res = res.concat(catmullRom2bezier(dots, crz));
-      r = ['R'].concat(pa.slice(-2));
-    } else if (pa0 == 'O') {
-      res.pop();
-      dots = ellipsePath(x, y, pa[1], pa[2]);
-      dots.push(dots[0]);
-      res = res.concat(dots);
-    } else if (pa0 == 'U') {
-      res.pop();
-      res = res.concat(ellipsePath(x, y, pa[1], pa[2], pa[3]));
-      r = ['U'].concat(res[res.length - 1].slice(-2));
-    } else {
-
-      for (var k = 0, kk = pa.length; k < kk; k++) {
-        r[k] = pa[k];
-      }
-    }
-    pa0 = pa0.toUpperCase();
-
-    if (pa0 != 'O') {
-      switch (r[0]) {
-      case 'Z':
-        x = +mx;
-        y = +my;
-        break;
-      case 'H':
-        x = r[1];
-        break;
-      case 'V':
-        y = r[1];
-        break;
-      case 'M':
-        mx = r[r.length - 2];
-        my = r[r.length - 1];
-      default:
-        x = r[r.length - 2];
-        y = r[r.length - 1];
-      }
-    }
-  }
-
-  res.toString = toString;
-  pth.abs = pathClone(res);
-
-  return res;
-}
-
-function l2c(x1, y1, x2, y2) {
-  return [x1, y1, x2, y2, x2, y2];
-}
-
-function q2c(x1, y1, ax, ay, x2, y2) {
-  var _13 = 1 / 3,
-      _23 = 2 / 3;
-
-  return [
-    _13 * x1 + _23 * ax,
-    _13 * y1 + _23 * ay,
-    _13 * x2 + _23 * ax,
-    _13 * y2 + _23 * ay,
-    x2,
-    y2
-  ];
-}
-
-function a2c(x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x2, y2, recursive) {
-
-  // for more information of where this math came from visit:
-  // http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
-  var _120 = PI * 120 / 180,
-      rad = PI / 180 * (+angle || 0),
-      res = [],
-      xy,
-      rotate = cacher(function(x, y, rad) {
-        var X = x * math.cos(rad) - y * math.sin(rad),
-            Y = x * math.sin(rad) + y * math.cos(rad);
-
-        return { x: X, y: Y };
-      });
-
-  if (!recursive) {
-    xy = rotate(x1, y1, -rad);
-    x1 = xy.x;
-    y1 = xy.y;
-    xy = rotate(x2, y2, -rad);
-    x2 = xy.x;
-    y2 = xy.y;
-
-    var x = (x1 - x2) / 2,
-        y = (y1 - y2) / 2;
-
-    var h = (x * x) / (rx * rx) + (y * y) / (ry * ry);
-
-    if (h > 1) {
-      h = math.sqrt(h);
-      rx = h * rx;
-      ry = h * ry;
-    }
-
-    var rx2 = rx * rx,
-        ry2 = ry * ry,
-        k = (large_arc_flag == sweep_flag ? -1 : 1) *
-            math.sqrt(abs((rx2 * ry2 - rx2 * y * y - ry2 * x * x) / (rx2 * y * y + ry2 * x * x))),
-        cx = k * rx * y / ry + (x1 + x2) / 2,
-        cy = k * -ry * x / rx + (y1 + y2) / 2,
-        f1 = math.asin(((y1 - cy) / ry).toFixed(9)),
-        f2 = math.asin(((y2 - cy) / ry).toFixed(9));
-
-    f1 = x1 < cx ? PI - f1 : f1;
-    f2 = x2 < cx ? PI - f2 : f2;
-    f1 < 0 && (f1 = PI * 2 + f1);
-    f2 < 0 && (f2 = PI * 2 + f2);
-
-    if (sweep_flag && f1 > f2) {
-      f1 = f1 - PI * 2;
-    }
-    if (!sweep_flag && f2 > f1) {
-      f2 = f2 - PI * 2;
-    }
-  } else {
-    f1 = recursive[0];
-    f2 = recursive[1];
-    cx = recursive[2];
-    cy = recursive[3];
-  }
-
-  var df = f2 - f1;
-
-  if (abs(df) > _120) {
-    var f2old = f2,
-        x2old = x2,
-        y2old = y2;
-
-    f2 = f1 + _120 * (sweep_flag && f2 > f1 ? 1 : -1);
-    x2 = cx + rx * math.cos(f2);
-    y2 = cy + ry * math.sin(f2);
-    res = a2c(x2, y2, rx, ry, angle, 0, sweep_flag, x2old, y2old, [f2, f2old, cx, cy]);
-  }
-
-  df = f2 - f1;
-
-  var c1 = math.cos(f1),
-      s1 = math.sin(f1),
-      c2 = math.cos(f2),
-      s2 = math.sin(f2),
-      t = math.tan(df / 4),
-      hx = 4 / 3 * rx * t,
-      hy = 4 / 3 * ry * t,
-      m1 = [x1, y1],
-      m2 = [x1 + hx * s1, y1 - hy * c1],
-      m3 = [x2 + hx * s2, y2 - hy * c2],
-      m4 = [x2, y2];
-
-  m2[0] = 2 * m1[0] - m2[0];
-  m2[1] = 2 * m1[1] - m2[1];
-
-  if (recursive) {
-    return [m2, m3, m4].concat(res);
-  } else {
-    res = [m2, m3, m4].concat(res).join().split(',');
-    var newres = [];
-
-    for (var i = 0, ii = res.length; i < ii; i++) {
-      newres[i] = i % 2 ? rotate(res[i - 1], res[i], rad).y : rotate(res[i], res[i + 1], rad).x;
-    }
-
-    return newres;
-  }
-}
-
-// Returns bounding box of cubic bezier curve.
-// Source: http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
-// Original version: NISHIO Hirokazu
-// Modifications: https://github.com/timo22345
-function curveDim(x0, y0, x1, y1, x2, y2, x3, y3) {
-  var tvalues = [],
-      bounds = [[], []],
-      a, b, c, t, t1, t2, b2ac, sqrtb2ac;
-
-  for (var i = 0; i < 2; ++i) {
-
-    if (i == 0) {
-      b = 6 * x0 - 12 * x1 + 6 * x2;
-      a = -3 * x0 + 9 * x1 - 9 * x2 + 3 * x3;
-      c = 3 * x1 - 3 * x0;
-    } else {
-      b = 6 * y0 - 12 * y1 + 6 * y2;
-      a = -3 * y0 + 9 * y1 - 9 * y2 + 3 * y3;
-      c = 3 * y1 - 3 * y0;
-    }
-
-    if (abs(a) < 1e-12) {
-
-      if (abs(b) < 1e-12) {
-        continue;
-      }
-
-      t = -c / b;
-
-      if (0 < t && t < 1) {
-        tvalues.push(t);
-      }
-
-      continue;
-    }
-
-    b2ac = b * b - 4 * c * a;
-    sqrtb2ac = math.sqrt(b2ac);
-
-    if (b2ac < 0) {
-      continue;
-    }
-
-    t1 = (-b + sqrtb2ac) / (2 * a);
-
-    if (0 < t1 && t1 < 1) {
-      tvalues.push(t1);
-    }
-
-    t2 = (-b - sqrtb2ac) / (2 * a);
-
-    if (0 < t2 && t2 < 1) {
-      tvalues.push(t2);
-    }
-  }
-
-  var j = tvalues.length,
-      jlen = j,
-      mt;
-
-  while (j--) {
-    t = tvalues[j];
-    mt = 1 - t;
-    bounds[0][j] = (mt * mt * mt * x0) + (3 * mt * mt * t * x1) + (3 * mt * t * t * x2) + (t * t * t * x3);
-    bounds[1][j] = (mt * mt * mt * y0) + (3 * mt * mt * t * y1) + (3 * mt * t * t * y2) + (t * t * t * y3);
-  }
-
-  bounds[0][jlen] = x0;
-  bounds[1][jlen] = y0;
-  bounds[0][jlen + 1] = x3;
-  bounds[1][jlen + 1] = y3;
-  bounds[0].length = bounds[1].length = jlen + 2;
-
-  return {
-    min: { x: mmin.apply(0, bounds[0]), y: mmin.apply(0, bounds[1]) },
-    max: { x: mmax.apply(0, bounds[0]), y: mmax.apply(0, bounds[1]) }
-  };
-}
-
-function path2curve(path, path2) {
-  var pth = !path2 && paths(path);
-
-  if (!path2 && pth.curve) {
-    return pathClone(pth.curve);
-  }
-
-  var p = pathToAbsolute(path),
-      p2 = path2 && pathToAbsolute(path2),
-      attrs = { x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null },
-      attrs2 = { x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null },
-      processPath = function(path, d, pcom) {
-        var nx, ny;
-
-        if (!path) {
-          return ['C', d.x, d.y, d.x, d.y, d.x, d.y];
-        }
-
-        !(path[0] in { T: 1, Q: 1 }) && (d.qx = d.qy = null);
-
-        switch (path[0]) {
-        case 'M':
-          d.X = path[1];
-          d.Y = path[2];
-          break;
-        case 'A':
-          path = ['C'].concat(a2c.apply(0, [d.x, d.y].concat(path.slice(1))));
-          break;
-        case 'S':
-          if (pcom == 'C' || pcom == 'S') { // In 'S' case we have to take into account, if the previous command is C/S.
-            nx = d.x * 2 - d.bx;          // And reflect the previous
-            ny = d.y * 2 - d.by;          // command's control point relative to the current point.
-          }
-          else {                            // or some else or nothing
-            nx = d.x;
-            ny = d.y;
-          }
-          path = ['C', nx, ny].concat(path.slice(1));
-          break;
-        case 'T':
-          if (pcom == 'Q' || pcom == 'T') { // In 'T' case we have to take into account, if the previous command is Q/T.
-            d.qx = d.x * 2 - d.qx;        // And make a reflection similar
-            d.qy = d.y * 2 - d.qy;        // to case 'S'.
-          }
-          else {                            // or something else or nothing
-            d.qx = d.x;
-            d.qy = d.y;
-          }
-          path = ['C'].concat(q2c(d.x, d.y, d.qx, d.qy, path[1], path[2]));
-          break;
-        case 'Q':
-          d.qx = path[1];
-          d.qy = path[2];
-          path = ['C'].concat(q2c(d.x, d.y, path[1], path[2], path[3], path[4]));
-          break;
-        case 'L':
-          path = ['C'].concat(l2c(d.x, d.y, path[1], path[2]));
-          break;
-        case 'H':
-          path = ['C'].concat(l2c(d.x, d.y, path[1], d.y));
-          break;
-        case 'V':
-          path = ['C'].concat(l2c(d.x, d.y, d.x, path[1]));
-          break;
-        case 'Z':
-          path = ['C'].concat(l2c(d.x, d.y, d.X, d.Y));
-          break;
-        }
-
-        return path;
-      },
-
-      fixArc = function(pp, i) {
-
-        if (pp[i].length > 7) {
-          pp[i].shift();
-          var pi = pp[i];
-
-          while (pi.length) {
-            pcoms1[i] = 'A'; // if created multiple C:s, their original seg is saved
-            p2 && (pcoms2[i] = 'A'); // the same as above
-            pp.splice(i++, 0, ['C'].concat(pi.splice(0, 6)));
-          }
-
-          pp.splice(i, 1);
-          ii = mmax(p.length, p2 && p2.length || 0);
-        }
-      },
-
-      fixM = function(path1, path2, a1, a2, i) {
-
-        if (path1 && path2 && path1[i][0] == 'M' && path2[i][0] != 'M') {
-          path2.splice(i, 0, ['M', a2.x, a2.y]);
-          a1.bx = 0;
-          a1.by = 0;
-          a1.x = path1[i][1];
-          a1.y = path1[i][2];
-          ii = mmax(p.length, p2 && p2.length || 0);
-        }
-      },
-
-      pcoms1 = [], // path commands of original path p
-      pcoms2 = [], // path commands of original path p2
-      pfirst = '', // temporary holder for original path command
-      pcom = ''; // holder for previous path command of original path
-
-  for (var i = 0, ii = mmax(p.length, p2 && p2.length || 0); i < ii; i++) {
-    p[i] && (pfirst = p[i][0]); // save current path command
-
-    if (pfirst != 'C') // C is not saved yet, because it may be result of conversion
-    {
-      pcoms1[i] = pfirst; // Save current path command
-      i && ( pcom = pcoms1[i - 1]); // Get previous path command pcom
-    }
-    p[i] = processPath(p[i], attrs, pcom); // Previous path command is inputted to processPath
-
-    if (pcoms1[i] != 'A' && pfirst == 'C') pcoms1[i] = 'C'; // A is the only command
-    // which may produce multiple C:s
-    // so we have to make sure that C is also C in original path
-
-    fixArc(p, i); // fixArc adds also the right amount of A:s to pcoms1
-
-    if (p2) { // the same procedures is done to p2
-      p2[i] && (pfirst = p2[i][0]);
-
-      if (pfirst != 'C') {
-        pcoms2[i] = pfirst;
-        i && (pcom = pcoms2[i - 1]);
-      }
-
-      p2[i] = processPath(p2[i], attrs2, pcom);
-
-      if (pcoms2[i] != 'A' && pfirst == 'C') {
-        pcoms2[i] = 'C';
-      }
-
-      fixArc(p2, i);
-    }
-
-    fixM(p, p2, attrs, attrs2, i);
-    fixM(p2, p, attrs2, attrs, i);
-
-    var seg = p[i],
-        seg2 = p2 && p2[i],
-        seglen = seg.length,
-        seg2len = p2 && seg2.length;
-
-    attrs.x = seg[seglen - 2];
-    attrs.y = seg[seglen - 1];
-    attrs.bx = toFloat(seg[seglen - 4]) || attrs.x;
-    attrs.by = toFloat(seg[seglen - 3]) || attrs.y;
-    attrs2.bx = p2 && (toFloat(seg2[seg2len - 4]) || attrs2.x);
-    attrs2.by = p2 && (toFloat(seg2[seg2len - 3]) || attrs2.y);
-    attrs2.x = p2 && seg2[seg2len - 2];
-    attrs2.y = p2 && seg2[seg2len - 1];
-  }
-
-  if (!p2) {
-    pth.curve = pathClone(p);
-  }
-
-  return p2 ? [p, p2] : p;
-}
-
-function mapPath(path, matrix) {
-
-  if (!matrix) {
-    return path;
-  }
-
-  var x, y, i, j, ii, jj, pathi;
-  path = path2curve(path);
-
-  for (i = 0, ii = path.length; i < ii; i++) {
-    pathi = path[i];
-
-    for (j = 1, jj = pathi.length; j < jj; j += 2) {
-      x = matrix.x(pathi[j], pathi[j + 1]);
-      y = matrix.y(pathi[j], pathi[j + 1]);
-      pathi[j] = x;
-      pathi[j + 1] = y;
-    }
-  }
-
-  return path;
-}
-
-// http://schepers.cc/getting-to-the-point
-function catmullRom2bezier(crp, z) {
-  var d = [];
-
-  for (var i = 0, iLen = crp.length; iLen - 2 * !z > i; i += 2) {
-    var p = [
-      { x: +crp[i - 2], y: +crp[i - 1] },
-      { x: +crp[i],     y: +crp[i + 1] },
-      { x: +crp[i + 2], y: +crp[i + 3] },
-      { x: +crp[i + 4], y: +crp[i + 5] }
-    ];
-
-    if (z) {
-
-      if (!i) {
-        p[0] = { x: +crp[iLen - 2], y: +crp[iLen - 1] };
-      } else if (iLen - 4 == i) {
-        p[3] = { x: +crp[0], y: +crp[1] };
-      } else if (iLen - 2 == i) {
-        p[2] = { x: +crp[0], y: +crp[1] };
-        p[3] = { x: +crp[2], y: +crp[3] };
-      }
-
-    } else {
-
-      if (iLen - 4 == i) {
-        p[3] = p[2];
-      } else if (!i) {
-        p[0] = { x: +crp[i], y: +crp[i + 1] };
-      }
-
-    }
-
-    d.push(['C',
-      (-p[0].x + 6 * p[1].x + p[2].x) / 6,
-      (-p[0].y + 6 * p[1].y + p[2].y) / 6,
-      (p[1].x + 6 * p[2].x - p[3].x) / 6,
-      (p[1].y + 6*p[2].y - p[3].y) / 6,
-      p[2].x,
-      p[2].y
-    ]);
-  }
-
-  return d;
-}
-
-paths.getTotalLength = getTotalLength;
-paths.getPointAtLength = getPointAtLength;
-paths.findDotsAtSegment = findDotsAtSegment;
-paths.bezierBBox = bezierBBox;
-paths.isPointInsideBBox = isPointInsideBBox;
-paths.isBBoxIntersect = isBBoxIntersect;
-paths.intersection = pathIntersection;
-paths.intersectionNumber = pathIntersectionNumber;
-paths.isPointInside = isPointInsidePath;
-paths.getBBox = pathBBox;
-paths.toRelative = pathToRelative;
-paths.toAbsolute = pathToAbsolute;
-paths.toCubic = path2curve;
-paths.map = mapPath;
-paths.toString = toString;
-paths.clone = pathClone;
-
-module.exports.intersection = pathIntersection;
-
-},{}],272:[function(_dereq_,module,exports){
-'use strict';
-
-var pointDistance = _dereq_(268).pointDistance;
-
-var intersection = _dereq_(271).intersection;
+var intersectPaths = _dereq_(473);
 
 var round = Math.round,
     max = Math.max;
@@ -40818,7 +40442,7 @@ function getBendpointIntersection(waypoints, reference) {
 
 function getPathIntersection(waypoints, reference) {
 
-  var intersections = intersection(circlePath(reference, INTERSECTION_THRESHOLD), linePath(waypoints));
+  var intersections = intersectPaths(circlePath(reference, INTERSECTION_THRESHOLD), linePath(waypoints));
 
   var a = intersections[0],
       b = intersections[intersections.length - 1],
@@ -40874,7 +40498,7 @@ module.exports.getApproxIntersection = function(waypoints, reference) {
   return getBendpointIntersection(waypoints, reference) || getPathIntersection(waypoints, reference);
 };
 
-},{"268":268,"271":271}],273:[function(_dereq_,module,exports){
+},{"271":271,"473":473}],275:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -40897,12 +40521,12 @@ function substract(p1, p2) {
 
 module.exports.substract = substract;
 
-},{}],274:[function(_dereq_,module,exports){
+},{}],276:[function(_dereq_,module,exports){
 'use strict';
 
-var getOriginalEvent = _dereq_(267).getOriginal;
+var getOriginalEvent = _dereq_(270).getOriginal;
 
-var isMac = _dereq_(275).isMac;
+var isMac = _dereq_(277).isMac;
 
 
 function isPrimaryButton(event) {
@@ -40936,13 +40560,13 @@ module.exports.hasSecondaryModifier = function(event) {
   return isPrimaryButton(event) && originalEvent.shiftKey;
 };
 
-},{"267":267,"275":275}],275:[function(_dereq_,module,exports){
+},{"270":270,"277":277}],277:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports.isMac = function isMac() {
   return (/mac/i).test(navigator.platform);
 };
-},{}],276:[function(_dereq_,module,exports){
+},{}],278:[function(_dereq_,module,exports){
 'use strict';
 
 function center(bounds) {
@@ -40964,7 +40588,7 @@ function delta(a, b) {
 
 module.exports.delta = delta;
 
-},{}],277:[function(_dereq_,module,exports){
+},{}],279:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -41003,11 +40627,11 @@ module.exports.saveClear = function(collection, removeFn) {
   return collection;
 };
 
-},{}],278:[function(_dereq_,module,exports){
+},{}],280:[function(_dereq_,module,exports){
 'use strict';
 
-var svgAttr = _dereq_(474),
-    svgCreate = _dereq_(478);
+var svgAttr = _dereq_(479),
+    svgCreate = _dereq_(483);
 
 
 module.exports.componentsToPath = function(elements) {
@@ -41044,12 +40668,12 @@ module.exports.updateLine = function(gfx, points) {
   return gfx;
 };
 
-},{"474":474,"478":478}],279:[function(_dereq_,module,exports){
+},{"479":479,"483":483}],281:[function(_dereq_,module,exports){
 'use strict';
 
-var svgTransform = _dereq_(482);
+var svgTransform = _dereq_(487);
 
-var createTransform = _dereq_(479).createTransform;
+var createTransform = _dereq_(484).createTransform;
 
 
 /**
@@ -41109,20 +40733,20 @@ module.exports.scale = function(gfx, amount) {
   svgTransform(gfx, scale);
 };
 
-},{"479":479,"482":482}],280:[function(_dereq_,module,exports){
+},{"484":484,"487":487}],282:[function(_dereq_,module,exports){
 'use strict';
 
-var isObject = _dereq_(426),
-    assign = _dereq_(431),
-    pick = _dereq_(438),
-    forEach = _dereq_(303),
-    reduce = _dereq_(306),
-    merge = _dereq_(435);
+var isObject = _dereq_(429),
+    assign = _dereq_(434),
+    pick = _dereq_(441),
+    forEach = _dereq_(306),
+    reduce = _dereq_(309),
+    merge = _dereq_(438);
 
-var svgAppend = _dereq_(472),
-    svgAttr = _dereq_(474),
-    svgCreate = _dereq_(478),
-    svgRemove = _dereq_(481);
+var svgAppend = _dereq_(477),
+    svgAttr = _dereq_(479),
+    svgCreate = _dereq_(483),
+    svgRemove = _dereq_(486);
 
 var DEFAULT_BOX_PADDING = 0;
 
@@ -41443,7 +41067,7 @@ Text.prototype.layoutText = function(text, options) {
 
 module.exports = Text;
 
-},{"303":303,"306":306,"426":426,"431":431,"435":435,"438":438,"472":472,"474":474,"478":478,"481":481}],281:[function(_dereq_,module,exports){
+},{"306":306,"309":309,"429":429,"434":434,"438":438,"441":441,"477":477,"479":479,"483":483,"486":486}],283:[function(_dereq_,module,exports){
 
 var isArray = function(obj) {
   return Object.prototype.toString.call(obj) === '[object Array]';
@@ -41493,18 +41117,18 @@ exports.annotate = annotate;
 exports.parse = parse;
 exports.isArray = isArray;
 
-},{}],282:[function(_dereq_,module,exports){
+},{}],284:[function(_dereq_,module,exports){
 module.exports = {
-  annotate: _dereq_(281).annotate,
-  Module: _dereq_(284),
-  Injector: _dereq_(283)
+  annotate: _dereq_(283).annotate,
+  Module: _dereq_(286),
+  Injector: _dereq_(285)
 };
 
-},{"281":281,"283":283,"284":284}],283:[function(_dereq_,module,exports){
-var Module = _dereq_(284);
-var autoAnnotate = _dereq_(281).parse;
-var annotate = _dereq_(281).annotate;
-var isArray = _dereq_(281).isArray;
+},{"283":283,"285":285,"286":286}],285:[function(_dereq_,module,exports){
+var Module = _dereq_(286);
+var autoAnnotate = _dereq_(283).parse;
+var annotate = _dereq_(283).annotate;
+var isArray = _dereq_(283).isArray;
 
 
 var Injector = function(modules, parent) {
@@ -41730,7 +41354,7 @@ var Injector = function(modules, parent) {
 
 module.exports = Injector;
 
-},{"281":281,"284":284}],284:[function(_dereq_,module,exports){
+},{"283":283,"286":286}],286:[function(_dereq_,module,exports){
 var Module = function() {
   var providers = [];
 
@@ -41756,7 +41380,7 @@ var Module = function() {
 
 module.exports = Module;
 
-},{}],285:[function(_dereq_,module,exports){
+},{}],287:[function(_dereq_,module,exports){
 
 /**
  * Expose `parse`.
@@ -41870,7 +41494,7 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],286:[function(_dereq_,module,exports){
+},{}],288:[function(_dereq_,module,exports){
 /*! Hammer.JS - v2.0.7 - 2016-04-22
  * http://hammerjs.github.io/
  *
@@ -44515,7 +44139,7 @@ if (typeof define === 'function' && define.amd) {
 
 })(window, document, 'Hammer');
 
-},{}],287:[function(_dereq_,module,exports){
+},{}],289:[function(_dereq_,module,exports){
 var hat = module.exports = function (bits, base) {
     if (!base) base = 16;
     if (bits === undefined) bits = 128;
@@ -44579,10 +44203,10 @@ hat.rack = function (bits, base, expandBy) {
     return fn;
 };
 
-},{}],288:[function(_dereq_,module,exports){
+},{}],290:[function(_dereq_,module,exports){
 'use strict';
 
-var hat = _dereq_(287);
+var hat = _dereq_(289);
 
 
 /**
@@ -44678,7 +44302,18 @@ Ids.prototype.clear = function() {
     this.unclaim(id);
   }
 };
-},{"287":287}],289:[function(_dereq_,module,exports){
+},{"289":289}],291:[function(_dereq_,module,exports){
+
+var indexOf = [].indexOf;
+
+module.exports = function(arr, obj){
+  if (indexOf) return arr.indexOf(obj);
+  for (var i = 0; i < arr.length; ++i) {
+    if (arr[i] === obj) return i;
+  }
+  return -1;
+};
+},{}],292:[function(_dereq_,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -44703,8 +44338,8 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],290:[function(_dereq_,module,exports){
-var createFindIndex = _dereq_(381);
+},{}],293:[function(_dereq_,module,exports){
+var createFindIndex = _dereq_(384);
 
 /**
  * This method is like `_.find` except that it returns the index of the first
@@ -44758,9 +44393,9 @@ var findIndex = createFindIndex();
 
 module.exports = findIndex;
 
-},{"381":381}],291:[function(_dereq_,module,exports){
-var baseFlatten = _dereq_(341),
-    isIterateeCall = _dereq_(401);
+},{"384":384}],294:[function(_dereq_,module,exports){
+var baseFlatten = _dereq_(344),
+    isIterateeCall = _dereq_(404);
 
 /**
  * Flattens a nested array. If `isDeep` is `true` the array is recursively
@@ -44792,12 +44427,12 @@ function flatten(array, isDeep, guard) {
 
 module.exports = flatten;
 
-},{"341":341,"401":401}],292:[function(_dereq_,module,exports){
-var baseIndexOf = _dereq_(346),
-    cacheIndexOf = _dereq_(368),
-    createCache = _dereq_(378),
-    isArrayLike = _dereq_(399),
-    restParam = _dereq_(315);
+},{"344":344,"404":404}],295:[function(_dereq_,module,exports){
+var baseIndexOf = _dereq_(349),
+    cacheIndexOf = _dereq_(371),
+    createCache = _dereq_(381),
+    isArrayLike = _dereq_(402),
+    restParam = _dereq_(318);
 
 /**
  * Creates an array of unique values that are included in all of the provided
@@ -44852,7 +44487,7 @@ var intersection = restParam(function(arrays) {
 
 module.exports = intersection;
 
-},{"315":315,"346":346,"368":368,"378":378,"399":399}],293:[function(_dereq_,module,exports){
+},{"318":318,"349":349,"371":371,"381":381,"402":402}],296:[function(_dereq_,module,exports){
 /**
  * Gets the last element of `array`.
  *
@@ -44873,10 +44508,10 @@ function last(array) {
 
 module.exports = last;
 
-},{}],294:[function(_dereq_,module,exports){
-var baseFlatten = _dereq_(341),
-    baseUniq = _dereq_(364),
-    restParam = _dereq_(315);
+},{}],297:[function(_dereq_,module,exports){
+var baseFlatten = _dereq_(344),
+    baseUniq = _dereq_(367),
+    restParam = _dereq_(318);
 
 /**
  * Creates an array of unique values, in order, from all of the provided arrays
@@ -44899,11 +44534,11 @@ var union = restParam(function(arrays) {
 
 module.exports = union;
 
-},{"315":315,"341":341,"364":364}],295:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(329),
-    baseUniq = _dereq_(364),
-    isIterateeCall = _dereq_(401),
-    sortedUniq = _dereq_(416);
+},{"318":318,"344":344,"367":367}],298:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(332),
+    baseUniq = _dereq_(367),
+    isIterateeCall = _dereq_(404),
+    sortedUniq = _dereq_(419);
 
 /**
  * Creates a duplicate-free version of an array, using
@@ -44972,13 +44607,13 @@ function uniq(array, isSorted, iteratee, thisArg) {
 
 module.exports = uniq;
 
-},{"329":329,"364":364,"401":401,"416":416}],296:[function(_dereq_,module,exports){
-module.exports = _dereq_(295);
+},{"332":332,"367":367,"404":404,"419":419}],299:[function(_dereq_,module,exports){
+module.exports = _dereq_(298);
 
-},{"295":295}],297:[function(_dereq_,module,exports){
-var baseDifference = _dereq_(335),
-    isArrayLike = _dereq_(399),
-    restParam = _dereq_(315);
+},{"298":298}],300:[function(_dereq_,module,exports){
+var baseDifference = _dereq_(338),
+    isArrayLike = _dereq_(402),
+    restParam = _dereq_(318);
 
 /**
  * Creates an array excluding all provided values using
@@ -45004,13 +44639,13 @@ var without = restParam(function(array, values) {
 
 module.exports = without;
 
-},{"315":315,"335":335,"399":399}],298:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(316),
-    LodashWrapper = _dereq_(317),
-    baseLodash = _dereq_(350),
-    isArray = _dereq_(422),
-    isObjectLike = _dereq_(405),
-    wrapperClone = _dereq_(419);
+},{"318":318,"338":338,"402":402}],301:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(319),
+    LodashWrapper = _dereq_(320),
+    baseLodash = _dereq_(353),
+    isArray = _dereq_(425),
+    isObjectLike = _dereq_(408),
+    wrapperClone = _dereq_(422);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -45131,15 +44766,15 @@ lodash.prototype = baseLodash.prototype;
 
 module.exports = lodash;
 
-},{"316":316,"317":317,"350":350,"405":405,"419":419,"422":422}],299:[function(_dereq_,module,exports){
-module.exports = _dereq_(309);
+},{"319":319,"320":320,"353":353,"408":408,"422":422,"425":425}],302:[function(_dereq_,module,exports){
+module.exports = _dereq_(312);
 
-},{"309":309}],300:[function(_dereq_,module,exports){
-var arrayEvery = _dereq_(321),
-    baseCallback = _dereq_(329),
-    baseEvery = _dereq_(337),
-    isArray = _dereq_(422),
-    isIterateeCall = _dereq_(401);
+},{"312":312}],303:[function(_dereq_,module,exports){
+var arrayEvery = _dereq_(324),
+    baseCallback = _dereq_(332),
+    baseEvery = _dereq_(340),
+    isArray = _dereq_(425),
+    isIterateeCall = _dereq_(404);
 
 /**
  * Checks if `predicate` returns truthy for **all** elements of `collection`.
@@ -45202,11 +44837,11 @@ function every(collection, predicate, thisArg) {
 
 module.exports = every;
 
-},{"321":321,"329":329,"337":337,"401":401,"422":422}],301:[function(_dereq_,module,exports){
-var arrayFilter = _dereq_(322),
-    baseCallback = _dereq_(329),
-    baseFilter = _dereq_(338),
-    isArray = _dereq_(422);
+},{"324":324,"332":332,"340":340,"404":404,"425":425}],304:[function(_dereq_,module,exports){
+var arrayFilter = _dereq_(325),
+    baseCallback = _dereq_(332),
+    baseFilter = _dereq_(341),
+    isArray = _dereq_(425);
 
 /**
  * Iterates over elements of `collection`, returning an array of all elements
@@ -45265,9 +44900,9 @@ function filter(collection, predicate, thisArg) {
 
 module.exports = filter;
 
-},{"322":322,"329":329,"338":338,"422":422}],302:[function(_dereq_,module,exports){
-var baseEach = _dereq_(336),
-    createFind = _dereq_(380);
+},{"325":325,"332":332,"341":341,"425":425}],305:[function(_dereq_,module,exports){
+var baseEach = _dereq_(339),
+    createFind = _dereq_(383);
 
 /**
  * Iterates over elements of `collection`, returning the first element
@@ -45323,10 +44958,10 @@ var find = createFind(baseEach);
 
 module.exports = find;
 
-},{"336":336,"380":380}],303:[function(_dereq_,module,exports){
-var arrayEach = _dereq_(320),
-    baseEach = _dereq_(336),
-    createForEach = _dereq_(382);
+},{"339":339,"383":383}],306:[function(_dereq_,module,exports){
+var arrayEach = _dereq_(323),
+    baseEach = _dereq_(339),
+    createForEach = _dereq_(385);
 
 /**
  * Iterates over elements of `collection` invoking `iteratee` for each element.
@@ -45362,8 +44997,8 @@ var forEach = createForEach(arrayEach, baseEach);
 
 module.exports = forEach;
 
-},{"320":320,"336":336,"382":382}],304:[function(_dereq_,module,exports){
-var createAggregator = _dereq_(373);
+},{"323":323,"339":339,"385":385}],307:[function(_dereq_,module,exports){
+var createAggregator = _dereq_(376);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -45423,11 +45058,11 @@ var groupBy = createAggregator(function(result, value, key) {
 
 module.exports = groupBy;
 
-},{"373":373}],305:[function(_dereq_,module,exports){
-var arrayMap = _dereq_(323),
-    baseCallback = _dereq_(329),
-    baseMap = _dereq_(351),
-    isArray = _dereq_(422);
+},{"376":376}],308:[function(_dereq_,module,exports){
+var arrayMap = _dereq_(326),
+    baseCallback = _dereq_(332),
+    baseMap = _dereq_(354),
+    isArray = _dereq_(425);
 
 /**
  * Creates an array of values by running each element in `collection` through
@@ -45493,10 +45128,10 @@ function map(collection, iteratee, thisArg) {
 
 module.exports = map;
 
-},{"323":323,"329":329,"351":351,"422":422}],306:[function(_dereq_,module,exports){
-var arrayReduce = _dereq_(325),
-    baseEach = _dereq_(336),
-    createReduce = _dereq_(385);
+},{"326":326,"332":332,"354":354,"425":425}],309:[function(_dereq_,module,exports){
+var arrayReduce = _dereq_(328),
+    baseEach = _dereq_(339),
+    createReduce = _dereq_(388);
 
 /**
  * Reduces `collection` to a value which is the accumulated result of running
@@ -45539,11 +45174,11 @@ var reduce = createReduce(arrayReduce, baseEach);
 
 module.exports = reduce;
 
-},{"325":325,"336":336,"385":385}],307:[function(_dereq_,module,exports){
-var arrayFilter = _dereq_(322),
-    baseCallback = _dereq_(329),
-    baseFilter = _dereq_(338),
-    isArray = _dereq_(422);
+},{"328":328,"339":339,"388":388}],310:[function(_dereq_,module,exports){
+var arrayFilter = _dereq_(325),
+    baseCallback = _dereq_(332),
+    baseFilter = _dereq_(341),
+    isArray = _dereq_(425);
 
 /**
  * The opposite of `_.filter`; this method returns the elements of `collection`
@@ -45591,10 +45226,10 @@ function reject(collection, predicate, thisArg) {
 
 module.exports = reject;
 
-},{"322":322,"329":329,"338":338,"422":422}],308:[function(_dereq_,module,exports){
-var getLength = _dereq_(392),
-    isLength = _dereq_(404),
-    keys = _dereq_(433);
+},{"325":325,"332":332,"341":341,"425":425}],311:[function(_dereq_,module,exports){
+var getLength = _dereq_(395),
+    isLength = _dereq_(407),
+    keys = _dereq_(436);
 
 /**
  * Gets the size of `collection` by returning its length for array-like
@@ -45623,12 +45258,12 @@ function size(collection) {
 
 module.exports = size;
 
-},{"392":392,"404":404,"433":433}],309:[function(_dereq_,module,exports){
-var arraySome = _dereq_(326),
-    baseCallback = _dereq_(329),
-    baseSome = _dereq_(361),
-    isArray = _dereq_(422),
-    isIterateeCall = _dereq_(401);
+},{"395":395,"407":407,"436":436}],312:[function(_dereq_,module,exports){
+var arraySome = _dereq_(329),
+    baseCallback = _dereq_(332),
+    baseSome = _dereq_(364),
+    isArray = _dereq_(425),
+    isIterateeCall = _dereq_(404);
 
 /**
  * Checks if `predicate` returns truthy for **any** element of `collection`.
@@ -45692,12 +45327,12 @@ function some(collection, predicate, thisArg) {
 
 module.exports = some;
 
-},{"326":326,"329":329,"361":361,"401":401,"422":422}],310:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(329),
-    baseMap = _dereq_(351),
-    baseSortBy = _dereq_(362),
-    compareAscending = _dereq_(370),
-    isIterateeCall = _dereq_(401);
+},{"329":329,"332":332,"364":364,"404":404,"425":425}],313:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(332),
+    baseMap = _dereq_(354),
+    baseSortBy = _dereq_(365),
+    compareAscending = _dereq_(373),
+    isIterateeCall = _dereq_(404);
 
 /**
  * Creates an array of elements, sorted in ascending order by the results of
@@ -45765,8 +45400,8 @@ function sortBy(collection, iteratee, thisArg) {
 
 module.exports = sortBy;
 
-},{"329":329,"351":351,"362":362,"370":370,"401":401}],311:[function(_dereq_,module,exports){
-var getNative = _dereq_(394);
+},{"332":332,"354":354,"365":365,"373":373,"404":404}],314:[function(_dereq_,module,exports){
+var getNative = _dereq_(397);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeNow = getNative(Date, 'now');
@@ -45791,10 +45426,10 @@ var now = nativeNow || function() {
 
 module.exports = now;
 
-},{"394":394}],312:[function(_dereq_,module,exports){
-var createWrapper = _dereq_(386),
-    replaceHolders = _dereq_(413),
-    restParam = _dereq_(315);
+},{"397":397}],315:[function(_dereq_,module,exports){
+var createWrapper = _dereq_(389),
+    replaceHolders = _dereq_(416),
+    restParam = _dereq_(318);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -45849,9 +45484,9 @@ bind.placeholder = {};
 
 module.exports = bind;
 
-},{"315":315,"386":386,"413":413}],313:[function(_dereq_,module,exports){
-var isObject = _dereq_(426),
-    now = _dereq_(311);
+},{"318":318,"389":389,"416":416}],316:[function(_dereq_,module,exports){
+var isObject = _dereq_(429),
+    now = _dereq_(314);
 
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
@@ -46032,9 +45667,9 @@ function debounce(func, wait, options) {
 
 module.exports = debounce;
 
-},{"311":311,"426":426}],314:[function(_dereq_,module,exports){
-var baseDelay = _dereq_(334),
-    restParam = _dereq_(315);
+},{"314":314,"429":429}],317:[function(_dereq_,module,exports){
+var baseDelay = _dereq_(337),
+    restParam = _dereq_(318);
 
 /**
  * Defers invoking the `func` until the current call stack has cleared. Any
@@ -46059,7 +45694,7 @@ var defer = restParam(function(func, args) {
 
 module.exports = defer;
 
-},{"315":315,"334":334}],315:[function(_dereq_,module,exports){
+},{"318":318,"337":337}],318:[function(_dereq_,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -46119,9 +45754,9 @@ function restParam(func, start) {
 
 module.exports = restParam;
 
-},{}],316:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(333),
-    baseLodash = _dereq_(350);
+},{}],319:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(336),
+    baseLodash = _dereq_(353);
 
 /** Used as references for `-Infinity` and `Infinity`. */
 var POSITIVE_INFINITY = Number.POSITIVE_INFINITY;
@@ -46147,9 +45782,9 @@ LazyWrapper.prototype.constructor = LazyWrapper;
 
 module.exports = LazyWrapper;
 
-},{"333":333,"350":350}],317:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(333),
-    baseLodash = _dereq_(350);
+},{"336":336,"353":353}],320:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(336),
+    baseLodash = _dereq_(353);
 
 /**
  * The base constructor for creating `lodash` wrapper objects.
@@ -46170,10 +45805,10 @@ LodashWrapper.prototype.constructor = LodashWrapper;
 
 module.exports = LodashWrapper;
 
-},{"333":333,"350":350}],318:[function(_dereq_,module,exports){
+},{"336":336,"353":353}],321:[function(_dereq_,module,exports){
 (function (global){
-var cachePush = _dereq_(369),
-    getNative = _dereq_(394);
+var cachePush = _dereq_(372),
+    getNative = _dereq_(397);
 
 /** Native method references. */
 var Set = getNative(global, 'Set');
@@ -46204,7 +45839,7 @@ module.exports = SetCache;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"369":369,"394":394}],319:[function(_dereq_,module,exports){
+},{"372":372,"397":397}],322:[function(_dereq_,module,exports){
 /**
  * Copies the values of `source` to `array`.
  *
@@ -46226,7 +45861,7 @@ function arrayCopy(source, array) {
 
 module.exports = arrayCopy;
 
-},{}],320:[function(_dereq_,module,exports){
+},{}],323:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.forEach` for arrays without support for callback
  * shorthands and `this` binding.
@@ -46250,7 +45885,7 @@ function arrayEach(array, iteratee) {
 
 module.exports = arrayEach;
 
-},{}],321:[function(_dereq_,module,exports){
+},{}],324:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.every` for arrays without support for callback
  * shorthands and `this` binding.
@@ -46275,7 +45910,7 @@ function arrayEvery(array, predicate) {
 
 module.exports = arrayEvery;
 
-},{}],322:[function(_dereq_,module,exports){
+},{}],325:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.filter` for arrays without support for callback
  * shorthands and `this` binding.
@@ -46302,7 +45937,7 @@ function arrayFilter(array, predicate) {
 
 module.exports = arrayFilter;
 
-},{}],323:[function(_dereq_,module,exports){
+},{}],326:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.map` for arrays without support for callback
  * shorthands and `this` binding.
@@ -46325,7 +45960,7 @@ function arrayMap(array, iteratee) {
 
 module.exports = arrayMap;
 
-},{}],324:[function(_dereq_,module,exports){
+},{}],327:[function(_dereq_,module,exports){
 /**
  * Appends the elements of `values` to `array`.
  *
@@ -46347,7 +45982,7 @@ function arrayPush(array, values) {
 
 module.exports = arrayPush;
 
-},{}],325:[function(_dereq_,module,exports){
+},{}],328:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.reduce` for arrays without support for callback
  * shorthands and `this` binding.
@@ -46375,7 +46010,7 @@ function arrayReduce(array, iteratee, accumulator, initFromArray) {
 
 module.exports = arrayReduce;
 
-},{}],326:[function(_dereq_,module,exports){
+},{}],329:[function(_dereq_,module,exports){
 /**
  * A specialized version of `_.some` for arrays without support for callback
  * shorthands and `this` binding.
@@ -46400,8 +46035,8 @@ function arraySome(array, predicate) {
 
 module.exports = arraySome;
 
-},{}],327:[function(_dereq_,module,exports){
-var keys = _dereq_(433);
+},{}],330:[function(_dereq_,module,exports){
+var keys = _dereq_(436);
 
 /**
  * A specialized version of `_.assign` for customizing assigned values without
@@ -46434,9 +46069,9 @@ function assignWith(object, source, customizer) {
 
 module.exports = assignWith;
 
-},{"433":433}],328:[function(_dereq_,module,exports){
-var baseCopy = _dereq_(332),
-    keys = _dereq_(433);
+},{"436":436}],331:[function(_dereq_,module,exports){
+var baseCopy = _dereq_(335),
+    keys = _dereq_(436);
 
 /**
  * The base implementation of `_.assign` without support for argument juggling,
@@ -46455,12 +46090,12 @@ function baseAssign(object, source) {
 
 module.exports = baseAssign;
 
-},{"332":332,"433":433}],329:[function(_dereq_,module,exports){
-var baseMatches = _dereq_(352),
-    baseMatchesProperty = _dereq_(353),
-    bindCallback = _dereq_(366),
-    identity = _dereq_(441),
-    property = _dereq_(443);
+},{"335":335,"436":436}],332:[function(_dereq_,module,exports){
+var baseMatches = _dereq_(355),
+    baseMatchesProperty = _dereq_(356),
+    bindCallback = _dereq_(369),
+    identity = _dereq_(444),
+    property = _dereq_(446);
 
 /**
  * The base implementation of `_.callback` which supports specifying the
@@ -46492,16 +46127,16 @@ function baseCallback(func, thisArg, argCount) {
 
 module.exports = baseCallback;
 
-},{"352":352,"353":353,"366":366,"441":441,"443":443}],330:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(319),
-    arrayEach = _dereq_(320),
-    baseAssign = _dereq_(328),
-    baseForOwn = _dereq_(344),
-    initCloneArray = _dereq_(396),
-    initCloneByTag = _dereq_(397),
-    initCloneObject = _dereq_(398),
-    isArray = _dereq_(422),
-    isObject = _dereq_(426);
+},{"355":355,"356":356,"369":369,"444":444,"446":446}],333:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(322),
+    arrayEach = _dereq_(323),
+    baseAssign = _dereq_(331),
+    baseForOwn = _dereq_(347),
+    initCloneArray = _dereq_(399),
+    initCloneByTag = _dereq_(400),
+    initCloneObject = _dereq_(401),
+    isArray = _dereq_(425),
+    isObject = _dereq_(429);
 
 /** `Object#toString` result references. */
 var argsTag = '[object Arguments]',
@@ -46622,7 +46257,7 @@ function baseClone(value, isDeep, customizer, key, object, stackA, stackB) {
 
 module.exports = baseClone;
 
-},{"319":319,"320":320,"328":328,"344":344,"396":396,"397":397,"398":398,"422":422,"426":426}],331:[function(_dereq_,module,exports){
+},{"322":322,"323":323,"331":331,"347":347,"399":399,"400":400,"401":401,"425":425,"429":429}],334:[function(_dereq_,module,exports){
 /**
  * The base implementation of `compareAscending` which compares values and
  * sorts them in ascending order without guaranteeing a stable sort.
@@ -46658,7 +46293,7 @@ function baseCompareAscending(value, other) {
 
 module.exports = baseCompareAscending;
 
-},{}],332:[function(_dereq_,module,exports){
+},{}],335:[function(_dereq_,module,exports){
 /**
  * Copies properties of `source` to `object`.
  *
@@ -46683,8 +46318,8 @@ function baseCopy(source, props, object) {
 
 module.exports = baseCopy;
 
-},{}],333:[function(_dereq_,module,exports){
-var isObject = _dereq_(426);
+},{}],336:[function(_dereq_,module,exports){
+var isObject = _dereq_(429);
 
 /**
  * The base implementation of `_.create` without support for assigning
@@ -46708,7 +46343,7 @@ var baseCreate = (function() {
 
 module.exports = baseCreate;
 
-},{"426":426}],334:[function(_dereq_,module,exports){
+},{"429":429}],337:[function(_dereq_,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -46731,10 +46366,10 @@ function baseDelay(func, wait, args) {
 
 module.exports = baseDelay;
 
-},{}],335:[function(_dereq_,module,exports){
-var baseIndexOf = _dereq_(346),
-    cacheIndexOf = _dereq_(368),
-    createCache = _dereq_(378);
+},{}],338:[function(_dereq_,module,exports){
+var baseIndexOf = _dereq_(349),
+    cacheIndexOf = _dereq_(371),
+    createCache = _dereq_(381);
 
 /** Used as the size to enable large array optimizations. */
 var LARGE_ARRAY_SIZE = 200;
@@ -46788,9 +46423,9 @@ function baseDifference(array, values) {
 
 module.exports = baseDifference;
 
-},{"346":346,"368":368,"378":378}],336:[function(_dereq_,module,exports){
-var baseForOwn = _dereq_(344),
-    createBaseEach = _dereq_(375);
+},{"349":349,"371":371,"381":381}],339:[function(_dereq_,module,exports){
+var baseForOwn = _dereq_(347),
+    createBaseEach = _dereq_(378);
 
 /**
  * The base implementation of `_.forEach` without support for callback
@@ -46805,8 +46440,8 @@ var baseEach = createBaseEach(baseForOwn);
 
 module.exports = baseEach;
 
-},{"344":344,"375":375}],337:[function(_dereq_,module,exports){
-var baseEach = _dereq_(336);
+},{"347":347,"378":378}],340:[function(_dereq_,module,exports){
+var baseEach = _dereq_(339);
 
 /**
  * The base implementation of `_.every` without support for callback
@@ -46829,8 +46464,8 @@ function baseEvery(collection, predicate) {
 
 module.exports = baseEvery;
 
-},{"336":336}],338:[function(_dereq_,module,exports){
-var baseEach = _dereq_(336);
+},{"339":339}],341:[function(_dereq_,module,exports){
+var baseEach = _dereq_(339);
 
 /**
  * The base implementation of `_.filter` without support for callback
@@ -46853,7 +46488,7 @@ function baseFilter(collection, predicate) {
 
 module.exports = baseFilter;
 
-},{"336":336}],339:[function(_dereq_,module,exports){
+},{"339":339}],342:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.find`, `_.findLast`, `_.findKey`, and `_.findLastKey`,
  * without support for callback shorthands and `this` binding, which iterates
@@ -46880,7 +46515,7 @@ function baseFind(collection, predicate, eachFunc, retKey) {
 
 module.exports = baseFind;
 
-},{}],340:[function(_dereq_,module,exports){
+},{}],343:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.findIndex` and `_.findLastIndex` without
  * support for callback shorthands and `this` binding.
@@ -46905,12 +46540,12 @@ function baseFindIndex(array, predicate, fromRight) {
 
 module.exports = baseFindIndex;
 
-},{}],341:[function(_dereq_,module,exports){
-var arrayPush = _dereq_(324),
-    isArguments = _dereq_(421),
-    isArray = _dereq_(422),
-    isArrayLike = _dereq_(399),
-    isObjectLike = _dereq_(405);
+},{}],344:[function(_dereq_,module,exports){
+var arrayPush = _dereq_(327),
+    isArguments = _dereq_(424),
+    isArray = _dereq_(425),
+    isArrayLike = _dereq_(402),
+    isObjectLike = _dereq_(408);
 
 /**
  * The base implementation of `_.flatten` with added support for restricting
@@ -46948,8 +46583,8 @@ function baseFlatten(array, isDeep, isStrict, result) {
 
 module.exports = baseFlatten;
 
-},{"324":324,"399":399,"405":405,"421":421,"422":422}],342:[function(_dereq_,module,exports){
-var createBaseFor = _dereq_(376);
+},{"327":327,"402":402,"408":408,"424":424,"425":425}],345:[function(_dereq_,module,exports){
+var createBaseFor = _dereq_(379);
 
 /**
  * The base implementation of `baseForIn` and `baseForOwn` which iterates
@@ -46967,9 +46602,9 @@ var baseFor = createBaseFor();
 
 module.exports = baseFor;
 
-},{"376":376}],343:[function(_dereq_,module,exports){
-var baseFor = _dereq_(342),
-    keysIn = _dereq_(434);
+},{"379":379}],346:[function(_dereq_,module,exports){
+var baseFor = _dereq_(345),
+    keysIn = _dereq_(437);
 
 /**
  * The base implementation of `_.forIn` without support for callback
@@ -46986,9 +46621,9 @@ function baseForIn(object, iteratee) {
 
 module.exports = baseForIn;
 
-},{"342":342,"434":434}],344:[function(_dereq_,module,exports){
-var baseFor = _dereq_(342),
-    keys = _dereq_(433);
+},{"345":345,"437":437}],347:[function(_dereq_,module,exports){
+var baseFor = _dereq_(345),
+    keys = _dereq_(436);
 
 /**
  * The base implementation of `_.forOwn` without support for callback
@@ -47005,8 +46640,8 @@ function baseForOwn(object, iteratee) {
 
 module.exports = baseForOwn;
 
-},{"342":342,"433":433}],345:[function(_dereq_,module,exports){
-var toObject = _dereq_(417);
+},{"345":345,"436":436}],348:[function(_dereq_,module,exports){
+var toObject = _dereq_(420);
 
 /**
  * The base implementation of `get` without support for string paths
@@ -47036,8 +46671,8 @@ function baseGet(object, path, pathKey) {
 
 module.exports = baseGet;
 
-},{"417":417}],346:[function(_dereq_,module,exports){
-var indexOfNaN = _dereq_(395);
+},{"420":420}],349:[function(_dereq_,module,exports){
+var indexOfNaN = _dereq_(398);
 
 /**
  * The base implementation of `_.indexOf` without support for binary searches.
@@ -47065,10 +46700,10 @@ function baseIndexOf(array, value, fromIndex) {
 
 module.exports = baseIndexOf;
 
-},{"395":395}],347:[function(_dereq_,module,exports){
-var baseIsEqualDeep = _dereq_(348),
-    isObject = _dereq_(426),
-    isObjectLike = _dereq_(405);
+},{"398":398}],350:[function(_dereq_,module,exports){
+var baseIsEqualDeep = _dereq_(351),
+    isObject = _dereq_(429),
+    isObjectLike = _dereq_(408);
 
 /**
  * The base implementation of `_.isEqual` without support for `this` binding
@@ -47095,12 +46730,12 @@ function baseIsEqual(value, other, customizer, isLoose, stackA, stackB) {
 
 module.exports = baseIsEqual;
 
-},{"348":348,"405":405,"426":426}],348:[function(_dereq_,module,exports){
-var equalArrays = _dereq_(387),
-    equalByTag = _dereq_(388),
-    equalObjects = _dereq_(389),
-    isArray = _dereq_(422),
-    isTypedArray = _dereq_(429);
+},{"351":351,"408":408,"429":429}],351:[function(_dereq_,module,exports){
+var equalArrays = _dereq_(390),
+    equalByTag = _dereq_(391),
+    equalObjects = _dereq_(392),
+    isArray = _dereq_(425),
+    isTypedArray = _dereq_(432);
 
 /** `Object#toString` result references. */
 var argsTag = '[object Arguments]',
@@ -47199,9 +46834,9 @@ function baseIsEqualDeep(object, other, equalFunc, customizer, isLoose, stackA, 
 
 module.exports = baseIsEqualDeep;
 
-},{"387":387,"388":388,"389":389,"422":422,"429":429}],349:[function(_dereq_,module,exports){
-var baseIsEqual = _dereq_(347),
-    toObject = _dereq_(417);
+},{"390":390,"391":391,"392":392,"425":425,"432":432}],352:[function(_dereq_,module,exports){
+var baseIsEqual = _dereq_(350),
+    toObject = _dereq_(420);
 
 /**
  * The base implementation of `_.isMatch` without support for callback
@@ -47253,7 +46888,7 @@ function baseIsMatch(object, matchData, customizer) {
 
 module.exports = baseIsMatch;
 
-},{"347":347,"417":417}],350:[function(_dereq_,module,exports){
+},{"350":350,"420":420}],353:[function(_dereq_,module,exports){
 /**
  * The function whose prototype all chaining wrappers inherit from.
  *
@@ -47265,9 +46900,9 @@ function baseLodash() {
 
 module.exports = baseLodash;
 
-},{}],351:[function(_dereq_,module,exports){
-var baseEach = _dereq_(336),
-    isArrayLike = _dereq_(399);
+},{}],354:[function(_dereq_,module,exports){
+var baseEach = _dereq_(339),
+    isArrayLike = _dereq_(402);
 
 /**
  * The base implementation of `_.map` without support for callback shorthands
@@ -47290,10 +46925,10 @@ function baseMap(collection, iteratee) {
 
 module.exports = baseMap;
 
-},{"336":336,"399":399}],352:[function(_dereq_,module,exports){
-var baseIsMatch = _dereq_(349),
-    getMatchData = _dereq_(393),
-    toObject = _dereq_(417);
+},{"339":339,"402":402}],355:[function(_dereq_,module,exports){
+var baseIsMatch = _dereq_(352),
+    getMatchData = _dereq_(396),
+    toObject = _dereq_(420);
 
 /**
  * The base implementation of `_.matches` which does not clone `source`.
@@ -47322,16 +46957,16 @@ function baseMatches(source) {
 
 module.exports = baseMatches;
 
-},{"349":349,"393":393,"417":417}],353:[function(_dereq_,module,exports){
-var baseGet = _dereq_(345),
-    baseIsEqual = _dereq_(347),
-    baseSlice = _dereq_(360),
-    isArray = _dereq_(422),
-    isKey = _dereq_(402),
-    isStrictComparable = _dereq_(406),
-    last = _dereq_(293),
-    toObject = _dereq_(417),
-    toPath = _dereq_(418);
+},{"352":352,"396":396,"420":420}],356:[function(_dereq_,module,exports){
+var baseGet = _dereq_(348),
+    baseIsEqual = _dereq_(350),
+    baseSlice = _dereq_(363),
+    isArray = _dereq_(425),
+    isKey = _dereq_(405),
+    isStrictComparable = _dereq_(409),
+    last = _dereq_(296),
+    toObject = _dereq_(420),
+    toPath = _dereq_(421);
 
 /**
  * The base implementation of `_.matchesProperty` which does not clone `srcValue`.
@@ -47369,15 +47004,15 @@ function baseMatchesProperty(path, srcValue) {
 
 module.exports = baseMatchesProperty;
 
-},{"293":293,"345":345,"347":347,"360":360,"402":402,"406":406,"417":417,"418":418,"422":422}],354:[function(_dereq_,module,exports){
-var arrayEach = _dereq_(320),
-    baseMergeDeep = _dereq_(355),
-    isArray = _dereq_(422),
-    isArrayLike = _dereq_(399),
-    isObject = _dereq_(426),
-    isObjectLike = _dereq_(405),
-    isTypedArray = _dereq_(429),
-    keys = _dereq_(433);
+},{"296":296,"348":348,"350":350,"363":363,"405":405,"409":409,"420":420,"421":421,"425":425}],357:[function(_dereq_,module,exports){
+var arrayEach = _dereq_(323),
+    baseMergeDeep = _dereq_(358),
+    isArray = _dereq_(425),
+    isArrayLike = _dereq_(402),
+    isObject = _dereq_(429),
+    isObjectLike = _dereq_(408),
+    isTypedArray = _dereq_(432),
+    keys = _dereq_(436);
 
 /**
  * The base implementation of `_.merge` without support for argument juggling,
@@ -47427,14 +47062,14 @@ function baseMerge(object, source, customizer, stackA, stackB) {
 
 module.exports = baseMerge;
 
-},{"320":320,"355":355,"399":399,"405":405,"422":422,"426":426,"429":429,"433":433}],355:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(319),
-    isArguments = _dereq_(421),
-    isArray = _dereq_(422),
-    isArrayLike = _dereq_(399),
-    isPlainObject = _dereq_(427),
-    isTypedArray = _dereq_(429),
-    toPlainObject = _dereq_(430);
+},{"323":323,"358":358,"402":402,"408":408,"425":425,"429":429,"432":432,"436":436}],358:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(322),
+    isArguments = _dereq_(424),
+    isArray = _dereq_(425),
+    isArrayLike = _dereq_(402),
+    isPlainObject = _dereq_(430),
+    isTypedArray = _dereq_(432),
+    toPlainObject = _dereq_(433);
 
 /**
  * A specialized version of `baseMerge` for arrays and objects which performs
@@ -47496,7 +47131,7 @@ function baseMergeDeep(object, source, key, mergeFunc, customizer, stackA, stack
 
 module.exports = baseMergeDeep;
 
-},{"319":319,"399":399,"421":421,"422":422,"427":427,"429":429,"430":430}],356:[function(_dereq_,module,exports){
+},{"322":322,"402":402,"424":424,"425":425,"430":430,"432":432,"433":433}],359:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.property` without support for deep paths.
  *
@@ -47512,9 +47147,9 @@ function baseProperty(key) {
 
 module.exports = baseProperty;
 
-},{}],357:[function(_dereq_,module,exports){
-var baseGet = _dereq_(345),
-    toPath = _dereq_(418);
+},{}],360:[function(_dereq_,module,exports){
+var baseGet = _dereq_(348),
+    toPath = _dereq_(421);
 
 /**
  * A specialized version of `baseProperty` which supports deep paths.
@@ -47533,7 +47168,7 @@ function basePropertyDeep(path) {
 
 module.exports = basePropertyDeep;
 
-},{"345":345,"418":418}],358:[function(_dereq_,module,exports){
+},{"348":348,"421":421}],361:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.reduce` and `_.reduceRight` without support
  * for callback shorthands and `this` binding, which iterates over `collection`
@@ -47559,9 +47194,9 @@ function baseReduce(collection, iteratee, accumulator, initFromCollection, eachF
 
 module.exports = baseReduce;
 
-},{}],359:[function(_dereq_,module,exports){
-var identity = _dereq_(441),
-    metaMap = _dereq_(408);
+},{}],362:[function(_dereq_,module,exports){
+var identity = _dereq_(444),
+    metaMap = _dereq_(411);
 
 /**
  * The base implementation of `setData` without support for hot loop detection.
@@ -47578,7 +47213,7 @@ var baseSetData = !metaMap ? identity : function(func, data) {
 
 module.exports = baseSetData;
 
-},{"408":408,"441":441}],360:[function(_dereq_,module,exports){
+},{"411":411,"444":444}],363:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.slice` without an iteratee call guard.
  *
@@ -47612,8 +47247,8 @@ function baseSlice(array, start, end) {
 
 module.exports = baseSlice;
 
-},{}],361:[function(_dereq_,module,exports){
-var baseEach = _dereq_(336);
+},{}],364:[function(_dereq_,module,exports){
+var baseEach = _dereq_(339);
 
 /**
  * The base implementation of `_.some` without support for callback shorthands
@@ -47637,7 +47272,7 @@ function baseSome(collection, predicate) {
 
 module.exports = baseSome;
 
-},{"336":336}],362:[function(_dereq_,module,exports){
+},{"339":339}],365:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.sortBy` which uses `comparer` to define
  * the sort order of `array` and replaces criteria objects with their
@@ -47660,7 +47295,7 @@ function baseSortBy(array, comparer) {
 
 module.exports = baseSortBy;
 
-},{}],363:[function(_dereq_,module,exports){
+},{}],366:[function(_dereq_,module,exports){
 /**
  * Converts `value` to a string if it's not one. An empty string is returned
  * for `null` or `undefined` values.
@@ -47675,10 +47310,10 @@ function baseToString(value) {
 
 module.exports = baseToString;
 
-},{}],364:[function(_dereq_,module,exports){
-var baseIndexOf = _dereq_(346),
-    cacheIndexOf = _dereq_(368),
-    createCache = _dereq_(378);
+},{}],367:[function(_dereq_,module,exports){
+var baseIndexOf = _dereq_(349),
+    cacheIndexOf = _dereq_(371),
+    createCache = _dereq_(381);
 
 /** Used as the size to enable large array optimizations. */
 var LARGE_ARRAY_SIZE = 200;
@@ -47737,7 +47372,7 @@ function baseUniq(array, iteratee) {
 
 module.exports = baseUniq;
 
-},{"346":346,"368":368,"378":378}],365:[function(_dereq_,module,exports){
+},{"349":349,"371":371,"381":381}],368:[function(_dereq_,module,exports){
 /**
  * The base implementation of `_.values` and `_.valuesIn` which creates an
  * array of `object` property values corresponding to the property names
@@ -47761,8 +47396,8 @@ function baseValues(object, props) {
 
 module.exports = baseValues;
 
-},{}],366:[function(_dereq_,module,exports){
-var identity = _dereq_(441);
+},{}],369:[function(_dereq_,module,exports){
+var identity = _dereq_(444);
 
 /**
  * A specialized version of `baseCallback` which only supports `this` binding
@@ -47802,7 +47437,7 @@ function bindCallback(func, thisArg, argCount) {
 
 module.exports = bindCallback;
 
-},{"441":441}],367:[function(_dereq_,module,exports){
+},{"444":444}],370:[function(_dereq_,module,exports){
 (function (global){
 /** Native method references. */
 var ArrayBuffer = global.ArrayBuffer,
@@ -47827,8 +47462,8 @@ module.exports = bufferClone;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],368:[function(_dereq_,module,exports){
-var isObject = _dereq_(426);
+},{}],371:[function(_dereq_,module,exports){
+var isObject = _dereq_(429);
 
 /**
  * Checks if `value` is in `cache` mimicking the return signature of
@@ -47848,8 +47483,8 @@ function cacheIndexOf(cache, value) {
 
 module.exports = cacheIndexOf;
 
-},{"426":426}],369:[function(_dereq_,module,exports){
-var isObject = _dereq_(426);
+},{"429":429}],372:[function(_dereq_,module,exports){
+var isObject = _dereq_(429);
 
 /**
  * Adds `value` to the cache.
@@ -47870,8 +47505,8 @@ function cachePush(value) {
 
 module.exports = cachePush;
 
-},{"426":426}],370:[function(_dereq_,module,exports){
-var baseCompareAscending = _dereq_(331);
+},{"429":429}],373:[function(_dereq_,module,exports){
+var baseCompareAscending = _dereq_(334);
 
 /**
  * Used by `_.sortBy` to compare transformed elements of a collection and stable
@@ -47888,7 +47523,7 @@ function compareAscending(object, other) {
 
 module.exports = compareAscending;
 
-},{"331":331}],371:[function(_dereq_,module,exports){
+},{"334":334}],374:[function(_dereq_,module,exports){
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMax = Math.max;
 
@@ -47924,7 +47559,7 @@ function composeArgs(args, partials, holders) {
 
 module.exports = composeArgs;
 
-},{}],372:[function(_dereq_,module,exports){
+},{}],375:[function(_dereq_,module,exports){
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMax = Math.max;
 
@@ -47962,10 +47597,10 @@ function composeArgsRight(args, partials, holders) {
 
 module.exports = composeArgsRight;
 
-},{}],373:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(329),
-    baseEach = _dereq_(336),
-    isArray = _dereq_(422);
+},{}],376:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(332),
+    baseEach = _dereq_(339),
+    isArray = _dereq_(425);
 
 /**
  * Creates a `_.countBy`, `_.groupBy`, `_.indexBy`, or `_.partition` function.
@@ -47999,10 +47634,10 @@ function createAggregator(setter, initializer) {
 
 module.exports = createAggregator;
 
-},{"329":329,"336":336,"422":422}],374:[function(_dereq_,module,exports){
-var bindCallback = _dereq_(366),
-    isIterateeCall = _dereq_(401),
-    restParam = _dereq_(315);
+},{"332":332,"339":339,"425":425}],377:[function(_dereq_,module,exports){
+var bindCallback = _dereq_(369),
+    isIterateeCall = _dereq_(404),
+    restParam = _dereq_(318);
 
 /**
  * Creates a `_.assign`, `_.defaults`, or `_.merge` function.
@@ -48042,10 +47677,10 @@ function createAssigner(assigner) {
 
 module.exports = createAssigner;
 
-},{"315":315,"366":366,"401":401}],375:[function(_dereq_,module,exports){
-var getLength = _dereq_(392),
-    isLength = _dereq_(404),
-    toObject = _dereq_(417);
+},{"318":318,"369":369,"404":404}],378:[function(_dereq_,module,exports){
+var getLength = _dereq_(395),
+    isLength = _dereq_(407),
+    toObject = _dereq_(420);
 
 /**
  * Creates a `baseEach` or `baseEachRight` function.
@@ -48075,8 +47710,8 @@ function createBaseEach(eachFunc, fromRight) {
 
 module.exports = createBaseEach;
 
-},{"392":392,"404":404,"417":417}],376:[function(_dereq_,module,exports){
-var toObject = _dereq_(417);
+},{"395":395,"407":407,"420":420}],379:[function(_dereq_,module,exports){
+var toObject = _dereq_(420);
 
 /**
  * Creates a base function for `_.forIn` or `_.forInRight`.
@@ -48104,9 +47739,9 @@ function createBaseFor(fromRight) {
 
 module.exports = createBaseFor;
 
-},{"417":417}],377:[function(_dereq_,module,exports){
+},{"420":420}],380:[function(_dereq_,module,exports){
 (function (global){
-var createCtorWrapper = _dereq_(379);
+var createCtorWrapper = _dereq_(382);
 
 /**
  * Creates a function that wraps `func` and invokes it with the `this`
@@ -48131,10 +47766,10 @@ module.exports = createBindWrapper;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"379":379}],378:[function(_dereq_,module,exports){
+},{"382":382}],381:[function(_dereq_,module,exports){
 (function (global){
-var SetCache = _dereq_(318),
-    getNative = _dereq_(394);
+var SetCache = _dereq_(321),
+    getNative = _dereq_(397);
 
 /** Native method references. */
 var Set = getNative(global, 'Set');
@@ -48157,9 +47792,9 @@ module.exports = createCache;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"318":318,"394":394}],379:[function(_dereq_,module,exports){
-var baseCreate = _dereq_(333),
-    isObject = _dereq_(426);
+},{"321":321,"397":397}],382:[function(_dereq_,module,exports){
+var baseCreate = _dereq_(336),
+    isObject = _dereq_(429);
 
 /**
  * Creates a function that produces an instance of `Ctor` regardless of
@@ -48196,11 +47831,11 @@ function createCtorWrapper(Ctor) {
 
 module.exports = createCtorWrapper;
 
-},{"333":333,"426":426}],380:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(329),
-    baseFind = _dereq_(339),
-    baseFindIndex = _dereq_(340),
-    isArray = _dereq_(422);
+},{"336":336,"429":429}],383:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(332),
+    baseFind = _dereq_(342),
+    baseFindIndex = _dereq_(343),
+    isArray = _dereq_(425);
 
 /**
  * Creates a `_.find` or `_.findLast` function.
@@ -48223,9 +47858,9 @@ function createFind(eachFunc, fromRight) {
 
 module.exports = createFind;
 
-},{"329":329,"339":339,"340":340,"422":422}],381:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(329),
-    baseFindIndex = _dereq_(340);
+},{"332":332,"342":342,"343":343,"425":425}],384:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(332),
+    baseFindIndex = _dereq_(343);
 
 /**
  * Creates a `_.findIndex` or `_.findLastIndex` function.
@@ -48246,9 +47881,9 @@ function createFindIndex(fromRight) {
 
 module.exports = createFindIndex;
 
-},{"329":329,"340":340}],382:[function(_dereq_,module,exports){
-var bindCallback = _dereq_(366),
-    isArray = _dereq_(422);
+},{"332":332,"343":343}],385:[function(_dereq_,module,exports){
+var bindCallback = _dereq_(369),
+    isArray = _dereq_(425);
 
 /**
  * Creates a function for `_.forEach` or `_.forEachRight`.
@@ -48268,16 +47903,16 @@ function createForEach(arrayFunc, eachFunc) {
 
 module.exports = createForEach;
 
-},{"366":366,"422":422}],383:[function(_dereq_,module,exports){
+},{"369":369,"425":425}],386:[function(_dereq_,module,exports){
 (function (global){
-var arrayCopy = _dereq_(319),
-    composeArgs = _dereq_(371),
-    composeArgsRight = _dereq_(372),
-    createCtorWrapper = _dereq_(379),
-    isLaziable = _dereq_(403),
-    reorder = _dereq_(412),
-    replaceHolders = _dereq_(413),
-    setData = _dereq_(414);
+var arrayCopy = _dereq_(322),
+    composeArgs = _dereq_(374),
+    composeArgsRight = _dereq_(375),
+    createCtorWrapper = _dereq_(382),
+    isLaziable = _dereq_(406),
+    reorder = _dereq_(415),
+    replaceHolders = _dereq_(416),
+    setData = _dereq_(417);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -48384,9 +48019,9 @@ module.exports = createHybridWrapper;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"319":319,"371":371,"372":372,"379":379,"403":403,"412":412,"413":413,"414":414}],384:[function(_dereq_,module,exports){
+},{"322":322,"374":374,"375":375,"382":382,"406":406,"415":415,"416":416,"417":417}],387:[function(_dereq_,module,exports){
 (function (global){
-var createCtorWrapper = _dereq_(379);
+var createCtorWrapper = _dereq_(382);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1;
@@ -48432,10 +48067,10 @@ module.exports = createPartialWrapper;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"379":379}],385:[function(_dereq_,module,exports){
-var baseCallback = _dereq_(329),
-    baseReduce = _dereq_(358),
-    isArray = _dereq_(422);
+},{"382":382}],388:[function(_dereq_,module,exports){
+var baseCallback = _dereq_(332),
+    baseReduce = _dereq_(361),
+    isArray = _dereq_(425);
 
 /**
  * Creates a function for `_.reduce` or `_.reduceRight`.
@@ -48456,14 +48091,14 @@ function createReduce(arrayFunc, eachFunc) {
 
 module.exports = createReduce;
 
-},{"329":329,"358":358,"422":422}],386:[function(_dereq_,module,exports){
-var baseSetData = _dereq_(359),
-    createBindWrapper = _dereq_(377),
-    createHybridWrapper = _dereq_(383),
-    createPartialWrapper = _dereq_(384),
-    getData = _dereq_(390),
-    mergeData = _dereq_(407),
-    setData = _dereq_(414);
+},{"332":332,"361":361,"425":425}],389:[function(_dereq_,module,exports){
+var baseSetData = _dereq_(362),
+    createBindWrapper = _dereq_(380),
+    createHybridWrapper = _dereq_(386),
+    createPartialWrapper = _dereq_(387),
+    getData = _dereq_(393),
+    mergeData = _dereq_(410),
+    setData = _dereq_(417);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -48544,8 +48179,8 @@ function createWrapper(func, bitmask, thisArg, partials, holders, argPos, ary, a
 
 module.exports = createWrapper;
 
-},{"359":359,"377":377,"383":383,"384":384,"390":390,"407":407,"414":414}],387:[function(_dereq_,module,exports){
-var arraySome = _dereq_(326);
+},{"362":362,"380":380,"386":386,"387":387,"393":393,"410":410,"417":417}],390:[function(_dereq_,module,exports){
+var arraySome = _dereq_(329);
 
 /**
  * A specialized version of `baseIsEqualDeep` for arrays with support for
@@ -48597,7 +48232,7 @@ function equalArrays(array, other, equalFunc, customizer, isLoose, stackA, stack
 
 module.exports = equalArrays;
 
-},{"326":326}],388:[function(_dereq_,module,exports){
+},{"329":329}],391:[function(_dereq_,module,exports){
 /** `Object#toString` result references. */
 var boolTag = '[object Boolean]',
     dateTag = '[object Date]',
@@ -48647,8 +48282,8 @@ function equalByTag(object, other, tag) {
 
 module.exports = equalByTag;
 
-},{}],389:[function(_dereq_,module,exports){
-var keys = _dereq_(433);
+},{}],392:[function(_dereq_,module,exports){
+var keys = _dereq_(436);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -48716,9 +48351,9 @@ function equalObjects(object, other, equalFunc, customizer, isLoose, stackA, sta
 
 module.exports = equalObjects;
 
-},{"433":433}],390:[function(_dereq_,module,exports){
-var metaMap = _dereq_(408),
-    noop = _dereq_(442);
+},{"436":436}],393:[function(_dereq_,module,exports){
+var metaMap = _dereq_(411),
+    noop = _dereq_(445);
 
 /**
  * Gets metadata for `func`.
@@ -48733,8 +48368,8 @@ var getData = !metaMap ? noop : function(func) {
 
 module.exports = getData;
 
-},{"408":408,"442":442}],391:[function(_dereq_,module,exports){
-var realNames = _dereq_(411);
+},{"411":411,"445":445}],394:[function(_dereq_,module,exports){
+var realNames = _dereq_(414);
 
 /**
  * Gets the name of `func`.
@@ -48760,8 +48395,8 @@ function getFuncName(func) {
 
 module.exports = getFuncName;
 
-},{"411":411}],392:[function(_dereq_,module,exports){
-var baseProperty = _dereq_(356);
+},{"414":414}],395:[function(_dereq_,module,exports){
+var baseProperty = _dereq_(359);
 
 /**
  * Gets the "length" property value of `object`.
@@ -48777,9 +48412,9 @@ var getLength = baseProperty('length');
 
 module.exports = getLength;
 
-},{"356":356}],393:[function(_dereq_,module,exports){
-var isStrictComparable = _dereq_(406),
-    pairs = _dereq_(437);
+},{"359":359}],396:[function(_dereq_,module,exports){
+var isStrictComparable = _dereq_(409),
+    pairs = _dereq_(440);
 
 /**
  * Gets the propery names, values, and compare flags of `object`.
@@ -48800,8 +48435,8 @@ function getMatchData(object) {
 
 module.exports = getMatchData;
 
-},{"406":406,"437":437}],394:[function(_dereq_,module,exports){
-var isNative = _dereq_(424);
+},{"409":409,"440":440}],397:[function(_dereq_,module,exports){
+var isNative = _dereq_(427);
 
 /**
  * Gets the native function at `key` of `object`.
@@ -48818,7 +48453,7 @@ function getNative(object, key) {
 
 module.exports = getNative;
 
-},{"424":424}],395:[function(_dereq_,module,exports){
+},{"427":427}],398:[function(_dereq_,module,exports){
 /**
  * Gets the index at which the first occurrence of `NaN` is found in `array`.
  *
@@ -48843,7 +48478,7 @@ function indexOfNaN(array, fromIndex, fromRight) {
 
 module.exports = indexOfNaN;
 
-},{}],396:[function(_dereq_,module,exports){
+},{}],399:[function(_dereq_,module,exports){
 /** Used for native method references. */
 var objectProto = Object.prototype;
 
@@ -48871,8 +48506,8 @@ function initCloneArray(array) {
 
 module.exports = initCloneArray;
 
-},{}],397:[function(_dereq_,module,exports){
-var bufferClone = _dereq_(367);
+},{}],400:[function(_dereq_,module,exports){
+var bufferClone = _dereq_(370);
 
 /** `Object#toString` result references. */
 var boolTag = '[object Boolean]',
@@ -48936,7 +48571,7 @@ function initCloneByTag(object, tag, isDeep) {
 
 module.exports = initCloneByTag;
 
-},{"367":367}],398:[function(_dereq_,module,exports){
+},{"370":370}],401:[function(_dereq_,module,exports){
 /**
  * Initializes an object clone.
  *
@@ -48954,9 +48589,9 @@ function initCloneObject(object) {
 
 module.exports = initCloneObject;
 
-},{}],399:[function(_dereq_,module,exports){
-var getLength = _dereq_(392),
-    isLength = _dereq_(404);
+},{}],402:[function(_dereq_,module,exports){
+var getLength = _dereq_(395),
+    isLength = _dereq_(407);
 
 /**
  * Checks if `value` is array-like.
@@ -48971,7 +48606,7 @@ function isArrayLike(value) {
 
 module.exports = isArrayLike;
 
-},{"392":392,"404":404}],400:[function(_dereq_,module,exports){
+},{"395":395,"407":407}],403:[function(_dereq_,module,exports){
 /** Used to detect unsigned integer values. */
 var reIsUint = /^\d+$/;
 
@@ -48997,10 +48632,10 @@ function isIndex(value, length) {
 
 module.exports = isIndex;
 
-},{}],401:[function(_dereq_,module,exports){
-var isArrayLike = _dereq_(399),
-    isIndex = _dereq_(400),
-    isObject = _dereq_(426);
+},{}],404:[function(_dereq_,module,exports){
+var isArrayLike = _dereq_(402),
+    isIndex = _dereq_(403),
+    isObject = _dereq_(429);
 
 /**
  * Checks if the provided arguments are from an iteratee call.
@@ -49027,9 +48662,9 @@ function isIterateeCall(value, index, object) {
 
 module.exports = isIterateeCall;
 
-},{"399":399,"400":400,"426":426}],402:[function(_dereq_,module,exports){
-var isArray = _dereq_(422),
-    toObject = _dereq_(417);
+},{"402":402,"403":403,"429":429}],405:[function(_dereq_,module,exports){
+var isArray = _dereq_(425),
+    toObject = _dereq_(420);
 
 /** Used to match property names within property paths. */
 var reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\n\\]|\\.)*?\1)\]/,
@@ -49057,11 +48692,11 @@ function isKey(value, object) {
 
 module.exports = isKey;
 
-},{"417":417,"422":422}],403:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(316),
-    getData = _dereq_(390),
-    getFuncName = _dereq_(391),
-    lodash = _dereq_(298);
+},{"420":420,"425":425}],406:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(319),
+    getData = _dereq_(393),
+    getFuncName = _dereq_(394),
+    lodash = _dereq_(301);
 
 /**
  * Checks if `func` has a lazy counterpart.
@@ -49086,7 +48721,7 @@ function isLaziable(func) {
 
 module.exports = isLaziable;
 
-},{"298":298,"316":316,"390":390,"391":391}],404:[function(_dereq_,module,exports){
+},{"301":301,"319":319,"393":393,"394":394}],407:[function(_dereq_,module,exports){
 /**
  * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
  * of an array-like value.
@@ -49108,7 +48743,7 @@ function isLength(value) {
 
 module.exports = isLength;
 
-},{}],405:[function(_dereq_,module,exports){
+},{}],408:[function(_dereq_,module,exports){
 /**
  * Checks if `value` is object-like.
  *
@@ -49122,8 +48757,8 @@ function isObjectLike(value) {
 
 module.exports = isObjectLike;
 
-},{}],406:[function(_dereq_,module,exports){
-var isObject = _dereq_(426);
+},{}],409:[function(_dereq_,module,exports){
+var isObject = _dereq_(429);
 
 /**
  * Checks if `value` is suitable for strict equality comparisons, i.e. `===`.
@@ -49139,11 +48774,11 @@ function isStrictComparable(value) {
 
 module.exports = isStrictComparable;
 
-},{"426":426}],407:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(319),
-    composeArgs = _dereq_(371),
-    composeArgsRight = _dereq_(372),
-    replaceHolders = _dereq_(413);
+},{"429":429}],410:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(322),
+    composeArgs = _dereq_(374),
+    composeArgsRight = _dereq_(375),
+    replaceHolders = _dereq_(416);
 
 /** Used to compose bitmasks for wrapper metadata. */
 var BIND_FLAG = 1,
@@ -49230,9 +48865,9 @@ function mergeData(data, source) {
 
 module.exports = mergeData;
 
-},{"319":319,"371":371,"372":372,"413":413}],408:[function(_dereq_,module,exports){
+},{"322":322,"374":374,"375":375,"416":416}],411:[function(_dereq_,module,exports){
 (function (global){
-var getNative = _dereq_(394);
+var getNative = _dereq_(397);
 
 /** Native method references. */
 var WeakMap = getNative(global, 'WeakMap');
@@ -49244,8 +48879,8 @@ module.exports = metaMap;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"394":394}],409:[function(_dereq_,module,exports){
-var toObject = _dereq_(417);
+},{"397":397}],412:[function(_dereq_,module,exports){
+var toObject = _dereq_(420);
 
 /**
  * A specialized version of `_.pick` which picks `object` properties specified
@@ -49274,8 +48909,8 @@ function pickByArray(object, props) {
 
 module.exports = pickByArray;
 
-},{"417":417}],410:[function(_dereq_,module,exports){
-var baseForIn = _dereq_(343);
+},{"420":420}],413:[function(_dereq_,module,exports){
+var baseForIn = _dereq_(346);
 
 /**
  * A specialized version of `_.pick` which picks `object` properties `predicate`
@@ -49298,15 +48933,15 @@ function pickByCallback(object, predicate) {
 
 module.exports = pickByCallback;
 
-},{"343":343}],411:[function(_dereq_,module,exports){
+},{"346":346}],414:[function(_dereq_,module,exports){
 /** Used to lookup unminified function names. */
 var realNames = {};
 
 module.exports = realNames;
 
-},{}],412:[function(_dereq_,module,exports){
-var arrayCopy = _dereq_(319),
-    isIndex = _dereq_(400);
+},{}],415:[function(_dereq_,module,exports){
+var arrayCopy = _dereq_(322),
+    isIndex = _dereq_(403);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMin = Math.min;
@@ -49335,7 +48970,7 @@ function reorder(array, indexes) {
 
 module.exports = reorder;
 
-},{"319":319,"400":400}],413:[function(_dereq_,module,exports){
+},{"322":322,"403":403}],416:[function(_dereq_,module,exports){
 /** Used as the internal argument placeholder. */
 var PLACEHOLDER = '__lodash_placeholder__';
 
@@ -49365,9 +49000,9 @@ function replaceHolders(array, placeholder) {
 
 module.exports = replaceHolders;
 
-},{}],414:[function(_dereq_,module,exports){
-var baseSetData = _dereq_(359),
-    now = _dereq_(311);
+},{}],417:[function(_dereq_,module,exports){
+var baseSetData = _dereq_(362),
+    now = _dereq_(314);
 
 /** Used to detect when a function becomes hot. */
 var HOT_COUNT = 150,
@@ -49408,12 +49043,12 @@ var setData = (function() {
 
 module.exports = setData;
 
-},{"311":311,"359":359}],415:[function(_dereq_,module,exports){
-var isArguments = _dereq_(421),
-    isArray = _dereq_(422),
-    isIndex = _dereq_(400),
-    isLength = _dereq_(404),
-    keysIn = _dereq_(434);
+},{"314":314,"362":362}],418:[function(_dereq_,module,exports){
+var isArguments = _dereq_(424),
+    isArray = _dereq_(425),
+    isIndex = _dereq_(403),
+    isLength = _dereq_(407),
+    keysIn = _dereq_(437);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -49451,7 +49086,7 @@ function shimKeys(object) {
 
 module.exports = shimKeys;
 
-},{"400":400,"404":404,"421":421,"422":422,"434":434}],416:[function(_dereq_,module,exports){
+},{"403":403,"407":407,"424":424,"425":425,"437":437}],419:[function(_dereq_,module,exports){
 /**
  * An implementation of `_.uniq` optimized for sorted arrays without support
  * for callback shorthands and `this` binding.
@@ -49482,8 +49117,8 @@ function sortedUniq(array, iteratee) {
 
 module.exports = sortedUniq;
 
-},{}],417:[function(_dereq_,module,exports){
-var isObject = _dereq_(426);
+},{}],420:[function(_dereq_,module,exports){
+var isObject = _dereq_(429);
 
 /**
  * Converts `value` to an object if it's not one.
@@ -49498,9 +49133,9 @@ function toObject(value) {
 
 module.exports = toObject;
 
-},{"426":426}],418:[function(_dereq_,module,exports){
-var baseToString = _dereq_(363),
-    isArray = _dereq_(422);
+},{"429":429}],421:[function(_dereq_,module,exports){
+var baseToString = _dereq_(366),
+    isArray = _dereq_(425);
 
 /** Used to match property names within property paths. */
 var rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\n\\]|\\.)*?)\2)\]/g;
@@ -49528,10 +49163,10 @@ function toPath(value) {
 
 module.exports = toPath;
 
-},{"363":363,"422":422}],419:[function(_dereq_,module,exports){
-var LazyWrapper = _dereq_(316),
-    LodashWrapper = _dereq_(317),
-    arrayCopy = _dereq_(319);
+},{"366":366,"425":425}],422:[function(_dereq_,module,exports){
+var LazyWrapper = _dereq_(319),
+    LodashWrapper = _dereq_(320),
+    arrayCopy = _dereq_(322);
 
 /**
  * Creates a clone of `wrapper`.
@@ -49548,10 +49183,10 @@ function wrapperClone(wrapper) {
 
 module.exports = wrapperClone;
 
-},{"316":316,"317":317,"319":319}],420:[function(_dereq_,module,exports){
-var baseClone = _dereq_(330),
-    bindCallback = _dereq_(366),
-    isIterateeCall = _dereq_(401);
+},{"319":319,"320":320,"322":322}],423:[function(_dereq_,module,exports){
+var baseClone = _dereq_(333),
+    bindCallback = _dereq_(369),
+    isIterateeCall = _dereq_(404);
 
 /**
  * Creates a clone of `value`. If `isDeep` is `true` nested objects are cloned,
@@ -49620,9 +49255,9 @@ function clone(value, isDeep, customizer, thisArg) {
 
 module.exports = clone;
 
-},{"330":330,"366":366,"401":401}],421:[function(_dereq_,module,exports){
-var isArrayLike = _dereq_(399),
-    isObjectLike = _dereq_(405);
+},{"333":333,"369":369,"404":404}],424:[function(_dereq_,module,exports){
+var isArrayLike = _dereq_(402),
+    isObjectLike = _dereq_(408);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -49656,10 +49291,10 @@ function isArguments(value) {
 
 module.exports = isArguments;
 
-},{"399":399,"405":405}],422:[function(_dereq_,module,exports){
-var getNative = _dereq_(394),
-    isLength = _dereq_(404),
-    isObjectLike = _dereq_(405);
+},{"402":402,"408":408}],425:[function(_dereq_,module,exports){
+var getNative = _dereq_(397),
+    isLength = _dereq_(407),
+    isObjectLike = _dereq_(408);
 
 /** `Object#toString` result references. */
 var arrayTag = '[object Array]';
@@ -49698,8 +49333,8 @@ var isArray = nativeIsArray || function(value) {
 
 module.exports = isArray;
 
-},{"394":394,"404":404,"405":405}],423:[function(_dereq_,module,exports){
-var isObject = _dereq_(426);
+},{"397":397,"407":407,"408":408}],426:[function(_dereq_,module,exports){
+var isObject = _dereq_(429);
 
 /** `Object#toString` result references. */
 var funcTag = '[object Function]';
@@ -49738,9 +49373,9 @@ function isFunction(value) {
 
 module.exports = isFunction;
 
-},{"426":426}],424:[function(_dereq_,module,exports){
-var isFunction = _dereq_(423),
-    isObjectLike = _dereq_(405);
+},{"429":429}],427:[function(_dereq_,module,exports){
+var isFunction = _dereq_(426),
+    isObjectLike = _dereq_(408);
 
 /** Used to detect host constructors (Safari > 5). */
 var reIsHostCtor = /^\[object .+?Constructor\]$/;
@@ -49788,8 +49423,8 @@ function isNative(value) {
 
 module.exports = isNative;
 
-},{"405":405,"423":423}],425:[function(_dereq_,module,exports){
-var isObjectLike = _dereq_(405);
+},{"408":408,"426":426}],428:[function(_dereq_,module,exports){
+var isObjectLike = _dereq_(408);
 
 /** `Object#toString` result references. */
 var numberTag = '[object Number]';
@@ -49831,7 +49466,7 @@ function isNumber(value) {
 
 module.exports = isNumber;
 
-},{"405":405}],426:[function(_dereq_,module,exports){
+},{"408":408}],429:[function(_dereq_,module,exports){
 /**
  * Checks if `value` is the [language type](https://es5.github.io/#x8) of `Object`.
  * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
@@ -49861,10 +49496,10 @@ function isObject(value) {
 
 module.exports = isObject;
 
-},{}],427:[function(_dereq_,module,exports){
-var baseForIn = _dereq_(343),
-    isArguments = _dereq_(421),
-    isObjectLike = _dereq_(405);
+},{}],430:[function(_dereq_,module,exports){
+var baseForIn = _dereq_(346),
+    isArguments = _dereq_(424),
+    isObjectLike = _dereq_(408);
 
 /** `Object#toString` result references. */
 var objectTag = '[object Object]';
@@ -49934,8 +49569,8 @@ function isPlainObject(value) {
 
 module.exports = isPlainObject;
 
-},{"343":343,"405":405,"421":421}],428:[function(_dereq_,module,exports){
-var isObjectLike = _dereq_(405);
+},{"346":346,"408":408,"424":424}],431:[function(_dereq_,module,exports){
+var isObjectLike = _dereq_(408);
 
 /** `Object#toString` result references. */
 var stringTag = '[object String]';
@@ -49971,9 +49606,9 @@ function isString(value) {
 
 module.exports = isString;
 
-},{"405":405}],429:[function(_dereq_,module,exports){
-var isLength = _dereq_(404),
-    isObjectLike = _dereq_(405);
+},{"408":408}],432:[function(_dereq_,module,exports){
+var isLength = _dereq_(407),
+    isObjectLike = _dereq_(408);
 
 /** `Object#toString` result references. */
 var argsTag = '[object Arguments]',
@@ -50047,9 +49682,9 @@ function isTypedArray(value) {
 
 module.exports = isTypedArray;
 
-},{"404":404,"405":405}],430:[function(_dereq_,module,exports){
-var baseCopy = _dereq_(332),
-    keysIn = _dereq_(434);
+},{"407":407,"408":408}],433:[function(_dereq_,module,exports){
+var baseCopy = _dereq_(335),
+    keysIn = _dereq_(437);
 
 /**
  * Converts `value` to a plain object flattening inherited enumerable
@@ -50080,10 +49715,10 @@ function toPlainObject(value) {
 
 module.exports = toPlainObject;
 
-},{"332":332,"434":434}],431:[function(_dereq_,module,exports){
-var assignWith = _dereq_(327),
-    baseAssign = _dereq_(328),
-    createAssigner = _dereq_(374);
+},{"335":335,"437":437}],434:[function(_dereq_,module,exports){
+var assignWith = _dereq_(330),
+    baseAssign = _dereq_(331),
+    createAssigner = _dereq_(377);
 
 /**
  * Assigns own enumerable properties of source object(s) to the destination
@@ -50125,16 +49760,16 @@ var assign = createAssigner(function(object, source, customizer) {
 
 module.exports = assign;
 
-},{"327":327,"328":328,"374":374}],432:[function(_dereq_,module,exports){
-var baseGet = _dereq_(345),
-    baseSlice = _dereq_(360),
-    isArguments = _dereq_(421),
-    isArray = _dereq_(422),
-    isIndex = _dereq_(400),
-    isKey = _dereq_(402),
-    isLength = _dereq_(404),
-    last = _dereq_(293),
-    toPath = _dereq_(418);
+},{"330":330,"331":331,"377":377}],435:[function(_dereq_,module,exports){
+var baseGet = _dereq_(348),
+    baseSlice = _dereq_(363),
+    isArguments = _dereq_(424),
+    isArray = _dereq_(425),
+    isIndex = _dereq_(403),
+    isKey = _dereq_(405),
+    isLength = _dereq_(407),
+    last = _dereq_(296),
+    toPath = _dereq_(421);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -50184,11 +49819,11 @@ function has(object, path) {
 
 module.exports = has;
 
-},{"293":293,"345":345,"360":360,"400":400,"402":402,"404":404,"418":418,"421":421,"422":422}],433:[function(_dereq_,module,exports){
-var getNative = _dereq_(394),
-    isArrayLike = _dereq_(399),
-    isObject = _dereq_(426),
-    shimKeys = _dereq_(415);
+},{"296":296,"348":348,"363":363,"403":403,"405":405,"407":407,"421":421,"424":424,"425":425}],436:[function(_dereq_,module,exports){
+var getNative = _dereq_(397),
+    isArrayLike = _dereq_(402),
+    isObject = _dereq_(429),
+    shimKeys = _dereq_(418);
 
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeKeys = getNative(Object, 'keys');
@@ -50231,12 +49866,12 @@ var keys = !nativeKeys ? shimKeys : function(object) {
 
 module.exports = keys;
 
-},{"394":394,"399":399,"415":415,"426":426}],434:[function(_dereq_,module,exports){
-var isArguments = _dereq_(421),
-    isArray = _dereq_(422),
-    isIndex = _dereq_(400),
-    isLength = _dereq_(404),
-    isObject = _dereq_(426);
+},{"397":397,"402":402,"418":418,"429":429}],437:[function(_dereq_,module,exports){
+var isArguments = _dereq_(424),
+    isArray = _dereq_(425),
+    isIndex = _dereq_(403),
+    isLength = _dereq_(407),
+    isObject = _dereq_(429);
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -50297,9 +49932,9 @@ function keysIn(object) {
 
 module.exports = keysIn;
 
-},{"400":400,"404":404,"421":421,"422":422,"426":426}],435:[function(_dereq_,module,exports){
-var baseMerge = _dereq_(354),
-    createAssigner = _dereq_(374);
+},{"403":403,"407":407,"424":424,"425":425,"429":429}],438:[function(_dereq_,module,exports){
+var baseMerge = _dereq_(357),
+    createAssigner = _dereq_(377);
 
 /**
  * Recursively merges own enumerable properties of the source object(s), that
@@ -50353,15 +49988,15 @@ var merge = createAssigner(baseMerge);
 
 module.exports = merge;
 
-},{"354":354,"374":374}],436:[function(_dereq_,module,exports){
-var arrayMap = _dereq_(323),
-    baseDifference = _dereq_(335),
-    baseFlatten = _dereq_(341),
-    bindCallback = _dereq_(366),
-    keysIn = _dereq_(434),
-    pickByArray = _dereq_(409),
-    pickByCallback = _dereq_(410),
-    restParam = _dereq_(315);
+},{"357":357,"377":377}],439:[function(_dereq_,module,exports){
+var arrayMap = _dereq_(326),
+    baseDifference = _dereq_(338),
+    baseFlatten = _dereq_(344),
+    bindCallback = _dereq_(369),
+    keysIn = _dereq_(437),
+    pickByArray = _dereq_(412),
+    pickByCallback = _dereq_(413),
+    restParam = _dereq_(318);
 
 /**
  * The opposite of `_.pick`; this method creates an object composed of the
@@ -50402,9 +50037,9 @@ var omit = restParam(function(object, props) {
 
 module.exports = omit;
 
-},{"315":315,"323":323,"335":335,"341":341,"366":366,"409":409,"410":410,"434":434}],437:[function(_dereq_,module,exports){
-var keys = _dereq_(433),
-    toObject = _dereq_(417);
+},{"318":318,"326":326,"338":338,"344":344,"369":369,"412":412,"413":413,"437":437}],440:[function(_dereq_,module,exports){
+var keys = _dereq_(436),
+    toObject = _dereq_(420);
 
 /**
  * Creates a two dimensional array of the key-value pairs for `object`,
@@ -50437,12 +50072,12 @@ function pairs(object) {
 
 module.exports = pairs;
 
-},{"417":417,"433":433}],438:[function(_dereq_,module,exports){
-var baseFlatten = _dereq_(341),
-    bindCallback = _dereq_(366),
-    pickByArray = _dereq_(409),
-    pickByCallback = _dereq_(410),
-    restParam = _dereq_(315);
+},{"420":420,"436":436}],441:[function(_dereq_,module,exports){
+var baseFlatten = _dereq_(344),
+    bindCallback = _dereq_(369),
+    pickByArray = _dereq_(412),
+    pickByCallback = _dereq_(413),
+    restParam = _dereq_(318);
 
 /**
  * Creates an object composed of the picked `object` properties. Property
@@ -50481,15 +50116,15 @@ var pick = restParam(function(object, props) {
 
 module.exports = pick;
 
-},{"315":315,"341":341,"366":366,"409":409,"410":410}],439:[function(_dereq_,module,exports){
-var arrayEach = _dereq_(320),
-    baseCallback = _dereq_(329),
-    baseCreate = _dereq_(333),
-    baseForOwn = _dereq_(344),
-    isArray = _dereq_(422),
-    isFunction = _dereq_(423),
-    isObject = _dereq_(426),
-    isTypedArray = _dereq_(429);
+},{"318":318,"344":344,"369":369,"412":412,"413":413}],442:[function(_dereq_,module,exports){
+var arrayEach = _dereq_(323),
+    baseCallback = _dereq_(332),
+    baseCreate = _dereq_(336),
+    baseForOwn = _dereq_(347),
+    isArray = _dereq_(425),
+    isFunction = _dereq_(426),
+    isObject = _dereq_(429),
+    isTypedArray = _dereq_(432);
 
 /**
  * An alternative to `_.reduce`; this method transforms `object` to a new
@@ -50544,9 +50179,9 @@ function transform(object, iteratee, accumulator, thisArg) {
 
 module.exports = transform;
 
-},{"320":320,"329":329,"333":333,"344":344,"422":422,"423":423,"426":426,"429":429}],440:[function(_dereq_,module,exports){
-var baseValues = _dereq_(365),
-    keys = _dereq_(433);
+},{"323":323,"332":332,"336":336,"347":347,"425":425,"426":426,"429":429,"432":432}],443:[function(_dereq_,module,exports){
+var baseValues = _dereq_(368),
+    keys = _dereq_(436);
 
 /**
  * Creates an array of the own enumerable property values of `object`.
@@ -50579,7 +50214,7 @@ function values(object) {
 
 module.exports = values;
 
-},{"365":365,"433":433}],441:[function(_dereq_,module,exports){
+},{"368":368,"436":436}],444:[function(_dereq_,module,exports){
 /**
  * This method returns the first argument provided to it.
  *
@@ -50601,7 +50236,7 @@ function identity(value) {
 
 module.exports = identity;
 
-},{}],442:[function(_dereq_,module,exports){
+},{}],445:[function(_dereq_,module,exports){
 /**
  * A no-operation function that returns `undefined` regardless of the
  * arguments it receives.
@@ -50622,10 +50257,10 @@ function noop() {
 
 module.exports = noop;
 
-},{}],443:[function(_dereq_,module,exports){
-var baseProperty = _dereq_(356),
-    basePropertyDeep = _dereq_(357),
-    isKey = _dereq_(402);
+},{}],446:[function(_dereq_,module,exports){
+var baseProperty = _dereq_(359),
+    basePropertyDeep = _dereq_(360),
+    isKey = _dereq_(405);
 
 /**
  * Creates a function that returns the property value at `path` on a
@@ -50655,7 +50290,39 @@ function property(path) {
 
 module.exports = property;
 
-},{"356":356,"357":357,"402":402}],444:[function(_dereq_,module,exports){
+},{"359":359,"360":360,"405":405}],447:[function(_dereq_,module,exports){
+'use strict';
+
+var proto = typeof Element !== 'undefined' ? Element.prototype : {};
+var vendor = proto.matches
+  || proto.matchesSelector
+  || proto.webkitMatchesSelector
+  || proto.mozMatchesSelector
+  || proto.msMatchesSelector
+  || proto.oMatchesSelector;
+
+module.exports = match;
+
+/**
+ * Match `el` to `selector`.
+ *
+ * @param {Element} el
+ * @param {String} selector
+ * @return {Boolean}
+ * @api public
+ */
+
+function match(el, selector) {
+  if (!el || el.nodeType !== 1) return false;
+  if (vendor) return vendor.call(el, selector);
+  var nodes = el.parentNode.querySelectorAll(selector);
+  for (var i = 0; i < nodes.length; i++) {
+    if (nodes[i] == el) return true;
+  }
+  return false;
+}
+
+},{}],448:[function(_dereq_,module,exports){
 /**
  * Set attribute `name` to `val`, or get attr `name`.
  *
@@ -50681,9 +50348,202 @@ module.exports = function(el, name, val) {
 
   return el;
 };
-},{}],445:[function(_dereq_,module,exports){
-module.exports = _dereq_(107);
-},{"107":107}],446:[function(_dereq_,module,exports){
+},{}],449:[function(_dereq_,module,exports){
+/**
+ * Taken from https://github.com/component/classes
+ *
+ * Without the component bits.
+ */
+
+/**
+ * Module dependencies.
+ */
+
+var index = _dereq_(291);
+
+/**
+ * Whitespace regexp.
+ */
+
+var re = /\s+/;
+
+/**
+ * toString reference.
+ */
+
+var toString = Object.prototype.toString;
+
+/**
+ * Wrap `el` in a `ClassList`.
+ *
+ * @param {Element} el
+ * @return {ClassList}
+ * @api public
+ */
+
+module.exports = function(el) {
+  return new ClassList(el);
+};
+
+/**
+ * Initialize a new ClassList for `el`.
+ *
+ * @param {Element} el
+ * @api private
+ */
+
+function ClassList(el) {
+  if (!el || !el.nodeType) {
+    throw new Error('A DOM element reference is required');
+  }
+  this.el = el;
+  this.list = el.classList;
+}
+
+/**
+ * Add class `name` if not already present.
+ *
+ * @param {String} name
+ * @return {ClassList}
+ * @api public
+ */
+
+ClassList.prototype.add = function(name) {
+  // classList
+  if (this.list) {
+    this.list.add(name);
+    return this;
+  }
+
+  // fallback
+  var arr = this.array();
+  var i = index(arr, name);
+  if (!~i) arr.push(name);
+  this.el.className = arr.join(' ');
+  return this;
+};
+
+/**
+ * Remove class `name` when present, or
+ * pass a regular expression to remove
+ * any which match.
+ *
+ * @param {String|RegExp} name
+ * @return {ClassList}
+ * @api public
+ */
+
+ClassList.prototype.remove = function(name) {
+  if ('[object RegExp]' == toString.call(name)) {
+    return this.removeMatching(name);
+  }
+
+  // classList
+  if (this.list) {
+    this.list.remove(name);
+    return this;
+  }
+
+  // fallback
+  var arr = this.array();
+  var i = index(arr, name);
+  if (~i) arr.splice(i, 1);
+  this.el.className = arr.join(' ');
+  return this;
+};
+
+/**
+ * Remove all classes matching `re`.
+ *
+ * @param {RegExp} re
+ * @return {ClassList}
+ * @api private
+ */
+
+ClassList.prototype.removeMatching = function(re) {
+  var arr = this.array();
+  for (var i = 0; i < arr.length; i++) {
+    if (re.test(arr[i])) {
+      this.remove(arr[i]);
+    }
+  }
+  return this;
+};
+
+/**
+ * Toggle class `name`, can force state via `force`.
+ *
+ * For browsers that support classList, but do not support `force` yet,
+ * the mistake will be detected and corrected.
+ *
+ * @param {String} name
+ * @param {Boolean} force
+ * @return {ClassList}
+ * @api public
+ */
+
+ClassList.prototype.toggle = function(name, force) {
+  // classList
+  if (this.list) {
+    if ('undefined' !== typeof force) {
+      if (force !== this.list.toggle(name, force)) {
+        this.list.toggle(name); // toggle again to correct
+      }
+    } else {
+      this.list.toggle(name);
+    }
+    return this;
+  }
+
+  // fallback
+  if ('undefined' !== typeof force) {
+    if (!force) {
+      this.remove(name);
+    } else {
+      this.add(name);
+    }
+  } else {
+    if (this.has(name)) {
+      this.remove(name);
+    } else {
+      this.add(name);
+    }
+  }
+
+  return this;
+};
+
+/**
+ * Return an array of classes.
+ *
+ * @return {Array}
+ * @api public
+ */
+
+ClassList.prototype.array = function() {
+  var className = this.el.getAttribute('class') || '';
+  var str = className.replace(/^\s+|\s+$/g, '');
+  var arr = str.split(re);
+  if ('' === arr[0]) arr.shift();
+  return arr;
+};
+
+/**
+ * Check if class `name` is present.
+ *
+ * @param {String} name
+ * @return {ClassList}
+ * @api public
+ */
+
+ClassList.prototype.has =
+ClassList.prototype.contains = function(name) {
+  return this.list
+    ? this.list.contains(name)
+    : !! ~index(this.array(), name);
+};
+
+},{"291":291}],450:[function(_dereq_,module,exports){
 module.exports = function(el) {
 
   var c;
@@ -50695,23 +50555,33 @@ module.exports = function(el) {
 
   return el;
 };
-},{}],447:[function(_dereq_,module,exports){
-module.exports = _dereq_(108);
-},{"108":108}],448:[function(_dereq_,module,exports){
-module.exports = _dereq_(109);
-},{"109":109}],449:[function(_dereq_,module,exports){
-module.exports = _dereq_(285);
-},{"285":285}],450:[function(_dereq_,module,exports){
-module.exports = _dereq_(110);
-},{"110":110}],451:[function(_dereq_,module,exports){
-module.exports = _dereq_(112);
-},{"112":112}],452:[function(_dereq_,module,exports){
+},{}],451:[function(_dereq_,module,exports){
 module.exports = _dereq_(113);
-},{"113":113}],453:[function(_dereq_,module,exports){
+},{"113":113}],452:[function(_dereq_,module,exports){
+module.exports = _dereq_(116);
+},{"116":116}],453:[function(_dereq_,module,exports){
+module.exports = _dereq_(287);
+},{"287":287}],454:[function(_dereq_,module,exports){
+module.exports = _dereq_(115);
+},{"115":115}],455:[function(_dereq_,module,exports){
+module.exports = _dereq_(447);
+},{"447":447}],456:[function(_dereq_,module,exports){
+module.exports = function(selector, el) {
+  el = el || document;
+
+  return el.querySelector(selector);
+};
+
+module.exports.all = function(selector, el) {
+  el = el || document;
+
+  return el.querySelectorAll(selector);
+};
+},{}],457:[function(_dereq_,module,exports){
 module.exports = function(el) {
   el.parentNode && el.parentNode.removeChild(el);
 };
-},{}],454:[function(_dereq_,module,exports){
+},{}],458:[function(_dereq_,module,exports){
 'use strict';
 
 function hasLowerCaseAlias(pkg) {
@@ -50738,22 +50608,22 @@ module.exports.serializeAsType = function(element) {
 module.exports.serializeAsProperty = function(element) {
   return serializeFormat(element) === 'property';
 };
-},{}],455:[function(_dereq_,module,exports){
+},{}],459:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303),
-    find = _dereq_(302),
-    assign = _dereq_(431),
-    defer = _dereq_(314);
+var forEach = _dereq_(306),
+    find = _dereq_(305),
+    assign = _dereq_(434),
+    defer = _dereq_(317);
 
-var Stack = _dereq_(471),
-    SaxParser = _dereq_(470),
-    Moddle = _dereq_(457),
-    parseNameNs = _dereq_(462).parseName,
-    Types = _dereq_(465),
+var Stack = _dereq_(476),
+    SaxParser = _dereq_(475),
+    Moddle = _dereq_(461),
+    parseNameNs = _dereq_(466).parseName,
+    Types = _dereq_(469),
     coerceType = Types.coerceType,
     isSimpleType = Types.isSimple,
-    common = _dereq_(454),
+    common = _dereq_(458),
     XSI_TYPE = common.XSI_TYPE,
     serializeAsType = common.serializeAsType,
     hasLowerCaseAlias = common.hasLowerCaseAlias;
@@ -51448,6 +51318,25 @@ XMLReader.prototype.fromXML = function(xml, options, done) {
     stack.pop().handleEnd();
   }
 
+  var ENCODING_PATTERN = /^<\?xml.* encoding="([^"]+)"(?: .*)?\?>$/i;
+
+  var UTF_8_PATTERN = /^utf-8$/i;
+
+  function handleQuestion(question) {
+    var match = ENCODING_PATTERN.exec(question);
+    var encoding = match && match[1];
+
+    if (!encoding || UTF_8_PATTERN.test(encoding)) {
+      return;
+    }
+
+    context.addWarning({
+      message:
+        'unsupported document encoding <' + encoding + '>, ' +
+        'falling back to UTF-8'
+    });
+  }
+
   function handleOpen(node, getContext) {
     var handler = stack.peek();
 
@@ -51507,6 +51396,7 @@ XMLReader.prototype.fromXML = function(xml, options, done) {
 
       handleOpen(node, getContext);
     })
+    .on('question', handleQuestion)
     .on('closeTag', handleClose)
     .on('cdata', handleCData)
     .on('text', handleText)
@@ -51546,18 +51436,18 @@ XMLReader.prototype.handler = function(name) {
 
 module.exports = XMLReader;
 module.exports.ElementHandler = ElementHandler;
-},{"302":302,"303":303,"314":314,"431":431,"454":454,"457":457,"462":462,"465":465,"470":470,"471":471}],456:[function(_dereq_,module,exports){
+},{"305":305,"306":306,"317":317,"434":434,"458":458,"461":461,"466":466,"469":469,"475":475,"476":476}],460:[function(_dereq_,module,exports){
 'use strict';
 
-var map = _dereq_(305),
-    forEach = _dereq_(303),
-    isString = _dereq_(428),
-    filter = _dereq_(301),
-    assign = _dereq_(431);
+var map = _dereq_(308),
+    forEach = _dereq_(306),
+    isString = _dereq_(431),
+    filter = _dereq_(304),
+    assign = _dereq_(434);
 
-var Types = _dereq_(465),
-    parseNameNs = _dereq_(462).parseName,
-    common = _dereq_(454),
+var Types = _dereq_(469),
+    parseNameNs = _dereq_(466).parseName,
+    common = _dereq_(458),
     hasLowerCaseAlias = common.hasLowerCaseAlias,
     serializeAsType = common.serializeAsType,
     serializeAsProperty = common.serializeAsProperty;
@@ -51567,6 +51457,63 @@ var XML_PREAMBLE = '<?xml version="1.0" encoding="UTF-8"?>\n',
     DEFAULT_NS_MAP = common.DEFAULT_NS_MAP,
     XSI_TYPE = common.XSI_TYPE;
 
+
+function Namespaces(parent) {
+
+  var prefixMap = {};
+  var uriMap = {};
+  var used = {};
+
+  var wellknown = [];
+  var custom = [];
+
+  // API
+
+  this.byUri = function(uri) {
+    return uriMap[uri] || (
+      parent && parent.byUri(uri)
+    );
+  };
+
+  this.add = function(ns, isWellknown) {
+
+    uriMap[ns.uri] = ns;
+
+    if (isWellknown) {
+      wellknown.push(ns);
+    } else {
+      custom.push(ns);
+    }
+
+    this.mapPrefix(ns.prefix, ns.uri);
+  };
+
+  this.uriByPrefix = function(prefix) {
+    return prefixMap[prefix || 'xmlns'];
+  };
+
+  this.mapPrefix = function(prefix, uri) {
+    prefixMap[prefix || 'xmlns'] = uri;
+  };
+
+  this.logUsed = function(ns) {
+    var uri = ns.uri;
+
+    used[uri] = this.byUri(uri);
+  };
+
+  this.getUsed = function(ns) {
+
+    function isUsed(ns) {
+      return used[ns.uri];
+    }
+
+    var allNs = [].concat(wellknown, custom);
+
+    return allNs.filter(isUsed);
+  };
+
+}
 
 function lower(string) {
   return string.charAt(0).toLowerCase() + string.slice(1);
@@ -51602,18 +51549,11 @@ function nsName(ns) {
 
 function getNsAttrs(namespaces) {
 
-  function isUsed(ns) {
-    return namespaces.used[ns.uri];
-  }
-
-  function toAttr(ns) {
+  return map(namespaces.getUsed(), function(ns) {
     var name = 'xmlns' + (ns.prefix ? ':' + ns.prefix : '');
     return { name: name, value: ns.uri };
-  }
+  });
 
-  var allNs = [].concat(namespaces.wellknown, namespaces.custom);
-
-  return map(filter(allNs, isUsed), toAttr);
 }
 
 function getElementNs(ns, descriptor) {
@@ -51694,8 +51634,8 @@ function filterContained(props) {
 }
 
 
-function ReferenceSerializer(parent, ns) {
-  this.ns = ns;
+function ReferenceSerializer(tagName) {
+  this.tagName = tagName;
 }
 
 ReferenceSerializer.prototype.build = function(element) {
@@ -51706,7 +51646,7 @@ ReferenceSerializer.prototype.build = function(element) {
 ReferenceSerializer.prototype.serializeTo = function(writer) {
   writer
     .appendIndent()
-    .append('<' + nsName(this.ns) + '>' + this.element.id + '</' + nsName(this.ns) + '>')
+    .append('<' + this.tagName + '>' + this.element.id + '</' + this.tagName + '>')
     .appendNewLine();
 };
 
@@ -51736,8 +51676,8 @@ BodySerializer.prototype.build = function(prop, value) {
   return this;
 };
 
-function ValueSerializer(ns) {
-  this.ns = ns;
+function ValueSerializer(tagName) {
+  this.tagName = tagName;
 }
 
 inherits(ValueSerializer, BodySerializer);
@@ -51746,42 +51686,57 @@ ValueSerializer.prototype.serializeTo = function(writer) {
 
   writer
     .appendIndent()
-    .append('<' + nsName(this.ns) + '>');
+    .append('<' + this.tagName + '>');
 
   this.serializeValue(writer);
 
   writer
-    .append('</' + nsName(this.ns) + '>')
+    .append('</' + this.tagName + '>')
     .appendNewLine();
 };
 
-function ElementSerializer(parent, ns) {
+function ElementSerializer(parent, propertyDescriptor) {
   this.body = [];
   this.attrs = [];
 
   this.parent = parent;
-  this.ns = ns;
+  this.propertyDescriptor = propertyDescriptor;
 }
 
 ElementSerializer.prototype.build = function(element) {
   this.element = element;
 
-  var otherAttrs = this.parseNsAttributes(element);
+  var elementDescriptor = element.$descriptor,
+      propertyDescriptor = this.propertyDescriptor;
 
-  if (!this.ns) {
-    this.ns = this.nsTagName(element.$descriptor);
+  var otherAttrs,
+      properties;
+
+  var isGeneric = elementDescriptor.isGeneric;
+
+  if (isGeneric) {
+    otherAttrs = this.parseGeneric(element);
+  } else {
+    otherAttrs = this.parseNsAttributes(element);
   }
 
-  if (element.$descriptor.isGeneric) {
-    this.parseGeneric(element);
+  if (propertyDescriptor) {
+    this.ns = this.nsPropertyTagName(propertyDescriptor);
   } else {
-    var properties = getSerializableProperties(element);
+    this.ns = this.nsTagName(elementDescriptor);
+  }
+
+  // compute tag name
+  this.tagName = this.addTagName(this.ns);
+
+  if (!isGeneric) {
+    properties = getSerializableProperties(element);
 
     this.parseAttributes(filterAttributes(properties));
     this.parseContainments(filterContained(properties));
-
-    this.parseGenericAttributes(element, otherAttrs);
   }
+
+  this.parseGenericAttributes(element, otherAttrs);
 
   return this;
 };
@@ -51804,7 +51759,7 @@ ElementSerializer.prototype.isLocalNs = function(ns) {
  * Get the actual ns attribute name for the given element.
  *
  * @param {Object} element
- * @param {Boolean} [inherited=false]
+ * @param {Boolean} [element.inherited=false]
  *
  * @return {Object} nsName
  */
@@ -51826,6 +51781,9 @@ ElementSerializer.prototype.nsAttributeName = function(element) {
   // parse + log effective ns
   var effectiveNs = this.logNamespaceUsed(ns);
 
+  // LOG ACTUAL namespace use
+  this.getNamespaces().logUsed(effectiveNs);
+
   // strip prefix if same namespace like parent
   if (this.isLocalNs(effectiveNs)) {
     return { localName: ns.localName };
@@ -51837,10 +51795,13 @@ ElementSerializer.prototype.nsAttributeName = function(element) {
 ElementSerializer.prototype.parseGeneric = function(element) {
 
   var self = this,
-      body = this.body,
-      attrs = this.attrs;
+      body = this.body;
+
+  var attributes = [];
 
   forEach(element, function(val, key) {
+
+    var nonNsAttr;
 
     if (key === '$body') {
       body.push(new BodySerializer().build({ type: 'String' }, val));
@@ -51851,10 +51812,52 @@ ElementSerializer.prototype.parseGeneric = function(element) {
       });
     } else
     if (key.indexOf('$') !== 0) {
-      attrs.push({ name: key, value: escapeAttr(val) });
+      nonNsAttr = self.parseNsAttribute(element, key, val);
+
+      if (nonNsAttr) {
+        attributes.push({ name: key, value: val });
+      }
     }
   });
+
+  return attributes;
 };
+
+ElementSerializer.prototype.parseNsAttribute = function(element, name, value) {
+  var model = element.$model;
+
+  var nameNs = parseNameNs(name);
+
+  var ns;
+
+  // parse xmlns:foo="http://foo.bar"
+  if (nameNs.prefix === 'xmlns') {
+    ns = { prefix: nameNs.localName, uri: value };
+  }
+
+  // parse xmlns="http://foo.bar"
+  if (!nameNs.prefix && nameNs.localName === 'xmlns') {
+    ns = { uri: value };
+  }
+
+  if (!ns) {
+    return {
+      name: name,
+      value: value
+    };
+  }
+
+  if (model && model.getPackage(value)) {
+    // register well known namespace
+    this.logNamespace(ns, true, true);
+  } else {
+    // log custom namespace directly as used
+    var actualNs = this.logNamespaceUsed(ns, true);
+
+    this.getNamespaces().logUsed(actualNs);
+  }
+};
+
 
 /**
  * Parse namespaces and return a list of left over generic attributes
@@ -51862,12 +51865,10 @@ ElementSerializer.prototype.parseGeneric = function(element) {
  * @param  {Object} element
  * @return {Array<Object>}
  */
-ElementSerializer.prototype.parseNsAttributes = function(element) {
+ElementSerializer.prototype.parseNsAttributes = function(element, attrs) {
   var self = this;
 
   var genericAttrs = element.$attrs;
-
-  var model = element.$model;
 
   var attributes = [];
 
@@ -51875,30 +51876,11 @@ ElementSerializer.prototype.parseNsAttributes = function(element) {
   // and log them. push non namespace attributes to a list
   // and process them later
   forEach(genericAttrs, function(value, name) {
-    var nameNs = parseNameNs(name);
 
-    var ns;
+    var nonNsAttr = self.parseNsAttribute(element, name, value);
 
-    // parse xmlns:foo="http://foo.bar"
-    if (nameNs.prefix === 'xmlns') {
-      ns = { prefix: nameNs.localName, uri: value };
-    }
-
-    // parse xmlns="http://foo.bar"
-    if (!nameNs.prefix && nameNs.localName === 'xmlns') {
-      ns = { uri: value };
-    }
-
-    if (ns) {
-      if (model.getPackage(value)) {
-        // register well known namespace
-        self.logNamespace(ns, true);
-      } else {
-        // log custom namespace directly as used
-        self.logNamespaceUsed(ns);
-      }
-    } else {
-      attributes.push({ name: name, value: value });
+    if (nonNsAttr) {
+      attributes.push(nonNsAttr);
     }
   });
 
@@ -51939,8 +51921,6 @@ ElementSerializer.prototype.parseContainments = function(properties) {
         isReference = p.isReference,
         isMany = p.isMany;
 
-    var ns = self.nsPropertyTagName(p);
-
     if (!isMany) {
       value = [ value ];
     }
@@ -51950,12 +51930,12 @@ ElementSerializer.prototype.parseContainments = function(properties) {
     } else
     if (Types.isSimple(p.type)) {
       forEach(value, function(v) {
-        body.push(new ValueSerializer(ns).build(p, v));
+        body.push(new ValueSerializer(self.addTagName(self.nsPropertyTagName(p))).build(p, v));
       });
     } else
     if (isReference) {
       forEach(value, function(v) {
-        body.push(new ReferenceSerializer(self, ns).build(v));
+        body.push(new ReferenceSerializer(self.addTagName(self.nsPropertyTagName(p))).build(v));
       });
     } else {
       // allow serialization via type
@@ -51967,10 +51947,10 @@ ElementSerializer.prototype.parseContainments = function(properties) {
         var serializer;
 
         if (asType) {
-          serializer = new TypeSerializer(self, ns);
+          serializer = new TypeSerializer(self, p);
         } else
         if (asProperty) {
-          serializer = new ElementSerializer(self, ns);
+          serializer = new ElementSerializer(self, p);
         } else {
           serializer = new ElementSerializer(self);
         }
@@ -51981,50 +51961,46 @@ ElementSerializer.prototype.parseContainments = function(properties) {
   });
 };
 
-ElementSerializer.prototype.getNamespaces = function() {
+ElementSerializer.prototype.getNamespaces = function(local) {
 
   var namespaces = this.namespaces,
-      parent = this.parent;
+      parent = this.parent,
+      parentNamespaces;
 
   if (!namespaces) {
-    namespaces = this.namespaces = parent ? parent.getNamespaces() : {
-      prefixMap: {},
-      uriMap: {},
-      used: {},
-      wellknown: [],
-      custom: []
-    };
+    parentNamespaces = parent && parent.getNamespaces();
+
+    if (local || !parentNamespaces) {
+      this.namespaces = namespaces = new Namespaces(parentNamespaces);
+    } else {
+      namespaces = parentNamespaces;
+    }
   }
 
   return namespaces;
 };
 
-ElementSerializer.prototype.logNamespace = function(ns, wellknown) {
-  var namespaces = this.getNamespaces();
+ElementSerializer.prototype.logNamespace = function(ns, wellknown, local) {
+  var namespaces = this.getNamespaces(local);
 
-  var nsUri = ns.uri;
+  var nsUri = ns.uri,
+      nsPrefix = ns.prefix;
 
-  var existing = namespaces.uriMap[nsUri];
+  var existing = namespaces.byUri(nsUri);
 
   if (!existing) {
-    namespaces.uriMap[nsUri] = ns;
-
-    if (wellknown) {
-      namespaces.wellknown.push(ns);
-    } else {
-      namespaces.custom.push(ns);
-    }
+    namespaces.add(ns, wellknown);
   }
 
-  namespaces.prefixMap[ns.prefix] = nsUri;
+  namespaces.mapPrefix(nsPrefix, nsUri);
 
   return ns;
 };
 
-ElementSerializer.prototype.logNamespaceUsed = function(ns) {
+ElementSerializer.prototype.logNamespaceUsed = function(ns, local) {
   var element = this.element,
       model = element.$model,
-      namespaces = this.getNamespaces();
+      namespaces = this.getNamespaces(local);
 
   // ns may be
   //
@@ -52044,28 +52020,24 @@ ElementSerializer.prototype.logNamespaceUsed = function(ns) {
 
   wellknownUri = DEFAULT_NS_MAP[prefix] || model && (model.getPackage(prefix) || {}).uri;
 
-  uri = uri || wellknownUri || namespaces.prefixMap[prefix];
+  uri = uri || wellknownUri || namespaces.uriByPrefix(prefix);
 
   if (!uri) {
     throw new Error('no namespace uri given for prefix <' + prefix + '>');
   }
 
-  ns = namespaces.uriMap[uri];
+  ns = namespaces.byUri(uri);
 
   if (!ns) {
     newPrefix = prefix;
     idx = 1;
 
     // find a prefix that is not mapped yet
-    while (namespaces.prefixMap[newPrefix]) {
+    while (namespaces.uriByPrefix(newPrefix)) {
       newPrefix = prefix + '_' + idx++;
     }
 
     ns = this.logNamespace({ prefix: newPrefix, uri: uri }, wellknownUri === uri);
-  }
-
-  if (!namespaces.used[ns.uri]) {
-    namespaces.used[ns.uri] = ns;
   }
 
   return ns;
@@ -52099,6 +52071,14 @@ ElementSerializer.prototype.parseAttributes = function(properties) {
   });
 };
 
+ElementSerializer.prototype.addTagName = function(nsTagName) {
+  var actualNs = this.logNamespaceUsed(nsTagName);
+
+  this.getNamespaces().logUsed(actualNs);
+
+  return nsName(nsTagName);
+};
+
 ElementSerializer.prototype.addAttribute = function(name, value) {
   var attrs = this.attrs;
 
@@ -52111,10 +52091,10 @@ ElementSerializer.prototype.addAttribute = function(name, value) {
 
 ElementSerializer.prototype.serializeAttributes = function(writer) {
   var attrs = this.attrs,
-      root = !this.parent;
+      namespaces = this.namespaces;
 
-  if (root) {
-    attrs = getNsAttrs(this.namespaces).concat(attrs);
+  if (namespaces) {
+    attrs = getNsAttrs(namespaces).concat(attrs);
   }
 
   forEach(attrs, function(a) {
@@ -52130,7 +52110,7 @@ ElementSerializer.prototype.serializeTo = function(writer) {
 
   writer
     .appendIndent()
-    .append('<' + nsName(this.ns));
+    .append('<' + this.tagName);
 
   this.serializeAttributes(writer);
 
@@ -52154,7 +52134,7 @@ ElementSerializer.prototype.serializeTo = function(writer) {
         .appendIndent();
     }
 
-    writer.append('</' + nsName(this.ns) + '>');
+    writer.append('</' + this.tagName + '>');
   }
 
   writer.appendNewLine();
@@ -52163,32 +52143,39 @@ ElementSerializer.prototype.serializeTo = function(writer) {
 /**
  * A serializer for types that handles serialization of data types
  */
-function TypeSerializer(parent, ns) {
-  ElementSerializer.call(this, parent, ns);
+function TypeSerializer(parent, propertyDescriptor) {
+  ElementSerializer.call(this, parent, propertyDescriptor);
 }
 
 inherits(TypeSerializer, ElementSerializer);
 
-TypeSerializer.prototype.build = function(element) {
+TypeSerializer.prototype.parseNsAttributes = function(element) {
+
+  // extracted attributes
+  var attributes = ElementSerializer.prototype.parseNsAttributes.call(this, element);
+
   var descriptor = element.$descriptor;
 
-  this.element = element;
+  // only serialize xsi:type if necessary
+  if (descriptor.name === this.propertyDescriptor.type) {
+    return attributes;
+  }
 
-  this.typeNs = this.nsTagName(descriptor);
+  var typeNs = this.typeNs = this.nsTagName(descriptor);
+  this.getNamespaces().logUsed(this.typeNs);
 
   // add xsi:type attribute to represent the elements
   // actual type
 
-  var typeNs = this.typeNs,
-      pkg = element.$model.getPackage(typeNs.uri),
+  var pkg = element.$model.getPackage(typeNs.uri),
       typePrefix = (pkg.xml && pkg.xml.typePrefix) || '';
 
-  this.addAttribute(this.nsAttributeName(XSI_TYPE),
-    (typeNs.prefix ? typeNs.prefix + ':' : '') +
-    typePrefix + descriptor.ns.localName);
+  this.addAttribute(
+    this.nsAttributeName(XSI_TYPE),
+    (typeNs.prefix ? typeNs.prefix + ':' : '') + typePrefix + descriptor.ns.localName
+  );
 
-  // do the usual stuff
-  return ElementSerializer.prototype.build.call(this, element);
+  return attributes;
 };
 
 TypeSerializer.prototype.isLocalNs = function(ns) {
@@ -52271,9 +52258,9 @@ function XMLWriter(options) {
 
 module.exports = XMLWriter;
 
-},{"301":301,"303":303,"305":305,"428":428,"431":431,"454":454,"462":462,"465":465}],457:[function(_dereq_,module,exports){
-module.exports = _dereq_(461);
-},{"461":461}],458:[function(_dereq_,module,exports){
+},{"304":304,"306":306,"308":308,"431":431,"434":434,"458":458,"466":466,"469":469}],461:[function(_dereq_,module,exports){
+module.exports = _dereq_(465);
+},{"465":465}],462:[function(_dereq_,module,exports){
 'use strict';
 
 function Base() { }
@@ -52288,14 +52275,14 @@ Base.prototype.set = function(name, value) {
 
 
 module.exports = Base;
-},{}],459:[function(_dereq_,module,exports){
+},{}],463:[function(_dereq_,module,exports){
 'use strict';
 
-var pick = _dereq_(438),
-    assign = _dereq_(431),
-    forEach = _dereq_(303);
+var pick = _dereq_(441),
+    assign = _dereq_(434),
+    forEach = _dereq_(306);
 
-var parseNameNs = _dereq_(462).parseName;
+var parseNameNs = _dereq_(466).parseName;
 
 
 function DescriptorBuilder(nameNs) {
@@ -52519,12 +52506,12 @@ DescriptorBuilder.prototype.addTrait = function(t, inherited) {
   typesByName[typeName] = t;
 };
 
-},{"303":303,"431":431,"438":438,"462":462}],460:[function(_dereq_,module,exports){
+},{"306":306,"434":434,"441":441,"466":466}],464:[function(_dereq_,module,exports){
 'use strict';
 
-var forEach = _dereq_(303);
+var forEach = _dereq_(306);
 
-var Base = _dereq_(458);
+var Base = _dereq_(462);
 
 
 function Factory(model, properties) {
@@ -52577,19 +52564,19 @@ Factory.prototype.createType = function(descriptor) {
 
   return ModdleElement;
 };
-},{"303":303,"458":458}],461:[function(_dereq_,module,exports){
+},{"306":306,"462":462}],465:[function(_dereq_,module,exports){
 'use strict';
 
-var isString = _dereq_(428),
-    isObject = _dereq_(426),
-    forEach = _dereq_(303);
+var isString = _dereq_(431),
+    isObject = _dereq_(429),
+    forEach = _dereq_(306);
 
 
-var Factory = _dereq_(460),
-    Registry = _dereq_(464),
-    Properties = _dereq_(463);
+var Factory = _dereq_(464),
+    Registry = _dereq_(468),
+    Properties = _dereq_(467);
 
-var parseNameNs = _dereq_(462).parseName;
+var parseNameNs = _dereq_(466).parseName;
 
 
 //// Moddle implementation /////////////////////////////////////////////////
@@ -52802,7 +52789,7 @@ Moddle.prototype.getTypeDescriptor = function(type) {
   return this.registry.typeMap[type];
 };
 
-},{"303":303,"426":426,"428":428,"460":460,"462":462,"463":463,"464":464}],462:[function(_dereq_,module,exports){
+},{"306":306,"429":429,"431":431,"464":464,"466":466,"467":467,"468":468}],466:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -52839,7 +52826,7 @@ module.exports.parseName = function(name, defaultPrefix) {
     localName: localName
   };
 };
-},{}],463:[function(_dereq_,module,exports){
+},{}],467:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -52958,16 +52945,16 @@ function defineProperty(target, property, value) {
     configurable: true
   });
 }
-},{}],464:[function(_dereq_,module,exports){
+},{}],468:[function(_dereq_,module,exports){
 'use strict';
 
-var assign = _dereq_(431),
-    forEach = _dereq_(303);
+var assign = _dereq_(434),
+    forEach = _dereq_(306);
 
-var Types = _dereq_(465),
-    DescriptorBuilder = _dereq_(459);
+var Types = _dereq_(469),
+    DescriptorBuilder = _dereq_(463);
 
-var parseNameNs = _dereq_(462).parseName,
+var parseNameNs = _dereq_(466).parseName,
     isBuiltInType = Types.isBuiltIn;
 
 
@@ -53163,7 +53150,7 @@ function ensureAvailable(packageMap, pkg, identifierKey) {
   }
 }
 
-},{"303":303,"431":431,"459":459,"462":462,"465":465}],465:[function(_dereq_,module,exports){
+},{"306":306,"434":434,"463":463,"466":466,"469":469}],469:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -53214,11 +53201,11 @@ module.exports.isBuiltIn = function(type) {
 module.exports.isSimple = function(type) {
   return !!TYPE_CONVERTERS[type];
 };
-},{}],466:[function(_dereq_,module,exports){
-module.exports = _dereq_(468);
+},{}],470:[function(_dereq_,module,exports){
+module.exports = _dereq_(472);
 
-module.exports.Collection = _dereq_(467);
-},{"467":467,"468":468}],467:[function(_dereq_,module,exports){
+module.exports.Collection = _dereq_(471);
+},{"471":471,"472":472}],471:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -53315,10 +53302,10 @@ function isExtended(collection) {
 module.exports.extend = extend;
 
 module.exports.isExtended = isExtended;
-},{}],468:[function(_dereq_,module,exports){
+},{}],472:[function(_dereq_,module,exports){
 'use strict';
 
-var Collection = _dereq_(467);
+var Collection = _dereq_(471);
 
 function hasOwnProperty(e, property) {
   return Object.prototype.hasOwnProperty.call(e, property.name || property);
@@ -53507,7 +53494,1101 @@ module.exports = Refs;
  * @property {boolean} [collection=false]
  * @property {boolean} [enumerable=false]
  */
-},{"467":467}],469:[function(_dereq_,module,exports){
+},{"471":471}],473:[function(_dereq_,module,exports){
+'use strict';
+
+/**
+ * This file contains portions that got extraced from Snap.svg (licensed Apache-2.0).
+ *
+ * @see https://github.com/adobe-webplatform/Snap.svg/blob/master/src/path.js
+ */
+
+/* eslint no-fallthrough: "off" */
+
+var has = 'hasOwnProperty',
+    p2s = /,?([a-z]),?/gi,
+    toFloat = parseFloat,
+    math = Math,
+    PI = math.PI,
+    mmin = math.min,
+    mmax = math.max,
+    pow = math.pow,
+    abs = math.abs,
+    pathCommand = /([a-z])[\s,]*((-?\d*\.?\d*(?:e[-+]?\d+)?[\s]*,?[\s]*)+)/ig,
+    pathValues = /(-?\d*\.?\d*(?:e[-+]?\\d+)?)[\s]*,?[\s]*/ig;
+
+function is(o, type) {
+  type = String.prototype.toLowerCase.call(type);
+
+  if (type == 'finite') {
+    return isFinite(o);
+  }
+
+  if (type == 'array' && (o instanceof Array || Array.isArray && Array.isArray(o))) {
+    return true;
+  }
+
+  return  (type == 'null' && o === null) ||
+          (type == typeof o && o !== null) ||
+          (type == 'object' && o === Object(o)) ||
+          Object.prototype.toString.call(o).slice(8, -1).toLowerCase() == type;
+}
+
+function clone(obj) {
+
+  if (typeof obj == 'function' || Object(obj) !== obj) {
+    return obj;
+  }
+
+  var res = new obj.constructor;
+
+  for (var key in obj) if (obj[has](key)) {
+    res[key] = clone(obj[key]);
+  }
+
+  return res;
+}
+
+function repush(array, item) {
+  for (var i = 0, ii = array.length; i < ii; i++) if (array[i] === item) {
+    return array.push(array.splice(i, 1)[0]);
+  }
+}
+
+function cacher(f, scope, postprocessor) {
+
+  function newf() {
+
+    var arg = Array.prototype.slice.call(arguments, 0),
+        args = arg.join('\u2400'),
+        cache = newf.cache = newf.cache || {},
+        count = newf.count = newf.count || [];
+
+    if (cache[has](args)) {
+      repush(count, args);
+      return postprocessor ? postprocessor(cache[args]) : cache[args];
+    }
+
+    count.length >= 1e3 && delete cache[count.shift()];
+    count.push(args);
+    cache[args] = f.apply(scope, arg);
+
+    return postprocessor ? postprocessor(cache[args]) : cache[args];
+  }
+  return newf;
+}
+
+function parsePathString(pathString) {
+
+  if (!pathString) {
+    return null;
+  }
+
+  var pth = paths(pathString);
+
+  if (pth.arr) {
+    return clone(pth.arr);
+  }
+
+  var paramCounts = { a: 7, c: 6, o: 2, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, u: 3, z: 0 },
+      data = [];
+
+  if (is(pathString, 'array') && is(pathString[0], 'array')) { // rough assumption
+    data = clone(pathString);
+  }
+
+  if (!data.length) {
+
+    String(pathString).replace(pathCommand, function(a, b, c) {
+      var params = [],
+          name = b.toLowerCase();
+
+      c.replace(pathValues, function(a, b) {
+        b && params.push(+b);
+      });
+
+      if (name == 'm' && params.length > 2) {
+        data.push([b].concat(params.splice(0, 2)));
+        name = 'l';
+        b = b == 'm' ? 'l' : 'L';
+      }
+
+      if (name == 'o' && params.length == 1) {
+        data.push([b, params[0]]);
+      }
+
+      if (name == 'r') {
+        data.push([b].concat(params));
+      } else while (params.length >= paramCounts[name]) {
+        data.push([b].concat(params.splice(0, paramCounts[name])));
+        if (!paramCounts[name]) {
+          break;
+        }
+      }
+    });
+  }
+
+  data.toString = paths.toString;
+  pth.arr = clone(data);
+
+  return data;
+}
+
+function paths(ps) {
+  var p = paths.ps = paths.ps || {};
+
+  if (p[ps]) {
+    p[ps].sleep = 100;
+  } else {
+    p[ps] = {
+      sleep: 100
+    };
+  }
+
+  setTimeout(function() {
+    for (var key in p) if (p[has](key) && key != ps) {
+      p[key].sleep--;
+      !p[key].sleep && delete p[key];
+    }
+  });
+
+  return p[ps];
+}
+
+function box(x, y, width, height) {
+  if (x == null) {
+    x = y = width = height = 0;
+  }
+
+  if (y == null) {
+    y = x.y;
+    width = x.width;
+    height = x.height;
+    x = x.x;
+  }
+
+  return {
+    x: x,
+    y: y,
+    width: width,
+    w: width,
+    height: height,
+    h: height,
+    x2: x + width,
+    y2: y + height,
+    cx: x + width / 2,
+    cy: y + height / 2,
+    r1: math.min(width, height) / 2,
+    r2: math.max(width, height) / 2,
+    r0: math.sqrt(width * width + height * height) / 2,
+    path: rectPath(x, y, width, height),
+    vb: [x, y, width, height].join(' ')
+  };
+}
+
+function pathToString() {
+  return this.join(',').replace(p2s, '$1');
+}
+
+function pathClone(pathArray) {
+  var res = clone(pathArray);
+  res.toString = pathToString;
+  return res;
+}
+
+function findDotsAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
+  var t1 = 1 - t,
+      t13 = pow(t1, 3),
+      t12 = pow(t1, 2),
+      t2 = t * t,
+      t3 = t2 * t,
+      x = t13 * p1x + t12 * 3 * t * c1x + t1 * 3 * t * t * c2x + t3 * p2x,
+      y = t13 * p1y + t12 * 3 * t * c1y + t1 * 3 * t * t * c2y + t3 * p2y,
+      mx = p1x + 2 * t * (c1x - p1x) + t2 * (c2x - 2 * c1x + p1x),
+      my = p1y + 2 * t * (c1y - p1y) + t2 * (c2y - 2 * c1y + p1y),
+      nx = c1x + 2 * t * (c2x - c1x) + t2 * (p2x - 2 * c2x + c1x),
+      ny = c1y + 2 * t * (c2y - c1y) + t2 * (p2y - 2 * c2y + c1y),
+      ax = t1 * p1x + t * c1x,
+      ay = t1 * p1y + t * c1y,
+      cx = t1 * c2x + t * p2x,
+      cy = t1 * c2y + t * p2y,
+      alpha = (90 - math.atan2(mx - nx, my - ny) * 180 / PI);
+
+  return {
+    x: x,
+    y: y,
+    m: { x: mx, y: my },
+    n: { x: nx, y: ny },
+    start: { x: ax, y: ay },
+    end: { x: cx, y: cy },
+    alpha: alpha
+  };
+}
+
+function bezierBBox(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
+
+  if (!is(p1x, 'array')) {
+    p1x = [p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y];
+  }
+
+  var bbox = curveBBox.apply(null, p1x);
+
+  return box(
+    bbox.min.x,
+    bbox.min.y,
+    bbox.max.x - bbox.min.x,
+    bbox.max.y - bbox.min.y
+  );
+}
+
+function isPointInsideBBox(bbox, x, y) {
+  return x >= bbox.x &&
+    x <= bbox.x + bbox.width &&
+    y >= bbox.y &&
+    y <= bbox.y + bbox.height;
+}
+
+function isBBoxIntersect(bbox1, bbox2) {
+  bbox1 = box(bbox1);
+  bbox2 = box(bbox2);
+  return isPointInsideBBox(bbox2, bbox1.x, bbox1.y)
+    || isPointInsideBBox(bbox2, bbox1.x2, bbox1.y)
+    || isPointInsideBBox(bbox2, bbox1.x, bbox1.y2)
+    || isPointInsideBBox(bbox2, bbox1.x2, bbox1.y2)
+    || isPointInsideBBox(bbox1, bbox2.x, bbox2.y)
+    || isPointInsideBBox(bbox1, bbox2.x2, bbox2.y)
+    || isPointInsideBBox(bbox1, bbox2.x, bbox2.y2)
+    || isPointInsideBBox(bbox1, bbox2.x2, bbox2.y2)
+    || (bbox1.x < bbox2.x2 && bbox1.x > bbox2.x
+        || bbox2.x < bbox1.x2 && bbox2.x > bbox1.x)
+    && (bbox1.y < bbox2.y2 && bbox1.y > bbox2.y
+        || bbox2.y < bbox1.y2 && bbox2.y > bbox1.y);
+}
+
+function base3(t, p1, p2, p3, p4) {
+  var t1 = -3 * p1 + 9 * p2 - 9 * p3 + 3 * p4,
+      t2 = t * t1 + 6 * p1 - 12 * p2 + 6 * p3;
+  return t * t2 - 3 * p1 + 3 * p2;
+}
+
+function bezlen(x1, y1, x2, y2, x3, y3, x4, y4, z) {
+
+  if (z == null) {
+    z = 1;
+  }
+
+  z = z > 1 ? 1 : z < 0 ? 0 : z;
+
+  var z2 = z / 2,
+      n = 12,
+      Tvalues = [-.1252,.1252,-.3678,.3678,-.5873,.5873,-.7699,.7699,-.9041,.9041,-.9816,.9816],
+      Cvalues = [0.2491,0.2491,0.2335,0.2335,0.2032,0.2032,0.1601,0.1601,0.1069,0.1069,0.0472,0.0472],
+      sum = 0;
+
+  for (var i = 0; i < n; i++) {
+    var ct = z2 * Tvalues[i] + z2,
+        xbase = base3(ct, x1, x2, x3, x4),
+        ybase = base3(ct, y1, y2, y3, y4),
+        comb = xbase * xbase + ybase * ybase;
+
+    sum += Cvalues[i] * math.sqrt(comb);
+  }
+
+  return z2 * sum;
+}
+
+
+function intersectLines(x1, y1, x2, y2, x3, y3, x4, y4) {
+
+  if (
+    mmax(x1, x2) < mmin(x3, x4) ||
+      mmin(x1, x2) > mmax(x3, x4) ||
+      mmax(y1, y2) < mmin(y3, y4) ||
+      mmin(y1, y2) > mmax(y3, y4)
+  ) {
+    return;
+  }
+
+  var nx = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4),
+      ny = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4),
+      denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+
+  if (!denominator) {
+    return;
+  }
+
+  var px = nx / denominator,
+      py = ny / denominator,
+      px2 = +px.toFixed(2),
+      py2 = +py.toFixed(2);
+
+  if (
+    px2 < +mmin(x1, x2).toFixed(2) ||
+      px2 > +mmax(x1, x2).toFixed(2) ||
+      px2 < +mmin(x3, x4).toFixed(2) ||
+      px2 > +mmax(x3, x4).toFixed(2) ||
+      py2 < +mmin(y1, y2).toFixed(2) ||
+      py2 > +mmax(y1, y2).toFixed(2) ||
+      py2 < +mmin(y3, y4).toFixed(2) ||
+      py2 > +mmax(y3, y4).toFixed(2)
+  ) {
+    return;
+  }
+
+  return { x: px, y: py };
+}
+
+function findBezierIntersections(bez1, bez2, justCount) {
+  var bbox1 = bezierBBox(bez1),
+      bbox2 = bezierBBox(bez2);
+
+  if (!isBBoxIntersect(bbox1, bbox2)) {
+    return justCount ? 0 : [];
+  }
+
+  var l1 = bezlen.apply(0, bez1),
+      l2 = bezlen.apply(0, bez2),
+      n1 = ~~(l1 / 5),
+      n2 = ~~(l2 / 5),
+      dots1 = [],
+      dots2 = [],
+      xy = {},
+      res = justCount ? 0 : [];
+
+  for (var i = 0; i < n1 + 1; i++) {
+    var p = findDotsAtSegment.apply(0, bez1.concat(i / n1));
+    dots1.push({ x: p.x, y: p.y, t: i / n1 });
+  }
+
+  for (i = 0; i < n2 + 1; i++) {
+    p = findDotsAtSegment.apply(0, bez2.concat(i / n2));
+    dots2.push({ x: p.x, y: p.y, t: i / n2 });
+  }
+
+  for (i = 0; i < n1; i++) {
+
+    for (var j = 0; j < n2; j++) {
+      var di = dots1[i],
+          di1 = dots1[i + 1],
+          dj = dots2[j],
+          dj1 = dots2[j + 1],
+          ci = abs(di1.x - di.x) < .01 ? 'y' : 'x',
+          cj = abs(dj1.x - dj.x) < .01 ? 'y' : 'x',
+          is = intersectLines(di.x, di.y, di1.x, di1.y, dj.x, dj.y, dj1.x, dj1.y);
+
+      if (is) {
+
+        if (xy[is.x.toFixed(0)] == is.y.toFixed(0)) {
+          continue;
+        }
+
+        xy[is.x.toFixed(0)] = is.y.toFixed(0);
+
+        var t1 = di.t + abs((is[ci] - di[ci]) / (di1[ci] - di[ci])) * (di1.t - di.t),
+            t2 = dj.t + abs((is[cj] - dj[cj]) / (dj1[cj] - dj[cj])) * (dj1.t - dj.t);
+
+        if (t1 >= 0 && t1 <= 1 && t2 >= 0 && t2 <= 1) {
+
+          if (justCount) {
+            res++;
+          } else {
+            res.push({
+              x: is.x,
+              y: is.y,
+              t1: t1,
+              t2: t2
+            });
+          }
+        }
+      }
+    }
+  }
+
+  return res;
+}
+
+
+function findPathIntersections(path1, path2, justCount) {
+  path1 = pathToCurve(path1);
+  path2 = pathToCurve(path2);
+
+  var x1, y1, x2, y2, x1m, y1m, x2m, y2m, bez1, bez2,
+      res = justCount ? 0 : [];
+
+  for (var i = 0, ii = path1.length; i < ii; i++) {
+    var pi = path1[i];
+
+    if (pi[0] == 'M') {
+      x1 = x1m = pi[1];
+      y1 = y1m = pi[2];
+    } else {
+
+      if (pi[0] == 'C') {
+        bez1 = [x1, y1].concat(pi.slice(1));
+        x1 = bez1[6];
+        y1 = bez1[7];
+      } else {
+        bez1 = [x1, y1, x1, y1, x1m, y1m, x1m, y1m];
+        x1 = x1m;
+        y1 = y1m;
+      }
+
+      for (var j = 0, jj = path2.length; j < jj; j++) {
+        var pj = path2[j];
+
+        if (pj[0] == 'M') {
+          x2 = x2m = pj[1];
+          y2 = y2m = pj[2];
+        } else {
+
+          if (pj[0] == 'C') {
+            bez2 = [x2, y2].concat(pj.slice(1));
+            x2 = bez2[6];
+            y2 = bez2[7];
+          } else {
+            bez2 = [x2, y2, x2, y2, x2m, y2m, x2m, y2m];
+            x2 = x2m;
+            y2 = y2m;
+          }
+
+          var intr = findBezierIntersections(bez1, bez2, justCount);
+
+          if (justCount) {
+            res += intr;
+          } else {
+
+            for (var k = 0, kk = intr.length; k < kk; k++) {
+              intr[k].segment1 = i;
+              intr[k].segment2 = j;
+              intr[k].bez1 = bez1;
+              intr[k].bez2 = bez2;
+            }
+
+            res = res.concat(intr);
+          }
+        }
+      }
+    }
+  }
+
+  return res;
+}
+
+
+function rectPath(x, y, w, h, r) {
+  if (r) {
+    return [
+      ['M', +x + (+r), y],
+      ['l', w - r * 2, 0],
+      ['a', r, r, 0, 0, 1, r, r],
+      ['l', 0, h - r * 2],
+      ['a', r, r, 0, 0, 1, -r, r],
+      ['l', r * 2 - w, 0],
+      ['a', r, r, 0, 0, 1, -r, -r],
+      ['l', 0, r * 2 - h],
+      ['a', r, r, 0, 0, 1, r, -r],
+      ['z']
+    ];
+  }
+
+  var res = [['M', x, y], ['l', w, 0], ['l', 0, h], ['l', -w, 0], ['z']];
+  res.toString = pathToString;
+
+  return res;
+}
+
+function ellipsePath(x, y, rx, ry, a) {
+  if (a == null && ry == null) {
+    ry = rx;
+  }
+
+  x = +x;
+  y = +y;
+  rx = +rx;
+  ry = +ry;
+
+  if (a != null) {
+    var rad = Math.PI / 180,
+        x1 = x + rx * Math.cos(-ry * rad),
+        x2 = x + rx * Math.cos(-a * rad),
+        y1 = y + rx * Math.sin(-ry * rad),
+        y2 = y + rx * Math.sin(-a * rad),
+        res = [['M', x1, y1], ['A', rx, rx, 0, +(a - ry > 180), 0, x2, y2]];
+  } else {
+    res = [
+      ['M', x, y],
+      ['m', 0, -ry],
+      ['a', rx, ry, 0, 1, 1, 0, 2 * ry],
+      ['a', rx, ry, 0, 1, 1, 0, -2 * ry],
+      ['z']
+    ];
+  }
+
+  res.toString = pathToString;
+
+  return res;
+}
+
+
+function pathToAbsolute(pathArray) {
+  var pth = paths(pathArray);
+
+  if (pth.abs) {
+    return pathClone(pth.abs);
+  }
+
+  if (!is(pathArray, 'array') || !is(pathArray && pathArray[0], 'array')) { // rough assumption
+    pathArray = parsePathString(pathArray);
+  }
+
+  if (!pathArray || !pathArray.length) {
+    return [['M', 0, 0]];
+  }
+
+  var res = [],
+      x = 0,
+      y = 0,
+      mx = 0,
+      my = 0,
+      start = 0,
+      pa0;
+
+  if (pathArray[0][0] == 'M') {
+    x = +pathArray[0][1];
+    y = +pathArray[0][2];
+    mx = x;
+    my = y;
+    start++;
+    res[0] = ['M', x, y];
+  }
+
+  var crz = pathArray.length == 3 &&
+      pathArray[0][0] == 'M' &&
+      pathArray[1][0].toUpperCase() == 'R' &&
+      pathArray[2][0].toUpperCase() == 'Z';
+
+  for (var r, pa, i = start, ii = pathArray.length; i < ii; i++) {
+    res.push(r = []);
+    pa = pathArray[i];
+    pa0 = pa[0];
+
+    if (pa0 != pa0.toUpperCase()) {
+      r[0] = pa0.toUpperCase();
+
+      switch (r[0]) {
+      case 'A':
+        r[1] = pa[1];
+        r[2] = pa[2];
+        r[3] = pa[3];
+        r[4] = pa[4];
+        r[5] = pa[5];
+        r[6] = +pa[6] + x;
+        r[7] = +pa[7] + y;
+        break;
+      case 'V':
+        r[1] = +pa[1] + y;
+        break;
+      case 'H':
+        r[1] = +pa[1] + x;
+        break;
+      case 'R':
+        var dots = [x, y].concat(pa.slice(1));
+
+        for (var j = 2, jj = dots.length; j < jj; j++) {
+          dots[j] = +dots[j] + x;
+          dots[++j] = +dots[j] + y;
+        }
+
+        res.pop();
+        res = res.concat(catmulRomToBezier(dots, crz));
+        break;
+      case 'O':
+        res.pop();
+        dots = ellipsePath(x, y, pa[1], pa[2]);
+        dots.push(dots[0]);
+        res = res.concat(dots);
+        break;
+      case 'U':
+        res.pop();
+        res = res.concat(ellipsePath(x, y, pa[1], pa[2], pa[3]));
+        r = ['U'].concat(res[res.length - 1].slice(-2));
+        break;
+      case 'M':
+        mx = +pa[1] + x;
+        my = +pa[2] + y;
+      default:
+
+        for (j = 1, jj = pa.length; j < jj; j++) {
+          r[j] = +pa[j] + ((j % 2) ? x : y);
+        }
+      }
+    } else if (pa0 == 'R') {
+      dots = [x, y].concat(pa.slice(1));
+      res.pop();
+      res = res.concat(catmulRomToBezier(dots, crz));
+      r = ['R'].concat(pa.slice(-2));
+    } else if (pa0 == 'O') {
+      res.pop();
+      dots = ellipsePath(x, y, pa[1], pa[2]);
+      dots.push(dots[0]);
+      res = res.concat(dots);
+    } else if (pa0 == 'U') {
+      res.pop();
+      res = res.concat(ellipsePath(x, y, pa[1], pa[2], pa[3]));
+      r = ['U'].concat(res[res.length - 1].slice(-2));
+    } else {
+
+      for (var k = 0, kk = pa.length; k < kk; k++) {
+        r[k] = pa[k];
+      }
+    }
+    pa0 = pa0.toUpperCase();
+
+    if (pa0 != 'O') {
+      switch (r[0]) {
+      case 'Z':
+        x = +mx;
+        y = +my;
+        break;
+      case 'H':
+        x = r[1];
+        break;
+      case 'V':
+        y = r[1];
+        break;
+      case 'M':
+        mx = r[r.length - 2];
+        my = r[r.length - 1];
+      default:
+        x = r[r.length - 2];
+        y = r[r.length - 1];
+      }
+    }
+  }
+
+  res.toString = pathToString;
+  pth.abs = pathClone(res);
+
+  return res;
+}
+
+function lineToCurve(x1, y1, x2, y2) {
+  return [
+    x1, y1, x2,
+    y2, x2, y2
+  ];
+}
+
+function qubicToCurve(x1, y1, ax, ay, x2, y2) {
+  var _13 = 1 / 3,
+      _23 = 2 / 3;
+
+  return [
+    _13 * x1 + _23 * ax,
+    _13 * y1 + _23 * ay,
+    _13 * x2 + _23 * ax,
+    _13 * y2 + _23 * ay,
+    x2,
+    y2
+  ];
+}
+
+function arcToCurve(x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x2, y2, recursive) {
+
+  // for more information of where this math came from visit:
+  // http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
+  var _120 = PI * 120 / 180,
+      rad = PI / 180 * (+angle || 0),
+      res = [],
+      xy,
+      rotate = cacher(function(x, y, rad) {
+        var X = x * math.cos(rad) - y * math.sin(rad),
+            Y = x * math.sin(rad) + y * math.cos(rad);
+
+        return { x: X, y: Y };
+      });
+
+  if (!recursive) {
+    xy = rotate(x1, y1, -rad);
+    x1 = xy.x;
+    y1 = xy.y;
+    xy = rotate(x2, y2, -rad);
+    x2 = xy.x;
+    y2 = xy.y;
+
+    var x = (x1 - x2) / 2,
+        y = (y1 - y2) / 2;
+
+    var h = (x * x) / (rx * rx) + (y * y) / (ry * ry);
+
+    if (h > 1) {
+      h = math.sqrt(h);
+      rx = h * rx;
+      ry = h * ry;
+    }
+
+    var rx2 = rx * rx,
+        ry2 = ry * ry,
+        k = (large_arc_flag == sweep_flag ? -1 : 1) *
+            math.sqrt(abs((rx2 * ry2 - rx2 * y * y - ry2 * x * x) / (rx2 * y * y + ry2 * x * x))),
+        cx = k * rx * y / ry + (x1 + x2) / 2,
+        cy = k * -ry * x / rx + (y1 + y2) / 2,
+        f1 = math.asin(((y1 - cy) / ry).toFixed(9)),
+        f2 = math.asin(((y2 - cy) / ry).toFixed(9));
+
+    f1 = x1 < cx ? PI - f1 : f1;
+    f2 = x2 < cx ? PI - f2 : f2;
+    f1 < 0 && (f1 = PI * 2 + f1);
+    f2 < 0 && (f2 = PI * 2 + f2);
+
+    if (sweep_flag && f1 > f2) {
+      f1 = f1 - PI * 2;
+    }
+    if (!sweep_flag && f2 > f1) {
+      f2 = f2 - PI * 2;
+    }
+  } else {
+    f1 = recursive[0];
+    f2 = recursive[1];
+    cx = recursive[2];
+    cy = recursive[3];
+  }
+
+  var df = f2 - f1;
+
+  if (abs(df) > _120) {
+    var f2old = f2,
+        x2old = x2,
+        y2old = y2;
+
+    f2 = f1 + _120 * (sweep_flag && f2 > f1 ? 1 : -1);
+    x2 = cx + rx * math.cos(f2);
+    y2 = cy + ry * math.sin(f2);
+    res = arcToCurve(x2, y2, rx, ry, angle, 0, sweep_flag, x2old, y2old, [f2, f2old, cx, cy]);
+  }
+
+  df = f2 - f1;
+
+  var c1 = math.cos(f1),
+      s1 = math.sin(f1),
+      c2 = math.cos(f2),
+      s2 = math.sin(f2),
+      t = math.tan(df / 4),
+      hx = 4 / 3 * rx * t,
+      hy = 4 / 3 * ry * t,
+      m1 = [x1, y1],
+      m2 = [x1 + hx * s1, y1 - hy * c1],
+      m3 = [x2 + hx * s2, y2 - hy * c2],
+      m4 = [x2, y2];
+
+  m2[0] = 2 * m1[0] - m2[0];
+  m2[1] = 2 * m1[1] - m2[1];
+
+  if (recursive) {
+    return [m2, m3, m4].concat(res);
+  } else {
+    res = [m2, m3, m4].concat(res).join().split(',');
+    var newres = [];
+
+    for (var i = 0, ii = res.length; i < ii; i++) {
+      newres[i] = i % 2 ? rotate(res[i - 1], res[i], rad).y : rotate(res[i], res[i + 1], rad).x;
+    }
+
+    return newres;
+  }
+}
+
+// http://schepers.cc/getting-to-the-point
+function catmulRomToBezier(crp, z) {
+  var d = [];
+
+  for (var i = 0, iLen = crp.length; iLen - 2 * !z > i; i += 2) {
+    var p = [
+      { x: +crp[i - 2], y: +crp[i - 1] },
+      { x: +crp[i],     y: +crp[i + 1] },
+      { x: +crp[i + 2], y: +crp[i + 3] },
+      { x: +crp[i + 4], y: +crp[i + 5] }
+    ];
+
+    if (z) {
+
+      if (!i) {
+        p[0] = { x: +crp[iLen - 2], y: +crp[iLen - 1] };
+      } else if (iLen - 4 == i) {
+        p[3] = { x: +crp[0], y: +crp[1] };
+      } else if (iLen - 2 == i) {
+        p[2] = { x: +crp[0], y: +crp[1] };
+        p[3] = { x: +crp[2], y: +crp[3] };
+      }
+
+    } else {
+
+      if (iLen - 4 == i) {
+        p[3] = p[2];
+      } else if (!i) {
+        p[0] = { x: +crp[i], y: +crp[i + 1] };
+      }
+
+    }
+
+    d.push(['C',
+      (-p[0].x + 6 * p[1].x + p[2].x) / 6,
+      (-p[0].y + 6 * p[1].y + p[2].y) / 6,
+      (p[1].x + 6 * p[2].x - p[3].x) / 6,
+      (p[1].y + 6*p[2].y - p[3].y) / 6,
+      p[2].x,
+      p[2].y
+    ]);
+  }
+
+  return d;
+}
+
+// Returns bounding box of cubic bezier curve.
+// Source: http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
+// Original version: NISHIO Hirokazu
+// Modifications: https://github.com/timo22345
+function curveBBox(x0, y0, x1, y1, x2, y2, x3, y3) {
+  var tvalues = [],
+      bounds = [[], []],
+      a, b, c, t, t1, t2, b2ac, sqrtb2ac;
+
+  for (var i = 0; i < 2; ++i) {
+
+    if (i == 0) {
+      b = 6 * x0 - 12 * x1 + 6 * x2;
+      a = -3 * x0 + 9 * x1 - 9 * x2 + 3 * x3;
+      c = 3 * x1 - 3 * x0;
+    } else {
+      b = 6 * y0 - 12 * y1 + 6 * y2;
+      a = -3 * y0 + 9 * y1 - 9 * y2 + 3 * y3;
+      c = 3 * y1 - 3 * y0;
+    }
+
+    if (abs(a) < 1e-12) {
+
+      if (abs(b) < 1e-12) {
+        continue;
+      }
+
+      t = -c / b;
+
+      if (0 < t && t < 1) {
+        tvalues.push(t);
+      }
+
+      continue;
+    }
+
+    b2ac = b * b - 4 * c * a;
+    sqrtb2ac = math.sqrt(b2ac);
+
+    if (b2ac < 0) {
+      continue;
+    }
+
+    t1 = (-b + sqrtb2ac) / (2 * a);
+
+    if (0 < t1 && t1 < 1) {
+      tvalues.push(t1);
+    }
+
+    t2 = (-b - sqrtb2ac) / (2 * a);
+
+    if (0 < t2 && t2 < 1) {
+      tvalues.push(t2);
+    }
+  }
+
+  var j = tvalues.length,
+      jlen = j,
+      mt;
+
+  while (j--) {
+    t = tvalues[j];
+    mt = 1 - t;
+    bounds[0][j] = (mt * mt * mt * x0) + (3 * mt * mt * t * x1) + (3 * mt * t * t * x2) + (t * t * t * x3);
+    bounds[1][j] = (mt * mt * mt * y0) + (3 * mt * mt * t * y1) + (3 * mt * t * t * y2) + (t * t * t * y3);
+  }
+
+  bounds[0][jlen] = x0;
+  bounds[1][jlen] = y0;
+  bounds[0][jlen + 1] = x3;
+  bounds[1][jlen + 1] = y3;
+  bounds[0].length = bounds[1].length = jlen + 2;
+
+  return {
+    min: { x: mmin.apply(0, bounds[0]), y: mmin.apply(0, bounds[1]) },
+    max: { x: mmax.apply(0, bounds[0]), y: mmax.apply(0, bounds[1]) }
+  };
+}
+
+function pathToCurve(path, path2) {
+  var pth = !path2 && paths(path);
+
+  if (!path2 && pth.curve) {
+    return pathClone(pth.curve);
+  }
+
+  var p = pathToAbsolute(path),
+      p2 = path2 && pathToAbsolute(path2),
+      attrs = { x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null },
+      attrs2 = { x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null },
+      processPath = function(path, d, pcom) {
+        var nx, ny;
+
+        if (!path) {
+          return ['C', d.x, d.y, d.x, d.y, d.x, d.y];
+        }
+
+        !(path[0] in { T: 1, Q: 1 }) && (d.qx = d.qy = null);
+
+        switch (path[0]) {
+        case 'M':
+          d.X = path[1];
+          d.Y = path[2];
+          break;
+        case 'A':
+          path = ['C'].concat(arcToCurve.apply(0, [d.x, d.y].concat(path.slice(1))));
+          break;
+        case 'S':
+          if (pcom == 'C' || pcom == 'S') { // In 'S' case we have to take into account, if the previous command is C/S.
+            nx = d.x * 2 - d.bx;          // And reflect the previous
+            ny = d.y * 2 - d.by;          // command's control point relative to the current point.
+          }
+          else {                            // or some else or nothing
+            nx = d.x;
+            ny = d.y;
+          }
+          path = ['C', nx, ny].concat(path.slice(1));
+          break;
+        case 'T':
+          if (pcom == 'Q' || pcom == 'T') { // In 'T' case we have to take into account, if the previous command is Q/T.
+            d.qx = d.x * 2 - d.qx;        // And make a reflection similar
+            d.qy = d.y * 2 - d.qy;        // to case 'S'.
+          }
+          else {                            // or something else or nothing
+            d.qx = d.x;
+            d.qy = d.y;
+          }
+          path = ['C'].concat(qubicToCurve(d.x, d.y, d.qx, d.qy, path[1], path[2]));
+          break;
+        case 'Q':
+          d.qx = path[1];
+          d.qy = path[2];
+          path = ['C'].concat(qubicToCurve(d.x, d.y, path[1], path[2], path[3], path[4]));
+          break;
+        case 'L':
+          path = ['C'].concat(lineToCurve(d.x, d.y, path[1], path[2]));
+          break;
+        case 'H':
+          path = ['C'].concat(lineToCurve(d.x, d.y, path[1], d.y));
+          break;
+        case 'V':
+          path = ['C'].concat(lineToCurve(d.x, d.y, d.x, path[1]));
+          break;
+        case 'Z':
+          path = ['C'].concat(lineToCurve(d.x, d.y, d.X, d.Y));
+          break;
+        }
+
+        return path;
+      },
+
+      fixArc = function(pp, i) {
+
+        if (pp[i].length > 7) {
+          pp[i].shift();
+          var pi = pp[i];
+
+          while (pi.length) {
+            pcoms1[i] = 'A'; // if created multiple C:s, their original seg is saved
+            p2 && (pcoms2[i] = 'A'); // the same as above
+            pp.splice(i++, 0, ['C'].concat(pi.splice(0, 6)));
+          }
+
+          pp.splice(i, 1);
+          ii = mmax(p.length, p2 && p2.length || 0);
+        }
+      },
+
+      fixM = function(path1, path2, a1, a2, i) {
+
+        if (path1 && path2 && path1[i][0] == 'M' && path2[i][0] != 'M') {
+          path2.splice(i, 0, ['M', a2.x, a2.y]);
+          a1.bx = 0;
+          a1.by = 0;
+          a1.x = path1[i][1];
+          a1.y = path1[i][2];
+          ii = mmax(p.length, p2 && p2.length || 0);
+        }
+      },
+
+      pcoms1 = [], // path commands of original path p
+      pcoms2 = [], // path commands of original path p2
+      pfirst = '', // temporary holder for original path command
+      pcom = ''; // holder for previous path command of original path
+
+  for (var i = 0, ii = mmax(p.length, p2 && p2.length || 0); i < ii; i++) {
+    p[i] && (pfirst = p[i][0]); // save current path command
+
+    if (pfirst != 'C') // C is not saved yet, because it may be result of conversion
+    {
+      pcoms1[i] = pfirst; // Save current path command
+      i && ( pcom = pcoms1[i - 1]); // Get previous path command pcom
+    }
+    p[i] = processPath(p[i], attrs, pcom); // Previous path command is inputted to processPath
+
+    if (pcoms1[i] != 'A' && pfirst == 'C') pcoms1[i] = 'C'; // A is the only command
+    // which may produce multiple C:s
+    // so we have to make sure that C is also C in original path
+
+    fixArc(p, i); // fixArc adds also the right amount of A:s to pcoms1
+
+    if (p2) { // the same procedures is done to p2
+      p2[i] && (pfirst = p2[i][0]);
+
+      if (pfirst != 'C') {
+        pcoms2[i] = pfirst;
+        i && (pcom = pcoms2[i - 1]);
+      }
+
+      p2[i] = processPath(p2[i], attrs2, pcom);
+
+      if (pcoms2[i] != 'A' && pfirst == 'C') {
+        pcoms2[i] = 'C';
+      }
+
+      fixArc(p2, i);
+    }
+
+    fixM(p, p2, attrs, attrs2, i);
+    fixM(p2, p, attrs2, attrs, i);
+
+    var seg = p[i],
+        seg2 = p2 && p2[i],
+        seglen = seg.length,
+        seg2len = p2 && seg2.length;
+
+    attrs.x = seg[seglen - 2];
+    attrs.y = seg[seglen - 1];
+    attrs.bx = toFloat(seg[seglen - 4]) || attrs.x;
+    attrs.by = toFloat(seg[seglen - 3]) || attrs.y;
+    attrs2.bx = p2 && (toFloat(seg2[seg2len - 4]) || attrs2.x);
+    attrs2.by = p2 && (toFloat(seg2[seg2len - 3]) || attrs2.y);
+    attrs2.x = p2 && seg2[seg2len - 2];
+    attrs2.y = p2 && seg2[seg2len - 1];
+  }
+
+  if (!p2) {
+    pth.curve = pathClone(p);
+  }
+
+  return p2 ? [p, p2] : p;
+}
+
+module.exports = findPathIntersections;
+},{}],474:[function(_dereq_,module,exports){
 'use strict';
 
 module['exports'] = decodeEntities;
@@ -53571,12 +54652,12 @@ function decodeEntities(s) {
 
   return s;
 }
-},{}],470:[function(_dereq_,module,exports){
+},{}],475:[function(_dereq_,module,exports){
 'use strict';
 
 module['exports'] = Saxen;
 
-var decodeEntities = _dereq_(469);
+var decodeEntities = _dereq_(474);
 
 var XSI_URI = 'http://www.w3.org/2001/XMLSchema-instance';
 var XSI_PREFIX = 'xsi';
@@ -54205,7 +55286,7 @@ function Saxen(options) {
 
       if (j !== i) {
         if (onText) {
-          onText(xml.substring(j, i), decodeEntities);
+          onText(xml.substring(j, i), decodeEntities, getContext);
           if (parseStop) {
             return;
           }
@@ -54224,7 +55305,7 @@ function Saxen(options) {
           }
 
           if (onCDATA) {
-            onCDATA(xml.substring(i + 9, j));
+            onCDATA(xml.substring(i + 9, j), getContext);
             if (parseStop) {
               return;
             }
@@ -54243,7 +55324,7 @@ function Saxen(options) {
 
 
           if (onComment) {
-            onComment(xml.substring(i + 4, j), decodeEntities);
+            onComment(xml.substring(i + 4, j), decodeEntities, getContext);
             if (parseStop) {
               return;
             }
@@ -54259,7 +55340,7 @@ function Saxen(options) {
         }
 
         if (onAttention) {
-          onAttention(xml.substring(i, j + 1), decodeEntities);
+          onAttention(xml.substring(i, j + 1), decodeEntities, getContext);
           if (parseStop) {
             return;
           }
@@ -54276,7 +55357,7 @@ function Saxen(options) {
         }
 
         if (onQuestion) {
-          onQuestion(xml.substring(i, j + 2));
+          onQuestion(xml.substring(i, j + 2), getContext);
           if (parseStop) {
             return;
           }
@@ -54463,7 +55544,7 @@ function Saxen(options) {
   } /** end parse */
 
 }
-},{"469":469}],471:[function(_dereq_,module,exports){
+},{"474":474}],476:[function(_dereq_,module,exports){
 /**
  * Tiny stack for browser or server
  *
@@ -54580,14 +55661,14 @@ else {
 }
 } )( this );
 
-},{}],472:[function(_dereq_,module,exports){
+},{}],477:[function(_dereq_,module,exports){
 /**
  * append utility
  */
 
 module.exports = append;
 
-var appendTo = _dereq_(473);
+var appendTo = _dereq_(478);
 
 /**
  * Append a node to an element
@@ -54601,13 +55682,13 @@ function append(element, node) {
   appendTo(node, element);
   return element;
 }
-},{"473":473}],473:[function(_dereq_,module,exports){
+},{"478":478}],478:[function(_dereq_,module,exports){
 /**
  * appendTo utility
  */
 module.exports = appendTo;
 
-var ensureImported = _dereq_(483);
+var ensureImported = _dereq_(488);
 
 /**
  * Append a node to a target element and return the appended node.
@@ -54621,7 +55702,7 @@ function appendTo(element, target) {
   target.appendChild(ensureImported(element, target));
   return element;
 }
-},{"483":483}],474:[function(_dereq_,module,exports){
+},{"488":488}],479:[function(_dereq_,module,exports){
 /**
  * attribute accessor utility
  */
@@ -54754,7 +55835,7 @@ function attr(node, name, value) {
   return node;
 }
 
-},{}],475:[function(_dereq_,module,exports){
+},{}],480:[function(_dereq_,module,exports){
 /**
  * Clear utility
  */
@@ -54961,7 +56042,7 @@ ClassList.prototype.contains = function(name) {
   );
 };
 
-},{}],476:[function(_dereq_,module,exports){
+},{}],481:[function(_dereq_,module,exports){
 /**
  * Clear utility
  */
@@ -54969,7 +56050,7 @@ ClassList.prototype.contains = function(name) {
 module.exports = clear;
 
 
-var remove = _dereq_(481);
+var remove = _dereq_(486);
 
 /**
  * Removes all children from the given element
@@ -54986,13 +56067,13 @@ function clear(element) {
 
   return element;
 }
-},{"481":481}],477:[function(_dereq_,module,exports){
+},{"486":486}],482:[function(_dereq_,module,exports){
 module.exports = clone;
 
 function clone(element) {
   return element.cloneNode(true);
 }
-},{}],478:[function(_dereq_,module,exports){
+},{}],483:[function(_dereq_,module,exports){
 /**
  * Create utility for SVG elements
  */
@@ -55000,9 +56081,9 @@ function clone(element) {
 module.exports = create;
 
 
-var attr = _dereq_(474);
-var parse = _dereq_(485);
-var ns = _dereq_(484);
+var attr = _dereq_(479);
+var parse = _dereq_(490);
+var ns = _dereq_(489);
 
 
 /**
@@ -55029,13 +56110,13 @@ function create(name, attrs) {
 
   return element;
 }
-},{"474":474,"484":484,"485":485}],479:[function(_dereq_,module,exports){
+},{"479":479,"489":489,"490":490}],484:[function(_dereq_,module,exports){
 /**
  * Geometry helpers
  */
 
 
-var create = _dereq_(478);
+var create = _dereq_(483);
 
 // fake node used to instantiate svg geometry elements
 var node = create('svg');
@@ -55101,7 +56182,7 @@ function createTransform(matrix) {
 module.exports.createTransform = createTransform;
 module.exports.createMatrix = createMatrix;
 module.exports.createPoint = createPoint;
-},{"478":478}],480:[function(_dereq_,module,exports){
+},{"483":483}],485:[function(_dereq_,module,exports){
 /**
  * innerHTML like functionality for SVG elements.
  * based on innerSVG (https://code.google.com/p/innersvg)
@@ -55110,10 +56191,10 @@ module.exports.createPoint = createPoint;
 module.exports = innerSVG;
 
 
-var clear = _dereq_(476);
-var appendTo = _dereq_(473);
-var parse = _dereq_(485);
-var serialize = _dereq_(486);
+var clear = _dereq_(481);
+var appendTo = _dereq_(478);
+var parse = _dereq_(490);
+var serialize = _dereq_(491);
 
 
 function set(element, svg) {
@@ -55164,7 +56245,7 @@ function innerSVG(element, svg) {
     return get(element);
   }
 }
-},{"473":473,"476":476,"485":485,"486":486}],481:[function(_dereq_,module,exports){
+},{"478":478,"481":481,"490":490,"491":491}],486:[function(_dereq_,module,exports){
 module.exports = remove;
 
 function remove(element) {
@@ -55176,7 +56257,7 @@ function remove(element) {
 
   return element;
 }
-},{}],482:[function(_dereq_,module,exports){
+},{}],487:[function(_dereq_,module,exports){
 /**
  * transform accessor utility
  */
@@ -55216,7 +56297,7 @@ function transform(node, transforms) {
     }
   }
 }
-},{}],483:[function(_dereq_,module,exports){
+},{}],488:[function(_dereq_,module,exports){
 module.exports = ensureImported;
 
 function ensureImported(element, target) {
@@ -55232,13 +56313,13 @@ function ensureImported(element, target) {
 
   return element;
 }
-},{}],484:[function(_dereq_,module,exports){
+},{}],489:[function(_dereq_,module,exports){
 var ns = {
   svg: 'http://www.w3.org/2000/svg'
 };
 
 module.exports = ns;
-},{}],485:[function(_dereq_,module,exports){
+},{}],490:[function(_dereq_,module,exports){
 /**
  * DOM parsing utility
  */
@@ -55246,7 +56327,7 @@ module.exports = ns;
 module.exports = parse;
 
 
-var ns = _dereq_(484);
+var ns = _dereq_(489);
 
 var SVG_START = '<svg xmlns="' + ns.svg + '"';
 
@@ -55275,7 +56356,7 @@ function parseDocument(svg) {
 
   return parser.parseFromString(svg, 'text/xml');
 }
-},{"484":484}],486:[function(_dereq_,module,exports){
+},{"489":489}],491:[function(_dereq_,module,exports){
 /**
  * Serialization util
  */
