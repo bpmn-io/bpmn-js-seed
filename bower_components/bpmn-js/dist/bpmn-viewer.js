@@ -1,5 +1,5 @@
 /*!
- * bpmn-js - bpmn-viewer v0.26.1
+ * bpmn-js - bpmn-viewer v0.26.3
 
  * Copyright 2014 - 2017 camunda Services GmbH and other contributors
  *
@@ -8,7 +8,7 @@
  *
  * Source Code: https://github.com/bpmn-io/bpmn-js
  *
- * Date: 2017-12-22
+ * Date: 2018-01-04
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.BpmnJS = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 /**
@@ -496,7 +496,7 @@ var PoweredBy = _dereq_(15),
  * @param {Element} container
  */
 function addProjectLogo(container) {
-  var logoData = PoweredBy.BPMNIO_LOGO;
+  var img = PoweredBy.BPMNIO_IMG;
 
   var linkMarkup =
     '<a href="http://bpmn.io" ' +
@@ -504,7 +504,7 @@ function addProjectLogo(container) {
        'class="bjs-powered-by" ' +
        'title="Powered by bpmn.io" ' +
        'style="position: absolute; bottom: 15px; right: 15px; z-index: 100">' +
-        '<img src="data:image/png;base64,' + logoData + '">' +
+      img +
     '</a>';
 
   var linkElement = domify(linkMarkup);
@@ -4116,13 +4116,13 @@ var domify = _dereq_(203);
 
 var domDelegate = _dereq_(202);
 
-/* jshint -W101 */
 
-// inlined ../resources/bpmnjs.png
-var logoData = module.exports.BPMNIO_LOGO = 'iVBORw0KGgoAAAANSUhEUgAAADQAAAA0CAMAAADypuvZAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAADBQTFRFiMte9PrwldFwfcZPqtqN0+zEyOe1XLgjvuKncsJAZ70y6fXh3vDT////UrQV////G2zN+AAAABB0Uk5T////////////////////AOAjXRkAAAHDSURBVHjavJZJkoUgDEBJmAX8979tM8u3E6x20VlYJfFFMoL4vBDxATxZcakIOJTWSmxvKWVIkJ8jHvlRv1F2LFrVISCZI+tCtQx+XfewgVTfyY3plPiQEAzI3zWy+kR6NBhFBYeBuscJLOUuA2WVLpCjVIaFzrNQZArxAZKUQm6gsj37L9Cb7dnIBUKxENaaMJQqMpDXvSL+ktxdGRm2IsKgJGGPg7atwUG5CcFUEuSv+CwQqizTrvDTNXdMU2bMiDWZd8d7QIySWVRsb2vBBioxOFt4OinPBapL+neAb5KL5IJ8szOza2/DYoipUCx+CjO0Bpsv0V6mktNZ+k8rlABlWG0FrOpKYVo8DT3dBeLEjUBAj7moDogVii7nSS9QzZnFcOVBp1g2PyBQ3Vr5aIapN91VJy33HTJLC1iX2FY6F8gRdaAeIEfVONgtFCzZTmoLEdOjBDfsIOA6128gw3eu1shAajdZNAORxuQDJN5A5PbEG6gNIu24QJD5iNyRMZIr6bsHbCtCU/OaOaSvgkUyDMdDa1BXGf5HJ1To+/Ym6mCKT02Y+/Sa126ZKyd3jxhzpc1r8zVL6YM1Qy/kR4ABAFJ6iQUnivhAAAAAAElFTkSuQmCC';
+// inlined ../../resources/logo.svg
+var BPMNIO_LOGO_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960"><path fill="#fff" d="M960 60v839c0 33-27 61-60 61H60c-33 0-60-27-60-60V60C0 27 27 0 60 0h839c34 0 61 27 61 60z"/><path fill="#52b415" d="M217 548a205 205 0 0 0-144 58 202 202 0 0 0-4 286 202 202 0 0 0 285 3 200 200 0 0 0 48-219 203 203 0 0 0-185-128zM752 6a206 206 0 0 0-192 285 206 206 0 0 0 269 111 207 207 0 0 0 111-260A204 204 0 0 0 752 6zM62 0A62 62 0 0 0 0 62v398l60 46a259 259 0 0 1 89-36c5-28 10-57 14-85l99 2 12 85a246 246 0 0 1 88 38l70-52 69 71-52 68c17 30 29 58 35 90l86 14-2 100-86 12a240 240 0 0 1-38 89l43 58h413c37 0 60-27 60-61V407a220 220 0 0 1-44 40l21 85-93 39-45-76a258 258 0 0 1-98 1l-45 76-94-39 22-85a298 298 0 0 1-70-69l-86 22-38-94 76-45a258 258 0 0 1-1-98l-76-45 40-94 85 22a271 271 0 0 1 41-47z"/></svg>';
 
-/* jshint +W101 */
+var BPMNIO_LOGO_URL = 'data:image/svg+xml;utf8,' + encodeURIComponent(BPMNIO_LOGO_SVG);
 
+var BPMNIO_IMG = '<img width="52" height="52" src="' + BPMNIO_LOGO_URL + '" />';
 
 function css(attrs) {
   return attrs.join(';');
@@ -4163,7 +4163,7 @@ var LIGHTBOX_MARKUP =
     '<div class="backdrop" style="' + BACKDROP_STYLES + '"></div>' +
     '<div class="notice" style="' + NOTICE_STYLES + '">' +
       '<a href="http://bpmn.io" target="_blank" style="float: left; margin-right: 10px">' +
-        '<img src="data:image/png;base64,'+ logoData +'">' +
+        BPMNIO_IMG +
       '</a>' +
       'Web-based tooling for BPMN, DMN and CMMN diagrams ' +
       'powered by <a href="http://bpmn.io" target="_blank">bpmn.io</a>.' +
@@ -4187,6 +4187,8 @@ function open() {
 }
 
 module.exports.open = open;
+
+module.exports.BPMNIO_IMG = BPMNIO_IMG;
 },{"202":202,"203":203}],16:[function(_dereq_,module,exports){
 module.exports = _dereq_(18);
 },{"18":18}],17:[function(_dereq_,module,exports){
