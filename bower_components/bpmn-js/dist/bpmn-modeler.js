@@ -1,5 +1,5 @@
 /*!
- * bpmn-js - bpmn-modeler v0.26.4
+ * bpmn-js - bpmn-modeler v0.26.6
 
  * Copyright 2014 - 2017 camunda Services GmbH and other contributors
  *
@@ -8,7 +8,7 @@
  *
  * Source Code: https://github.com/bpmn-io/bpmn-js
  *
- * Date: 2018-01-18
+ * Date: 2018-01-29
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.BpmnJS = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
@@ -3208,7 +3208,7 @@ module.exports = PathMap;
 ////////// helpers //////////
 
 // copied from https://github.com/adobe-webplatform/Snap.svg/blob/master/src/svg.js
-var tokenRegex = /\{([^\}]+)\}/g,
+var tokenRegex = /\{([^}]+)\}/g,
     objNotationRegex = /(?:(?:^|\.)(.+?)(?=\[|\.|$|\()|\[('|")(.+?)\2\])(\(\))?/g; // matches .xxxxx or ["xxxxx"] to run over object properties
 
 function replacer(all, key, obj) {
@@ -3890,9 +3890,10 @@ var assign = _dereq_(439),
 /**
  * A provider for BPMN 2.0 elements context pad
  */
-function ContextPadProvider(config, injector, eventBus, contextPad, modeling,
-                            elementFactory, connect, create, popupMenu,
-                            canvas, rules, translate) {
+function ContextPadProvider(
+    config, injector, eventBus, contextPad, modeling,
+    elementFactory, connect, create, popupMenu,
+    canvas, rules, translate) {
 
   config = config || {};
 
@@ -4013,7 +4014,7 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
 
     if (typeof title !== 'string') {
       options = title;
-      title = translate('Append {type}', { type: type.replace(/^bpmn\:/, '') });
+      title = translate('Append {type}', { type: type.replace(/^bpmn:/, '') });
     }
 
     function appendStart(event, element) {
@@ -4120,19 +4121,30 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
     if (is(businessObject, 'bpmn:EventBasedGateway')) {
 
       assign(actions, {
-        'append.receive-task': appendAction('bpmn:ReceiveTask', 'bpmn-icon-receive-task'),
-        'append.message-intermediate-event': appendAction('bpmn:IntermediateCatchEvent',
-                                                  'bpmn-icon-intermediate-event-catch-message',
-                                                  { eventDefinitionType: 'bpmn:MessageEventDefinition' }),
-        'append.timer-intermediate-event': appendAction('bpmn:IntermediateCatchEvent',
-                                                  'bpmn-icon-intermediate-event-catch-timer',
-                                                  { eventDefinitionType: 'bpmn:TimerEventDefinition' }),
-        'append.condtion-intermediate-event': appendAction('bpmn:IntermediateCatchEvent',
-                                                  'bpmn-icon-intermediate-event-catch-condition',
-                                                  { eventDefinitionType: 'bpmn:ConditionalEventDefinition' }),
-        'append.signal-intermediate-event': appendAction('bpmn:IntermediateCatchEvent',
-                                                  'bpmn-icon-intermediate-event-catch-signal',
-                                                  { eventDefinitionType: 'bpmn:SignalEventDefinition' })
+        'append.receive-task': appendAction(
+          'bpmn:ReceiveTask',
+          'bpmn-icon-receive-task'
+        ),
+        'append.message-intermediate-event': appendAction(
+          'bpmn:IntermediateCatchEvent',
+          'bpmn-icon-intermediate-event-catch-message',
+          { eventDefinitionType: 'bpmn:MessageEventDefinition' }
+        ),
+        'append.timer-intermediate-event': appendAction(
+          'bpmn:IntermediateCatchEvent',
+          'bpmn-icon-intermediate-event-catch-timer',
+          { eventDefinitionType: 'bpmn:TimerEventDefinition' }
+        ),
+        'append.condtion-intermediate-event': appendAction(
+          'bpmn:IntermediateCatchEvent',
+          'bpmn-icon-intermediate-event-catch-condition',
+          { eventDefinitionType: 'bpmn:ConditionalEventDefinition' }
+        ),
+        'append.signal-intermediate-event': appendAction(
+          'bpmn:IntermediateCatchEvent',
+          'bpmn-icon-intermediate-event-catch-signal',
+          { eventDefinitionType: 'bpmn:SignalEventDefinition' }
+        )
       });
     } else
 
@@ -4152,11 +4164,22 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
         !isEventSubProcess(businessObject)) {
 
       assign(actions, {
-        'append.end-event': appendAction('bpmn:EndEvent', 'bpmn-icon-end-event-none'),
-        'append.gateway': appendAction('bpmn:ExclusiveGateway', 'bpmn-icon-gateway-xor'),
-        'append.append-task': appendAction('bpmn:Task', 'bpmn-icon-task'),
-        'append.intermediate-event': appendAction('bpmn:IntermediateThrowEvent',
-                                                  'bpmn-icon-intermediate-event-none')
+        'append.end-event': appendAction(
+          'bpmn:EndEvent',
+          'bpmn-icon-end-event-none'
+        ),
+        'append.gateway': appendAction(
+          'bpmn:ExclusiveGateway',
+          'bpmn-icon-gateway-xor'
+        ),
+        'append.append-task': appendAction(
+          'bpmn:Task',
+          'bpmn-icon-task'
+        ),
+        'append.intermediate-event': appendAction(
+          'bpmn:IntermediateThrowEvent',
+          'bpmn-icon-intermediate-event-none'
+        )
       });
     }
   }
@@ -4451,8 +4474,8 @@ var filter = _dereq_(309);
 var isAny = _dereq_(74).isAny;
 
 /**
- * Registers element exclude filters for elements that currently do 
- * not support distribution.
+ * Registers element exclude filters for elements that
+ * currently do not support distribution.
  */
 function BpmnDistributeElements(distributeElements) {
 
@@ -4501,18 +4524,12 @@ var is = _dereq_(101).is;
 
 var getBBox = _dereq_(274).getBBox;
 
+
 function BpmnEditorActions(
-    injector,
-    canvas, elementRegistry, selection,
-    spaceTool,
-    lassoTool,
-    handTool,
-    globalConnect,
-    distributeElements,
-    alignElements,
-    directEditing,
-    searchPad,
-    modeling) {
+    injector, canvas, elementRegistry,
+    selection, spaceTool, lassoTool, handTool,
+    globalConnect, distributeElements, alignElements,
+    directEditing, searchPad, modeling) {
 
   injector.invoke(EditorActions, this);
 
@@ -4606,7 +4623,9 @@ inherits(BpmnEditorActions, EditorActions);
 
 BpmnEditorActions.$inject = [
   'injector',
-  'canvas', 'elementRegistry', 'selection',
+  'canvas',
+  'elementRegistry',
+  'selection',
   'spaceTool',
   'lassoTool',
   'handTool',
@@ -4628,16 +4647,16 @@ module.exports = {
     _dereq_(176),
     _dereq_(184),
     _dereq_(248),
+    _dereq_(122),
     _dereq_(25),
     _dereq_(19),
     _dereq_(21),
-    _dereq_(90),
-    _dereq_(72)
+    _dereq_(90)
   ],
   editorActions: [ 'type', _dereq_(22) ]
 };
 
-},{"141":141,"172":172,"176":176,"184":184,"19":19,"21":21,"22":22,"248":248,"25":25,"72":72,"90":90}],24:[function(_dereq_,module,exports){
+},{"122":122,"141":141,"172":172,"176":176,"184":184,"19":19,"21":21,"22":22,"248":248,"25":25,"90":90}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var isAny = _dereq_(74).isAny;
@@ -4909,8 +4928,6 @@ module.exports = LabelEditingPreview;
 
 var assign = _dereq_(439);
 
-var UpdateLabelHandler = _dereq_(31);
-
 var LabelUtil = _dereq_(30);
 
 var is = _dereq_(101).is,
@@ -4922,14 +4939,15 @@ var SMALL_FONT_SIZE = 11,
     MEDIUM_FONT_SIZE = 12,
     MEDIUM_LINE_HEIGHT = 14;
 
-function LabelEditingProvider(eventBus, canvas, directEditing, commandStack, resizeHandles) {
+
+function LabelEditingProvider(
+    eventBus, canvas, directEditing,
+    modeling, resizeHandles) {
 
   this._canvas = canvas;
-  this._commandStack = commandStack;
+  this._modeling = modeling;
 
   directEditing.registerProvider(this);
-
-  commandStack.registerHandler('element.updateLabel', UpdateLabelHandler);
 
   // listen to dblclick on non-root elements
   eventBus.on('element.dblclick', function(event) {
@@ -4937,7 +4955,11 @@ function LabelEditingProvider(eventBus, canvas, directEditing, commandStack, res
   });
 
   // complete on followup canvas operation
-  eventBus.on([ 'element.mousedown', 'drag.init', 'canvas.viewbox.changing' ], function(event) {
+  eventBus.on([
+    'element.mousedown',
+    'drag.init',
+    'canvas.viewbox.changing'
+  ], function(event) {
     directEditing.complete();
   });
 
@@ -4957,12 +4979,14 @@ function LabelEditingProvider(eventBus, canvas, directEditing, commandStack, res
         canExecute = event.context.canExecute,
         isTouch = event.isTouch;
 
-    // TODO(nikku): we need to find a way to support the direct editing
-    // on mobile devices; right now this will break for desworkflowediting on mobile devices
+    // TODO(nikku): we need to find a way to support the
+    // direct editing on mobile devices; right now this will
+    // break for desworkflowediting on mobile devices
     // as it breaks the user interaction workflow
 
-    // TODO(nre): we should temporarily focus the edited element here
-    // and release the focused viewport after the direct edit operation is finished
+    // TODO(nre): we should temporarily focus the edited element
+    // here and release the focused viewport after the direct edit
+    // operation is finished
     if (isTouch) {
       return;
     }
@@ -4990,7 +5014,13 @@ function LabelEditingProvider(eventBus, canvas, directEditing, commandStack, res
 
 }
 
-LabelEditingProvider.$inject = [ 'eventBus', 'canvas', 'directEditing', 'commandStack', 'resizeHandles' ];
+LabelEditingProvider.$inject = [
+  'eventBus',
+  'canvas',
+  'directEditing',
+  'modeling',
+  'resizeHandles'
+];
 
 module.exports = LabelEditingProvider;
 
@@ -5026,8 +5056,15 @@ LabelEditingProvider.prototype.activate = function(element) {
   var options = {};
 
   // tasks
-  if (isAny(element, [ 'bpmn:Task', 'bpmn:Participant', 'bpmn:Lane', 'bpmn:CallActivity' ]) ||
-      isCollapsedSubProcess(element)) {
+  if (
+    isAny(element, [
+      'bpmn:Task',
+      'bpmn:Participant',
+      'bpmn:Lane',
+      'bpmn:CallActivity'
+    ]) ||
+    isCollapsedSubProcess(element)
+  ) {
     assign(options, {
       centerVertically: true
     });
@@ -5061,7 +5098,8 @@ LabelEditingProvider.prototype.activate = function(element) {
  *
  * @param  {djs.model.Base} element
  *
- * @return {Object} an object containing information about position and size (fixed or minimum and/or maximum)
+ * @return {Object} an object containing information about position
+ *                  and size (fixed or minimum and/or maximum)
  */
 LabelEditingProvider.prototype.getEditingBBox = function(element) {
   var canvas = this._canvas;
@@ -5110,7 +5148,8 @@ LabelEditingProvider.prototype.getEditingBBox = function(element) {
   }
 
 
-  // internal labels for tasks and collapsed call activities, sub processes and participants
+  // internal labels for tasks and collapsed call activities,
+  // sub processes and participants
   if (isAny(element, [ 'bpmn:Task', 'bpmn:CallActivity']) ||
       isCollapsedPool(element) ||
       isCollapsedSubProcess(element)) {
@@ -5195,19 +5234,26 @@ LabelEditingProvider.prototype.getEditingBBox = function(element) {
 };
 
 
-LabelEditingProvider.prototype.update = function(element, newLabel, activeContextText, bounds) {
-  var absoluteElementBBox = this._canvas.getAbsoluteBBox(element);
+LabelEditingProvider.prototype.update = function(
+    element, newLabel,
+    activeContextText, bounds) {
 
-  this._commandStack.execute('element.updateLabel', {
-    element: element,
-    newLabel: newLabel,
-    bounds: {
+  var newBounds,
+      bbox;
+
+  if (is(element, 'bpmn:TextAnnotation')) {
+
+    bbox = this._canvas.getAbsoluteBBox(element);
+
+    newBounds = {
       x: element.x,
       y: element.y,
-      width: element.width / absoluteElementBBox.width * bounds.width,
-      height: element.height / absoluteElementBBox.height * bounds.height
-    }
-  });
+      width: element.width / bbox.width * bounds.width,
+      height: element.height / bbox.height * bounds.height
+    };
+  }
+
+  this._modeling.updateLabel(element, newLabel, newBounds);
 };
 
 
@@ -5229,7 +5275,7 @@ function isCollapsedPool(element) {
 function isExpandedPool(element) {
   return is(element, 'bpmn:Participant') && isExpanded(element);
 }
-},{"101":101,"30":30,"31":31,"439":439,"74":74,"99":99}],30:[function(_dereq_,module,exports){
+},{"101":101,"30":30,"439":439,"74":74,"99":99}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var is = _dereq_(101).is;
@@ -5331,7 +5377,7 @@ function UpdateLabelHandler(modeling) {
   function postExecute(ctx) {
     var element = ctx.element,
         label = element.label || element,
-        bounds = ctx.bounds;
+        newBounds = ctx.newBounds;
 
     // ignore internal labels for elements except text annotations
     if (!hasExternalLabel(element) && !is(element, 'bpmn:TextAnnotation')) {
@@ -5342,15 +5388,21 @@ function UpdateLabelHandler(modeling) {
 
     var text = bo.name || bo.text;
 
+    // don't resize without text
     if (!text) {
       return;
     }
 
-    // get layouted text bounds and resize external
-    // external label accordingly
-    var newBounds = is(element, 'bpmn:TextAnnotation') ? bounds : getLayoutedBounds(label, text, textUtil);
+    // resize element based on label _or_ pre-defined bounds
+    if (typeof newBounds === 'undefined') {
+      newBounds = getLayoutedBounds(label, text, textUtil);
+    }
 
-    modeling.resizeShape(label, newBounds, NULL_DIMENSIONS);
+    // setting newBounds to false or _null_ will
+    // disable the postExecute resize operation
+    if (newBounds) {
+      modeling.resizeShape(label, newBounds, NULL_DIMENSIONS);
+    }
   }
 
   // API
@@ -5395,7 +5447,6 @@ function getLayoutedBounds(bounds, text, textUtil) {
 },{"100":100,"101":101,"287":287,"30":30}],32:[function(_dereq_,module,exports){
 module.exports = {
   __depends__: [
-    _dereq_(129),
     _dereq_(155),
     _dereq_(232),
     _dereq_(122)
@@ -5408,7 +5459,7 @@ module.exports = {
   labelEditingPreview: [ 'type', _dereq_(28) ]
 };
 
-},{"122":122,"129":129,"155":155,"232":232,"28":28,"29":29}],33:[function(_dereq_,module,exports){
+},{"122":122,"155":155,"232":232,"28":28,"29":29}],33:[function(_dereq_,module,exports){
 'use strict';
 
 var map = _dereq_(313),
@@ -6650,6 +6701,8 @@ var UpdatePropertiesHandler = _dereq_(71),
     IdClaimHandler = _dereq_(65),
     SetColorHandler = _dereq_(67);
 
+var UpdateLabelHandler = _dereq_(31);
+
 
 /**
  * BPMN 2.0 modeling features activator
@@ -6683,15 +6736,17 @@ Modeling.prototype.getHandlers = function() {
   handlers['lane.updateRefs'] = UpdateFlowNodeRefsHandler;
   handlers['id.updateClaim'] = IdClaimHandler;
   handlers['element.setColor'] = SetColorHandler;
+  handlers['element.updateLabel'] = UpdateLabelHandler;
 
   return handlers;
 };
 
 
-Modeling.prototype.updateLabel = function(element, newLabel) {
+Modeling.prototype.updateLabel = function(element, newLabel, newBounds) {
   this._commandStack.execute('element.updateLabel', {
     element: element,
-    newLabel: newLabel
+    newLabel: newLabel,
+    newBounds: newBounds
   });
 };
 
@@ -6819,7 +6874,7 @@ Modeling.prototype.setColor = function(elements, colors) {
   });
 };
 
-},{"185":185,"297":297,"64":64,"65":65,"66":66,"67":67,"68":68,"69":69,"70":70,"71":71}],38:[function(_dereq_,module,exports){
+},{"185":185,"297":297,"31":31,"64":64,"65":65,"66":66,"67":67,"68":68,"69":69,"70":70,"71":71}],38:[function(_dereq_,module,exports){
 'use strict';
 
 var inherits = _dereq_(297);
@@ -10516,7 +10571,6 @@ module.exports = {
   __init__: [ 'modeling', 'bpmnUpdater' ],
   __depends__: [
     _dereq_(59),
-    _dereq_(32),
     _dereq_(88),
     _dereq_(76),
     _dereq_(86),
@@ -10536,7 +10590,7 @@ module.exports = {
   connectionDocking: [ 'type', _dereq_(259) ]
 };
 
-},{"129":129,"143":143,"155":155,"182":182,"241":241,"248":248,"252":252,"259":259,"32":32,"33":33,"34":34,"35":35,"36":36,"37":37,"59":59,"76":76,"86":86,"88":88}],73:[function(_dereq_,module,exports){
+},{"129":129,"143":143,"155":155,"182":182,"241":241,"248":248,"252":252,"259":259,"33":33,"34":34,"35":35,"36":36,"37":37,"59":59,"76":76,"86":86,"88":88}],73:[function(_dereq_,module,exports){
 'use strict';
 
 var is = _dereq_(101).is;
@@ -10925,7 +10979,10 @@ var assign = _dereq_(439);
 /**
  * A palette provider for BPMN 2.0 elements.
  */
-function PaletteProvider(palette, create, elementFactory, spaceTool, lassoTool, handTool, globalConnect, translate) {
+function PaletteProvider(
+    palette, create, elementFactory,
+    spaceTool, lassoTool, handTool,
+    globalConnect, translate) {
 
   this._palette = palette;
   this._create = create;
@@ -10976,7 +11033,7 @@ PaletteProvider.prototype.getPaletteEntries = function(element) {
       create.start(event, shape);
     }
 
-    var shortType = type.replace(/^bpmn\:/, '');
+    var shortType = type.replace(/^bpmn:/, '');
 
     return {
       group: group,
@@ -11111,7 +11168,9 @@ var replaceOptions = _dereq_(85);
 /**
  * This module is an element agnostic replace menu provider for the popup menu.
  */
-function ReplaceMenuProvider(popupMenu, modeling, moddle, bpmnReplace, rules, translate) {
+function ReplaceMenuProvider(
+    popupMenu, modeling, moddle,
+    bpmnReplace, rules, translate) {
 
   this._popupMenu = popupMenu;
   this._modeling = modeling;
@@ -11123,7 +11182,14 @@ function ReplaceMenuProvider(popupMenu, modeling, moddle, bpmnReplace, rules, tr
   this.register();
 }
 
-ReplaceMenuProvider.$inject = [ 'popupMenu', 'modeling', 'moddle', 'bpmnReplace', 'rules', 'translate' ];
+ReplaceMenuProvider.$inject = [
+  'popupMenu',
+  'modeling',
+  'moddle',
+  'bpmnReplace',
+  'rules',
+  'translate'
+];
 
 
 /**
@@ -11406,13 +11472,13 @@ ReplaceMenuProvider.prototype._createSequenceFlowEntries = function(element, rep
       }
       break;
     default:
-        // default flows
+      // default flows
       if (is(businessObject.sourceRef, 'bpmn:Activity') && businessObject.conditionExpression) {
         return menuEntries.push(self._createMenuEntry(entry, element, function() {
           modeling.updateProperties(element, { conditionExpression: undefined });
         }));
       }
-        // conditional flows
+      // conditional flows
       if ((is(businessObject.sourceRef, 'bpmn:ExclusiveGateway') ||
            is(businessObject.sourceRef, 'bpmn:InclusiveGateway') ||
            is(businessObject.sourceRef, 'bpmn:ComplexGateway') ||
@@ -11616,8 +11682,8 @@ function isDifferentType(element) {
     );
 
     var isExpandedEqual = (
-        target.isExpanded === undefined ||
-        target.isExpanded === isExpanded(businessObject)
+      target.isExpanded === undefined ||
+      target.isExpanded === isExpanded(businessObject)
     );
 
     return !isTypeEqual || !isEventDefinitionEqual || !isTriggeredByEventEqual || !isExpandedEqual;
@@ -11777,15 +11843,17 @@ var CUSTOM_PROPERTIES = [
 
 function toggeling(element, target) {
 
-  var oldCollapsed = has(element, 'collapsed') ?
-                     element.collapsed : !isExpanded(element);
+  var oldCollapsed = (
+    has(element, 'collapsed') ? element.collapsed : !isExpanded(element)
+  );
 
   var targetCollapsed;
 
   if (has(target, 'collapsed') || has(target, 'isExpanded')) {
     // property is explicitly set so use it
-    targetCollapsed = has(target, 'collapsed') ?
-                      target.collapsed : !target.isExpanded;
+    targetCollapsed = (
+      has(target, 'collapsed') ? target.collapsed : !target.isExpanded
+    );
   } else {
     // keep old state
     targetCollapsed = oldCollapsed;
@@ -11910,7 +11978,7 @@ function BpmnReplace(bpmnFactory, replace, selection, modeling, eventBus) {
         hints.moveChildren = false;
       }
 
-        // apply same size
+      // apply same size
       newElement.width = element.width;
       newElement.height = element.height;
     }
@@ -12987,22 +13055,26 @@ function isSameOrganization(a, b) {
 }
 
 function isMessageFlowSource(element) {
-  return is(element, 'bpmn:InteractionNode') &&
-        !isForCompensation(element) && (
-            !is(element, 'bpmn:Event') || (
-              is(element, 'bpmn:ThrowEvent') &&
-              hasEventDefinitionOrNone(element, 'bpmn:MessageEventDefinition')
-            )
+  return (
+    is(element, 'bpmn:InteractionNode') &&
+    !isForCompensation(element) && (
+      !is(element, 'bpmn:Event') || (
+        is(element, 'bpmn:ThrowEvent') &&
+        hasEventDefinitionOrNone(element, 'bpmn:MessageEventDefinition')
+      )
+    )
   );
 }
 
 function isMessageFlowTarget(element) {
-  return is(element, 'bpmn:InteractionNode') &&
-        !isForCompensation(element) && (
-            !is(element, 'bpmn:Event') || (
-              is(element, 'bpmn:CatchEvent') &&
-              hasEventDefinitionOrNone(element, 'bpmn:MessageEventDefinition')
-            )
+  return (
+    is(element, 'bpmn:InteractionNode') &&
+    !isForCompensation(element) && (
+      !is(element, 'bpmn:Event') || (
+        is(element, 'bpmn:CatchEvent') &&
+        hasEventDefinitionOrNone(element, 'bpmn:MessageEventDefinition')
+      )
+    )
   );
 }
 
@@ -13048,36 +13120,41 @@ function hasEventDefinitionOrNone(element, eventDefinition) {
 }
 
 function isSequenceFlowSource(element) {
-  return is(element, 'bpmn:FlowNode') &&
-        !is(element, 'bpmn:EndEvent') &&
-        !isEventSubProcess(element) &&
-        !(is(element, 'bpmn:IntermediateThrowEvent') &&
-          hasEventDefinition(element, 'bpmn:LinkEventDefinition')
-        ) &&
-        !isCompensationBoundary(element) &&
-        !isForCompensation(element);
+  return (
+    is(element, 'bpmn:FlowNode') &&
+    !is(element, 'bpmn:EndEvent') &&
+    !isEventSubProcess(element) &&
+    !(is(element, 'bpmn:IntermediateThrowEvent') &&
+      hasEventDefinition(element, 'bpmn:LinkEventDefinition')
+    ) &&
+    !isCompensationBoundary(element) &&
+    !isForCompensation(element)
+  );
 }
 
 function isSequenceFlowTarget(element) {
-  return is(element, 'bpmn:FlowNode') &&
-        !is(element, 'bpmn:StartEvent') &&
-        !is(element, 'bpmn:BoundaryEvent') &&
-        !isEventSubProcess(element) &&
-        !(is(element, 'bpmn:IntermediateCatchEvent') &&
-          hasEventDefinition(element, 'bpmn:LinkEventDefinition')
-        ) &&
-        !isForCompensation(element);
-
+  return (
+    is(element, 'bpmn:FlowNode') &&
+    !is(element, 'bpmn:StartEvent') &&
+    !is(element, 'bpmn:BoundaryEvent') &&
+    !isEventSubProcess(element) &&
+    !(is(element, 'bpmn:IntermediateCatchEvent') &&
+      hasEventDefinition(element, 'bpmn:LinkEventDefinition')
+    ) &&
+    !isForCompensation(element)
+  );
 }
 
 function isEventBasedTarget(element) {
-  return is(element, 'bpmn:ReceiveTask') || (
-         is(element, 'bpmn:IntermediateCatchEvent') && (
-           hasEventDefinition(element, 'bpmn:MessageEventDefinition') ||
-           hasEventDefinition(element, 'bpmn:TimerEventDefinition') ||
-           hasEventDefinition(element, 'bpmn:ConditionalEventDefinition') ||
-           hasEventDefinition(element, 'bpmn:SignalEventDefinition')
-         )
+  return (
+    is(element, 'bpmn:ReceiveTask') || (
+      is(element, 'bpmn:IntermediateCatchEvent') && (
+        hasEventDefinition(element, 'bpmn:MessageEventDefinition') ||
+        hasEventDefinition(element, 'bpmn:TimerEventDefinition') ||
+        hasEventDefinition(element, 'bpmn:ConditionalEventDefinition') ||
+        hasEventDefinition(element, 'bpmn:SignalEventDefinition')
+      )
+    )
   );
 }
 
@@ -13457,8 +13534,10 @@ function canCreate(shape, target, source, position) {
 
 function canResize(shape, newBounds) {
   if (is(shape, 'bpmn:SubProcess')) {
-    return (!!isExpanded(shape)) && (
-          !newBounds || (newBounds.width >= 100 && newBounds.height >= 80)
+    return (
+      isExpanded(shape) && (
+        !newBounds || (newBounds.width >= 100 && newBounds.height >= 80)
+      )
     );
   }
 
